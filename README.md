@@ -3,8 +3,11 @@
 A Retrieval-Augmented Generation system over the full Quran corpus, exposed
 through a conversational chatbot. It lets anyone explore the Quranic text
 intelligently: understand a word in its linguistic and theological context,
-find every occurrence of a concept, compare thematically related verses, and
-get answers sourced directly from the text.
+find every occurrence of a concept, read verses in their surrounding context,
+and get answers sourced directly from the text — in Arabic, French, or English.
+
+It offers a first, rigorous level of exploration that always cites its sources;
+it is not a substitute for scholarly interpretation (tafsir).
 
 > **Implementation status:** the MVP is complete end to end — ingestion
 > pipeline, indexing, the base RAG pipeline (retrieval + generation), the
@@ -15,206 +18,53 @@ get answers sourced directly from the text.
 
 ---
 
+## Features
+
+- **Chat Q&A** — ask a question in Arabic, French, or English and get a
+  streamed answer grounded in the retrieved verses, with every source cited
+  (surah + ayah).
+- **Lexical search (the distinctive feature)** — look up an Arabic word by its
+  trilateral root and see *every* occurrence in the Quran, with the shades of
+  meaning the root carries across contexts.
+- **Verse lookup & surah reading** — jump straight to any verse (surah picker +
+  ayah number) with its surrounding context, and read a full surah as one
+  continuous Arabic block. Verses deep-link via `/verse/{surah}/{ayah}` and
+  `/surah/{number}`.
+- **Session persistence & feedback** — conversations persist (browser +
+  server-side SQLite) and each answer can be rated 👍/👎.
+- **Multilingual throughout** — Arabic text is always shown in its original
+  script; questions and answers work across ar/fr/en.
+
+---
+
+## Run it locally
+
+The repo ships the source and the `data/raw/quran.csv` corpus; the processed
+data and indexes are generated locally. See **[`scripts/README.md`](scripts/README.md)**
+for prerequisites, the one-time build, and the one-command launcher
+(`./scripts/run.sh`).
+
+---
+
 ## Project layout
 
 ```
 quran-rag/
 ├── ingestion/        # Data pipeline: parse → normalize → enrich → morphology
 ├── indexing/         # Embeddings, Qdrant, BM25, hybrid (RRF) search
-├── retrieval/        # RAG retrieval (later steps)
-├── generation/       # LLM generation (later steps)
-├── api/              # FastAPI backend
+├── retrieval/        # Hybrid retrieval + quality layer (query proc, HyDE, rerank)
+├── generation/       # RAG orchestration + LLM client
+├── api/              # FastAPI backend (HTTP layer)
 ├── frontend/         # Next.js UI
 ├── data/
 │   ├── raw/          # quran.csv (source corpus)
 │   └── processed/    # generated JSON / indexes
-└── scripts/          # setup / ingest / translation helpers
+└── scripts/          # setup / run / ingest / translation helpers
 ```
 
----
-
-## Prerequisites
-
-- Python 3.11+
-- Docker + Docker Compose (for Qdrant and Ollama)
-- Node.js 18+ (for the frontend)
-
----
-
-## Run from a clone
-
-The repo ships the source and the `data/raw/quran.csv` corpus; the processed
-data and search indexes are **generated locally** (not committed). Do the
-one-time build, then launch with a single command.
-
-**One-time setup:**
-
-```bash
-# 1. Python env (.venv) + install deps + create .env from .env.example
-./scripts/setup.sh && source .venv/bin/activate
-
-# 2. Edit .env for a HOST run (the example targets Docker hostnames):
-#      QDRANT_URL=http://localhost:6333
-#      OLLAMA_BASE_URL=http://localhost:11434
-#      OLLAMA_MODEL=qwen2.5:7b        # or LLM_PROVIDER=anthropic + ANTHROPIC_API_KEY
-
-# 3. Start Qdrant + Ollama, then pull the LLM weights (~4.7 GB)
-./scripts/start_dev.sh
-docker exec quran-ollama ollama pull qwen2.5:7b
-
-# 4. Build the data + indexes (translations → pipeline → embeddings)
-python scripts/fetch_translations.py    # FR/EN; skip → Arabic-only retrieval
-python ingestion/run_pipeline.py        # data/raw/quran.csv → data/processed/
-python indexing/build_index.py          # embeds into Qdrant + BM25 (first run slow)
-```
-
-**Then launch everything with one command:**
-
-```bash
-./scripts/run.sh        # Qdrant+Ollama (Docker) + backend (:8000) + frontend (:3000)
-```
-
-`run.sh` checks the indexes are built, starts the backend and frontend, waits
-until they're ready, and opens the browser. Ctrl+C stops the app (Docker keeps
-running). Override ports with `BACKEND_PORT=8001 FRONTEND_PORT=3001 ./scripts/run.sh`.
-
-Prefer to run each piece yourself? The step-by-step guide below explains every
-component.
-
----
-
-## Quick start
-
-### 1. Set up the Python environment
-
-```bash
-./scripts/setup.sh
-source .venv/bin/activate
-```
-
-This creates `.venv`, installs `requirements.txt`, and copies `.env.example`
-to `.env`. Review `.env` and adjust as needed.
-
-> **Note on Arabic NLP:** `camel-tools` is heavy (~2 GB of models). The
-> morphology stage falls back automatically to `tashaphyne` and then to an
-> internal heuristic if it is unavailable — the pipeline runs either way.
-
-### 2. Run the ingestion pipeline
-
-```bash
-python ingestion/run_pipeline.py
-# Expected: "6236 verses processed, 0 errors, morphology.json created with N roots"
-```
-
-Outputs (under `data/processed/`):
-
-| File | Description |
-|------|-------------|
-| `verses_raw.json`      | Parsed verses, canonical schema |
-| `verses_enriched.json` | + period, surah names (en/fr), juz |
-| `morphology.json`      | Arabic root → forms / verses / count |
-| `verses_final.json`    | Verses with the `roots` field filled |
-
-### 3. Start infrastructure
-
-```bash
-docker compose up -d qdrant ollama
-# Qdrant dashboard: http://localhost:6333/dashboard
-```
-
-> When running scripts on the host (outside Docker), set
-> `QDRANT_URL=http://localhost:6333` in `.env`.
-
-### 4. Build the indexes
-
-```bash
-python indexing/build_index.py            # resumable via a checkpoint
-python indexing/build_index.py --rebuild  # recreate the collection
-```
-
-This embeds every verse (`intfloat/multilingual-e5-large-instruct`, 1024-dim,
-cosine) into Qdrant and builds the BM25 sparse index. The first run downloads
-the embedding model and can take 10–30 minutes depending on hardware.
-
-### 5. Test hybrid search
-
-```bash
-python -c "from indexing.hybrid_search import HybridSearch; \
-print(HybridSearch().search('الرحمن الرحيم', top_k=5))"
-```
-
-### 6. Run the LLM and the chat pipeline
-
-Start Ollama and pull the model (set `OLLAMA_MODEL` in `.env`, e.g. `qwen2.5:7b`):
-
-```bash
-docker compose up -d ollama
-docker exec quran-ollama ollama pull qwen2.5:7b
-```
-
-> The model needs ~5–6 GB; raise Docker Desktop's memory limit accordingly.
-> Ollama in Docker on macOS is CPU-only — for Metal-accelerated speed, run
-> Ollama natively instead and keep `OLLAMA_BASE_URL=http://localhost:11434`.
-> Alternatively set `LLM_PROVIDER=anthropic` to use the Claude API.
-
-CLI test of the full RAG pipeline:
-
-```bash
-python generation/chat_engine.py "What does the Quran say about patience?"
-```
-
-### 7. Run the API
-
-```bash
-uvicorn api.main:app --host 127.0.0.1 --port 8000
-```
-
-> If port 8000 is taken, pick another (e.g. `--port 8001`).
-
-Endpoints:
-
-| Method | Path           | Description |
-|--------|----------------|-------------|
-| GET    | `/health`      | Readiness: `{status, qdrant, llm}` |
-| GET    | `/search`      | Hybrid search: `?q=...&surah=&period=&juz=&limit=` |
-| POST   | `/chat`        | Full answer + sources (JSON); persists the turn under `session_id` |
-| POST   | `/chat/stream` | Token stream as Server-Sent Events |
-| POST   | `/lexical`     | Root analysis of a word: `{word, language}` → forms, occurrences, analysis, verses |
-| POST   | `/lexical/stream` | Streaming root analysis (SSE) |
-| GET    | `/verse/{surah}/{ayah}` | One verse + neighbor context + adjacent ids (`?window=`) |
-| GET    | `/surah/{number}` | Full surah: ordered verses + metadata |
-| GET    | `/surahs`      | All 114 surahs (number, names, ayah count) for pickers |
-| POST   | `/feedback`    | Record 👍/👎 on an answer; returns running stats |
-| GET    | `/feedback/stats` | Aggregate feedback counts |
-| GET    | `/sessions/{id}` | Server-persisted chat history for a session |
-
-```bash
-curl "http://127.0.0.1:8000/search?q=%D8%A7%D9%84%D8%B5%D8%A8%D8%B1&surah=2&limit=3"
-
-curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Que dit le Coran sur la patience ?"}]}'
-
-curl -X POST http://127.0.0.1:8000/lexical -H "Content-Type: application/json" \
-  -d '{"word":"رحمة","language":"fr"}'
-```
-
-### 8. Run the frontend (Next.js)
-
-```bash
-cd frontend
-cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL to the backend
-npm install
-npm run dev                         # http://localhost:3000
-```
-
-Pages: `/` (project landing), `/chat` (streaming chat + sources + 👍/👎 feedback
-+ health banner), `/search` (direct verse lookup: Arabic surah picker + ayah
-number → verse + context), `/lexical` (Arabic root analysis), and
-`/verse/[surah]/[ayah]` + `/surah/[number]` (deep-linking, Arabic-only). The API base URL is read from
-`NEXT_PUBLIC_API_URL` — `npm run dev` picks up `.env.local` automatically; for a
-production `npm run build`, set the variable before building (it is inlined).
-The backend must allow the frontend origin via `CORS_ORIGINS` (defaults to
-`http://localhost:3000`).
+Four decoupled layers — ingestion → indexing → retrieval → generation — each
+replaceable without refactoring the others, wired together and exposed over HTTP
+by `api/` and consumed by the Next.js `frontend/`.
 
 ---
 
@@ -229,12 +79,10 @@ The backend must allow the frontend origin via `CORS_ORIGINS` (defaults to
 French (Hamidullah) and English (Sahih International) translations are indexed
 alongside the Arabic text, so the embedded passage is
 `passage: {text_ar_clean} {translation_fr} {translation_en}` and BM25 covers all
-three. Fetch them with `python scripts/fetch_translations.py` (writes
-`data/translations/`), then re-run the pipeline and `build_index.py --rebuild`.
-Indexing translations raised retrieval hit-rate@10 from ~0.70 to ~0.90 on the
-eval set.
+three. Indexing translations raised retrieval hit-rate@10 from ~0.70 to ~0.90 in
+testing.
 
-### Quality layer (Step 8)
+### Quality layer
 
 These shape the **retrieval query** only; the LLM always answers the user's
 original question against the retrieved context. All three are wired into
@@ -261,6 +109,14 @@ original question against the retrieved context. All three are wired into
 
 ## Configuration
 
-All runtime settings live in `.env` (see `.env.example`): LLM provider,
-Qdrant URL/collection, embedding model and device (`auto`/`cpu`/`cuda`/`mps`),
-and batch size.
+All runtime settings live in `.env` (see `.env.example`):
+
+- **LLM:** `LLM_PROVIDER` (`ollama` | `anthropic`), `OLLAMA_MODEL` /
+  `OLLAMA_BASE_URL` or `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL`.
+- **Vector DB:** `QDRANT_URL` (use `http://localhost:6333` on the host,
+  `http://qdrant:6333` in Docker), `QDRANT_COLLECTION`.
+- **Embedding:** `EMBEDDING_MODEL`, `EMBEDDING_DEVICE` (`auto`/`cpu`/`cuda`/`mps`),
+  `EMBEDDING_BATCH_SIZE`.
+- **Quality toggles:** `QUERY_PROCESSOR_ENABLED` (on), `HYDE_ENABLED` (off),
+  `RERANK_ENABLED` (off).
+- **App:** `CORS_ORIGINS`, `LOG_LEVEL`.
