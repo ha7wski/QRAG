@@ -37,6 +37,49 @@ quran-rag/
 
 - Python 3.11+
 - Docker + Docker Compose (for Qdrant and Ollama)
+- Node.js 18+ (for the frontend)
+
+---
+
+## Run from a clone
+
+The repo ships the source and the `data/raw/quran.csv` corpus; the processed
+data and search indexes are **generated locally** (not committed). Do the
+one-time build, then launch with a single command.
+
+**One-time setup:**
+
+```bash
+# 1. Python env (.venv) + install deps + create .env from .env.example
+./scripts/setup.sh && source .venv/bin/activate
+
+# 2. Edit .env for a HOST run (the example targets Docker hostnames):
+#      QDRANT_URL=http://localhost:6333
+#      OLLAMA_BASE_URL=http://localhost:11434
+#      OLLAMA_MODEL=qwen2.5:7b        # or LLM_PROVIDER=anthropic + ANTHROPIC_API_KEY
+
+# 3. Start Qdrant + Ollama, then pull the LLM weights (~4.7 GB)
+./scripts/start_dev.sh
+docker exec quran-ollama ollama pull qwen2.5:7b
+
+# 4. Build the data + indexes (translations → pipeline → embeddings)
+python scripts/fetch_translations.py    # FR/EN; skip → Arabic-only retrieval
+python ingestion/run_pipeline.py        # data/raw/quran.csv → data/processed/
+python indexing/build_index.py          # embeds into Qdrant + BM25 (first run slow)
+```
+
+**Then launch everything with one command:**
+
+```bash
+./scripts/run.sh        # Qdrant+Ollama (Docker) + backend (:8000) + frontend (:3000)
+```
+
+`run.sh` checks the indexes are built, starts the backend and frontend, waits
+until they're ready, and opens the browser. Ctrl+C stops the app (Docker keeps
+running). Override ports with `BACKEND_PORT=8001 FRONTEND_PORT=3001 ./scripts/run.sh`.
+
+Prefer to run each piece yourself? The step-by-step guide below explains every
+component.
 
 ---
 
