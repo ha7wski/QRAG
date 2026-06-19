@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+/* Arabic text is always rendered right-to-left with the Quranic font. */
+.arabic-text {
+  direction: rtl;
+  font-family: "Amiri", "Scheherazade New", serif;
+  line-height: 2.2;
+}

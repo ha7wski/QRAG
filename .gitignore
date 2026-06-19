@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv*/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+
+# Local Claude Code config
+.claude/
+
+# Generated data / indexes
+data/processed/
+!data/processed/.gitkeep
+
+# Runtime SQLite (session history + feedback)
+data/runtime/
+
+# Fetched translations (regenerable via scripts/fetch_translations.py)
+data/translations/
+
+# Local dev runtime logs
+local-dev/logs/
+
+# OS
+.DS_Store
+
+# Node / frontend
+node_modules/
+.next/

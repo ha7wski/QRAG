@@ -1,0 +1,38 @@
+# ── Web / API ───────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.8.0
+python-dotenv==1.0.1
+
+# ── RAG & LLM ───────────────────────────────────────────────
+langchain==0.3.0
+langchain-community==0.3.0
+anthropic==0.34.0
+ollama==0.3.0
+
+# ── Embeddings ──────────────────────────────────────────────
+sentence-transformers==3.1.0
+torch==2.4.0
+
+# ── Vector DB ───────────────────────────────────────────────
+qdrant-client==1.11.0
+
+# ── BM25 sparse index ───────────────────────────────────────
+rank-bm25==0.2.2
+
+# ── Reranking (phase 2) ─────────────────────────────────────
+transformers==4.44.0
+
+# ── Arabic NLP ──────────────────────────────────────────────
+# camel-tools is optional (heavy: ~2 GB of models). The morphology
+# pipeline has an automatic fallback to tashaphyne / pyarabic.
+camel-tools==1.5.4 ; platform_system != "Windows"
+pyarabic==0.6.15
+tashaphyne==0.3.6
+langdetect==1.0.9
+
+# ── Utils ───────────────────────────────────────────────────
+httpx==0.27.0
+aiofiles==24.1.0
+structlog==24.4.0
+tqdm==4.66.5

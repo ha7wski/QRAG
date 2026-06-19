@@ -1,0 +1,7 @@
+# Minimal dependencies to run the pure-logic unit tests (tests/test_*.py).
+# Deliberately excludes the heavy ML stack (torch, sentence-transformers,
+# camel-tools) — the unit tests import only pure functions, so CI stays fast.
+pytest>=8,<9
+pyarabic==0.6.15      # required: the normalizer's hamza behavior is tested with it
+rank-bm25==0.2.2      # imported transitively by indexing/hybrid_search.py
+qdrant-client==1.11.0 # imported transitively by indexing/qdrant_store.py
