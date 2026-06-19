@@ -1,0 +1,10 @@
+node_modules
+.next
+.env.local
+npm-debug.log*
+tsconfig.tsbuildinfo
+vitest.config.ts
+vitest.setup.ts
+**/*.test.ts
+**/*.test.tsx
+.DS_Store

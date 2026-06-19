@@ -1,0 +1,19 @@
+# Backend image build context — keep it small and avoid leaking local state.
+.git
+.gitignore
+.dockerignore
+.venv*
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+.claude
+.env
+data
+frontend
+local-dev
+plans
+tests
+.github
+*.md
+.DS_Store

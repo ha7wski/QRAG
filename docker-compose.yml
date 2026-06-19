@@ -43,12 +43,15 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* is inlined at build time, so the API URL is a build arg
+        # (the browser talks to the published backend port on localhost).
+        NEXT_PUBLIC_API_URL: http://localhost:8000
     container_name: quran-frontend
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
     restart: unless-stopped

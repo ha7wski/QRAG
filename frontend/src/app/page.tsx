@@ -18,7 +18,7 @@ const features = [
   {
     href: "/lexical",
     icon: Type,
-    title: "Explore a word",
+    title: "Lisan Analysis",
     desc: "Look up an Arabic word by its root and see every place it appears in the Quran, with the shades of meaning it carries across contexts.",
     cta: "Analyze a word",
   },
@@ -60,7 +60,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-gray-700 hover:bg-gray-50"
           >
             <Type className="h-4 w-4" />
-            Explore a word
+            Lisan Analysis
           </Link>
         </div>
       </section>

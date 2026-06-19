@@ -30,10 +30,10 @@ export default function LexicalPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-800">
-          Lexical analysis
+          Lisan Analysis
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Enter an Arabic word to analyze its root across the whole Quran.
+          Enter an Arabic word to analyze its root (lisān) across the whole Quran.
         </p>
       </div>
 
