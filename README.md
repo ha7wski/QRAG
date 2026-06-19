@@ -6,16 +6,12 @@ intelligently: understand a word in its linguistic and theological context,
 find every occurrence of a concept, compare thematically related verses, and
 get answers sourced directly from the text.
 
-See [`project_summary.md`](project_summary.md) for the vision and
-[`architecture.md`](architecture.md) for the full technical design.
-
 > **Implementation status:** the MVP is complete end to end — ingestion
 > pipeline, indexing, the base RAG pipeline (retrieval + generation), the
 > FastAPI backend, lexical search (root analysis), the Next.js frontend, and
-> the quality layer (query processing, HyDE, cross-encoder reranking, and a
-> retrieval-evaluation harness). Plus single-verse / full-surah endpoints and
-> pages (deep-linking), server-side session persistence (SQLite), and 👍/👎
-> answer feedback. See [`plans/`](plans/) for what is done and what is next.
+> the quality layer (query processing, HyDE, cross-encoder reranking). Plus
+> single-verse / full-surah endpoints and pages (deep-linking), server-side
+> session persistence (SQLite), and 👍/👎 answer feedback.
 
 ---
 
@@ -27,13 +23,12 @@ quran-rag/
 ├── indexing/         # Embeddings, Qdrant, BM25, hybrid (RRF) search
 ├── retrieval/        # RAG retrieval (later steps)
 ├── generation/       # LLM generation (later steps)
-├── api/              # FastAPI backend (later steps)
-├── frontend/         # Next.js UI (later steps)
+├── api/              # FastAPI backend
+├── frontend/         # Next.js UI
 ├── data/
 │   ├── raw/          # quran.csv (source corpus)
 │   └── processed/    # generated JSON / indexes
-├── scripts/          # setup / ingest / start_dev helpers
-└── tests/
+└── scripts/          # setup / ingest / translation helpers
 ```
 
 ---
@@ -214,28 +209,10 @@ original question against the retrieved context. All three are wired into
 - **Reranking** (`retrieval/reranker.py`): a cross-encoder reorders the top-20
   candidates. Opt-in via `RERANK_ENABLED=1`. The default model is the
   multilingual `BAAI/bge-reranker-v2-m3` (ar/fr/en), which vastly outperforms
-  the old English-only `ms-marco`. On the 50-question eval set it improves
-  **all** metrics (recall@10 0.277→0.343, hit-rate 0.80→0.84, MRR 0.433→0.561).
-  Recommended for quality; kept **off by default** only because of its cost
-  (~2.3 GB + per-query CPU latency). See `tests/eval/EVAL_REPORT.md`. (Lighter
-  alternative: `BAAI/bge-reranker-base`.)
-
-### Evaluation
-
-```bash
-python tests/eval/evaluate.py            # baseline hybrid retrieval
-python tests/eval/evaluate.py --rerank   # with cross-encoder rerank
-```
-
-Reports per-language and overall recall@k, hit-rate, and MRR over the
-50-question `tests/eval/qa_dataset.json` (15 ar / 15 fr / 15 en / 5 mixed,
-honest verified gold sets). Baseline: recall@10 0.277, hit-rate 0.80, MRR 0.433.
-With `bge-reranker-v2-m3`: 0.343 / 0.84 / 0.561 — improves everything. Full
-analysis in `tests/eval/EVAL_REPORT.md`. Validate gold sets with
-`python tests/eval/verify_gold.py`.
-
-> Tip: running `--rerank` while the backend is up can OOM-kill Qdrant
-> (two e5-large + the reranker). Stop the backend first, or run on a quiet box.
+  the old English-only `ms-marco`. In testing it improved every retrieval metric
+  (e.g. recall@10 ~0.28→0.34, hit-rate 0.80→0.84, MRR 0.43→0.56). Recommended for
+  quality; kept **off by default** only because of its cost (~2.3 GB + per-query
+  CPU latency). (Lighter alternative: `BAAI/bge-reranker-base`.)
 
 ---
 

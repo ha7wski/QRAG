@@ -30,3 +30,19 @@ local-dev/logs/
 # Node / frontend
 node_modules/
 .next/
+
+# Not published — local-only scaffolding used to build / test / validate / plan.
+# Kept on disk for development; excluded from the public product repo.
+plans/
+tests/
+local-dev/
+.github/workflows/
+CLAUDE.md
+architecture.md
+project_summary.md
+pytest.ini
+requirements-test.txt
+frontend/vitest.config.ts
+frontend/vitest.setup.ts
+*.test.ts
+*.test.tsx
