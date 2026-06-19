@@ -11,15 +11,10 @@ full verse metadata, even for docs found only by BM25.
 """
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from indexing.bm25_index import BM25Index
+from indexing.corpus import verses_by_id
 from indexing.embedder import Embedder
 from indexing.qdrant_store import QuranQdrant
-
-ROOT = Path(__file__).resolve().parents[1]
-VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
 
 RRF_K = 60
 CANDIDATES_PER_RETRIEVER = 20
@@ -41,12 +36,7 @@ class HybridSearch:
         # Align the Qdrant vector size with the loaded embedding model.
         self.qdrant = qdrant or QuranQdrant(vector_size=self.embedder.dimension)
         self.bm25 = bm25 or BM25Index.load()
-        self._verses = self._load_verse_lookup()
-
-    @staticmethod
-    def _load_verse_lookup() -> dict[str, dict]:
-        verses = json.load(open(VERSES_FINAL, encoding="utf-8"))
-        return {v["id"]: v for v in verses}
+        self._verses = verses_by_id()  # shared, cached {id: verse} lookup
 
     def search(
         self, query: str, top_k: int = 5, filters: dict | None = None

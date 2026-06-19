@@ -19,12 +19,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from indexing.corpus import verses_by_id  # noqa: E402
 from ingestion.morphology import select_backend  # noqa: E402
 from ingestion.normalizer import normalize_text  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 MORPHOLOGY_JSON = ROOT / "data" / "processed" / "morphology.json"
-VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
 
 DEFAULT_SAMPLE = 30
 
@@ -40,11 +40,9 @@ def _sample_evenly(items: list, k: int) -> list:
 
 class LexicalRetriever:
     def __init__(self):
-        self.index: dict[str, dict] = json.load(
-            open(MORPHOLOGY_JSON, encoding="utf-8")
-        )
-        verses = json.load(open(VERSES_FINAL, encoding="utf-8"))
-        self.verses_by_id = {v["id"]: v for v in verses}
+        with MORPHOLOGY_JSON.open(encoding="utf-8") as f:
+            self.index: dict[str, dict] = json.load(f)
+        self.verses_by_id = verses_by_id()  # shared, cached {id: verse} lookup
         self._get_root, self.backend = select_backend()
 
     def extract_root(self, word: str) -> str:

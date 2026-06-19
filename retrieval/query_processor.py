@@ -31,9 +31,6 @@ class ProcessedQuery:
     original: str
     normalized: str
     language: str                  # "ar" | "fr" | "en" | "unknown"
-    is_lexical: bool
-    arabic_root: str | None
-    arabic_roots: list[str] = field(default_factory=list)
     expanded_terms: list[str] = field(default_factory=list)
     filters: dict = field(default_factory=dict)
 
@@ -85,24 +82,21 @@ class QueryProcessor:
         language = detect_language(original)
         filters = detect_filters(original)
 
+        # arabic_roots is a local intermediate: it only exists to derive the
+        # expansion terms below — it is not exposed on ProcessedQuery.
         arabic_roots: list[str] = []
         expanded_terms: list[str] = []
-        is_lexical = False
-        arabic_root = None
 
         if _is_arabic(original):
             tokens = [t for t in normalized.split() if t]
-            # A 1–2 word Arabic query is treated as a lexical (definition) lookup.
-            is_lexical = 1 <= len(tokens) <= 2
             lex = self._lex()
             for tok in tokens:
                 root = lex.extract_root(tok)
                 if root and root not in arabic_roots:
                     arabic_roots.append(root)
             if arabic_roots:
-                arabic_root = arabic_roots[0]
                 # Light expansion: add a few surface forms of the main root.
-                entry = lex.index.get(arabic_root)
+                entry = lex.index.get(arabic_roots[0])
                 if entry:
                     expanded_terms = entry.get("forms_found", [])[:8]
 
@@ -110,9 +104,6 @@ class QueryProcessor:
             original=original,
             normalized=normalized,
             language=language,
-            is_lexical=is_lexical,
-            arabic_root=arabic_root,
-            arabic_roots=arabic_roots,
             expanded_terms=expanded_terms,
             filters=filters,
         )
@@ -123,6 +114,5 @@ if __name__ == "__main__":
     for q in ["الصبر", "Que dit le Coran sur la patience ?", "verses about mercy (makki)"]:
         pq = qp.process(q)
         print(f"\nQ: {q}")
-        print(f"  lang={pq.language} lexical={pq.is_lexical} root={pq.arabic_root} "
-              f"filters={pq.filters}")
+        print(f"  lang={pq.language} filters={pq.filters}")
         print(f"  expanded={pq.expanded_terms}")

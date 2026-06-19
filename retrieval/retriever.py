@@ -8,16 +8,13 @@ surrounding context.
 """
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from indexing.corpus import load_verses  # noqa: E402
 from indexing.hybrid_search import HybridSearch  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[1]
-VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
 
 
 # How many candidates to pull from hybrid search before reranking.
@@ -33,10 +30,12 @@ class Retriever:
 
     @staticmethod
     def _load_ordered() -> list[dict]:
-        verses = json.load(open(VERSES_FINAL, encoding="utf-8"))
-        # Stable canonical order by (surah, ayah) for neighbor lookups.
-        verses.sort(key=lambda v: (v["surah_number"], v["ayah_number"]))
-        return verses
+        # sorted() returns a NEW list (over the shared verse dicts) so we never
+        # mutate the cached corpus in place. Canonical order by (surah, ayah)
+        # for neighbor lookups.
+        return sorted(
+            load_verses(), key=lambda v: (v["surah_number"], v["ayah_number"])
+        )
 
     def retrieve(
         self, query: str, top_k: int = 5, filters: dict | None = None

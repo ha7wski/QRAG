@@ -47,7 +47,8 @@ def _load_verses() -> list[dict]:
         raise FileNotFoundError(
             f"{VERSES_FINAL} not found. Run `python ingestion/run_pipeline.py` first."
         )
-    return json.load(open(VERSES_FINAL, encoding="utf-8"))
+    with VERSES_FINAL.open(encoding="utf-8") as f:
+        return json.load(f)
 
 
 def _read_checkpoint() -> int:
