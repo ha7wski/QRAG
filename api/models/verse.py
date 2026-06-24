@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from indexing.corpus import chakl_by_ref
+
 
 class Verse(BaseModel):
     id: str                       # e.g. "2:255"
@@ -12,6 +14,7 @@ class Verse(BaseModel):
     surah_name_fr: str = ""
     ayah_number: int
     text_ar: str
+    text_ar_tashkil: str = ""     # fully vocalized (harakat) — for display
     text_ar_clean: str = ""
     translation_fr: str = ""
     translation_en: str = ""
@@ -57,8 +60,16 @@ class SurahResponse(BaseModel):
     verses: list[Verse]
 
 
-def verse_from_record(record: dict) -> Verse:
-    """Build a Verse model from a retriever/pipeline record dict."""
+def verse_from_record(record: dict, text_ar_tashkil: str | None = None) -> Verse:
+    """Build a Verse model from a retriever/pipeline record dict.
+
+    `text_ar_tashkil` (fully vocalized text) is auto-filled from the shared
+    chakl source so every verse shown in the UI is vocalized; pass it
+    explicitly only to override.
+    """
+    if text_ar_tashkil is None:
+        entry = chakl_by_ref().get((record["surah_number"], record["ayah_number"]))
+        text_ar_tashkil = entry["text"] if entry else ""
     return Verse(
         id=record["id"],
         surah_number=record["surah_number"],
@@ -67,6 +78,7 @@ def verse_from_record(record: dict) -> Verse:
         surah_name_fr=record.get("surah_name_fr", ""),
         ayah_number=record["ayah_number"],
         text_ar=record.get("text_ar", ""),
+        text_ar_tashkil=text_ar_tashkil,
         text_ar_clean=record.get("text_ar_clean", ""),
         translation_fr=record.get("translation_fr", ""),
         translation_en=record.get("translation_en", ""),

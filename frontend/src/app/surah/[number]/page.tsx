@@ -74,7 +74,7 @@ export default function SurahPage({
         <ArabicText className="block text-justify text-3xl leading-[2.6] text-gray-900">
           {data.verses.map((v) => (
             <span key={v.id}>
-              {v.text_ar}
+              {v.text_ar_tashkil || v.text_ar}
               <span className="mx-1.5 align-middle text-xl font-semibold text-brand-dark">
                 ﴿{toArabicDigits(v.ayah_number)}﴾
               </span>{" "}

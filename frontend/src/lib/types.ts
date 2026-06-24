@@ -8,6 +8,7 @@ export interface Verse {
   surah_name_fr?: string;
   ayah_number: number;
   text_ar: string;
+  text_ar_tashkil?: string; // fully vocalized (harakat) — for display
   text_ar_clean?: string;
   translation_fr?: string;
   translation_en?: string;
@@ -29,6 +30,22 @@ export interface LexicalResponse {
   analysis: string;
   key_verses: Verse[];
   found: boolean;
+}
+
+export interface VerseLookupVerse {
+  surah_number: number;
+  surah_name: string;
+  aya_number: number;
+  text: string; // vocalized (with full diacritics)
+  match_indices: number[]; // token indices in `text` to highlight
+}
+
+export interface VerseLookupResponse {
+  word: string;
+  root: string;
+  root_found: boolean;
+  total: number;
+  verses: VerseLookupVerse[];
 }
 
 export interface VerseDetail {

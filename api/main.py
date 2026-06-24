@@ -28,6 +28,7 @@ from api.routers import lexical as lexical_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import sessions as sessions_router  # noqa: E402
 from api.routers import verse as verse_router  # noqa: E402
+from api.routers import verse_lookup as verse_lookup_router  # noqa: E402
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -43,11 +44,15 @@ async def lifespan(app: FastAPI):
     from generation.lexical_analyzer import LexicalAnalyzer
 
     from api.store import Store
+    from retrieval.verse_lookup import VerseLookup
 
     logger.info("Initializing ChatEngine (embedder, Qdrant, BM25, LLM)...")
     app.state.engine = ChatEngine()
     # Reuse the engine's LLM client for lexical analysis.
     app.state.lexical_analyzer = LexicalAnalyzer(llm=app.state.engine.llm)
+    # Verse Lookup (exhaustive, vocalized, no LLM) reuses the lexical analyzer's
+    # morphology index + root extractor; it only adds the diacritized CSV.
+    app.state.verse_lookup = VerseLookup(retriever=app.state.lexical_analyzer.retriever)
     # Durable session history + feedback (SQLite).
     app.state.store = Store()
     logger.info(
@@ -77,6 +82,7 @@ app.include_router(chat_router.router)
 app.include_router(search_router.router)
 app.include_router(lexical_router.router)
 app.include_router(verse_router.router)
+app.include_router(verse_lookup_router.router)
 app.include_router(feedback_router.router)
 app.include_router(sessions_router.router)
 

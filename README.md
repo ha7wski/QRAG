@@ -11,27 +11,37 @@ it is not a substitute for scholarly interpretation (tafsir).
 
 > **Implementation status:** the MVP is complete end to end — ingestion
 > pipeline, indexing, the base RAG pipeline (retrieval + generation), the
-> FastAPI backend, lexical search (root analysis), the Next.js frontend, and
-> the quality layer (query processing, HyDE, cross-encoder reranking). Plus
-> single-verse / full-surah endpoints and pages (deep-linking), server-side
-> session persistence (SQLite), and 👍/👎 answer feedback.
+> FastAPI backend, the Next.js frontend, and the quality layer (query
+> processing, HyDE, cross-encoder reranking). Two root-based study tools (Verse
+> Study — exhaustive vocalized lookup; Lisan Analysis — LLM root analysis), plus
+> single-verse / full-surah endpoints and pages (deep-linking), fully vocalized
+> verse display, server-side session persistence (SQLite), and 👍/👎 answer
+> feedback.
 
 ---
 
 ## Features
 
-- **Chat Q&A** — ask a question in Arabic, French, or English and get a
-  streamed answer grounded in the retrieved verses, with every source cited
-  (surah + ayah).
-- **Lexical search (the distinctive feature)** — look up an Arabic word by its
-  trilateral root and see *every* occurrence in the Quran, with the shades of
-  meaning the root carries across contexts.
-- **Verse lookup & surah reading** — jump straight to any verse (surah picker +
-  ayah number) with its surrounding context, and read a full surah as one
-  continuous Arabic block. Verses deep-link via `/verse/{surah}/{ayah}` and
+- **Talk to Quran (Chat Q&A)** — ask a question in Arabic, French, or English
+  and get a streamed answer grounded in the retrieved verses, with every source
+  cited (surah + ayah).
+- **Verse Study (exhaustive root lookup)** — type a single Arabic word and see
+  *every* verse in the Quran that contains that word or any derivative of its
+  root, grouped by surah with the matched word highlighted in place. Pure
+  morphological lookup over the precomputed root index — no LLM, no vector
+  search. Backed by `POST /verse-lookup`.
+- **Lisan Analysis (linguistic root analysis)** — look up an Arabic word by its
+  trilateral root and get an LLM analysis of the shades of meaning the root
+  carries across a representative sample of its occurrences.
+- **Find Verse context & surah reading** — jump straight to any verse (surah
+  picker + ayah number) with its surrounding context, and read a full surah as
+  one continuous Arabic block. Verses deep-link via `/verse/{surah}/{ayah}` and
   `/surah/{number}`.
 - **Session persistence & feedback** — conversations persist (browser +
   server-side SQLite) and each answer can be rated 👍/👎.
+- **Fully vocalized display** — every verse shown in the UI is rendered with
+  full diacritics (chakl), sourced from `data/raw/quran_chakl.csv`; the
+  undiacritized text is kept for search/matching.
 - **Multilingual throughout** — Arabic text is always shown in its original
   script; questions and answers work across ar/fr/en.
 
@@ -39,8 +49,10 @@ it is not a substitute for scholarly interpretation (tafsir).
 
 ## Run it locally
 
-The repo ships the source and the `data/raw/quran.csv` corpus; the processed
-data and indexes are generated locally. See **[`scripts/README.md`](scripts/README.md)**
+The repo ships the source and the raw corpora — `data/raw/quran.csv`
+(undiacritized, used for indexing/matching) and `data/raw/quran_chakl.csv`
+(fully vocalized, used for display); the processed data and indexes are
+generated locally. See **[`scripts/README.md`](scripts/README.md)**
 for prerequisites, the one-time build, and the one-command launcher
 (`./scripts/run.sh`).
 
@@ -57,7 +69,7 @@ quran-rag/
 ├── api/              # FastAPI backend (HTTP layer)
 ├── frontend/         # Next.js UI
 ├── data/
-│   ├── raw/          # quran.csv (source corpus)
+│   ├── raw/          # quran.csv (indexing) + quran_chakl.csv (vocalized display)
 │   └── processed/    # generated JSON / indexes
 └── scripts/          # setup / run / ingest / translation helpers
 ```

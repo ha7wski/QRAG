@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
+  ListTree,
   MessageSquare,
   Search,
   Type,
@@ -16,18 +17,25 @@ const features = [
     cta: "Start a conversation",
   },
   {
+    href: "/search",
+    icon: Search,
+    title: "Find Verse context",
+    desc: "Jump straight to any verse: pick a surah and ayah number to read it in its surrounding context.",
+    cta: "Look up a verse",
+  },
+  {
+    href: "/verse-study",
+    icon: ListTree,
+    title: "Verse Study",
+    desc: "Type a single Arabic word and see every verse where its root appears across the whole Quran — fully vocalized, with the word highlighted in place.",
+    cta: "Study a word",
+  },
+  {
     href: "/lexical",
     icon: Type,
     title: "Lisan Analysis",
     desc: "Look up an Arabic word by its root and see every place it appears in the Quran, with the shades of meaning it carries across contexts.",
     cta: "Analyze a word",
-  },
-  {
-    href: "/search",
-    icon: Search,
-    title: "Search Verse",
-    desc: "Jump straight to any verse: pick a surah and ayah number to read it in its surrounding context.",
-    cta: "Look up a verse",
   },
 ];
 
@@ -66,7 +74,7 @@ export default function HomePage() {
       </section>
 
       {/* Feature cards */}
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {features.map(({ href, icon: Icon, title, desc, cta }) => (
           <Link
             key={href}

@@ -8,6 +8,7 @@ import type {
   SurahResponse,
   Verse,
   VerseDetail,
+  VerseLookupResponse,
 } from "./types";
 
 export const API_URL =
@@ -24,6 +25,19 @@ export async function lexical(
     body: JSON.stringify({ word, language }),
   });
   if (!res.ok) throw new Error(`Lexical lookup failed: ${res.status}`);
+  return res.json();
+}
+
+// ── Verse Lookup (exhaustive, vocalized root lookup) ──────────────────
+export async function verseLookup(
+  word: string,
+): Promise<VerseLookupResponse> {
+  const res = await fetch(`${API_URL}/verse-lookup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word }),
+  });
+  if (!res.ok) throw new Error(`Verse lookup failed: ${res.status}`);
   return res.json();
 }
 
