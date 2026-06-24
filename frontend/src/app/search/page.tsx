@@ -58,7 +58,7 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-800">Look up a verse</h1>
+      <h1 className="text-2xl font-semibold text-gray-800">Find Verse context</h1>
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Surah picker — Arabic names. */}
@@ -146,7 +146,7 @@ export default function SearchPage() {
                         isMain ? "font-bold text-gray-900" : "text-gray-800"
                       }`}
                     >
-                      {v.text_ar}
+                      {v.text_ar_tashkil || v.text_ar}
                     </ArabicText>
                   </div>
                 );

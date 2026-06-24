@@ -12,12 +12,14 @@ verse dicts in place (everyone shares them). Need a different order? Use
 """
 from __future__ import annotations
 
+import csv
 import functools
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
+QURAN_CHAKL_CSV = ROOT / "data" / "raw" / "quran_chakl.csv"
 
 
 @functools.lru_cache(maxsize=1)
@@ -35,3 +37,25 @@ def load_verses() -> list[dict]:
 def verses_by_id() -> dict[str, dict]:
     """`{verse_id: verse}` view over the cached corpus (built once, shared)."""
     return {v["id"]: v for v in load_verses()}
+
+
+@functools.lru_cache(maxsize=1)
+def chakl_by_ref() -> dict[tuple[int, int], dict]:
+    """`{(surah, ayah): {"text", "surah_name"}}` from `quran_chakl.csv`.
+
+    The processed corpus `text_ar` has no harakat; this is the only source of
+    fully diacritized (vocalized) verse text. Loaded once per process, shared
+    by every feature that displays vocalized verses.
+    """
+    if not QURAN_CHAKL_CSV.exists():
+        raise FileNotFoundError(
+            f"{QURAN_CHAKL_CSV} not found. Vocalized verse display needs the "
+            f"diacritized corpus."
+        )
+    rows: dict[tuple[int, int], dict] = {}
+    # utf-8-sig: tolerate a BOM on the header row.
+    with QURAN_CHAKL_CSV.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            key = (int(row["num_soura"]), int(row["num_aya"]))
+            rows[key] = {"text": row["aya"], "surah_name": row["name_soura"]}
+    return rows

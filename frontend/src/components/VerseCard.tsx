@@ -61,7 +61,7 @@ export default function VerseCard({
       </header>
 
       <ArabicText className="block text-right text-2xl leading-loose text-gray-900">
-        {verse.text_ar}
+        {verse.text_ar_tashkil || verse.text_ar}
       </ArabicText>
 
       {verse.translation_fr && (
