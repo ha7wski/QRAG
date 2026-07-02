@@ -36,12 +36,11 @@ def _resolve_device(requested: str | None) -> str | None:
 
 
 def _passage_text(verse: dict) -> str:
-    parts = [
-        verse.get("text_ar_clean") or verse.get("text_ar", ""),
-        verse.get("translation_fr", ""),
-        verse.get("translation_en", ""),
-    ]
-    return " ".join(p for p in parts if p).strip()
+    # Arabic-only, using the raw `text_ar` (hamza preserved) over `text_ar_clean`
+    # (which has the hamza deleted, أشده → شده). Dropping the FR/EN translations
+    # keeps sequences short — the cross-encoder is markedly faster — and is the
+    # right comparison for this Arabic study tool (queries are Arabic).
+    return verse.get("text_ar") or verse.get("text_ar_clean", "")
 
 
 class Reranker:

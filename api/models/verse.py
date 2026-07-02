@@ -84,5 +84,7 @@ def verse_from_record(record: dict, text_ar_tashkil: str | None = None) -> Verse
         translation_en=record.get("translation_en", ""),
         period=record.get("period", ""),
         juz=record.get("juz", 0),
-        relevance_score=record.get("score"),
+        # Prefer the cross-encoder score when the record was reranked; it is a
+        # far more meaningful relevance signal than the raw RRF fusion score.
+        relevance_score=record.get("rerank_score", record.get("score")),
     )

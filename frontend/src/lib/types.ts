@@ -48,6 +48,12 @@ export interface VerseLookupResponse {
   verses: VerseLookupVerse[];
 }
 
+export interface SearchResponse {
+  query: string;
+  results: Verse[]; // ranked by hybrid relevance (dense + BM25)
+  total: number;
+}
+
 export interface VerseDetail {
   verse: Verse;
   context: Verse[];

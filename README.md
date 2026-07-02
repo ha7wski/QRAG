@@ -25,11 +25,19 @@ it is not a substitute for scholarly interpretation (tafsir).
 - **Talk to Quran (Chat Q&A)** — ask a question in Arabic, French, or English
   and get a streamed answer grounded in the retrieved verses, with every source
   cited (surah + ayah).
-- **Verse Study (exhaustive root lookup)** — type a single Arabic word and see
-  *every* verse in the Quran that contains that word or any derivative of its
-  root, grouped by surah with the matched word highlighted in place. Pure
-  morphological lookup over the precomputed root index — no LLM, no vector
-  search. Backed by `POST /verse-lookup`.
+- **Verse Study** — two tabs over the Arabic corpus:
+  - **Word in Verses (exhaustive root lookup)** — type a single Arabic word and
+    see *every* verse that contains that word or any derivative of its root,
+    grouped by surah with the matched word highlighted in place. Pure
+    morphological lookup over the precomputed root index — no LLM, no vector
+    search. Backed by `POST /verse-lookup`.
+  - **Similar Verses** — type a phrase or a (partial) verse and get the closest
+    verses, ranked. Candidates come from the union of a root channel
+    (content-word roots → verses by IDF-weighted coverage) and BM25 on the
+    stopword-cleaned query; a cross-encoder reranker then scores each candidate
+    against the query, with a query-root-coverage step that keeps verses sharing
+    the query's whole context (full-coverage / AND when the query has ≥2 roots).
+    Arabic-only, no translations shown. Backed by `GET /search`.
 - **Lisan Analysis (linguistic root analysis)** — look up an Arabic word by its
   trilateral root and get an LLM analysis of the shades of meaning the root
   carries across a representative sample of its occurrences.

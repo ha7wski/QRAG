@@ -53,6 +53,31 @@ async def lifespan(app: FastAPI):
     # Verse Lookup (exhaustive, vocalized, no LLM) reuses the lexical analyzer's
     # morphology index + root extractor; it only adds the diacritized CSV.
     app.state.verse_lookup = VerseLookup(retriever=app.state.lexical_analyzer.retriever)
+    # Root-based candidate generation for GET /search ("Similar Verses"): cleans
+    # the query to content-word roots and pulls verses by IDF-weighted root
+    # coverage — a tight, noise-free pool the reranker then orders. Reuses the
+    # already-loaded QAC index (no model, cheap).
+    from retrieval.similar_verses import SimilarVerses
+
+    app.state.similar_verses = SimilarVerses(app.state.lexical_analyzer.retriever)
+    # Optional cross-encoder reranker for GET /search ("Similar Verses" tab).
+    # Gated by SEARCH_RERANK_ENABLED (off by default: the model is ~2.3 GB). It
+    # reorders a wider fused candidate pool by true query↔verse relevance,
+    # demoting the noisy dense-branch hits (basmala/short openers).
+    app.state.search_reranker = None
+    if os.getenv("SEARCH_RERANK_ENABLED", "0") == "1":
+        from retrieval.reranker import Reranker
+
+        logger.info("Loading search reranker (SEARCH_RERANK_ENABLED=1)...")
+        app.state.search_reranker = Reranker()
+        # Warm up: the first cross-encoder predict compiles the MPS/GPU graph
+        # (~10s cold), which would otherwise land on the first user search.
+        try:
+            warm = [{"id": f"0:{i}", "text_ar": "الحمد لله رب العالمين"} for i in range(32)]
+            app.state.search_reranker.rerank("الحمد لله", warm, top_k=1)
+            logger.info("Search reranker warmed up.")
+        except Exception as exc:  # pragma: no cover
+            logger.warning("Reranker warmup skipped: %s", exc)
     # Durable session history + feedback (SQLite).
     app.state.store = Store()
     logger.info(
