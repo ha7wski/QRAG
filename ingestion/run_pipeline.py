@@ -2,7 +2,7 @@
 run_pipeline.py — Main ingestion pipeline driver.
 
 Chains the four ingestion stages in order:
-    parser → normalizer → enricher → morphology
+    parser → normalizer → enricher → qac-morphology
 
 The pipeline is idempotent: re-running it simply regenerates the processed
 JSON files from the raw CSV. Final artifacts are written under
@@ -26,7 +26,8 @@ from ingestion import (  # noqa: E402
     normalizer,
     enricher,
     translator,
-    morphology,
+    morphology,       # legacy tashaphyne builder — kept for validation, unused
+    qac_morphology,   # QAC root builder (manually-verified roots)
 )
 
 
@@ -53,7 +54,11 @@ def main() -> int:
         timed("normalizer", normalizer.run, verses)
         timed("enricher", enricher.run, verses)
         timed("translator", translator.run, verses)
-        verses, index = timed("morphology", morphology.run, verses)
+        # Stage 4 — root index. Switched from the tashaphyne stemmer (mis-roots,
+        # e.g. كريم → ريم) to the QAC manually-verified roots. Old call kept,
+        # commented, so we can validate the two builders before removing it:
+        # verses, index = timed("morphology", morphology.run, verses)
+        verses, index = timed("qac-morphology", qac_morphology.run, verses)
     except Exception as exc:  # surface a clear failure, keep a clean exit code
         print(f"\n❌ Pipeline failed: {exc}")
         import traceback

@@ -12,9 +12,10 @@ feature:
 
 Design (isolated but reuses existing infrastructure):
   - root resolution + morphology index + clean corpus come from the shared
-    `LexicalRetriever` (same root backend that built the index, so a queried
-    word maps to the SAME root key).
-  - normalization comes from `ingestion.normalizer.normalize_text`.
+    `LexicalRetriever`, whose QAC maps resolve a queried word to the SAME root
+    key that was stored (root-safe normalization on both sides).
+  - display normalization for word highlighting comes from
+    `ingestion.normalizer.normalize_text`.
   - the ONLY new data dependency is `data/raw/quran_chakl.csv`, the sole source
     of fully diacritized text (the processed corpus `text_ar` has no harakat).
 """
@@ -37,18 +38,9 @@ class VerseLookup:
     """Resolve a word to its root(s) and list every verse, vocalized."""
 
     def __init__(self, retriever: LexicalRetriever | None = None):
-        # Reuse the shared morphology index + root extractor.
+        # Reuse the shared morphology index + QAC resolver.
         self.lex = retriever or LexicalRetriever()
         self.index = self.lex.index
-
-        # Build a normalized {form -> [root keys]} map so a typed surface form
-        # (e.g. "رحيم") resolves even when it is not itself a root key.
-        self.form_to_roots: dict[str, list[str]] = {}
-        for root_key, entry in self.index.items():
-            for form in entry.get("forms_found", []):
-                nf = normalize_text(form)
-                if nf:
-                    self.form_to_roots.setdefault(nf, []).append(root_key)
 
         # Shared, cached source of diacritized display text (the only one).
         self.chakl = chakl_by_ref()
@@ -57,29 +49,22 @@ class VerseLookup:
     def resolve_roots(self, word: str) -> list[str]:
         """Return every root key the input word maps to (deduplicated, ordered).
 
-        Matching, in order of trust:
-          1. the word IS a root key (hyphen-joined, e.g. "ر-ح-م"),
-          2. the bare consonant string joins to a root key ("رحم" → "ر-ح-م"),
-          3. the word is a known surface form of one or more roots,
-          4. fallback: the morphology backend extracts a root for the word.
+        Delegates to the shared LexicalRetriever's QAC ladder (raw-root keys):
+          1. the root-safe-normalized input IS a root key,
+          2. known QAC surface FORM → root(s),
+          3. known QAC lemma → root(s),
+          4. external stemmer fallback — only if QAC_STEMMER_FALLBACK=1.
+        Homographs return multiple roots.
+
+        Note on QAC segmentation: QAC splits clitics into separate segments, so
+        the FORM map keys are clitic-stripped surface segments (e.g. "بسم" is
+        stored as "بِ" + "سْمِ", never as a whole-word form). A word that only
+        ever occurs with attached clitics may therefore miss the FORM step and
+        rely on the lemma or bare-root steps; if none match and the stemmer
+        fallback is disabled, it returns no roots — an accepted trade-off of the
+        QAC-only default.
         """
-        w = normalize_text(word)
-        if not w:
-            return []
-        roots: list[str] = []
-
-        def add(rk: str) -> None:
-            if rk and rk in self.index and rk not in roots:
-                roots.append(rk)
-
-        if word.strip() in self.index:  # already hyphen-joined
-            add(word.strip())
-        add("-".join(w))                # bare root "رحم" → "ر-ح-م"
-        for rk in self.form_to_roots.get(w, []):  # known surface form
-            add(rk)
-        if not roots:                    # backend extraction fallback
-            add(self.lex.extract_root(w))
-        return roots
+        return self.lex.resolve_roots(word)
 
     # ── per-verse word highlighting ───────────────────────────────────────
     @staticmethod

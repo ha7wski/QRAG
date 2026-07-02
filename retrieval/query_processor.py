@@ -96,9 +96,16 @@ class QueryProcessor:
                     arabic_roots.append(root)
             if arabic_roots:
                 # Light expansion: add a few surface forms of the main root.
+                # QAC `forms_found` are fully diacritized; normalize them to the
+                # undiacritized form the BM25 index uses before adding as terms.
                 entry = lex.index.get(arabic_roots[0])
                 if entry:
-                    expanded_terms = entry.get("forms_found", [])[:8]
+                    seen: set[str] = set()
+                    for form in entry.get("forms_found", [])[:8]:
+                        nf = normalize_text(form)
+                        if nf and nf not in seen:
+                            seen.add(nf)
+                            expanded_terms.append(nf)
 
         return ProcessedQuery(
             original=original,
