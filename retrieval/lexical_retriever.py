@@ -48,6 +48,46 @@ def _sample_evenly(items: list, k: int) -> list:
     return [items[int(i * step)] for i in range(k)]
 
 
+# Clitics peeled (longest first) when a typed word doesn't resolve as-is; mirrors
+# retrieval/similar_verses.py. A strip is accepted only if the bare stem yields a
+# known root (see resolve_roots_lenient), so it can't mis-resolve a word that
+# already matches.
+_PROCLITICS = ["وال", "فال", "بال", "كال", "ال", "لل", "و", "ف", "ب", "ك", "ل", "س"]
+_ENCLITICS = ["هما", "كما", "هم", "هن", "كم", "كن", "نا", "ني", "ها", "ه", "ك", "ي"]
+
+
+def _alif_variants(stem: str) -> list[str]:
+    """Drop one non-initial bare alif at a time. The mushaf writes many long-ā
+    with a dagger alif that normalization strips, so a user's plene spelling
+    carries an extra ا the stored QAC form lacks (e.g. سماوات vs stored سموات)."""
+    return [stem[:i] + stem[i + 1:] for i in range(1, len(stem)) if stem[i] == "ا"]
+
+
+def _clitic_alif_candidates(w: str) -> list[str]:
+    """Ordered, deduped stem candidates for a normalized word that did not
+    resolve strictly: clitic-stripped forms plus their alif-collapsed variants."""
+    seen = {w}
+    out: list[str] = []
+
+    def push(s: str) -> None:
+        if s and len(s) >= 2 and s not in seen:
+            seen.add(s)
+            out.append(s)
+
+    bases = [w]
+    for pre in _PROCLITICS:
+        if w.startswith(pre) and len(w) - len(pre) >= 2:
+            bases.append(w[len(pre):])
+    for suf in _ENCLITICS:
+        if w.endswith(suf) and len(w) - len(suf) >= 2:
+            bases.append(w[: -len(suf)])
+    for b in bases:
+        push(b)
+        for v in _alif_variants(b):
+            push(v)
+    return out
+
+
 class LexicalRetriever:
     def __init__(self):
         with MORPHOLOGY_JSON.open(encoding="utf-8") as f:
@@ -64,21 +104,10 @@ class LexicalRetriever:
         self._stemmer = None  # lazily loaded only if the fallback is enabled
 
     # ── root resolution (QAC ladder, D3) ──────────────────────────────────
-    def resolve_roots(self, word: str) -> list[str]:
-        """Return every root key `word` maps to (deduplicated, ordered).
-
-        Ladder, in order of trust (all keyed by root-safe normalization):
-          1. the normalized input IS a root key,
-          2. known QAC surface FORM → root(s),
-          3. known QAC lemma → root(s),
-          4. external stemmer fallback — only if QAC_STEMMER_FALLBACK=1.
-
-        Homographs return multiple roots (e.g. "كل" → ["اكل", "كلل", "كيل"]).
-        Returns [] when nothing matches and the stemmer fallback is disabled.
-        """
-        w = normalize_root(word)
-        if not w:
-            return []
+    def _ladder(self, w: str) -> list[str]:
+        """Steps 1–3 of the QAC ladder on an already-normalized token:
+        root-key → surface FORM → lemma. Deduped root keys; no clitic stripping,
+        no stemmer fallback."""
         roots: list[str] = []
 
         def add(rk: str) -> None:
@@ -91,9 +120,53 @@ class LexicalRetriever:
             add(rk)
         for rk in self.lem_to_roots.get(w, []):   # 3. lemma → root(s)
             add(rk)
-        if not roots and _stemmer_fallback_enabled():  # 4. gated fallback
-            add(self._stem_root(w))
         return roots
+
+    def resolve_roots(self, word: str) -> list[str]:
+        """Return every root key `word` maps to (deduplicated, ordered).
+
+        Ladder, in order of trust (all keyed by root-safe normalization):
+          1. the normalized input IS a root key,
+          2. known QAC surface FORM → root(s),
+          3. known QAC lemma → root(s),
+          4. external stemmer fallback — only if QAC_STEMMER_FALLBACK=1.
+
+        Homographs return multiple roots (e.g. "كل" → ["اكل", "كلل", "كيل"]).
+        Returns [] when nothing matches and the stemmer fallback is disabled.
+        Strict by design (no clitic stripping) — the chat query-expansion path
+        depends on this; use `resolve_roots_lenient` for direct user lookups.
+        """
+        w = normalize_root(word)
+        if not w:
+            return []
+        roots = self._ladder(w)
+        if not roots and _stemmer_fallback_enabled():  # 4. gated fallback
+            rk = self._stem_root(w)
+            if rk and rk in self.index:
+                roots = [rk]
+        return roots
+
+    def resolve_roots_lenient(self, word: str) -> list[str]:
+        """Like `resolve_roots`, but when the exact word doesn't resolve, retry
+        on clitic-stripped and plene→defective-alif variants — accepting only a
+        result that is a known root. Recovers common user spellings the strict
+        QAC ladder misses: a leading `ال` (السماوات, الصبر) and a plene alif
+        where the mushaf uses a stripped dagger alif (سماوات vs stored سموات).
+
+        Used by the Verse Study "Word in Verses" lookup. The chat query-expansion
+        path stays on strict `resolve_roots` on purpose — widening it is a
+        metrics-gated P4 decision, not to be coupled to this lookup fix."""
+        roots = self.resolve_roots(word)
+        if roots:
+            return roots
+        w = normalize_root(word)
+        if not w:
+            return []
+        for stem in _clitic_alif_candidates(w):
+            r = self._ladder(stem)
+            if r:
+                return r
+        return []
 
     def extract_root(self, word: str) -> str:
         """Map an input word to a single root key (the best/first match).

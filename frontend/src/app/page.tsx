@@ -17,7 +17,7 @@ const features = [
     cta: "Start a conversation",
   },
   {
-    href: "/search",
+    href: "/verse-context",
     icon: Search,
     title: "Find Verse context",
     desc: "Jump straight to any verse: pick a surah and ayah number to read it in its surrounding context.",

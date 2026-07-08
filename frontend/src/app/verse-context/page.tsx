@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2, Search as SearchIcon } from "lucide-react";
 import { getSurahs, getVerse } from "@/lib/api";
@@ -10,10 +11,24 @@ import ArabicText from "@/components/ArabicText";
 // Context shown around the chosen verse: 3 before + 3 after (same surah).
 const CONTEXT_WINDOW = 3;
 
-export default function SearchPage() {
+// useSearchParams() must sit under a Suspense boundary (App Router requirement).
+export default function VerseContextPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerseContext />
+    </Suspense>
+  );
+}
+
+function VerseContext() {
+  // Deep-link target: /verse-context?surah=36&ayah=20 (e.g. from Similar Verses).
+  const params = useSearchParams();
+  const initSurah = Number(params.get("surah")) || 1;
+  const initAyah = Number(params.get("ayah")) || 1;
+
   const [surahs, setSurahs] = useState<SurahMeta[]>([]);
-  const [surah, setSurah] = useState(1);
-  const [ayah, setAyah] = useState(1);
+  const [surah, setSurah] = useState(initSurah);
+  const [ayah, setAyah] = useState(initAyah);
   const [result, setResult] = useState<VerseDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +38,12 @@ export default function SearchPage() {
     getSurahs()
       .then(setSurahs)
       .catch((e) => setError(e?.message || "Failed to load surah list"));
+  }, []);
+
+  // Auto-load the verse when arriving via a deep link.
+  useEffect(() => {
+    if (params.get("surah") && params.get("ayah")) lookup(initSurah, initAyah);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const maxAyah = useMemo(
@@ -36,13 +57,13 @@ export default function SearchPage() {
     if (ayah > count) setAyah(count); // keep the ayah within the new surah
   }
 
-  async function lookup() {
+  async function lookup(s = surah, a = ayah) {
     if (loading) return;
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      setResult(await getVerse(surah, ayah, CONTEXT_WINDOW));
+      setResult(await getVerse(s, a, CONTEXT_WINDOW));
     } catch (e: any) {
       setError(e?.message || "Verse not found");
     } finally {
@@ -89,7 +110,7 @@ export default function SearchPage() {
         <span className="text-sm text-gray-400">/ {maxAyah}</span>
 
         <button
-          onClick={lookup}
+          onClick={() => lookup()}
           disabled={loading || surahs.length === 0}
           className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
         >

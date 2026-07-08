@@ -3,7 +3,7 @@ import { BookOpen, ListTree, MessageSquare, Search, Type } from "lucide-react";
 
 const links = [
   { href: "/chat", label: "Talk to Quran", icon: MessageSquare },
-  { href: "/search", label: "Find Verse context", icon: Search },
+  { href: "/verse-context", label: "Find Verse context", icon: Search },
   { href: "/verse-study", label: "Verse Study", icon: ListTree },
   { href: "/lexical", label: "Lisan Analysis", icon: Type },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronLeft, Loader2, Search } from "lucide-react";
 import { searchVerses, verseLookup } from "@/lib/api";
 import type {
@@ -85,20 +86,87 @@ export default function VerseStudyPage() {
   );
 }
 
-/** Tab 1 — one Arabic word → every verse of its root, grouped by surah. */
+/** Group a lemma's verses by surah, preserving canonical order (backend sorted). */
+function groupBySurah(verses: VerseLookupVerse[]) {
+  const out: { number: number; name: string; verses: VerseLookupVerse[] }[] = [];
+  const byNum = new Map<number, number>(); // surah number -> index in out
+  for (const v of verses) {
+    if (!byNum.has(v.surah_number)) {
+      byNum.set(v.surah_number, out.length);
+      out.push({ number: v.surah_number, name: v.surah_name, verses: [] });
+    }
+    out[byNum.get(v.surah_number)!].verses.push(v);
+  }
+  return out;
+}
+
+/** One surah's verses, independently collapsible (default open). */
+function SurahCard({
+  group,
+  open,
+  onToggle,
+}: {
+  group: { number: number; name: string; verses: VerseLookupVerse[] };
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200">
+      <button
+        onClick={onToggle}
+        dir="rtl"
+        className="flex w-full items-center justify-between bg-gray-50 px-4 py-2.5 text-right hover:bg-gray-100"
+      >
+        <span dir="rtl" className="flex items-baseline gap-2 font-arabic text-lg">
+          <span className="text-gray-600">{group.verses.length} آية</span>
+          <span className="font-semibold text-gray-800">{group.name}</span>
+          <span className="text-sm text-gray-400">{group.number}</span>
+        </span>
+        {open ? (
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        ) : (
+          <ChevronLeft className="h-4 w-4 text-gray-400" />
+        )}
+      </button>
+      {open && (
+        <ul className="divide-y divide-gray-100">
+          {group.verses.map((v) => (
+            <li key={v.aya_number} className="px-4 py-3">
+              <div
+                dir="rtl"
+                lang="ar"
+                className="arabic-text text-2xl text-gray-900"
+              >
+                <HighlightedVerse text={v.text} indices={v.match_indices} />{" "}
+                <span className="align-middle text-sm text-gray-400">
+                  ﴿{v.aya_number}﴾
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** Tab 1 — one Arabic word → its root's verses, by surah (each surah collapsible),
+ *  split per lemma when the root carries several. */
 function WordInVerses() {
   const [word, setWord] = useState("");
   const [data, setData] = useState<VerseLookupResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Surah numbers whose section is collapsed.
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  // Collapsed sets; empty = all open (as before). Surah key = `${root}:${lemma}:${surah}`.
+  const [collapsedSurahs, setCollapsedSurahs] = useState<Set<string>>(new Set());
+  const [collapsedLemmas, setCollapsedLemmas] = useState<Set<string>>(new Set());
 
   async function run() {
     if (!word.trim() || loading) return;
     setLoading(true);
     setError(null);
-    setCollapsed(new Set());
+    setCollapsedSurahs(new Set());
+    setCollapsedLemmas(new Set());
     try {
       setData(await verseLookup(word.trim()));
     } catch (e: any) {
@@ -109,27 +177,23 @@ function WordInVerses() {
     }
   }
 
-  // Group verses by surah, preserving canonical order (backend already sorted).
-  const groups = useMemo(() => {
-    const out: { number: number; name: string; verses: VerseLookupVerse[] }[] = [];
-    const byNum = new Map<number, number>(); // surah number -> index in out
-    for (const v of data?.verses ?? []) {
-      if (!byNum.has(v.surah_number)) {
-        byNum.set(v.surah_number, out.length);
-        out.push({ number: v.surah_number, name: v.surah_name, verses: [] });
-      }
-      out[byNum.get(v.surah_number)!].verses.push(v);
-    }
-    return out;
-  }, [data]);
-
-  function toggle(num: number) {
-    setCollapsed((prev) => {
+  function toggleIn(
+    setter: Dispatch<SetStateAction<Set<string>>>,
+    key: string,
+  ) {
+    setter((prev) => {
       const next = new Set(prev);
-      next.has(num) ? next.delete(num) : next.add(num);
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
   }
+
+  // Distinct surahs the word appears in, across all its lemmas.
+  const surahCount = data
+    ? new Set(
+        data.lemmas.flatMap((l) => l.verses.map((v) => v.surah_number)),
+      ).size
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -198,74 +262,89 @@ function WordInVerses() {
             </div>
           ) : (
             <>
-              {/* Summary + root */}
+              {/* Summary: root (or proper-noun label) + totals */}
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3">
                 <span
                   dir="rtl"
                   lang="ar"
                   className="font-arabic text-lg text-gray-800"
                 >
-                  {data.total} آية في {groups.length} سورة
+                  {data.is_proper_noun
+                    ? `${data.total} آية · ${surahCount} سورة`
+                    : `${data.total} آية · ${surahCount} سورة · ${data.lemmas.length} لفظ`}
                 </span>
-                <span dir="rtl" lang="ar" className="font-arabic text-gray-600">
-                  الجذر:{" "}
-                  <span className="font-bold tracking-widest">{data.root}</span>
-                </span>
+                {data.is_proper_noun ? (
+                  <span dir="rtl" lang="ar" className="font-arabic text-gray-600">
+                    اسم علم:{" "}
+                    <span className="font-bold">
+                      {data.lemmas[0]?.lemma_display}
+                    </span>
+                  </span>
+                ) : (
+                  <span dir="rtl" lang="ar" className="font-arabic text-gray-600">
+                    الجذر:{" "}
+                    <span className="font-bold tracking-widest">{data.root}</span>
+                  </span>
+                )}
               </div>
 
-              {/* Collapsible surah groups */}
-              {groups.map((g) => {
-                const isCollapsed = collapsed.has(g.number);
+              {/* Verses by surah — each surah independently collapsible (open by
+                  default), in order of appearance. A word with several lemmas
+                  nests its surah groups under a collapsible section per lemma. */}
+              {data.lemmas.map((lg) => {
+                const lkey = `${lg.root}:${lg.lemma}`;
+                const surahs = groupBySurah(lg.verses);
+                const surahCards = (
+                  <div className="space-y-3">
+                    {surahs.map((g) => {
+                      const skey = `${lkey}:${g.number}`;
+                      return (
+                        <SurahCard
+                          key={skey}
+                          group={g}
+                          open={!collapsedSurahs.has(skey)}
+                          onToggle={() => toggleIn(setCollapsedSurahs, skey)}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+
+                // Single lemma (incl. proper nouns): surah list directly, no wrapper.
+                if (data.lemmas.length === 1) {
+                  return <div key={lkey}>{surahCards}</div>;
+                }
+
+                // Several lemmas: collapsible section per lemma (open by default).
+                const lopen = !collapsedLemmas.has(lkey);
                 return (
                   <div
-                    key={g.number}
-                    className="overflow-hidden rounded-lg border border-gray-200"
+                    key={lkey}
+                    className="overflow-hidden rounded-lg border border-gray-300"
                   >
                     <button
-                      onClick={() => toggle(g.number)}
+                      onClick={() => toggleIn(setCollapsedLemmas, lkey)}
                       dir="rtl"
-                      className="flex w-full items-center justify-between bg-gray-50 px-4 py-2.5 text-right hover:bg-gray-100"
+                      className="flex w-full items-center justify-between bg-brand-light px-4 py-2.5 text-right hover:brightness-95"
                     >
                       <span
                         dir="rtl"
-                        className="flex items-baseline gap-2 font-arabic text-lg"
+                        className="flex items-baseline gap-2 font-arabic"
                       >
-                        <span className="text-gray-600">
-                          {g.verses.length} آية
+                        <span className="text-sm text-gray-500">
+                          {lg.count} آية · {surahs.length} سورة
                         </span>
-                        <span className="font-semibold text-gray-800">
-                          {g.name}
+                        <span className="text-xl font-bold text-brand-dark">
+                          {lg.lemma_display}
                         </span>
-                        <span className="text-sm text-gray-400">{g.number}</span>
                       </span>
-                      {isCollapsed ? (
-                        <ChevronLeft className="h-4 w-4 text-gray-400" />
-                      ) : (
+                      {lopen ? (
                         <ChevronDown className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronLeft className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
-
-                    {!isCollapsed && (
-                      <ul className="divide-y divide-gray-100">
-                        {g.verses.map((v) => (
-                          <li key={v.aya_number} className="px-4 py-3">
-                            <div
-                              dir="rtl"
-                              lang="ar"
-                              className="arabic-text text-2xl text-gray-900"
-                            >
-                              <HighlightedVerse
-                                text={v.text}
-                                indices={v.match_indices}
-                              />{" "}
-                              <span className="align-middle text-sm text-gray-400">
-                                ﴿{v.aya_number}﴾
-                              </span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {lopen && <div className="space-y-3 p-3">{surahCards}</div>}
                   </div>
                 );
               })}
@@ -277,7 +356,8 @@ function WordInVerses() {
   );
 }
 
-/** Tab 2 — an Arabic phrase (even a partial verse) → semantically closest verses. */
+/** Tab 2 — an Arabic phrase (even a partial verse) → closest verses by root + keyword,
+ *  reranked by a cross-encoder (no dense/semantic branch; see api/routers/search.py). */
 function SimilarVerses() {
   const [query, setQuery] = useState("");
   const [data, setData] = useState<SearchResponse | null>(null);
@@ -341,8 +421,8 @@ function SimilarVerses() {
       </div>
 
       <p className="text-xs text-gray-400">
-        Hybrid semantic + keyword search across all 6236 verses — returns the
-        closest matches, ranked (top 20).
+        Root-aware + keyword search across all 6236 verses, reranked by
+        relevance — returns the closest matches (top 20).
       </p>
 
       {error && (
@@ -377,10 +457,12 @@ function SimilarVerses() {
               </div>
               <div className="space-y-3">
                 {data.results.map((v) => (
-                  <article
+                  <Link
                     key={v.id}
+                    href={`/verse-context?surah=${v.surah_number}&ayah=${v.ayah_number}`}
                     dir="rtl"
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                    className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-brand hover:shadow-md"
+                    title="افتح الآية في سياقها"
                   >
                     {/* Surah name (Arabic) on the right + reference; no translations. */}
                     <header className="mb-2 flex items-center justify-between gap-2">
@@ -408,7 +490,7 @@ function SimilarVerses() {
                         ﴿{v.ayah_number}﴾
                       </span>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             </>

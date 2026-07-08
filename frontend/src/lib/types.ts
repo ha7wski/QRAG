@@ -40,12 +40,21 @@ export interface VerseLookupVerse {
   match_indices: number[]; // token indices in `text` to highlight
 }
 
+export interface VerseLookupLemma {
+  root: string; // the root this lemma belongs to
+  lemma: string; // normalized lemma key
+  lemma_display: string; // diacritized lemma label for display
+  count: number; // number of verses under this lemma
+  verses: VerseLookupVerse[];
+}
 export interface VerseLookupResponse {
   word: string;
-  root: string;
-  root_found: boolean;
-  total: number;
-  verses: VerseLookupVerse[];
+  root: string; // " / "-joined root(s)
+  roots: string[]; // every matched root (homographs → several)
+  root_found: boolean; // true also for a resolved proper noun
+  is_proper_noun?: boolean; // rootless name (لوط …): lemmas has one group
+  total: number; // distinct verses across all lemma groups
+  lemmas: VerseLookupLemma[];
 }
 
 export interface SearchResponse {
