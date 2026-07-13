@@ -1,13 +1,22 @@
 """
-hybrid_search.py — Dense + sparse fusion via Reciprocal Rank Fusion (RRF).
+hybrid_search.py — Dense + sparse (+ optional root) fusion via Reciprocal Rank
+Fusion (RRF).
 
 Combines Qdrant dense vector results with BM25 sparse results:
 
     score(doc) = 1/(K + rank_dense) + 1/(K + rank_sparse)     with K = 60
 
-It takes the top-20 from each retriever, fuses them, and returns the top-K.
-Result payloads are completed from `verses_final.json` so callers always get
-full verse metadata, even for docs found only by BM25.
+and, when an optional `root_ranker` is injected (P4 root-aware channel), a third
+equal-weighted term `+ 1/(K + rank_root)` over verses that share the query's
+Arabic roots. It takes the top-20 from each retriever, fuses them, and returns
+the top-K. Result payloads are completed from `verses_final.json` so callers
+always get full verse metadata, even for docs found only by BM25.
+
+This module stays mechanism-only: `root_ranker` is any callable
+`(query, top_k, filters) -> list[str]` returning a ranked verse-id list (empty =
+abstain). The retrieval layer builds and injects it (see
+`retrieval.root_channel` / `retrieval.retriever`), keeping indexing/ decoupled
+from the morphology resolver.
 """
 from __future__ import annotations
 
@@ -31,12 +40,16 @@ class HybridSearch:
         embedder: Embedder | None = None,
         qdrant: QuranQdrant | None = None,
         bm25: BM25Index | None = None,
+        root_ranker=None,
     ):
         self.embedder = embedder or Embedder()
         # Align the Qdrant vector size with the loaded embedding model.
         self.qdrant = qdrant or QuranQdrant(vector_size=self.embedder.dimension)
         self.bm25 = bm25 or BM25Index.load()
         self._verses = verses_by_id()  # shared, cached {id: verse} lookup
+        # Optional 3rd RRF channel: callable (query, top_k, filters) -> [verse_id].
+        # None → plain dense+sparse (identical to prior behavior).
+        self.root_ranker = root_ranker
 
     def search(
         self, query: str, top_k: int = 5, filters: dict | None = None
@@ -55,12 +68,19 @@ class HybridSearch:
         if filters:
             sparse_ids = [vid for vid in sparse_ids if self._passes(vid, filters)]
 
-        # Fuse with RRF.
-        dense_scores = _rrf_scores(dense_ids)
-        sparse_scores = _rrf_scores(sparse_ids)
+        # Optional root branch (query-root coverage; already filter-aware). Empty
+        # when disabled or when the query has no resolvable content root.
+        ranked_lists = [dense_ids, sparse_ids]
+        if self.root_ranker is not None:
+            root_ids = self.root_ranker(query, CANDIDATES_PER_RETRIEVER, filters)
+            if root_ids:
+                ranked_lists.append(root_ids)
+
+        # Fuse with RRF: each channel contributes 1/(K + rank), equal-weighted.
         fused: dict[str, float] = {}
-        for vid in set(dense_scores) | set(sparse_scores):
-            fused[vid] = dense_scores.get(vid, 0.0) + sparse_scores.get(vid, 0.0)
+        for ranked_ids in ranked_lists:
+            for vid, contribution in _rrf_scores(ranked_ids).items():
+                fused[vid] = fused.get(vid, 0.0) + contribution
 
         ranked = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)[:top_k]
         return [self._format(vid, score) for vid, score in ranked]

@@ -188,11 +188,19 @@ function WordInVerses() {
     });
   }
 
-  // Distinct surahs the word appears in, across all its lemmas.
+  // KPI totals are ADDITIVE over the lemma cards (the header tallies the cards,
+  // it does not de-duplicate). A verse or surah that hosts two lemmas of the same
+  // root — e.g. روح: 34:12 (ريح+رواح), 56:89 (روح+ريحان) — is counted once per
+  // lemma, so `sum(card) === header`. Each term mirrors exactly what its card
+  // shows: آية = lemma.count, سورة = distinct surahs within that lemma.
+  const ayaCount = data
+    ? data.lemmas.reduce((sum, l) => sum + l.count, 0)
+    : 0;
   const surahCount = data
-    ? new Set(
-        data.lemmas.flatMap((l) => l.verses.map((v) => v.surah_number)),
-      ).size
+    ? data.lemmas.reduce(
+        (sum, l) => sum + new Set(l.verses.map((v) => v.surah_number)).size,
+        0,
+      )
     : 0;
 
   return (
@@ -270,8 +278,8 @@ function WordInVerses() {
                   className="font-arabic text-lg text-gray-800"
                 >
                   {data.is_proper_noun
-                    ? `${data.total} آية · ${surahCount} سورة`
-                    : `${data.total} آية · ${surahCount} سورة · ${data.lemmas.length} لفظ`}
+                    ? `${ayaCount} آية · ${surahCount} سورة`
+                    : `${ayaCount} آية · ${surahCount} سورة · ${data.lemmas.length} لفظ`}
                 </span>
                 {data.is_proper_noun ? (
                   <span dir="rtl" lang="ar" className="font-arabic text-gray-600">

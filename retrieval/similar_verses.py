@@ -35,9 +35,13 @@ from indexing.text_normalize import normalize_search  # noqa: E402
 _STOPWORDS_RAW = [
     "و", "ف", "ب", "ك", "ل", "ال", "لل",
     "لما", "ما", "من", "في", "على", "إلى", "عن", "إن", "أن", "أنه", "إنه",
-    "لا", "لم", "لن", "قد", "ثم", "أو", "أم", "بل", "لكن", "حتى", "إذا", "إذ",
+    "لا", "لم", "لن", "قد", "ثم", "أو", "أم", "إما", "أما", "بل", "لكن", "حتى", "إذا", "إذ",
     "كي", "لكي", "لو", "لولا", "هل", "يا", "إلا", "مع", "كما",
     "هو", "هي", "هم", "هن", "هما", "أنت", "أنا", "نحن", "أنتم",
+    # Detached object pronouns (إيّا…): always function words, and some resolve to
+    # a spurious root (إياه → ايي) that pollutes the query's content roots.
+    "إياه", "إياك", "إياكم", "إياكن", "إياكما", "إيانا", "إياي",
+    "إياها", "إياهم", "إياهن", "إياهما", "إيا",
     "هذا", "هذه", "ذلك", "تلك", "الذي", "التي", "الذين",
     "كل", "بعض", "غير", "عند", "بين", "لدى", "نحو", "قبل", "بعد", "دون",
 ]
@@ -60,8 +64,12 @@ class SimilarVerses:
 
     # ── query cleaning → content roots ────────────────────────────────────
     def _resolve_token(self, token: str) -> list[str]:
-        """Resolve a token to root(s), retrying with clitics/pronouns stripped."""
-        roots = self.lex.resolve_roots(token)
+        """Resolve a token to root(s), retrying with clitics/pronouns stripped.
+
+        Uses the shared lenient resolver first — it peels compound clitics (و+بال …)
+        and folds plene alif, which the manual single-strip fallback below misses
+        (e.g. وبالوالدين → ولد). The fallback stays for anything lenient doesn't cover."""
+        roots = self.lex.resolve_roots_lenient(token)
         if roots:
             return roots
         for suf in _SUFFIXES:
@@ -76,20 +84,35 @@ class SimilarVerses:
                     return roots
         return []
 
+    @staticmethod
+    def _is_stopword(tok: str) -> bool:
+        """A token is a function word if it is a listed stopword, OR if peeling an
+        enclitic pronoun leaves a stopword stem (كلها→كل, منها→من, عنه→عن). This is
+        essential now that resolution is lenient: a function word carrying a pronoun
+        (which the stoplist can't enumerate for every combination) would otherwise
+        over-resolve to a spurious root (e.g. كلها→اله) and pollute the query roots."""
+        if tok in STOPWORDS:
+            return True
+        for suf in _SUFFIXES:
+            if tok.endswith(suf) and len(tok) - len(suf) >= 2:
+                if tok[: -len(suf)] in STOPWORDS:
+                    return True
+        return False
+
     def content_terms(self, query: str) -> list[str]:
         """Query tokens with function words removed — used to clean the BM25 query
         so it doesn't match verses via a shared particle (e.g. لمّا)."""
         return [
             tok
             for tok in normalize_search(query).split()
-            if tok and tok not in STOPWORDS
+            if tok and not self._is_stopword(tok)
         ]
 
     def content_roots(self, query: str) -> list[str]:
         """Return the deduped roots of the query's content words (stopwords out)."""
         roots: list[str] = []
         for tok in normalize_search(query).split():
-            if not tok or tok in STOPWORDS:
+            if not tok or self._is_stopword(tok):
                 continue
             for r in self._resolve_token(tok):
                 if r not in roots:

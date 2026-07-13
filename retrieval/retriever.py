@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexing.corpus import load_verses  # noqa: E402
 from indexing.hybrid_search import HybridSearch  # noqa: E402
+from retrieval.root_channel import maybe_build as _maybe_root_channel  # noqa: E402
 
 
 # How many candidates to pull from hybrid search before reranking.
@@ -22,8 +23,15 @@ CANDIDATE_K = 20
 
 
 class Retriever:
-    def __init__(self, hybrid: HybridSearch | None = None, reranker=None):
-        self.hybrid = hybrid or HybridSearch()
+    def __init__(self, hybrid: HybridSearch | None = None, reranker=None, root_channel=None):
+        # Build the hybrid retriever, injecting the optional root-aware 3rd RRF
+        # channel (explicit arg wins; else env-gated ROOT_CHANNEL_ENABLED). Only
+        # wired when we construct HybridSearch ourselves — a caller passing a
+        # prebuilt `hybrid` owns its channel configuration.
+        if hybrid is None:
+            ranker = root_channel if root_channel is not None else _maybe_root_channel()
+            hybrid = HybridSearch(root_ranker=ranker)
+        self.hybrid = hybrid
         self.reranker = reranker  # optional retrieval.reranker.Reranker
         self._verses = self._load_ordered()
         self._pos = {v["id"]: i for i, v in enumerate(self._verses)}

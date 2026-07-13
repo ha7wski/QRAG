@@ -52,7 +52,13 @@ def _sample_evenly(items: list, k: int) -> list:
 # retrieval/similar_verses.py. A strip is accepted only if the bare stem yields a
 # known root (see resolve_roots_lenient), so it can't mis-resolve a word that
 # already matches.
-_PROCLITICS = ["وال", "فال", "بال", "كال", "ال", "لل", "و", "ف", "ب", "ك", "ل", "س"]
+# Longest-first so a compound conjunction+preposition+article (و+بال …) is peeled
+# in one shot; the single-letter clitics remain as a fallback. Candidate stems are
+# accepted only if they yield a known root, so an over-eager strip can't mis-resolve.
+_PROCLITICS = [
+    "وبال", "فبال", "وكال", "فكال", "ولل", "فلل", "وال", "فال",
+    "بال", "كال", "ال", "لل", "و", "ف", "ب", "ك", "ل", "س",
+]
 _ENCLITICS = ["هما", "كما", "هم", "هن", "كم", "كن", "نا", "ني", "ها", "ه", "ك", "ي"]
 
 

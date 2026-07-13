@@ -18,12 +18,13 @@ logger = logging.getLogger("quran_rag.timing")
 # bounded pool (latency ∝ pool size). Root candidates are IDF-coverage ordered
 # and BM25 by lexical score, so the truly relevant verses are near the top of
 # each; the union stays well under the reranker's per-batch (32) cost.
-ROOT_POOL = 20
-BM25_POOL = 16
-# Hard cap on the deduped union handed to the reranker. The cross-encoder costs
-# ~one batch (32) of latency per step, so keeping the pool ≤32 keeps a search to
-# a single batch (~3–4s on Apple Silicon). Raise for more recall at more latency.
-RERANK_POOL_MAX = 32
+ROOT_POOL = int(os.getenv("SEARCH_ROOT_POOL", "20"))
+BM25_POOL = int(os.getenv("SEARCH_BM25_POOL", "16"))
+# Hard cap on the deduped union handed to the reranker. Latency ∝ pool size, so
+# this is the main latency lever (no model change): a smaller pool reranks fewer
+# (query, verse) pairs. Overridable via SEARCH_RERANK_POOL_MAX; measured on the
+# phrase gold set to trade latency vs recall (see scripts/scratch/search_eval.py).
+RERANK_POOL_MAX = int(os.getenv("SEARCH_RERANK_POOL_MAX", "32"))
 # Drop reranked results below this cross-encoder relevance (sigmoid 0–1): it
 # trims the long low-relevance tail so only genuinely close verses are shown.
 # Tuned conservatively; override with SEARCH_MIN_SCORE. A minimum number of

@@ -16,7 +16,18 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+# Load .env BEFORE importing anything that reads env (routers read their tuning
+# constants at import time; the lifespan reads toggles at startup). The app must
+# carry its own config regardless of how it is launched — previously only the
+# launcher (local-dev/start.sh) exported these, so a bare `uvicorn api.main:app`
+# silently ran with defaults (e.g. SEARCH_RERANK_ENABLED off → degraded /search).
+# override=False: a var already set in the real environment still wins over .env.
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(ROOT / ".env", override=False)
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
@@ -25,6 +36,7 @@ from api.middleware import RequestLoggingMiddleware  # noqa: E402
 from api.routers import chat as chat_router  # noqa: E402
 from api.routers import feedback as feedback_router  # noqa: E402
 from api.routers import lexical as lexical_router  # noqa: E402
+from api.routers import lisan as lisan_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import sessions as sessions_router  # noqa: E402
 from api.routers import verse as verse_router  # noqa: E402
@@ -106,6 +118,7 @@ app.add_middleware(RequestLoggingMiddleware)
 app.include_router(chat_router.router)
 app.include_router(search_router.router)
 app.include_router(lexical_router.router)
+app.include_router(lisan_router.router)
 app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(feedback_router.router)

@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { Loader2, Type } from "lucide-react";
-import { lexical } from "@/lib/api";
-import type { LexicalResponse } from "@/lib/types";
-import LexicalResult from "@/components/LexicalResult";
+import { API_URL } from "@/lib/api";
+import type { LisanResponse } from "@/lib/lisanTypes";
+import LisanResult from "@/components/LisanResult";
 
 export default function LexicalPage() {
   const [word, setWord] = useState("");
   const [language, setLanguage] = useState("en");
-  const [data, setData] = useState<LexicalResponse | null>(null);
+  const [data, setData] = useState<LisanResponse | null>(null);
+  // The language the current result was computed for (so RTL/Amiri and the
+  // synthesis language match the response, not a since-changed selector).
+  const [resultLang, setResultLang] = useState("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,9 +21,27 @@ export default function LexicalPage() {
     setLoading(true);
     setError(null);
     try {
-      setData(await lexical(word.trim(), language));
+      const res = await fetch(`${API_URL}/lisan/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: word.trim(), lang: language }),
+      });
+      if (!res.ok) {
+        // 422 carries a FastAPI `detail`; surface it verbatim when present.
+        let detail = `Analysis failed (${res.status})`;
+        try {
+          const body = await res.json();
+          if (typeof body?.detail === "string") detail = body.detail;
+        } catch {
+          /* non-JSON error body — keep the status message */
+        }
+        throw new Error(detail);
+      }
+      setData(await res.json());
+      setResultLang(language);
     } catch (e: any) {
-      setError(e?.message || "Lookup failed");
+      setData(null);
+      setError(e?.message || "Analysis failed");
     } finally {
       setLoading(false);
     }
@@ -29,11 +50,10 @@ export default function LexicalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Lisan Analysis
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Lisan Analysis</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Enter an Arabic word to analyze its root (lisān) across the whole Quran.
+          Enter an Arabic word to read its root letter-by-letter — an
+          interpretive letter-symbolism reading of the lisān.
         </p>
       </div>
 
@@ -77,11 +97,11 @@ export default function LexicalPage() {
 
       {loading && (
         <p className="text-sm text-gray-500">
-          Analyzing… (the LLM may take a moment)
+          Reading the root… (synthesis may take a moment)
         </p>
       )}
 
-      {data && !loading && <LexicalResult data={data} />}
+      {data && !loading && <LisanResult data={data} lang={resultLang} />}
     </div>
   );
 }
