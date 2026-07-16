@@ -165,7 +165,20 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/start_dev.sh` | `docker compose up -d qdrant ollama` |
 | `scripts/fetch_translations.py` | Download FR (Hamidullah) + EN (Sahih) translations → `data/translations/` |
 | `scripts/ingest.sh` | Run the ingestion pipeline (wrapper for `ingestion/run_pipeline.py`) |
+| `scripts/build_maqayis_dataset.py` | Build the curated Maqāyīs aṣl reference `data/references/maqayis_asl.csv` (Madār feature) from the OpenITI source |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
+
+### Rebuilding the Maqāyīs reference (Madār)
+
+`data/references/maqayis_asl.csv` (the curated Ibn Fāris *aṣl* per root) is
+committed and is all the runtime needs. Its raw source — the ~3.7 MB OpenITI
+text — is **git-ignored** (`data/raw/maqayis/`) as a reproducible build
+artifact. To reconstitute the source and rebuild the CSV from a fresh clone:
+
+```bash
+python scripts/build_maqayis_dataset.py --fetch   # downloads the OpenITI source, then parses → CSV
+python scripts/build_maqayis_dataset.py           # re-parse a source already on disk
+```
 
 ## Gotchas
 

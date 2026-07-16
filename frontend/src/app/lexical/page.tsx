@@ -6,6 +6,10 @@ import { API_URL } from "@/lib/api";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import LisanResult from "@/components/LisanResult";
 
+/**
+ * Lisan Analysis — a single Arabic word read letter-by-letter as an interpretive
+ * letter-symbolism reading of the lisān (POST /lisan/analyze). Arabic-only.
+ */
 export default function LexicalPage() {
   const [word, setWord] = useState("");
   const [data, setData] = useState<LisanResponse | null>(null);

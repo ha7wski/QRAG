@@ -11,6 +11,7 @@ import type {
   VerseDetail,
   VerseLookupResponse,
 } from "./types";
+import type { MadarResponse } from "./madarTypes";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -39,6 +40,17 @@ export async function verseLookup(
     body: JSON.stringify({ word }),
   });
   if (!res.ok) throw new Error(`Verse lookup failed: ${res.status}`);
+  return res.json();
+}
+
+// ── Madār (sourced lexical reading: Ibn Fāris' cited aṣl) ─────────────
+export async function madarAnalyze(word: string): Promise<MadarResponse> {
+  const res = await fetch(`${API_URL}/madar/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word }),
+  });
+  if (!res.ok) throw new Error(`Madar analyze failed: ${res.status}`);
   return res.json();
 }
 

@@ -79,7 +79,15 @@ function VerseContext() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-800">Find Verse context</h1>
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Find Verse context
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Pick a surah and an ayah to read that verse in context — shown with the
+          three verses before and after it.
+        </p>
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Surah picker — Arabic names. */}

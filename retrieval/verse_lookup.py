@@ -38,6 +38,21 @@ from retrieval.lexical_retriever import (  # noqa: E402
 
 logger = logging.getLogger("quran_rag.verse_lookup")
 
+# Superscript (dagger) alef. QAC surface forms write some words with it
+# (بَقَرَٰت) where the vocalized mushaf uses a plene alef (بَقَرَات). normalize_search
+# strips U+0670 as a diacritic — dropping the alef — so the form (→ بقرت) failed to
+# match the plene token (→ بقرات) and the word was left un-highlighted. Folding it to
+# a full alef on BOTH sides before normalize_search reconciles the two orthographies.
+_SUPERSCRIPT_ALEF = "ٰ"
+
+
+def _norm_match(text: str) -> str:
+    """Hamza-safe search normalization with the dagger alef folded to a plene
+    alef, for word-highlight matching only (local to Verse Lookup — the shared
+    normalize_search is left untouched, so BM25/search are unaffected)."""
+    return normalize_search(text.replace(_SUPERSCRIPT_ALEF, "ا"))
+
+
 ROOT = Path(__file__).resolve().parents[1]
 LEMMA_INDEX_JSON = ROOT / "data" / "processed" / "lemma_index.json"
 PROPER_NOUNS_JSON = ROOT / "data" / "processed" / "proper_nouns.json"
@@ -116,7 +131,7 @@ class VerseLookup:
         norm_forms = [nf for _, nf in forms if nf]
         out: list[int] = []
         for i, tok in enumerate(vocalized_text.split()):
-            ntok = normalize_search(tok)
+            ntok = _norm_match(tok)
             if ntok and any(nf in ntok for nf in norm_forms):
                 out.append(i)
         return out
@@ -158,7 +173,7 @@ class VerseLookup:
 
     def _rows_for(self, verse_ids: list[str], forms_found: list[str]) -> list[dict]:
         """Vocalized rows for a list of verse refs, highlighting `forms_found`."""
-        forms = [(f, normalize_search(f)) for f in forms_found]
+        forms = [(f, _norm_match(f)) for f in forms_found]
         rows = []
         for vid in verse_ids:
             row = self._verse_row(vid, forms)

@@ -21,6 +21,10 @@ data/runtime/
 # Fetched translations (regenerable via scripts/fetch_translations.py)
 data/translations/
 
+# Raw Maqayis source (re-downloadable via build_maqayis_dataset.py --fetch).
+# Only the curated derivative data/references/maqayis_asl.csv is committed.
+data/raw/maqayis/
+
 # Local dev runtime logs
 local-dev/logs/
 
