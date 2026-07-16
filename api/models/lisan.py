@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 class LisanRequest(BaseModel):
     word: str
-    lang: str = "ar"          # "ar" | "fr" | "en"
+    # The Lisan feature is Arabic-only; there is no `lang` parameter. Any `lang`
+    # sent by an old client is silently ignored (Pydantic drops unknown fields).
 
 
 class LisanLetter(BaseModel):
@@ -38,6 +39,7 @@ class LisanResponse(BaseModel):
     letters: list[LisanLetter] = []
     sequential_reading: list[SequentialItem] = []
     synthesis: str = ""
+    synthesis_source: str = "template"  # origin of `synthesis` (auditable)
     ishtiqaq_akbar: list[IshtiqaqItem] = []
     disclaimer: str
     sources: dict[str, str] = {}

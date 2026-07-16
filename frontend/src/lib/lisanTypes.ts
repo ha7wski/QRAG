@@ -30,6 +30,7 @@ export interface LisanResponse {
   letters: LisanLetter[];
   sequential_reading: SequentialItem[];
   synthesis: string;
+  synthesis_source: string; // "template" — synthesis is deterministic, not LLM
   ishtiqaq_akbar: IshtiqaqItem[];
   disclaimer: string;
   sources: Record<string, string>;

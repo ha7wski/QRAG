@@ -1,9 +1,10 @@
 """
 letter_lexicon.py — Per-letter interpretive meanings for the Lisan feature.
 
-Loads the curated letter dataset ONCE (cached) and exposes `describe(letter,
-lang)`: the interpretive meaning, keywords, classical makhraj/sifat, and an Ibn
-Jinni sound-imitation note for a single Arabic letter, in the requested language.
+Loads the curated letter dataset ONCE (cached) and exposes `describe(letter)`:
+the interpretive meaning, keywords, classical makhraj/sifat, and an Ibn Jinni
+sound-imitation note for a single Arabic letter. The Lisan feature is
+Arabic-only, so ONLY the `_ar` dataset fields are read.
 
 Data source (loaded in place, never moved/duplicated):
     data/references/arabic_letters_dataset.csv
@@ -11,10 +12,8 @@ Data source (loaded in place, never moved/duplicated):
     letter, name_ar, name_translit, translit, makhraj_en, makhraj_ar,
     sifat, sifat_ar, abbas_meaning, abbas_meaning_ar, abbas_keywords,
     abbas_keywords_ar, ibn_jinni_note, ibn_jinni_note_ar, confidence
-
-Language rule (per the feature spec): `ar` reads the `_ar` fields; `fr`/`en`
-read the English source fields — French prose is produced later by the LLM
-synthesis step, so only English source text is stored here.
+The English source columns stay in the file for provenance/auditing; this module
+simply never reads them.
 
 Hamza-seat aware: the seats أ إ ؤ ئ آ ٱ all map to the base `ء` entry. A letter
 absent from the dataset (e.g. the bare alif ا, which is not a base consonant in
@@ -71,38 +70,25 @@ def _placeholder(letter: str) -> dict:
     }
 
 
-def describe(letter: str, lang: str = "ar") -> dict:
-    """Return the interpretive description of a single Arabic `letter`.
+def describe(letter: str) -> dict:
+    """Return the interpretive Arabic description of a single Arabic `letter`.
 
-    `lang`: "ar" reads the Arabic (`_ar`) fields; anything else reads English.
-    Hamza seats fold to the base `ء` entry. Missing letters get a placeholder.
+    Reads only the `_ar` dataset fields (the feature is Arabic-only). Hamza seats
+    fold to the base `ء` entry. Missing letters get a neutral placeholder.
     """
     glyph = _HAMZA_SEATS.get(letter, letter)
     row = _load().get(glyph)
     if row is None:
         return _placeholder(letter)
 
-    if lang == "ar":
-        makhraj = row.get("makhraj_ar", "")
-        sifat = _split_list(row.get("sifat_ar", ""))
-        meaning = row.get("abbas_meaning_ar", "")
-        keywords = _split_list(row.get("abbas_keywords_ar", ""))
-        ibn_jinni = row.get("ibn_jinni_note_ar", "")
-    else:
-        makhraj = row.get("makhraj_en", "")
-        sifat = _split_list(row.get("sifat", ""))
-        meaning = row.get("abbas_meaning", "")
-        keywords = _split_list(row.get("abbas_keywords", ""))
-        ibn_jinni = row.get("ibn_jinni_note", "")
-
     return {
         "letter": glyph,
-        "name": row.get("name_ar") if lang == "ar" else row.get("name_translit", ""),
-        "makhraj": makhraj,
-        "sifat": sifat,
-        "meaning": meaning,
-        "keywords": keywords,
-        "ibn_jinni_note": ibn_jinni,
+        "name": row.get("name_ar", ""),
+        "makhraj": row.get("makhraj_ar", ""),
+        "sifat": _split_list(row.get("sifat_ar", "")),
+        "meaning": row.get("abbas_meaning_ar", ""),
+        "keywords": _split_list(row.get("abbas_keywords_ar", "")),
+        "ibn_jinni_note": row.get("ibn_jinni_note_ar", ""),
         "confidence": (row.get("confidence") or "unknown").strip(),
     }
 
@@ -114,8 +100,8 @@ def letter_count() -> int:
 
 if __name__ == "__main__":
     for ch in "رحم":
-        d = describe(ch, "en")
+        d = describe(ch)
         print(f"{ch} ({d['name']}): {d['meaning']}  [{d['confidence']}]")
-    print("hamza seat أ →", describe("أ", "en")["letter"])
-    print("missing ا →", describe("ا", "en"))
+    print("hamza seat أ →", describe("أ")["letter"])
+    print("missing ا →", describe("ا"))
     print("total letters:", letter_count())

@@ -1,10 +1,17 @@
 """
-lisan_service.py — The "Lisan Analysis" pipeline.
+lisan_service.py — The "Lisan Analysis" pipeline (Arabic-only, LLM-free).
 
 Given an Arabic word, resolve its triconsonantal root (via the existing QAC
 resolver — reused, never reinvented), read the interpretive meaning of each root
-letter IN SEQUENCE from the letter lexicon, and synthesize them (via the shared
-LLM_PROVIDER abstraction) into one coherent reading of the root's core sense.
+letter IN SEQUENCE from the letter lexicon, and compose them into one coherent
+Arabic reading of the root — DETERMINISTICALLY, via `synthesis_template`.
+
+The LLM synthesis step was removed: the local model (qwen2.5:7b) corrupted tokens
+(a Latin fragment injected mid-word) and produced ungrounded prose that
+contradicted the attested root sense. For a Quranic tool a fluent-but-false
+reading is worse than a plain one, so the paragraph is now templated from the
+letter data — no model, no network, no language branching. `generation/` and
+other LLM consumers are untouched.
 
 Everything here is an INTERPRETIVE sound-symbolism heuristic, NOT lexicography;
 the disclaimer travels in every response. The QAC resolver stays primary: a root
@@ -15,7 +22,6 @@ Pure logic only — the FastAPI layer lives in `api/routers/lisan.py`.
 """
 from __future__ import annotations
 
-import json
 import sys
 from itertools import permutations
 from pathlib import Path
@@ -26,16 +32,10 @@ sys.path.insert(0, str(ROOT))
 from ingestion.root_normalize import normalize_root  # noqa: E402
 from retrieval.lexical_retriever import _clitic_alif_candidates  # noqa: E402
 from lisan import letter_lexicon  # noqa: E402
+from lisan.synthesis_template import render_synthesis  # noqa: E402
 
-# Requested-language → the name used in the synthesis prompt.
-_LANG_NAMES = {"ar": "Arabic", "fr": "French", "en": "English"}
-
-# Interpretive disclaimer, localized. English is the exact project-standard line.
-DISCLAIMER = {
-    "en": "Interpretive letter-symbolism, not established lexicography.",
-    "fr": "Symbolisme interprétatif des lettres, non une définition lexicographique établie.",
-    "ar": "قراءة رمزية تأويلية لدلالات الحروف، وليست تعريفًا معجميًّا ثابتًا.",
-}
+# Interpretive disclaimer (Arabic — the feature is Arabic-only).
+DISCLAIMER = "قراءة رمزية تأويلية لدلالات الحروف، وليست تعريفًا معجميًّا ثابتًا."
 
 # Source attributions surfaced in the response (framework, not our claim).
 SOURCES = {
@@ -48,30 +48,18 @@ SOURCES = {
     ),
 }
 
-SYSTEM_PROMPT_TEMPLATE = (
-    "You are a careful Arabic philology assistant. You are given a Quranic word, "
-    "its triconsonantal root, and an ordered, interpretive meaning for each root "
-    "letter (from a sound-symbolism framework, NOT a dictionary). Compose ONE "
-    "short paragraph (3-5 sentences) in {LANGUAGE} that reads the root by chaining "
-    "the letter meanings in order, then states the plausible core sense of the "
-    "root and how the given word expresses it. Be explicit that this is an "
-    "interpretive reading, not a lexical definition. Do not invent Quranic "
-    "references. Do not add letters that are not in the root."
-)
-
 
 class LisanService:
     """Orchestrates normalize → resolve root → decompose → sequential read →
-    LLM synthesis for the Lisan Analysis tab.
+    deterministic Arabic synthesis for the Lisan Analysis tab.
 
     `resolver` is the shared QAC-backed `LexicalRetriever` (reused, not rebuilt);
-    `llm` is the shared `LLMClient` (LLM_PROVIDER abstraction). Both are injected
-    so tests can stub them without touching disk, network, or a model.
+    it is injected so tests can stub it without touching disk or network. There
+    is no LLM dependency any more — synthesis is a pure template.
     """
 
-    def __init__(self, resolver, llm):
+    def __init__(self, resolver):
         self.lex = resolver
-        self.llm = llm
 
     # ── normalization ─────────────────────────────────────────────────────
     @staticmethod
@@ -119,9 +107,9 @@ class LisanService:
 
     # ── decomposition + sequential reading ────────────────────────────────
     @staticmethod
-    def decompose(root: str, lang: str = "ar") -> list[dict]:
-        """Split a root into its letters and describe each (in order)."""
-        return [letter_lexicon.describe(ch, lang) for ch in root]
+    def decompose(root: str) -> list[dict]:
+        """Split a root into its letters and describe each (in order), in Arabic."""
+        return [letter_lexicon.describe(ch) for ch in root]
 
     @staticmethod
     def sequential_reading(letters: list[dict]) -> list[dict]:
@@ -159,31 +147,19 @@ class LisanService:
             })
         return out
 
-    # ── LLM synthesis ─────────────────────────────────────────────────────
-    def synthesize(
-        self, word: str, root: str, letters: list[dict], lang: str = "ar"
-    ) -> str:
-        """Turn the ordered letter meanings into ONE coherent paragraph via the
-        shared LLM_PROVIDER abstraction, in the requested language."""
-        language = _LANG_NAMES.get(lang, "Arabic")
-        system = SYSTEM_PROMPT_TEMPLATE.format(LANGUAGE=language)
-        payload = {
-            "word": word,
-            "root": root,
-            "ordered_letters": [
-                {"letter": d["letter"], "meaning": d["meaning"]} for d in letters
-            ],
-        }
-        user = json.dumps(payload, ensure_ascii=False)
-        return self.llm.chat(system, [{"role": "user", "content": user}]).strip()
+    # ── deterministic synthesis ───────────────────────────────────────────
+    @staticmethod
+    def synthesize(word: str, root: str, letters: list[dict]) -> str:
+        """Compose the ordered letter meanings into ONE Arabic paragraph,
+        deterministically (no LLM). Delegates to the pure `render_synthesis`."""
+        return render_synthesis(word, root, letters)
 
     # ── orchestration ─────────────────────────────────────────────────────
-    def analyze(self, word: str, lang: str = "ar") -> dict:
-        """Run the full pipeline and return the response object.
+    def analyze(self, word: str) -> dict:
+        """Run the full pipeline and return the response object (Arabic-only).
 
         When no root resolves, returns `root: None` with a helpful `message`
         (the caller returns 200, never 500)."""
-        disclaimer = DISCLAIMER.get(lang, DISCLAIMER["en"])
         resolved = self.resolve_root(word)
         root = resolved["root"]
 
@@ -195,8 +171,9 @@ class LisanService:
                 "letters": [],
                 "sequential_reading": [],
                 "synthesis": "",
+                "synthesis_source": "template",
                 "ishtiqaq_akbar": [],
-                "disclaimer": disclaimer,
+                "disclaimer": DISCLAIMER,
                 "sources": SOURCES,
                 "message": (
                     f"Could not resolve an Arabic root for '{word}'. "
@@ -204,27 +181,27 @@ class LisanService:
                 ),
             }
 
-        letters = self.decompose(root, lang)
+        letters = self.decompose(root)
         return {
             "word": word,
             "root": root,
             "root_source": resolved["root_source"],
             "letters": letters,
             "sequential_reading": self.sequential_reading(letters),
-            "synthesis": self.synthesize(word, root, letters, lang),
+            "synthesis": self.synthesize(word, root, letters),
+            "synthesis_source": "template",
             "ishtiqaq_akbar": self.ishtiqaq_akbar(root),
-            "disclaimer": disclaimer,
+            "disclaimer": DISCLAIMER,
             "sources": SOURCES,
             "message": None,
         }
 
 
 if __name__ == "__main__":
-    from generation.llm_client import LLMClient
     from retrieval.lexical_retriever import LexicalRetriever
 
-    svc = LisanService(LexicalRetriever(), LLMClient())
-    out = svc.analyze("رحمة", lang="en")
+    svc = LisanService(LexicalRetriever())
+    out = svc.analyze("رحمة")
     print("root:", out["root"], "| source:", out["root_source"])
     for step in out["sequential_reading"]:
         print(f"  {step['index']}. {step['letter']} → {step['meaning']}")

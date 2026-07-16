@@ -8,11 +8,7 @@ import LisanResult from "@/components/LisanResult";
 
 export default function LexicalPage() {
   const [word, setWord] = useState("");
-  const [language, setLanguage] = useState("en");
   const [data, setData] = useState<LisanResponse | null>(null);
-  // The language the current result was computed for (so RTL/Amiri and the
-  // synthesis language match the response, not a since-changed selector).
-  const [resultLang, setResultLang] = useState("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,10 +17,11 @@ export default function LexicalPage() {
     setLoading(true);
     setError(null);
     try {
+      // Arabic-only: no `lang` in the body.
       const res = await fetch(`${API_URL}/lisan/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ word: word.trim(), lang: language }),
+        body: JSON.stringify({ word: word.trim() }),
       });
       if (!res.ok) {
         // 422 carries a FastAPI `detail`; surface it verbatim when present.
@@ -38,7 +35,6 @@ export default function LexicalPage() {
         throw new Error(detail);
       }
       setData(await res.json());
-      setResultLang(language);
     } catch (e: any) {
       setData(null);
       setError(e?.message || "Analysis failed");
@@ -66,15 +62,6 @@ export default function LexicalPage() {
           placeholder="رحمة"
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
-        >
-          <option value="en">English</option>
-          <option value="fr">Français</option>
-          <option value="ar">العربية</option>
-        </select>
         <button
           onClick={run}
           disabled={loading || !word.trim()}
@@ -101,7 +88,7 @@ export default function LexicalPage() {
         </p>
       )}
 
-      {data && !loading && <LisanResult data={data} lang={resultLang} />}
+      {data && !loading && <LisanResult data={data} />}
     </div>
   );
 }
