@@ -8,14 +8,12 @@ import {
   ListTree,
   Menu,
   MessageSquare,
-  Search,
   Type,
   X,
 } from "lucide-react";
 
 const links = [
   { href: "/chat", label: "Talk to Quran", icon: MessageSquare },
-  { href: "/verse-context", label: "Find Verse context", icon: Search },
   { href: "/verse-study", label: "Verse Study", icon: ListTree },
   { href: "/lexical", label: "Lisan Analysis", icon: Type },
 ];

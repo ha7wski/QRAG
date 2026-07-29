@@ -4,7 +4,6 @@ import {
   BookOpen,
   ListTree,
   MessageSquare,
-  Search,
   Type,
 } from "lucide-react";
 
@@ -15,13 +14,6 @@ const features = [
     title: "Talk to Quran",
     desc: "Ask a question in Arabic, French, or English and get a clear answer grounded in the text — every claim backed by the exact verses it comes from.",
     cta: "Start a conversation",
-  },
-  {
-    href: "/verse-context",
-    icon: Search,
-    title: "Find Verse context",
-    desc: "Jump straight to any verse: pick a surah and ayah number to read it in its surrounding context.",
-    cta: "Look up a verse",
   },
   {
     href: "/verse-study",

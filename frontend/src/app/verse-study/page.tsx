@@ -1,17 +1,44 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, Loader2, Search } from "lucide-react";
-import { madarAnalyze, searchVerses, verseLookup } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  Loader2,
+  Search,
+} from "lucide-react";
+import { getSurahs, getVerse, madarAnalyze, searchVerses, verseLookup } from "@/lib/api";
 import type {
   SearchResponse,
+  SurahMeta,
+  VerseDetail,
   VerseLookupResponse,
   VerseLookupVerse,
 } from "@/lib/types";
 import type { MadarResponse } from "@/lib/madarTypes";
+import ArabicText from "@/components/ArabicText";
 import MadarAslCard from "@/components/MadarAslCard";
 import ScrollToTop from "@/components/ScrollToTop";
+
+// Context shown around the chosen verse in the "Find Verse context" tab:
+// 3 before + 3 after (same surah).
+const CONTEXT_WINDOW = 3;
+
+/** A verse targeted for the context tab. `nonce` monotonically increases on every
+ *  open request so clicking the SAME verse twice still re-triggers a load (we never
+ *  rely on value-equality of surah/ayah). */
+type ContextTarget = { surah: number; ayah: number; nonce: number };
 
 /** Render a vocalized verse, highlighting the matched-root tokens in place. */
 function HighlightedVerse({
@@ -41,15 +68,50 @@ function HighlightedVerse({
   );
 }
 
-type Tab = "word" | "similar";
+type Tab = "word" | "similar" | "context";
 
+// useSearchParams() must sit under a Suspense boundary (App Router requirement).
 export default function VerseStudyPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerseStudy />
+    </Suspense>
+  );
+}
+
+function VerseStudy() {
   const [tab, setTab] = useState<Tab>("word");
+  // The verse (if any) requested for the context tab from another tab or a deep link.
+  const [contextTarget, setContextTarget] = useState<ContextTarget | null>(null);
 
   const tabs: [Tab, string][] = [
     ["word", "Word in Verses"],
     ["similar", "Similar Verses"],
+    ["context", "Find Verse context"],
   ];
+
+  // Open a verse in the context tab. Bump the nonce via a functional update so
+  // re-clicking the same verse always re-triggers a load in FindVerseContext.
+  function openInContext(surah: number, ayah: number) {
+    setContextTarget((prev) => ({
+      surah,
+      ayah,
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
+    setTab("context");
+  }
+
+  // Deep-link: ?surah=&ayah= selects the context tab and auto-loads that verse.
+  const params = useSearchParams();
+  useEffect(() => {
+    const s = Number(params.get("surah"));
+    const a = Number(params.get("ayah"));
+    if (s && a) {
+      setContextTarget({ surah: s, ayah: a, nonce: 1 });
+      setTab("context");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -78,12 +140,15 @@ export default function VerseStudyPage() {
         ))}
       </div>
 
-      {/* Both stay mounted so switching tabs preserves each one's results. */}
+      {/* All three stay mounted so switching tabs preserves each one's results. */}
       <div className={tab === "word" ? "" : "hidden"}>
-        <WordInVerses />
+        <WordInVerses openInContext={openInContext} />
       </div>
       <div className={tab === "similar" ? "" : "hidden"}>
-        <SimilarVerses />
+        <SimilarVerses openInContext={openInContext} />
+      </div>
+      <div className={tab === "context" ? "" : "hidden"}>
+        <FindVerseContext target={contextTarget} />
       </div>
 
       <ScrollToTop />
@@ -110,10 +175,12 @@ function SurahCard({
   group,
   open,
   onToggle,
+  openInContext,
 }: {
   group: { number: number; name: string; verses: VerseLookupVerse[] };
   open: boolean;
   onToggle: () => void;
+  openInContext: (surah: number, ayah: number) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -140,11 +207,12 @@ function SurahCard({
         <ul className="divide-y divide-gray-100">
           {group.verses.map((v) => (
             <li key={v.aya_number}>
-              {/* Whole verse is clickable → open it in its context. */}
-              <Link
-                href={`/verse-context?surah=${v.surah_number}&ayah=${v.aya_number}`}
+              {/* Whole verse is clickable → open it in the context tab in-page. */}
+              <button
+                type="button"
+                onClick={() => openInContext(v.surah_number, v.aya_number)}
                 title="افتح الآية في سياقها"
-                className="block px-4 py-3 transition hover:bg-brand-light/50"
+                className="block w-full px-4 py-3 text-right transition hover:bg-brand-light/50"
               >
                 <div
                   dir="rtl"
@@ -156,7 +224,7 @@ function SurahCard({
                     ﴿{v.aya_number}﴾
                   </span>
                 </div>
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
@@ -167,7 +235,11 @@ function SurahCard({
 
 /** Tab 1 — one Arabic word → its root's verses, by surah (each surah collapsible),
  *  split per lemma when the root carries several. */
-function WordInVerses() {
+function WordInVerses({
+  openInContext,
+}: {
+  openInContext: (surah: number, ayah: number) => void;
+}) {
   const [word, setWord] = useState("");
   const [data, setData] = useState<VerseLookupResponse | null>(null);
   // Ibn Fāris' cited aṣl for the resolved root (best-effort enrichment, shown
@@ -396,6 +468,7 @@ function WordInVerses() {
                           group={g}
                           open={!collapsedSurahs.has(skey)}
                           onToggle={() => toggleIn(setCollapsedSurahs, skey)}
+                          openInContext={openInContext}
                         />
                       );
                     })}
@@ -453,7 +526,11 @@ function WordInVerses() {
 
 /** Tab 2 — an Arabic phrase (even a partial verse) → closest verses by root + keyword,
  *  reranked by a cross-encoder (no dense/semantic branch; see api/routers/search.py). */
-function SimilarVerses() {
+function SimilarVerses({
+  openInContext,
+}: {
+  openInContext: (surah: number, ayah: number) => void;
+}) {
   const [query, setQuery] = useState("");
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -552,11 +629,12 @@ function SimilarVerses() {
               </div>
               <div className="space-y-3">
                 {data.results.map((v) => (
-                  <Link
+                  <button
                     key={v.id}
-                    href={`/verse-context?surah=${v.surah_number}&ayah=${v.ayah_number}`}
+                    type="button"
+                    onClick={() => openInContext(v.surah_number, v.ayah_number)}
                     dir="rtl"
-                    className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-brand hover:shadow-md"
+                    className="block w-full rounded-lg border border-gray-200 bg-white p-4 text-right shadow-sm transition hover:border-brand hover:shadow-md"
                     title="افتح الآية في سياقها"
                   >
                     {/* Surah name (Arabic) on the right + reference; no translations. */}
@@ -585,11 +663,188 @@ function SimilarVerses() {
                         ﴿{v.ayah_number}﴾
                       </span>
                     </div>
-                  </Link>
+                  </button>
                 ))}
               </div>
             </>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Tab 3 — pick a surah + ayah → that verse rendered with 3 verses of context on each
+ *  side (same surah), the chosen one highlighted. This is the "Find Verse context" tab.
+ *  Reacts to `target` (from in-page clicks / deep links). */
+function FindVerseContext({ target }: { target: ContextTarget | null }) {
+  const [surahs, setSurahs] = useState<SurahMeta[]>([]);
+  const [surah, setSurah] = useState(1);
+  const [ayah, setAyah] = useState(1);
+  const [result, setResult] = useState<VerseDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Monotonic request id — only the latest lookup applies its result, so a
+  // target arriving mid-fetch (or button-spam) never loses to a stale response.
+  const reqSeq = useRef(0);
+
+  // Load the surah list (Arabic names) for the picker.
+  useEffect(() => {
+    getSurahs()
+      .then(setSurahs)
+      .catch((e) => setError(e?.message || "Failed to load surah list"));
+  }, []);
+
+  // React to a target verse (in-page click or deep link): sync the picker and load it.
+  // Keyed on the nonce so re-clicking the same verse still re-triggers a load.
+  useEffect(() => {
+    if (!target) return;
+    setSurah(target.surah);
+    setAyah(target.ayah);
+    lookup(target.surah, target.ayah);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.nonce]);
+
+  const maxAyah = useMemo(
+    () => surahs.find((s) => s.number === surah)?.ayah_count ?? 286,
+    [surahs, surah],
+  );
+
+  function onSurahChange(n: number) {
+    setSurah(n);
+    const count = surahs.find((s) => s.number === n)?.ayah_count ?? 286;
+    if (ayah > count) setAyah(count); // keep the ayah within the new surah
+  }
+
+  async function lookup(s = surah, a = ayah) {
+    const seq = ++reqSeq.current;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await getVerse(s, a, CONTEXT_WINDOW);
+      if (seq === reqSeq.current) setResult(res); // ignore superseded responses
+    } catch (e: any) {
+      if (seq === reqSeq.current) setError(e?.message || "Verse not found");
+    } finally {
+      if (seq === reqSeq.current) setLoading(false);
+    }
+  }
+
+  const main = result?.verse;
+  const surahNameAr =
+    surahs.find((s) => s.number === main?.surah_number)?.name_ar ??
+    main?.surah_name_ar ??
+    "";
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-gray-500">
+        Pick a surah and an ayah to read that verse in context — shown with the
+        three verses before and after it.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Surah picker — Arabic names. */}
+        <select
+          value={surah}
+          onChange={(e) => onSurahChange(Number(e.target.value))}
+          dir="rtl"
+          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+        >
+          {surahs.map((s) => (
+            <option key={s.number} value={s.number}>
+              {s.number}. {s.name_ar}
+            </option>
+          ))}
+        </select>
+
+        {/* Ayah number. */}
+        <input
+          value={ayah}
+          onChange={(e) => setAyah(Math.max(1, Number(e.target.value) || 1))}
+          onKeyDown={(e) => e.key === "Enter" && lookup()}
+          type="number"
+          min={1}
+          max={maxAyah}
+          aria-label="Ayah number"
+          className="w-28 rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
+        />
+        <span className="text-sm text-gray-400">/ {maxAyah}</span>
+
+        <button
+          onClick={() => lookup()}
+          disabled={loading || surahs.length === 0}
+          className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
+          Show verse
+        </button>
+      </div>
+
+      {error && (
+        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {main && result && (
+        <div className="space-y-3">
+          {/* Condensed box: Arabic only, the chosen verse highlighted, with
+              up to 3 verses of context on each side. */}
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
+              <span className="font-medium text-gray-700" dir="rtl">
+                {surahNameAr}
+              </span>
+              <span>
+                {main.surah_number}:{main.ayah_number}
+              </span>
+            </div>
+
+            <div className="divide-y divide-gray-100">
+              {result.context.map((v) => {
+                const isMain = v.id === main.id;
+                return (
+                  <div
+                    key={v.id}
+                    className={`flex items-start gap-3 px-4 py-3 ${
+                      isMain ? "bg-brand-light" : ""
+                    }`}
+                  >
+                    <span
+                      className={`mt-2 shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                        isMain
+                          ? "bg-brand text-white"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {v.ayah_number}
+                    </span>
+                    <ArabicText
+                      className={`block flex-1 text-right text-2xl leading-loose ${
+                        isMain ? "font-bold text-gray-900" : "text-gray-800"
+                      }`}
+                    >
+                      {v.text_ar_tashkil || v.text_ar}
+                    </ArabicText>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <Link
+            href={`/surah/${main.surah_number}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-dark hover:underline"
+          >
+            Open full Sourate page
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       )}
     </div>

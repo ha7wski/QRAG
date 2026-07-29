@@ -45,8 +45,8 @@ export default function VersePage({
         <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
           {error || "Verse not found."}
         </p>
-        <Link href="/verse-context" className="text-sm text-brand-dark hover:underline">
-          ← Back to verse context
+        <Link href={`/verse-study?surah=${surah}&ayah=${ayah}`} className="text-sm text-brand-dark hover:underline">
+          ← Back to Verse Study
         </Link>
       </div>
     );
