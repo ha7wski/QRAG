@@ -343,7 +343,7 @@ function WordInVerses() {
                               type="button"
                               onClick={() => goToLemma(i, lkey)}
                               title="اذهب إلى مواضع هذا اللفظ"
-                              className="rounded bg-brand/15 px-1 font-semibold text-brand-dark underline decoration-dotted underline-offset-2 hover:bg-brand/25"
+                              className="cursor-pointer rounded bg-brand/15 px-1 font-semibold text-brand-dark hover:bg-brand/25"
                             >
                               {lg.lemma_display}
                             </button>

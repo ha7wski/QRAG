@@ -184,7 +184,12 @@ class MadarService:
 
         occ = self._occurrences(root)
         entry = self.store.lookup(normalize_root(root))
-        asl_text = entry.asl_text if (entry and entry.asl_status == "has_asl") else None
+        # Readable joined form (no sentinel) for the optional synthesis/convergence.
+        asl_text = (
+            " ".join(entry.asl_list())
+            if (entry and entry.asl_status == "has_asl")
+            else None
+        )
         maqayis = entry.to_dict() if entry else None
 
         synthesis, synth_note = self._synthesize(root, asl_text, occ)

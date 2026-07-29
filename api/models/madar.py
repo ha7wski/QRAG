@@ -19,6 +19,7 @@ class MaqayisCitation(BaseModel):
     """Ibn Fāris' aṣl — verified citation, never a paraphrase."""
 
     asl_text: list[str] = []          # [] when asl_status == "no_asl"
+    asl_preamble: str = ""            # Ibn Fāris' opening declaration (synthetic lead); "" if none
     asl_count: int = 0
     asl_status: str                    # "has_asl" | "no_asl" | "parse_uncertain"
     source: str

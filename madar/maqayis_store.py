@@ -25,6 +25,11 @@ from ingestion.root_normalize import normalize_root  # noqa: E402
 
 DEFAULT_CSV = ROOT / "data" / "references" / "maqayis_asl.csv"
 
+# Sentinel joining several aṣl of one root inside the single `asl_text` cell
+# (must match `scripts/build_maqayis_dataset.py::ASL_DELIM`). Never occurs in
+# Arabic prose, so splitting on it is safe; a single-aṣl root has no sentinel.
+ASL_DELIM = " ||| "
+
 
 @dataclass(frozen=True)
 class MaqayisEntry:
@@ -32,19 +37,30 @@ class MaqayisEntry:
 
     root_normalized: str
     root_raw: str
-    asl_text: str            # empty when asl_status == "no_asl"
+    asl_text: str            # empty when asl_status == "no_asl"; ASL_DELIM-joined when multi-aṣl
     asl_count: int
     asl_status: str          # "has_asl" | "no_asl" | "parse_uncertain"
     source: str
     edition: str
     confidence: str
+    # Ibn Fāris' own opening declaration (e.g. "الباء والعين واللام أصول ثلاثة"),
+    # shown as a synthetic lead ABOVE the numbered aṣl list. "" for single-aṣl /
+    # fallback / no_asl. Kept last with a default so older positional callers work.
+    asl_preamble: str = ""
+
+    def asl_list(self) -> list[str]:
+        """The individual aṣl of this root as a list (0 for no_asl, ≥1 else)."""
+        if not self.asl_text:
+            return []
+        return [s for s in self.asl_text.split(ASL_DELIM) if s.strip()]
 
     def to_dict(self) -> dict:
         """Serialize for the API `maqayis` field. `asl_text` is exposed as a
-        LIST (0 entries for no_asl, ≥1 otherwise) so multi-aṣl roots stay
-        representable without changing the shape."""
+        LIST (0 entries for no_asl, ≥1 otherwise) so multi-aṣl roots render as a
+        numbered list, led by `asl_preamble` when present."""
         return {
-            "asl_text": [self.asl_text] if self.asl_text else [],
+            "asl_text": self.asl_list(),
+            "asl_preamble": self.asl_preamble,
             "asl_count": self.asl_count,
             "asl_status": self.asl_status,
             "source": self.source,
@@ -74,6 +90,7 @@ def _load(path: str) -> dict[str, MaqayisEntry]:
                 source=row.get("source", ""),
                 edition=row.get("edition", ""),
                 confidence=row.get("confidence", ""),
+                asl_preamble=row.get("asl_preamble", ""),
             )
     return data
 

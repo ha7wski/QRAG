@@ -9,10 +9,13 @@
 
 /** Ibn Fāris' aṣl — a verified citation, never a paraphrase. */
 export interface MaqayisCitation {
-  /** [] when asl_status === "no_asl". Exposed as a list (multi-aṣl ready), but
-   *  the store currently emits at most one combined entry — do NOT assume
+  /** [] when asl_status === "no_asl". Multi-aṣl roots emit one entry per aṣl;
+   *  a single-aṣl / fallback root emits one combined entry — do NOT assume
    *  `asl_text.length === asl_count`. */
   asl_text: string[];
+  /** Ibn Fāris' own opening declaration (e.g. "الباء والعين واللام أصول ثلاثة"),
+   *  shown as a synthetic lead above the list. "" when there is none. */
+  asl_preamble: string;
   asl_count: number;
   asl_status: "has_asl" | "no_asl" | "parse_uncertain";
   source: string;

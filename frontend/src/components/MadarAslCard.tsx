@@ -92,6 +92,12 @@ function AslBody({ maqayis }: { maqayis: MaqayisCitation | null }) {
   const label = aslCountLabel(maqayis.asl_count);
   return (
     <>
+      {/* Synthetic lead — Ibn Fāris' own opening declaration, above the list. */}
+      {maqayis.asl_preamble && maqayis.asl_text.length > 1 && (
+        <p className="mb-3 font-arabic text-xl font-semibold leading-relaxed text-gray-900">
+          {maqayis.asl_preamble}
+        </p>
+      )}
       {maqayis.asl_text.length > 1 ? (
         <ol className="list-decimal space-y-2 pr-5 font-arabic text-lg leading-relaxed text-gray-900">
           {maqayis.asl_text.map((t, i) => (
@@ -103,7 +109,9 @@ function AslBody({ maqayis }: { maqayis: MaqayisCitation | null }) {
           {maqayis.asl_text[0]}
         </p>
       )}
-      {maqayis.asl_count > 1 && label && (
+      {/* Only when we couldn't surface every aṣl (fallback single sentence);
+          when the numbered list already shows them all, the note is redundant. */}
+      {maqayis.asl_count > maqayis.asl_text.length && label && (
         <p className="mt-2 font-arabic text-sm text-gray-500">
           يذكر ابن فارس {label}.
         </p>

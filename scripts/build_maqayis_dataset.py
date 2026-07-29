@@ -97,48 +97,137 @@ def _extract_root(header: str) -> str | None:
     return None
 
 
-def _first_body_line(lines: list[str], start: int) -> str | None:
-    """First real body line after an entry header at `lines[start]`: a `# `
-    line that is not a page marker / stray id, stopping at the next entry.
-    Returns the content after the leading `# `, or None."""
+def _entry_body(lines: list[str], start: int) -> str | None:
+    """Full stitched body of the entry whose header is at `lines[start]`, up to
+    the next entry header. Unlike the old first-physical-line reader, this
+    RE-JOINS `~~` continuation lines onto the line they continue (the source
+    wraps a single sentence across several physical lines), so an aṣl is never
+    cut mid-word. Page markers and stray `ms####` ids are dropped; the remaining
+    `#` lines (prose AND poetry shawāhid) are concatenated into one blob — the
+    aṣl extractor below keeps only the first sentence of each aṣl, so the
+    shawāhid between/after them fall away naturally."""
+    parts: list[str] = []
     for j in range(start + 1, len(lines)):
         ln = lines[j]
-        if _ENTRY_RE.match(ln):          # hit the next entry — no body
-            return None
-        if ln.startswith("~~"):          # continuation of a not-yet-seen line
-            continue
+        if _ENTRY_RE.match(ln):          # hit the next entry — done
+            break
         if _PAGE_RE.match(ln) or _MS_NOISE_RE.match(ln):
             continue
-        if ln.startswith("# "):
-            return ln[2:].strip()
-        # any other non-empty, non-hash line: treat as body too (rare)
-        if ln.strip() and not ln.startswith("#"):
-            return ln.strip()
-    return None
+        if ln.startswith("~~"):          # continuation of the previous physical line
+            cont = ln[2:].strip()
+            if parts:
+                parts[-1] = (parts[-1] + " " + cont).strip()
+            elif cont:
+                parts.append(cont)
+        elif ln.startswith("# "):
+            parts.append(ln[2:].strip())
+        elif ln.strip() and not ln.startswith("#"):
+            parts.append(ln.strip())
+    body = _clean_inline(" ".join(p for p in parts if p))
+    return body or None
+
+
+# Multiple aṣl of one root are stored in the single `asl_text` CSV cell joined
+# by this sentinel (never appears in Arabic prose); the store splits it back to
+# a list. A single-aṣl root stores plain text with no sentinel.
+ASL_DELIM = " ||| "
+
+# Ordinal markers that open each aṣl in Ibn Fāris' "أصول ثلاثة: فالأول ... والأصل
+# الثاني ... والأصل الثالث ..." template, one alternation per aṣl position.
+# Deliberately CONNECTOR-PREFIXED (فـ/وـ) — the bare "الأول"/"الثاني" occur too
+# often mid-sentence and would mis-cut a segment. Segmentation only promotes when
+# it finds EXACTLY the declared number of aṣl (see `_segment_asls`); otherwise we
+# fall back to the un-truncated opening sentence — never a half-list posing as full.
+_ORDINALS = [
+    r"فالأول|فالأصل الأول|والأول|أحدهما|إحداهما|وأولها",
+    r"والأصل الثاني|فالأصل الثاني|والثاني|والآخر|والأصل الآخر|وثانيها",
+    r"والأصل الثالث|فالأصل الثالث|والثالث|وثالثها",
+    r"والأصل الرابع|فالأصل الرابع|والرابع|ورابعها",
+    r"والأصل الخامس|فالأصل الخامس|والخامس",
+    r"والأصل السادس|فالأصل السادس|والسادس",
+]
+
+
+def _clean_inline(text: str) -> str:
+    """Drop inline page markers / stray `ms####` ids the OpenITI text leaves
+    mid-line, and collapse whitespace."""
+    text = re.sub(r"PageV\d+P\d+", " ", text)
+    text = re.sub(r"\bms\d+\b", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _declared_count(first_sentence: str) -> int:
+    """The number of aṣl Ibn Fāris declares in the opening sentence (default 1;
+    a bare plural "أصول" with no number word means at least 2)."""
+    count = 1
+    for word, n in _COUNT_WORDS.items():
+        if word in first_sentence:
+            count = max(count, n)
+    if count == 1 and "أصول" in first_sentence:
+        count = 2
+    return count
+
+
+def _segment_asls(body: str, count: int) -> tuple[str, list[str]] | None:
+    """Split the entry body into (preamble, [aṣl glosses]) by the ordinal
+    markers, each gloss cut at its first full stop (so the shawāhid drop out).
+    The PREAMBLE is Ibn Fāris' own opening declaration before the first aṣl
+    (e.g. "الباء والعين واللام أصول ثلاثة") — a synthetic lead shown above the
+    list. Returns None unless exactly `count` clean segments are found — the
+    caller then keeps the honest single-sentence fallback."""
+    positions: list[tuple[int, int]] = []
+    cursor = 0
+    for i in range(count):
+        if i >= len(_ORDINALS):
+            break
+        m = re.search(_ORDINALS[i], body[cursor:])
+        if not m:
+            break
+        positions.append((cursor + m.start(), cursor + m.end()))
+        cursor += m.end()
+    if len(positions) != count:
+        return None
+    asls: list[str] = []
+    for idx, (_, marker_end) in enumerate(positions):
+        seg_end = positions[idx + 1][0] if idx + 1 < len(positions) else len(body)
+        gloss = _clean_inline(body[marker_end:seg_end].split(".", 1)[0])
+        gloss = gloss.strip(" :،-–—")
+        if not (3 <= len(gloss) <= 400):
+            return None
+        asls.append(gloss)
+    preamble = _clean_inline(body[:positions[0][0]]).strip(" .:،-–—")
+    return preamble, asls
 
 
 def _parse_asl(body: str) -> dict:
-    """Extract {asl_text, asl_count, asl_status, confidence} from an aṣl line.
+    """Extract {asl_text, asl_count, asl_status, confidence} from an entry body.
 
-    The aṣl text stored is Ibn Fāris' OWN first sentence (up to the first full
-    stop), never a paraphrase. `no_asl` → empty text. A line that carries no
-    recognizable aṣl marker is flagged `parse_uncertain` (kept verbatim for
-    manual review, not promoted)."""
-    first_sentence = body.split(".", 1)[0].strip()
-    if _NO_ASL_RE.search(body):
-        return {"asl_text": "", "asl_count": 0,
+    The aṣl text stored is Ibn Fāris' OWN wording, never a paraphrase. When he
+    declares several aṣl and the ordinal template segments cleanly, ALL of them
+    are captured (joined by `ASL_DELIM`); otherwise the un-truncated opening
+    sentence is kept, with `asl_count` still reflecting his declared number so
+    the UI notes there are more. `no_asl` → empty text; a body with no aṣl marker
+    at all is flagged `parse_uncertain` (kept verbatim, not promoted)."""
+    first_sentence = _clean_inline(body.split(".", 1)[0])
+    # "no aṣl" / "مهمل" declarations sit at the very head of an entry; scope the
+    # check there so a "لا أصل" buried in a later shāhid can't void a real aṣl.
+    head = body[:200]
+    if _NO_ASL_RE.search(head):
+        return {"asl_text": "", "asl_preamble": "", "asl_count": 0,
                 "asl_status": "no_asl", "confidence": "high"}
     if _HAS_ASL_RE.search(first_sentence):
-        count = 1
-        for word, n in _COUNT_WORDS.items():
-            if word in first_sentence:
-                count = max(count, n)
-        if count == 1 and "أصول" in first_sentence:  # plural, no number word
-            count = 2
-        return {"asl_text": first_sentence, "asl_count": count,
+        count = _declared_count(first_sentence)
+        if count >= 2:
+            segmented = _segment_asls(body, count)
+            if segmented:
+                preamble, asls = segmented
+                return {"asl_text": ASL_DELIM.join(asls), "asl_preamble": preamble,
+                        "asl_count": count, "asl_status": "has_asl",
+                        "confidence": "high"}
+        return {"asl_text": first_sentence, "asl_preamble": "", "asl_count": count,
                 "asl_status": "has_asl", "confidence": "high"}
     # No aṣl marker at all: don't guess — flag for review, keep the real text.
-    return {"asl_text": first_sentence, "asl_count": 1,
+    return {"asl_text": first_sentence, "asl_preamble": "", "asl_count": 1,
             "asl_status": "parse_uncertain", "confidence": "low"}
 
 
@@ -154,7 +243,7 @@ def parse_source(text: str) -> list[dict]:
         root_raw = _extract_root(header)
         if root_raw is None:
             continue
-        body = _first_body_line(lines, i)
+        body = _entry_body(lines, i)
         if body is None:
             continue
         parsed = _parse_asl(body)
@@ -165,6 +254,7 @@ def parse_source(text: str) -> list[dict]:
             "root_normalized": root_norm,
             "root_raw": root_raw,
             "asl_text": parsed["asl_text"],
+            "asl_preamble": parsed["asl_preamble"],
             "asl_count": parsed["asl_count"],
             "asl_status": parsed["asl_status"],
             "source": SOURCE_TAG,
@@ -201,8 +291,8 @@ def build(fetch: bool = False) -> list[dict]:
     text = SOURCE_PATH.read_text(encoding="utf-8")
     rows = parse_source(text)
     OUT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["root_normalized", "root_raw", "asl_text", "asl_count",
-              "asl_status", "source", "edition", "confidence"]
+    fields = ["root_normalized", "root_raw", "asl_text", "asl_preamble",
+              "asl_count", "asl_status", "source", "edition", "confidence"]
     with OUT_CSV.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
