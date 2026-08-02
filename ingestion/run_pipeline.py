@@ -28,6 +28,7 @@ from ingestion import (  # noqa: E402
     translator,
     morphology,       # legacy tashaphyne builder — kept for validation, unused
     qac_morphology,   # QAC root builder (manually-verified roots)
+    qac_treebank,     # QLisan per-word index + token-alignment spine (from eqtb treebank)
 )
 
 
@@ -59,6 +60,10 @@ def main() -> int:
         # commented, so we can validate the two builders before removing it:
         # verses, index = timed("morphology", morphology.run, verses)
         verses, index = timed("qac-morphology", qac_morphology.run, verses)
+        # Stage 5 — QLisan per-word index + alignment spine. Independent of the
+        # verse records above (reads the eqtb treebank + quran_chakl.csv directly);
+        # writes qac_words/qac_syntax/root_graph/word_index.json under data/processed.
+        timed("qac-treebank", qac_treebank.run)
     except Exception as exc:  # surface a clear failure, keep a clean exit code
         print(f"\n❌ Pipeline failed: {exc}")
         import traceback

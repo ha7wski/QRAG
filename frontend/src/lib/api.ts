@@ -4,6 +4,8 @@ import type {
   FeedbackStats,
   HealthStatus,
   LexicalResponse,
+  QlisanVerseResponse,
+  QlisanWordResponse,
   SearchResponse,
   SurahMeta,
   SurahResponse,
@@ -51,6 +53,35 @@ export async function madarAnalyze(word: string): Promise<MadarResponse> {
     body: JSON.stringify({ word }),
   });
   if (!res.ok) throw new Error(`Madar analyze failed: ${res.status}`);
+  return res.json();
+}
+
+// ── QLisan (per-word four-level analysis) ─────────────────────────────
+// The verse with QAC-aligned, individually-selectable token boundaries.
+export async function qlisanVerse(
+  surah: number,
+  ayah: number,
+): Promise<QlisanVerseResponse> {
+  const res = await fetch(`${API_URL}/qlisan/verse/${surah}/${ayah}`);
+  if (res.status === 404) throw new Error(`Verse ${surah}:${ayah} not found`);
+  if (!res.ok) throw new Error(`QLisan verse failed: ${res.status}`);
+  return res.json();
+}
+
+// The four-level fiche (صوتي → صرفي → نحوي → دلالي) for one word.
+export async function qlisanWord(
+  surah: number,
+  ayah: number,
+  word: number,
+): Promise<QlisanWordResponse> {
+  const res = await fetch(`${API_URL}/qlisan/word`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ surah, ayah, word }),
+  });
+  if (res.status === 404)
+    throw new Error(`Word ${surah}:${ayah}:${word} not found`);
+  if (!res.ok) throw new Error(`QLisan word failed: ${res.status}`);
   return res.json();
 }
 

@@ -38,6 +38,7 @@ from api.routers import feedback as feedback_router  # noqa: E402
 from api.routers import lexical as lexical_router  # noqa: E402
 from api.routers import lisan as lisan_router  # noqa: E402
 from api.routers import madar as madar_router  # noqa: E402
+from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import sessions as sessions_router  # noqa: E402
 from api.routers import verse as verse_router  # noqa: E402
@@ -121,6 +122,7 @@ app.include_router(search_router.router)
 app.include_router(lexical_router.router)
 app.include_router(lisan_router.router)
 app.include_router(madar_router.router)
+app.include_router(qlisan_router.router)
 app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(feedback_router.router)

@@ -94,6 +94,82 @@ export interface HealthStatus {
   llm: boolean;
 }
 
+// ── QLisan (per-word four-level analysis) ─────────────────────────────
+// One selectable token in a verse. `char_start`/`char_end` are offsets into
+// the vocalized `text` string (end exclusive); `aligned:false` marks a span
+// derived by best-effort fallback rather than the QAC spine.
+export interface QlisanToken {
+  word: number; // 1-based QAC word_id
+  uthmani: string;
+  imlaai: string;
+  char_start: number;
+  char_end: number; // exclusive
+  aligned: boolean;
+}
+
+export interface QlisanVerseResponse {
+  surah: number;
+  ayah: number;
+  surah_name_ar: string;
+  text: string; // vocalized chakl aya string, rendered as-is (RTL)
+  tokens: QlisanToken[];
+}
+
+// A root sibling (naẓīr) sharing the selected word's root.
+export interface QlisanNazair {
+  ref: string; // "surah:ayah:word"
+  word_uthmani: string;
+}
+
+// صوتي / دلالي — stubs in this increment (available:false + message). Typed
+// with `available: boolean` so later increments can flip them on without a
+// type change; the fiche renders the message when unavailable.
+export interface QlisanStubLevel {
+  available: boolean;
+  message?: string | null;
+}
+
+// صرفي (morphological) — deterministic, from the parsed treebank.
+export interface QlisanSarfi {
+  available: boolean;
+  root: string | null;
+  root_display: string | null;
+  lemma: string | null;
+  lemma_display: string | null;
+  pos: string;
+  pos_ar: string;
+  features: Record<string, unknown>;
+  segments: string[];
+  is_proper_noun: boolean;
+  nazair: QlisanNazair[];
+}
+
+// نحوي (syntactic) — deterministic, from the dependency treebank.
+export interface QlisanNahwi {
+  available: boolean;
+  role_ar: string | null;
+  relation: string | null;
+  relation_ar: string | null;
+  head_ref: string | null;
+  message: string | null;
+}
+
+export type QlisanLevelKey = "sawti" | "sarfi" | "nahwi" | "dalali";
+
+export interface QlisanWordResponse {
+  ref: string; // "surah:ayah:word"
+  surah: number;
+  ayah: number;
+  word: number;
+  word_uthmani: string;
+  word_imlaai: string;
+  levels_order: QlisanLevelKey[];
+  sawti: QlisanStubLevel;
+  sarfi: QlisanSarfi;
+  nahwi: QlisanNahwi;
+  dalali: QlisanStubLevel;
+}
+
 export interface FeedbackStats {
   up: number;
   down: number;
