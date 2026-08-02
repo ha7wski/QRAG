@@ -21,10 +21,49 @@ class QlisanWordRequest(BaseModel):
 
 
 class Nazair(BaseModel):
-    """A root sibling (naẓīr): another occurrence sharing the word's root."""
+    """A root sibling (naẓīr): another occurrence sharing the word's root.
+
+    Lemma-scoped: `lemma`/`lemma_display` tag each entry so the UI can group the
+    strip by lemma (never mixing homographic senses under one root).
+    """
 
     ref: str  # "surah:ayah:word"
     word_uthmani: str = ""
+    lemma: str | None = None
+    lemma_display: str | None = None
+
+
+class SarfiFeature(BaseModel):
+    """One morphology feature row, fully Arabic (label + value), never a raw code."""
+
+    label_ar: str
+    value_ar: str
+
+
+class SarfiSegment(BaseModel):
+    """One morphological segment: its vocalized surface text + Arabic type label.
+
+    `text` is the real segment form (e.g. «الـ», «رَحِيم», «وا»), re-vocalized from the
+    aligned chakl surface; `type_ar` is the secondary type (بادئة/جذع/لاحقة). Order is
+    reading order (prefix → stem → suffix, i.e. right → left)."""
+
+    text: str
+    type_ar: str
+
+
+class Mizan(BaseModel):
+    """الميزان الصرفي — the root projected onto ف-ع-ل, derived deterministically.
+
+    `verified` mirrors the level badge: True ⇒ exact projection («معطى محقّق»);
+    False ⇒ hollow/geminate/irregular surface, shown as an heuristic «اجتهادي» hint
+    outside the badge. `bab` is the canonical verb-form pattern (فَعَلَ/فَعَّلَ/…) for
+    verbs, else None.
+    """
+
+    available: bool = False
+    wazn: str | None = None
+    verified: bool = False
+    bab: str | None = None
 
 
 class SawtiLevel(BaseModel):
@@ -42,21 +81,30 @@ class SarfiLevel(BaseModel):
     root_display: str | None = None
     lemma: str | None = None
     lemma_display: str | None = None
-    pos: str = ""
+    pos: str = ""  # raw QAC code, kept as data (not rendered); pos_ar is the display source
     pos_ar: str = ""
-    features: dict = {}
-    segments: list[str] = []
+    features: list[SarfiFeature] = []  # ordered Arabic {label_ar, value_ar}
+    segments: list[SarfiSegment] = []  # per-segment vocalized text + Arabic type
+    mizan: Mizan = Mizan()  # الميزان الصرفي (root projected onto ف-ع-ل)
     is_proper_noun: bool = False
     nazair: list[Nazair] = []
 
 
 class NahwiLevel(BaseModel):
-    """نحوي (syntax) — deterministic, from the dependency treebank."""
+    """نحوي (syntax) — deterministic, from the dependency treebank.
+
+    `iraab_ar` is the composed «الموقع الإعرابي» (relation function [+ case word]);
+    `marker_ar` is the derived العلامة (الأصل) hint, present only where reliable.
+    `role_ar` is kept for shape-compat but no longer populated. Raw `relation`/
+    `relation_ar` stay in the payload as data (not rendered).
+    """
 
     available: bool
-    role_ar: str | None = None
-    relation: str | None = None
-    relation_ar: str | None = None
+    role_ar: str | None = None  # deprecated: no longer populated (kept for shape-compat)
+    relation: str | None = None  # raw QAC code, kept as data (not rendered)
+    relation_ar: str | None = None  # raw source label, kept as data (not rendered)
+    iraab_ar: str | None = None
+    marker_ar: str | None = None
     head_ref: str | None = None
     message: str | None = None
 

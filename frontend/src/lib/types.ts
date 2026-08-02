@@ -115,10 +115,37 @@ export interface QlisanVerseResponse {
   tokens: QlisanToken[];
 }
 
-// A root sibling (naẓīr) sharing the selected word's root.
+// A root sibling (naẓīr) sharing the selected word's root. Lemma-scoped so the
+// UI can group the strip by lemma (never mixing homographic senses).
 export interface QlisanNazair {
   ref: string; // "surah:ayah:word"
   word_uthmani: string;
+  lemma?: string | null;
+  lemma_display?: string | null;
+}
+
+// One morphology feature row, fully Arabic (label + value), never a raw code.
+export interface QlisanSarfiFeature {
+  label_ar: string;
+  value_ar: string;
+}
+
+// One morphological segment: its vocalized surface text + Arabic type label
+// (بادئة/جذع/لاحقة). Order is reading order (prefix → stem → suffix, right → left).
+export interface QlisanSarfiSegment {
+  text: string;
+  type_ar: string;
+}
+
+// الميزان الصرفي — root projected onto ف-ع-ل. `verified` mirrors the level badge:
+// true = exact projection («معطى محقّق»); false = hollow/geminate/irregular surface,
+// shown as an heuristic «اجتهادي» hint outside the badge. `bab` is the verb-form
+// pattern (فَعَلَ/فَعَّلَ/…) for verbs, else null.
+export interface QlisanMizan {
+  available: boolean;
+  wazn: string | null;
+  verified: boolean;
+  bab: string | null;
 }
 
 // صوتي / دلالي — stubs in this increment (available:false + message). Typed
@@ -136,20 +163,27 @@ export interface QlisanSarfi {
   root_display: string | null;
   lemma: string | null;
   lemma_display: string | null;
-  pos: string;
+  pos: string; // raw QAC code, kept as data (not rendered)
   pos_ar: string;
-  features: Record<string, unknown>;
-  segments: string[];
+  features: QlisanSarfiFeature[]; // ordered Arabic {label_ar, value_ar}
+  segments: QlisanSarfiSegment[]; // per-segment vocalized text + Arabic type
+  mizan: QlisanMizan; // الميزان الصرفي (root projected onto ف-ع-ل)
   is_proper_noun: boolean;
   nazair: QlisanNazair[];
 }
 
 // نحوي (syntactic) — deterministic, from the dependency treebank.
+// `iraab_ar` is the composed «الموقع الإعرابي» (relation function [+ case word]);
+// `marker_ar` is the derived العلامة (الأصل) hint, present only where reliable.
+// `role_ar` is kept for shape-compat but no longer populated; raw
+// `relation`/`relation_ar` stay in the payload as data (not rendered).
 export interface QlisanNahwi {
   available: boolean;
-  role_ar: string | null;
-  relation: string | null;
-  relation_ar: string | null;
+  role_ar: string | null; // deprecated: no longer populated
+  relation: string | null; // raw QAC code, kept as data (not rendered)
+  relation_ar: string | null; // raw source label, kept as data (not rendered)
+  iraab_ar: string | null;
+  marker_ar: string | null;
   head_ref: string | null;
   message: string | null;
 }

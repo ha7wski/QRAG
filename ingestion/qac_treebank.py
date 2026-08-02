@@ -218,6 +218,15 @@ def _build_word_indexes(words: dict, tokmap: dict):
         uthmani = _join_parts(entry["uthmani_parts"])
         imlaai = _join_parts(entry["imlaai_parts"])
         segments = [seg for _, seg in sorted(entry["segments"], key=lambda p: p[0])]
+        # Per-segment surface text (in tok_id / reading order: prefix → stem → suffix)
+        # so the fiche can show the actual segment forms, not just the type codes. The
+        # QAC per-segment vocalization is partial; the display layer re-vocalizes each
+        # segment from the aligned chakl surface using these letter boundaries.
+        _uth_by_tok = {tid: tok for tid, tok in entry["uthmani_parts"]}
+        segments_detail = [
+            {"type": seg, "uthmani": _uth_by_tok.get(tid, "")}
+            for tid, seg in sorted(entry["segments"], key=lambda p: p[0])
+        ]
 
         pos = ""
         pos_ar = ""
@@ -253,6 +262,7 @@ def _build_word_indexes(words: dict, tokmap: dict):
             "pos_ar": pos_ar,
             "features": features,
             "segments": segments,
+            "segments_detail": segments_detail,
             "is_proper_noun": is_pn,
         }
 
@@ -266,12 +276,18 @@ def _build_word_indexes(words: dict, tokmap: dict):
                 rel_ar = stem.get("rel_label_ar", "").strip()
                 head_ref = None
                 ref_tok = stem.get("ref_token_id", "").strip()
-                if ref_tok not in ("", "0", "-"):
+                # `token_id` is 0-based per sentence, so "0" is a REAL head token
+                # (the sentence's first token, e.g. the imperative أَرْسِلْهُ at
+                # 12:12:1 that governs جواب الأمر يَرْتَعْ at 12:12:4) — it must NOT be
+                # treated as "no head". Only "" / "-" mean absent. A root (or a head
+                # pointing at the word itself) is still nulled by the self-check below,
+                # and pseudo-token heads resolve to None via `tokmap`.
+                if ref_tok not in ("", "-"):
                     head_ref = tokmap.get((stem["sentence_id"], ref_tok))
                 # A head resolving to the word itself means the syntactic head is a
-                # word-internal proclitic segment (e.g. the preposition in لِلَّهِ).
-                # Keep the relation, but null the head so نحوي never renders
-                # "depends on itself" — the API/UI already handle head_ref=None.
+                # word-internal proclitic segment (e.g. the preposition in لِلَّهِ), or
+                # the word is the sentence root. Keep the relation, but null the head so
+                # نحوي never renders "depends on itself" — the API/UI handle head_ref=None.
                 if head_ref == ref:
                     head_ref = None
                 qac_syntax[ref] = {

@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from analysis import mizan, qac_labels
 from analysis.qlisan_data import qac_syntax, qac_words, root_graph
 from indexing.corpus import chakl_by_ref
 
@@ -36,54 +37,115 @@ LEVELS_ORDER = ["sawti", "sarfi", "nahwi", "dalali"]
 # Naẓāʾir (root siblings) cap — enough to show breadth without flooding the fiche.
 _NAZAIR_CAP = 30
 
+# Below this many same-lemma siblings the strip falls back to other lemmas under
+# the same root, tagged by lemma so the UI can render them in labelled groups.
+_NAZAIR_MIN_SAME_LEMMA = 3
+
 _SAWTI_MESSAGE = "التحليل الصوتي غير متوفر بعد."
 _DALALI_MESSAGE = "التحليل الدلالي غير متوفر بعد."
 _NAHWI_UNAVAILABLE_MESSAGE = "لا يوجد تحليل نحوي محفوظ لهذه الكلمة."
 
 
-def _nazair(root: str | None, self_ref: str) -> list[dict]:
+def _nazair(root: str | None, lemma: str | None, self_ref: str) -> list[dict]:
     """Up to `_NAZAIR_CAP` root siblings (refs sharing `root`), excluding `self_ref`.
 
-    Each entry is `{ref, word_uthmani}`; `word_uthmani` is looked up from the same
-    morphology index (empty string if a sibling ref is somehow absent).
+    Filtered to the **same lemma** as the queried word (never mixing homographic
+    senses under one root). When the same-lemma set is below
+    `_NAZAIR_MIN_SAME_LEMMA`, other lemmas under the same root are appended so the
+    strip is not near-empty — but **tagged by lemma** so the UI can render them in
+    separate, labelled groups. Same-lemma entries always come first; order within
+    each group follows the deterministic `root_graph` order.
+
+    Each entry is `{ref, word_uthmani, lemma, lemma_display}`; the lemma tags let
+    the frontend group the strip. Lookups come from the same morphology index
+    (empty/None if a sibling ref is somehow absent).
     """
     if not root:
         return []
     words = qac_words()
+    refs = [ref for ref in root_graph().get(root, []) if ref != self_ref]
+
+    same = [ref for ref in refs if (words.get(ref) or {}).get("lemma") == lemma]
+    if lemma is not None and len(same) < _NAZAIR_MIN_SAME_LEMMA:
+        others = [ref for ref in refs if ref not in same]
+        ordered = same + others  # same-lemma first, then other lemmas (grouped by tag)
+    else:
+        ordered = same
+
     out: list[dict] = []
-    for ref in root_graph().get(root, []):
-        if ref == self_ref:
-            continue
+    for ref in ordered:
         rec = words.get(ref, {})
-        out.append({"ref": ref, "word_uthmani": rec.get("uthmani", "")})
+        out.append(
+            {
+                "ref": ref,
+                "word_uthmani": rec.get("uthmani", ""),
+                "lemma": rec.get("lemma"),
+                "lemma_display": rec.get("lemma_display"),
+            }
+        )
         if len(out) >= _NAZAIR_CAP:
             break
     return out
 
 
 def _sarfi(record: dict, self_ref: str) -> dict:
-    """The صرفي (morphology) level — verbatim from the QAC word record."""
+    """The صرفي (morphology) level — from the QAC word record, translated to Arabic.
+
+    Feature *values* and `segments` are raw QAC codes on disk; they are translated
+    to an ordered Arabic `[{label_ar, value_ar}]` list and Arabic segment labels
+    here (via `qac_labels`) so nothing Latin/Buckwalter is ever rendered. The raw
+    `pos` is kept in the record (data) — `pos_ar` is the sole rendered POS source.
+    """
     root = record.get("root")
+    lemma = record.get("lemma")
     return {
         "available": True,
         "root": root,
         "root_display": record.get("root_display"),
-        "lemma": record.get("lemma"),
+        "lemma": lemma,
         "lemma_display": record.get("lemma_display"),
-        "pos": record.get("pos", ""),
+        "pos": record.get("pos", ""),  # raw, kept as data (not rendered)
         "pos_ar": record.get("pos_ar", ""),
-        "features": record.get("features", {}) or {},
-        "segments": record.get("segments", []) or [],
+        "features": qac_labels.translate_features(record.get("features", {}) or {}),
+        "segments": mizan.segment_breakdown(record, self_ref),
+        "mizan": mizan.compute_mizan(record, self_ref),
         "is_proper_noun": bool(record.get("is_proper_noun", False)),
-        "nazair": _nazair(root, self_ref),
+        "nazair": _nazair(root, lemma, self_ref),
     }
 
 
-def _nahwi(self_ref: str) -> dict:
-    """The نحوي (syntax) level — verbatim from the dependency index, or unavailable.
+def _compose_iraab(relation_ar: str | None, nominal_case: str | None) -> str | None:
+    """The «الموقع الإعرابي» string: relation function [+ case word], composed safely.
+
+    * `relation_ar` is normalised through the override map so it is never emitted as
+      ASCII (`root`→«عمدة الجملة») nor a bare case word (`gen`→«اسم مجرور»).
+    * The case word is appended **only** when the relation's canonical case matches
+      the word's present `nominal_case` — guarding the 83 `Subj`-tagged-«مفعول به»
+      mislabels (never «مفعول به مرفوع») and the `gen`/`root` cases (no stutter).
+    * For مبني words (no `nominal_case`) the relation function alone is shown, with
+      no fabricated lafẓī case word.
+    """
+    display = qac_labels.relation_ar_display(relation_ar)
+    if display is None:
+        return None
+    if nominal_case:
+        canonical = qac_labels.relation_canonical_case(relation_ar)
+        if canonical is not None and canonical == nominal_case:
+            case_word = qac_labels.NOMINAL_CASE_AR.get(nominal_case)
+            if case_word:
+                return f"{display} {case_word}"
+    return display
+
+
+def _nahwi(self_ref: str, record: dict) -> dict:
+    """The نحوي (syntax) level — iʿrāب composed safely from the treebank + صرفي case.
 
     Words with no treebank annotation are absent from `qac_syntax.json`; for them
-    the level is `available:false` (never fabricated)."""
+    the level is `available:false` (never fabricated). `iraab_ar` is the composed
+    «الموقع الإعرابي»; `marker_ar` (العلامة) is a derived الأصل hint, omitted (never
+    fabricated) where unreliable. `role_ar` is deprecated — the stale
+    `role_ar = pos_ar` source field is no longer read (left `None`).
+    """
     rec = qac_syntax().get(self_ref)
     if rec is None:
         return {
@@ -91,14 +153,21 @@ def _nahwi(self_ref: str) -> dict:
             "role_ar": None,
             "relation": None,
             "relation_ar": None,
+            "iraab_ar": None,
+            "marker_ar": None,
             "head_ref": None,
             "message": _NAHWI_UNAVAILABLE_MESSAGE,
         }
+    features = record.get("features", {}) or {}
+    nominal_case = features.get("nominal_case")
+    relation_ar = rec.get("relation_ar")
     return {
         "available": True,
-        "role_ar": rec.get("role_ar"),
-        "relation": rec.get("relation"),
-        "relation_ar": rec.get("relation_ar"),
+        "role_ar": None,  # deprecated: stale `role_ar = pos_ar` source field not read
+        "relation": rec.get("relation"),  # raw, kept as data (not rendered)
+        "relation_ar": relation_ar,  # raw, kept as data (not rendered)
+        "iraab_ar": _compose_iraab(relation_ar, nominal_case),
+        "marker_ar": qac_labels.case_marker(record),
         "head_ref": rec.get("head_ref"),
         "message": None,
     }
@@ -133,7 +202,7 @@ def analyze_word(surah: int, ayah: int, word: int) -> dict:
         "levels_order": list(LEVELS_ORDER),
         "sawti": {"available": False, "message": _SAWTI_MESSAGE},
         "sarfi": _sarfi(record, self_ref),
-        "nahwi": _nahwi(self_ref),
+        "nahwi": _nahwi(self_ref, record),
         "dalali": {"available": False, "message": _DALALI_MESSAGE},
     }
 

@@ -6,6 +6,7 @@ import { ArrowRight, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
 import type {
   QlisanNahwi,
+  QlisanNazair,
   QlisanSarfi,
   QlisanStubLevel,
   QlisanToken,
@@ -110,37 +111,9 @@ export default function QlisanPage() {
         </p>
       </div>
 
-      {/* Verse picker — surah select + ayah number. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={surah}
-          onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
-          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
-        >
-          {surahs.map((s) => (
-            <option key={s.number} value={s.number}>
-              {s.number}. {s.name_ar}
-            </option>
-          ))}
-        </select>
-
-        <input
-          value={ayah}
-          onChange={(e) =>
-            setAyah(
-              Math.min(maxAyah, Math.max(1, Number(e.target.value) || 1)),
-            )
-          }
-          onKeyDown={(e) => e.key === "Enter" && loadVerse()}
-          type="number"
-          min={1}
-          max={maxAyah}
-          aria-label="Ayah number"
-          className="w-28 rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
-        />
-        <span className="text-sm text-gray-400">/ {maxAyah}</span>
-
+      {/* Verse picker — right-aligned, reads right→left: sourat name → ayah box →
+          Load-verse button (RTL layout; the button ends up on the left). */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <button
           onClick={() => loadVerse()}
           disabled={verseLoading || surahs.length === 0}
@@ -153,6 +126,37 @@ export default function QlisanPage() {
           )}
           Load verse
         </button>
+
+        <div className="flex items-center gap-1">
+          <input
+            value={ayah}
+            onChange={(e) =>
+              setAyah(
+                Math.min(maxAyah, Math.max(1, Number(e.target.value) || 1)),
+              )
+            }
+            onKeyDown={(e) => e.key === "Enter" && loadVerse()}
+            type="number"
+            min={1}
+            max={maxAyah}
+            aria-label="Ayah number"
+            className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-brand focus:outline-none"
+          />
+          <span className="text-sm text-gray-400">/ {maxAyah}</span>
+        </div>
+
+        <select
+          value={surah}
+          onChange={(e) => onSurahChange(Number(e.target.value))}
+          dir="rtl"
+          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+        >
+          {surahs.map((s) => (
+            <option key={s.number} value={s.number}>
+              {s.number}. {s.name_ar}
+            </option>
+          ))}
+        </select>
       </div>
 
       {verseError && (
@@ -239,12 +243,12 @@ function VerseTokens({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
+      <div className="flex items-center justify-end gap-2 border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
+        <span dir="ltr">
+          {verse.surah}:{verse.ayah}
+        </span>
         <span className="font-medium text-gray-700" dir="rtl">
           {verse.surah_name_ar}
-        </span>
-        <span>
-          {verse.surah}:{verse.ayah}
         </span>
       </div>
       <div
@@ -292,7 +296,9 @@ function VerseTokens({
 function Fiche({ data }: { data: QlisanWordResponse }) {
   const renderers: Record<string, () => JSX.Element> = {
     sawti: () => <StubLevel titleAr="صوتي" titleEn="Phonetic" level={data.sawti} />,
-    sarfi: () => <SarfiLevel level={data.sarfi} />,
+    sarfi: () => (
+      <SarfiLevel level={data.sarfi} marker={data.nahwi?.marker_ar ?? null} />
+    ),
     nahwi: () => <NahwiLevel level={data.nahwi} />,
     dalali: () => (
       <StubLevel
@@ -306,16 +312,6 @@ function Fiche({ data }: { data: QlisanWordResponse }) {
 
   return (
     <div className="space-y-4">
-      {/* Selected word header. */}
-      <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3">
-        <span dir="rtl" lang="ar" className="arabic-text text-3xl text-brand-dark">
-          {data.word_uthmani}
-        </span>
-        <span dir="ltr" className="text-xs text-gray-500">
-          {data.ref}
-        </span>
-      </div>
-
       {data.levels_order.map((key) => (
         <div key={key}>{renderers[key]?.() ?? null}</div>
       ))}
@@ -353,16 +349,23 @@ function LevelCard({
         : "bg-gray-100 text-gray-500";
   return (
     <section className={`overflow-hidden rounded-xl border bg-white ${ring}`}>
-      <header className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+      {/* RTL header: the Arabic title sits on the RIGHT (main title), the English
+          label to its left, and the badge on the far left. */}
+      <header
+        dir="rtl"
+        className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5"
+      >
         <span className="flex items-baseline gap-2">
           <span
-            dir="rtl"
             lang="ar"
             className="font-arabic text-xl font-semibold text-gray-800"
           >
             {titleAr}
           </span>
-          <span className="text-xs uppercase tracking-wide text-gray-400">
+          <span
+            dir="ltr"
+            className="text-xs uppercase tracking-wide text-gray-400"
+          >
             {titleEn}
           </span>
         </span>
@@ -402,8 +405,15 @@ function StubLevel({
   );
 }
 
-/** صرفي — deterministic morphology from the treebank. */
-function SarfiLevel({ level }: { level: QlisanSarfi }) {
+/** صرفي — deterministic morphology from the treebank. `marker` (العلامة) is the
+ *  derived case-marker hint from the نحوي level, shown here under البنية الصرفية. */
+function SarfiLevel({
+  level,
+  marker,
+}: {
+  level: QlisanSarfi;
+  marker?: string | null;
+}) {
   if (!level.available) {
     return (
       <LevelCard titleAr="صرفي" titleEn="Morphological" badge="غير متاح" tone="pending">
@@ -414,23 +424,18 @@ function SarfiLevel({ level }: { level: QlisanSarfi }) {
     );
   }
 
-  const featureEntries = Object.entries(level.features || {}).filter(
-    ([, v]) => v !== null && v !== undefined && v !== "",
+  const features = (level.features || []).filter(
+    (f) => f && f.label_ar && f.value_ar,
   );
 
   return (
     <LevelCard titleAr="صرفي" titleEn="Morphological" badge="معطى محقّق" tone="fact">
       <dl className="space-y-3" dir="rtl">
-        {/* Part of speech. */}
+        {/* Part of speech (Arabic only — raw QAC code is never rendered). */}
         <Row label="القسم">
           <span className="font-arabic text-lg text-gray-800">
             {level.pos_ar || "—"}
           </span>
-          {level.pos && (
-            <span dir="ltr" className="ml-2 text-xs text-gray-400">
-              {level.pos}
-            </span>
-          )}
         </Row>
 
         {/* Root (or proper-noun marker). */}
@@ -455,56 +460,113 @@ function SarfiLevel({ level }: { level: QlisanSarfi }) {
           </Row>
         )}
 
-        {/* Segments. */}
+        {/* Morphological structure — the vocalized TEXT of each segment joined by
+            « + » in RTL reading order (prefix on the right); the type (بادئة/جذع/لاحقة)
+            is a small secondary label under each segment (also a tooltip). A single
+            segment (e.g. يَرْتَع) shows the stem alone, no « + ». */}
         {level.segments && level.segments.length > 0 && (
-          <Row label="المقاطع">
-            <span className="flex flex-wrap gap-1.5">
+          <Row label="البنية الصرفية">
+            <span className="flex flex-wrap items-start gap-x-1.5 gap-y-1">
               {level.segments.map((seg, i) => (
-                <span
-                  key={i}
-                  className="rounded bg-gray-100 px-1.5 py-0.5 font-arabic text-base text-gray-700"
-                >
-                  {seg}
+                <span key={i} className="flex items-start gap-x-1.5">
+                  {i > 0 && (
+                    <span className="self-center font-arabic text-base text-gray-400">
+                      +
+                    </span>
+                  )}
+                  <span className="flex flex-col items-center">
+                    <span
+                      className="font-arabic text-lg text-gray-800"
+                      title={seg.type_ar}
+                    >
+                      {seg.text}
+                    </span>
+                    <span className="font-arabic text-[10px] leading-tight text-gray-400">
+                      {seg.type_ar}
+                    </span>
+                  </span>
                 </span>
               ))}
             </span>
           </Row>
         )}
 
-        {/* Grammatical features. */}
-        {featureEntries.length > 0 && (
-          <Row label="الخصائص">
-            <span className="flex flex-wrap gap-1.5">
-              {featureEntries.map(([k, v]) => (
-                <span
-                  key={k}
-                  dir="ltr"
-                  className="rounded bg-brand-light px-1.5 py-0.5 text-xs text-brand-dark"
-                >
-                  {k}: {String(v)}
+        {/* الميزان الصرفي — root projected onto ف-ع-ل (just under البنية الصرفية).
+            `items-start` = right edge in RTL, so the wazn aligns with the other rows. */}
+        {level.mizan && level.mizan.available && level.mizan.wazn && (
+          <Row label="الوزن">
+            <span className="flex flex-col items-start gap-1">
+              <span className="flex items-center gap-2">
+                <span className="font-arabic text-xl tracking-widest text-gray-800">
+                  {level.mizan.wazn}
                 </span>
-              ))}
+                {!level.mizan.verified && (
+                  <span
+                    className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
+                    title="ميزان تقديري (جذر معتلّ/مضعّف) — خارج نطاق «معطى محقّق»"
+                  >
+                    اجتهادي
+                  </span>
+                )}
+              </span>
+              {level.mizan.bab && (
+                <span className="font-arabic text-sm text-gray-500">
+                  باب {level.mizan.bab}
+                </span>
+              )}
             </span>
           </Row>
         )}
 
-        {/* Root siblings (naẓāʾir) → deep-links to their verses. */}
+        {/* العلامة — the derived case marker (from the نحوي level), shown under
+            البنية الصرفية as an «الأصل» hint (heuristic, not verbatim corpus data). */}
+        {marker && (
+          <Row label="العلامة">
+            <span className="flex items-baseline gap-2">
+              <span className="font-arabic text-lg text-gray-800">{marker}</span>
+              <span className="font-arabic text-xs text-gray-400">(الأصل)</span>
+            </span>
+          </Row>
+        )}
+
+        {/* Grammatical features — each an ordered Arabic {label_ar, value_ar}. */}
+        {features.map((f, i) => (
+          <Row key={`${f.label_ar}-${i}`} label={f.label_ar}>
+            <span className="font-arabic text-lg text-gray-800">
+              {f.value_ar}
+            </span>
+          </Row>
+        ))}
+
+        {/* Root siblings (naẓāʾir) → deep-links, grouped by lemma so
+            homographic senses are never mixed under one root. */}
         {level.nazair && level.nazair.length > 0 && (
           <Row label="النظائر">
-            <span className="flex flex-wrap gap-1.5">
-              {level.nazair.map((n) => {
-                const [s, a] = n.ref.split(":");
-                return (
-                  <Link
-                    key={n.ref}
-                    href={`/verse/${s}/${a}`}
-                    title={n.ref}
-                    className="rounded-md bg-gray-50 px-2 py-0.5 font-arabic text-base text-gray-700 ring-1 ring-gray-200 transition hover:bg-brand-light hover:text-brand-dark"
-                  >
-                    {n.word_uthmani}
-                  </Link>
-                );
-              })}
+            <span className="flex flex-col gap-2">
+              {groupNazairByLemma(level.nazair).map((group) => (
+                <span key={group.key} className="flex flex-col gap-1">
+                  {group.label && (
+                    <span className="font-arabic text-sm text-gray-400">
+                      {group.label}
+                    </span>
+                  )}
+                  <span className="flex flex-wrap gap-1.5">
+                    {group.items.map((n) => {
+                      const [s, a] = n.ref.split(":");
+                      return (
+                        <Link
+                          key={n.ref}
+                          href={`/verse/${s}/${a}`}
+                          title={n.ref}
+                          className="rounded-md bg-gray-50 px-2 py-0.5 font-arabic text-base text-gray-700 ring-1 ring-gray-200 transition hover:bg-brand-light hover:text-brand-dark"
+                        >
+                          {n.word_uthmani}
+                        </Link>
+                      );
+                    })}
+                  </span>
+                </span>
+              ))}
             </span>
           </Row>
         )}
@@ -525,25 +587,17 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
     );
   }
   return (
+    /* Verbatim treebank fields carry the «معطى محقّق» badge. `iraab_ar`
+       (relation function [+ case word]) subsumes the old «العلاقة» row, and the
+       raw `relation`/`relation_ar` codes are never rendered. The العلامة marker is
+       rendered in the صرفي card (under البنية الصرفية), not here. */
     <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="معطى محقّق" tone="fact">
       <dl className="space-y-3" dir="rtl">
-        {level.role_ar && (
+        {level.iraab_ar && (
           <Row label="الموقع الإعرابي">
             <span className="font-arabic text-lg text-gray-800">
-              {level.role_ar}
+              {level.iraab_ar}
             </span>
-          </Row>
-        )}
-        {(level.relation_ar || level.relation) && (
-          <Row label="العلاقة">
-            <span className="font-arabic text-lg text-gray-800">
-              {level.relation_ar || level.relation}
-            </span>
-            {level.relation && level.relation_ar && (
-              <span dir="ltr" className="ml-2 text-xs text-gray-400">
-                {level.relation}
-              </span>
-            )}
           </Row>
         )}
         {level.head_ref && (
@@ -566,6 +620,36 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
       </dl>
     </LevelCard>
   );
+}
+
+/** Group naẓāʾir by lemma (keyed by `lemma`, labelled by `lemma_display`) so
+ *  homographic senses are never mixed under one root. Insertion order is
+ *  preserved (determinism). The lemma label is only surfaced when more than one
+ *  lemma is present — a single homogeneous group needs no redundant heading. */
+function groupNazairByLemma(nazair: QlisanNazair[]): {
+  key: string;
+  label: string | null;
+  items: QlisanNazair[];
+}[] {
+  const groups: { key: string; display: string | null; items: QlisanNazair[] }[] =
+    [];
+  const byKey = new Map<string, number>();
+  for (const n of nazair) {
+    const key = n.lemma ?? "";
+    let idx = byKey.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      byKey.set(key, idx);
+      groups.push({ key: key || `__${idx}`, display: n.lemma_display ?? null, items: [] });
+    }
+    groups[idx].items.push(n);
+  }
+  const multi = groups.length > 1;
+  return groups.map((g) => ({
+    key: g.key,
+    label: multi ? g.display : null,
+    items: g.items,
+  }));
 }
 
 /** One right-aligned label/value row inside a fiche level. */
