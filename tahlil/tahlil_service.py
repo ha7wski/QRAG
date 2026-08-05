@@ -1315,7 +1315,7 @@ def analyze_verse(surah: int, ayah: int, *, store=None, generator=None,
     block = {
         "id": BLOCK_VERSE,
         "title_ar": VERSE_TITLE_AR,
-        "available": True,
+        "available": bool(claims),
         "message": message,
         "claims": claims,
         "attribution": None,

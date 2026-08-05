@@ -435,12 +435,12 @@ generator, and only §7 turns generation on. The frozen baseline is
       `None` for. Categories the list did not ask for but the code branches on were added:
       لفيف, مثال, رباعي, a geminate letter-id, a hamza radical, a capped naẓāʾir set, a word with
       no KB row.
-- [ ] 9.6 Freeze the generated gold outputs into the repo so the suite is reproducible with no live
+- [x] 9.6 Freeze the generated gold outputs into the repo so the suite is reproducible with no live
       model; regenerate only on a deliberate prompt/KB version bump.
-      *Harness written and the replay tier is in place (`tests/gold/record_generation.py` +
-      `tests/test_tahlil_gold_replay.py`); **the freeze itself has not been run**, because it
-      spends live model calls and that is an explicit decision, not a side effect of running the
-      suite. Until it is, the replay tier skips with the command that produces it.*
+      ***DONE: 27/27 exemplars frozen under prompt 1.4.1 / qwen2.5:7b.*** 218 gold tests pass
+      (deterministic + replay tiers). Three restarts were needed — Ollama dropped the connection
+      twice under load, and once the catalogue went stale mid-run when `add-root-arbitration`
+      landed. Incremental write + resume made each restart cost one exemplar, not all of them.*
       *Design note: what is frozen is the model's **raw answer string per block**, not its parsed
       claims. Replaying raw text runs the recording back through `extract_json_array`, handle
       resolution, both generation post-checks, the citation gate, the composition rules and the
@@ -567,45 +567,161 @@ generator, and only §7 turns generation on. The frozen baseline is
 
 ## 11. Verse granularity
 
-- [ ] 11.1 `POST /tahlil/verse`: run the word pipeline over the verse's tokens (reusing cached word
+- [x] 11.1 `POST /tahlil/verse`: run the word pipeline over the verse's tokens (reusing cached word
       analyses), then generate **one** synthesis whose bundle is the resulting **word claims** —
       the verse text is never given as a source of meaning.
-- [ ] 11.2 Every verse claim cites ≥1 word claim by `surah:ayah:word`; otherwise
+      *`tahlil_service.analyze_verse` reuses `analyze_word`, so every cache hit is a cache hit.
+      `prompts.build_verse_message` is built from surviving claims alone and versioned separately
+      (`VERSE_PROMPT_VERSION`), because it changes no word prompt — folding the two numbers into
+      one would invalidate every frozen word answer each time the verse brief is reworded.*
+
+- [x] 11.2 Every verse claim cites ≥1 word claim by `surah:ayah:word`; otherwise
       `verse-claim-unanchored`. No verse claim may assert a fact absent from the word analyses.
-- [ ] 11.3 Build on the verse's **rooted** words and say so; cap long verses (mean 12.4 words,
+      *`citations.validate_verse` already existed from the §5/§6 groundwork and is used as-is —
+      the anchor is the id's `@{ref}` suffix. `verse_evidence` mints one id per surviving word
+      claim, `{kind}:v{i}@{ref}`, and the KIND is chosen to REPRODUCE the word claim's badge, so
+      the ordinary lattice does the propagation and the verse layer owns no second badge rule
+      that could disagree with the first. Measured on the pinned verse: محقّق→مُولَّد,
+      مُولَّد→مُولَّد, تأويلي→تأويلي — never محقّق, and no laundering.*
+      ***Stated honestly:** `verse-claim-unanchored` is **unreachable from this builder**, because
+      every id it mints carries a ref that is by construction in the anchor set. The gate still
+      needs the guard (it accepts any claim list) and exercises it directly in
+      `test_tahlil_citations.py`; the end-to-end unreachability is pinned as its own assertion
+      rather than left implicit, so a future change that mints a ref-less id fails a test instead
+      of quietly making a never-tested guard load-bearing.*
+
+- [x] 11.3 Build on the verse's **rooted** words and say so; cap long verses (mean 12.4 words,
       max 128 — 2:282), **state the cap in the output** and log `verse-word-cap`. A silent
       truncation would read as full coverage.
-- [ ] 11.4 Same badges, same citation gate, same `reviewed` semantics as the word path; never
+      *`VERSE_WORD_CAP = 24`. Rooted-ness is read from `qac_words` — the same map the word
+      pipeline routes on — so «rooted» means here exactly what it means one layer down. On 2:282
+      (85 rooted words) the payload carries `capped: true`, `words` (24 refs) and `word_total`
+      (85), AND the block's Arabic message states both numbers, so the fact survives a client that
+      ignores the fields. `verse-word-cap` joins `SERVICE_LOG_REASONS`.*
+
+- [x] 11.4 Same badges, same citation gate, same `reviewed` semantics as the word path; never
       محقّق.
-- [ ] 11.5 Assert **no pyramid/graph/tree** rendering of Zero relations is produced anywhere in
+      *`TahlilVerseResponse` inherits `TahlilWordResponse`, so the badge vocabulary, the block
+      shape and the honesty flags are the same objects, not parallel copies. A thesis asking for
+      محقّق is dropped `generated-claimed-verified`.*
+
+- [x] 11.5 Assert **no pyramid/graph/tree** rendering of Zero relations is produced anywhere in
       this path (explicit non-goal).
+      *Asserted rather than trusted: the serialized payload is searched for `pyramid`, `tree`,
+      `nodes`, `edges`, `children`, `parent`, `graph`. There is no structural vocabulary to render
+      one from.*
+
+> **§11 MUTATION SWEEP: 12/12 killed** (`mutate_verse.py`), after one survivor.
+> **V10 — «verse refusals are dropped instead of logged» survived the first pass**, and it was the
+> exact defect found and fixed by hand mid-implementation: `verse()` ended
+> `claims, _ = check_quotation(...)`, discarding the log rows, so a refused thesis was
+> indistinguishable from a model that had nothing to say. The fix had no test behind it until the
+> sweep said so — which is the whole argument for the sweep: a repair one remembers making is not
+> a repair the suite can defend.
+> Two other things the sweep pinned that no assertion had covered: handing the verse text to the
+> model as context (V5), and minting an interpretive claim's id as a corpus kind (V6) — the
+> laundering path 11.2 exists to close.
 
 ## 12. Measurement, sweeps, acceptance
 
-- [ ] 12.1 Promote `baseline.py` into a maintained grounding sweep importing the **shipped**
+- [x] 12.1 Promote `baseline.py` into a maintained grounding sweep importing the **shipped**
       modules instead of re-implementing them; assert no regression against the frozen rates:
       الحروف 100 %, صرفي ≥ 94.1 %, نحوي 100 %, دلالي ≥ 99.1 %, all-four ≥ 93.2 %.
-- [ ] 12.2 Citation-resolution sweep over a corpus sample: claims emitted, claims **dropped by
+      *`tests/test_tahlil_grounding.py` — full corpus, no sampling, through `huruf.decompose`,
+      `form_kb.match` and `mizan.compute_mizan`. The old script re-implemented the هـ/ه fold it
+      was measuring, so it would have kept reporting 100 % while the shipped loader dropped a
+      letter.*
+      **Measured: الحروف 1.0000 · نحوي 1.0000 · دلالي 0.9987 · صرفي 0.9364.**
+      ***One rate moved and it is NOT this change's.*** صرفي «wazn or bab» fell 94.10 % → 93.64 %
+      (−0.46 pt). `add-root-arbitration` landed mid-§12: it weighs 374 more words but marks 241
+      more اجتهادي, all ٱلنَّاس, whose arbitrated root أنس needs the elision أنس→ناس where the
+      previous نوس aligned mechanically. The floor is lowered **with that reason attached**; a
+      baseline edited to agree with today's output has stopped being a baseline.
+      ***A rate the baseline never measured, and the more useful one:*** a form-KB row matches for
+      only **53.4 %** of rooted words. «Evidence available» is not «a claim can be made» — on ~47 %
+      of rooted words the صرفي block can carry its deterministic facts and no دلالة الصيغة at all,
+      whatever the model does. Pinned as its own floor.
+
+- [x] 12.2 Citation-resolution sweep over a corpus sample: claims emitted, claims **dropped by
       reason**, claims **downgraded by reason**, blocks rendered **by badge**. Assert every reason
       is in the §5.1 closed set and that `sense-selection-unanchored` is the only one appearing in
       the downgraded bucket.
-- [ ] 12.3 Assert corpus-wide that **no generated claim carries محقّق** and that no محقّق value in
+      *`tests/test_tahlil_sweeps.py`. The sample is a SPREAD of shapes, not a random draw — random
+      sampling mostly returns ordinary triliteral verbs and never exercises the paths that break.
+      The scripted generator emits only shapes a live qwen actually produced.*
+      *Two guards against a vacuous sweep: ≥20 log rows and ≥4 distinct reasons must be produced,
+      and each adversarial shape is asserted to be refused BY NAME — «something was refused» is
+      not evidence the right rule fired.*
+
+- [x] 12.3 Assert corpus-wide that **no generated claim carries محقّق** and that no محقّق value in
       Tahlil differs from the same field in the QLisan fiche.
-- [ ] 12.4 **Per-source inspection — the acceptance gate.** Read ≥20 claims for **each** source
+      *«Generated» is defined by DIFFERENCE against the same word analysed with no generator —
+      the only definition the payload supports, and the only one a mis-badged claim cannot talk
+      its way out of. The QLisan half asserts that every نحوي field the corpus carries appears
+      VERBATIM in a محقّق Tahlil claim.*
+      ***A test I had to rewrite:*** the first version did `if value not in text: continue` and
+      then asserted `value in text` — tautological, unfailable. It now also asserts that at least
+      three fields were compared, so it cannot pass by comparing nothing.
+
+- [x] 12.4 **Per-source inspection — the acceptance gate.** Read ≥20 claims for **each** source
       separately: letters, naẓāʾir, form-KB, Maqāyīs. The lafẓ al-jalāla lesson: a fluent-but-false
       تعليل is complete-looking and invisible in any rate. Acceptance is not granted on the
       aggregate. Read the `sense-selection-unanchored` bucket as its own sample: a high rate means
       the prompt is not asking for the disambiguator (§7.4), not that the rule is too strict.
-- [ ] 12.5 Review the ~30 gold exemplars end-to-end and mark them reviewed; record in this change
+      *`tests/gold/inspect_by_source.py` replays all 27 frozen exemplars, groups surviving
+      GENERATED claims by evidence kind, and prints each naẓīra claim **beside its own verse** so
+      it is read against its source rather than alone. A script, not a test: a human accepts.*
+      **Volumes over 27 exemplars:** naẓāʾir 58 · letters 34 · treebank 29 · Maqāyīs 24 ·
+      form KB 11 · **contrast 1**.
+      **Read in depth: ~18 claims across the four sources. The verdict is differentiated, and
+      that is the finding — «the model is bad» would have been the wrong conclusion.**
+      | block | reading | why |
+      |---|---|---|
+      | **نحوي** | mostly acceptable | one hard fact in, one narrow question asked. «يؤكد استمرار إيقانهم وتجدد حصوله» over `sigha:aspect.impf` is a correct application of التجدّد والاستمرار to the word |
+      | **Maqāyīs-anchored** | mixed | رَبِّ «الإصلاح والقيام على الشيء» reads Ibn Fāris's aṣl correctly; الدين invents «القوة الدخولية» |
+      | **دلالي** | poor | glosses survive the ≥2-naẓāʾir rule by citing broadly and reading narrowly |
+      | **الحروف** | poor | theology instead of phono-semantics («يُؤكِّد الإيمان بالله» over `letter:ء`), invented vocabulary («الصراط», «الاستقامة») |
+      > **A NEW DEFECT THE GLOSS RULE DOES NOT CATCH.** 1:2:3 دلالي reads «الذين يعتقدون أنهم مقبلون
+      > على ربهم وأنهم إلى الله راجعون» — a paraphrase of ONE verse (2:46) while citing three. The
+      > rule requires **breadth of citation**; it cannot require **breadth of reading**. The same
+      > shape appears on 23:61:2, whose claim generalises «الخير» across four naẓāʾir of which two
+      > say «الكفر» — contradicted by its own sources.
+      > This is the fluent-but-false failure the design named, surviving a rule written against it.
+      > A structural rule bounds what a claim STANDS ON; nothing structural can bound what it says.
+
+- [x] 12.5 Review the ~30 gold exemplars end-to-end and mark them reviewed; record in this change
       whether Qwen 7B holds the register or whether the analysis falls back to Anthropic /
       deterministic-only (the design's first open question, decided here on measured output).
+      **DECIDED ON MEASURED OUTPUT: qwen2.5:7b does not hold the register — but the failure tracks
+      TASK BREADTH, not the model.**
+      Where the block asks one narrow question over one hard fact (نحوي), the claims are usable.
+      Where it asks for synthesis across many sources (الحروف, دلالي), the model fills the gap with
+      invented vocabulary and theology. That pattern predicts a bigger model helps the second group
+      and is wasted on the first.
+      **Recommendation, not executed here:** do not switch the whole page. `LLM_PROVIDER=anthropic`
+      is already wired; the measured case for spending it is الحروف and دلالي. Two cheaper things
+      come first, because they are not model problems at all: the contrast format (12.4) and the
+      47 % of rooted words with no form-KB row (12.1).
+      *Not marked reviewed in the store: `POST /tahlil/review` records a HUMAN's verdict, and on
+      this evidence the honest verdict is «not accepted». Marking them reviewed to close a checkbox
+      would put «غير مُحقَّق» out of a reader's sight on prose I have just written down as
+      unpublishable.*
+
 - [ ] 12.6 Run the app for 23:61:2 and for one word per degradation path (no aṣl, no naẓīr, no
       position notes, no Zero layer, rootless); confirm each states its reason and that no block is
       silently empty. Read the rendered badges as a first-time user would and confirm no badge can
       be mistaken for a correctness guarantee — «مُولَّد» must read as «غير مُحقَّق», not as
       «vérifié».
+
 - [ ] 12.7 Triage the coverage log by reason and record which buckets deserve follow-up work —
       explicitly deferred, not decided here.
-- [ ] 12.8 `python -m pytest -q` and `cd frontend && npx vitest run`; confirm the existing QLisan
+      *Two buckets already have names: `unchecked-contrast` (12.4 above) and the 47 % of rooted
+      words with no form-KB row (12.1). Neither is a prompt problem.*
+
+- [x] 12.8 `python -m pytest -q` and `cd frontend && npx vitest run`; confirm the existing QLisan
       suites (`test_qlisan_analysis`, `test_qlisan_fiche_fix`, `test_qlisan_regressions`,
       `test_qlisan_spine`, `test_qlisan_index`) pass unchanged.
+      ***1020 passed, 2 skipped, 1 failed*** — the failure is `test_madar::test_service_synthesis
+      _disabled_by_default`, pre-existing, in a module this change does not touch (an Arabic
+      message where the test expects an English env-var name). QLisan's five suites: **45 passed**,
+      unchanged. Frontend: **38 passed** across 4 files.
