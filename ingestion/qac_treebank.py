@@ -64,6 +64,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from ingestion.root_resolver import load_resolved  # noqa: E402
 from indexing.text_normalize import normalize_search  # noqa: E402
 
 # --- Paths --------------------------------------------------------------------
@@ -205,10 +206,15 @@ def _build_features(stem: dict) -> dict:
 # ============================================================================
 # 2) qac_words + qac_syntax + root_graph
 # ============================================================================
-def _build_word_indexes(words: dict, tokmap: dict):
+def _build_word_indexes(words: dict, tokmap: dict, resolved: dict | None = None):
     qac_words: dict[str, dict] = {}
     qac_syntax: dict[str, dict] = {}
     root_graph: dict[str, list] = defaultdict(list)
+    # Root authority lives in ingestion/root_resolver.py, not here: this file used
+    # to publish the treebank's own root column, which ships every hamza stripped
+    # (0 hamzated roots out of 1642 — لؤلؤ arrives as لالا). Passed in by run();
+    # empty means "no resolver", and the treebank column is used as before.
+    resolved = resolved or {}
 
     for (s, a, w) in sorted(words):
         ref = f"{s}:{a}:{w}"
@@ -245,12 +251,18 @@ def _build_word_indexes(words: dict, tokmap: dict):
             if not _null(root_ar):
                 root_display = root_ar.strip()
                 root = normalize_root(root_display)
+            # The resolver's verdict overrides the column: exact spelling (لؤلؤ,
+            # not لالا), plus any alternate reading and the fused-compound marker.
+            rec = resolved.get(ref)
+            if rec:
+                root = root_display = rec["primary"]
             lemma_ar = stem.get("lemma_ar", "")
             if not _null(lemma_ar):
                 lemma_display = lemma_ar.strip()
                 lemma = normalize_root(lemma_display)
             features = _build_features(stem)
 
+        rec = resolved.get(ref) or {}
         qac_words[ref] = {
             "uthmani": uthmani,
             "imlaai": imlaai,
@@ -265,9 +277,22 @@ def _build_word_indexes(words: dict, tokmap: dict):
             "segments_detail": segments_detail,
             "is_proper_noun": is_pn,
         }
+        # Contested root: both readings travel with the word (ٱلنَّاس → أنس / نوس) so
+        # the fiche can name the alternate instead of silently picking one.
+        if rec.get("alternates"):
+            qac_words[ref]["root_alternates"] = list(rec["alternates"])
+        # The root sits on one segment of a welded word (يَٰٓأَيُّهَا, يَوْمَئِذٍ) — a lookup
+        # against the frozen lemma list in root_arbitration.json, never a predicate.
+        if rec.get("fused_compound"):
+            qac_words[ref]["fused_compound"] = True
 
         if root:
             root_graph[root].append(ref)
+        # Reachable under either reading: naẓāʾir for a contested word are the same
+        # set whichever root the reader believes in.
+        for alt in rec.get("alternates", []):
+            if alt != root:
+                root_graph[alt].append(ref)
 
         # --- syntax (omit words with no usable relation) ---
         if stem is not None:
@@ -487,7 +512,8 @@ def _write_json(path: Path, obj) -> None:
 def run() -> dict:
     """Build all four QLisan foundation artifacts. Returns the audit dict."""
     words, verse_wordcount, tokmap = _parse_treebank()
-    qac_words, qac_syntax, root_graph = _build_word_indexes(words, tokmap)
+    qac_words, qac_syntax, root_graph = _build_word_indexes(
+        words, tokmap, load_resolved())
     word_index, audit = _build_word_index(words, verse_wordcount)
 
     _write_json(QAC_WORDS, qac_words)

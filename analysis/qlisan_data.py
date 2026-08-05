@@ -14,7 +14,12 @@ from __future__ import annotations
 
 import functools
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
@@ -48,8 +53,39 @@ def qac_syntax() -> dict[str, dict]:
 
 @functools.lru_cache(maxsize=1)
 def root_graph() -> dict[str, list[str]]:
-    """normalized_root -> ordered list of occurrence refs `"surah:ayah:word"` (nazair)."""
+    """root -> ordered list of occurrence refs `"surah:ayah:word"` (nazair).
+
+    Keys are the EXACT root spelling (`أمن`, `لؤلؤ`), decided per word by
+    `ingestion/root_resolver.py`. A word is listed under its primary root and under
+    any alternate reading, so reachability does not depend on which one is held.
+    Callers holding a folded spelling must go through `canonical_root()`.
+    """
     return _load(_ROOT_GRAPH)
+
+
+@functools.lru_cache(maxsize=1)
+def _root_fold_index() -> dict[str, str]:
+    """Any folded spelling of a corpus root -> the exact spelling stored as a key."""
+    idx: dict[str, str] = {}
+    for r in root_graph():
+        for k in (fold_carrier(r), fold_blind(r)):
+            if k:
+                idx.setdefault(k, r)
+    return idx
+
+
+def canonical_root(query: str) -> str | None:
+    """`امن` -> `أمن`, `لالا` -> `لؤلؤ`, unknown -> None.
+
+    The single way to ask "is this a corpus root, and how is it spelled?". The fold
+    is a lookup key; the answer is always the stored spelling.
+    """
+    if not query:
+        return None
+    if query in root_graph():
+        return query
+    idx = _root_fold_index()
+    return idx.get(fold_carrier(query)) or idx.get(fold_blind(query))
 
 
 @functools.lru_cache(maxsize=1)

@@ -48,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexing.text_normalize import normalize_search  # noqa: E402
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from ingestion.root_resolver import load_resolved, same_root  # noqa: E402
 
 try:
     from tqdm import tqdm
@@ -67,13 +68,14 @@ VERSES_FINAL_JSON = ROOT / "data" / "processed" / "verses_final.json"
 class Segment:
     """A parsed, root-bearing QAC segment (pure data)."""
 
-    __slots__ = ("verse_id", "form", "root", "lemma", "lemma_raw")
+    __slots__ = ("verse_id", "word_ref", "form", "root", "lemma", "lemma_raw")
 
     def __init__(self, verse_id: str, form: str, root: str, lemma: str,
-                 lemma_raw: str = ""):
+                 lemma_raw: str = "", word_ref: str = ""):
         self.verse_id = verse_id  # "sura:aya"
+        self.word_ref = word_ref  # "sura:aya:word" — the resolver's key
         self.form = form          # raw, diacritized FORM (kept for display)
-        self.root = root          # root-safe normalized root key
+        self.root = root          # the source's own root spelling, unfolded
         self.lemma = lemma        # root-safe normalized lemma ("" if absent)
         self.lemma_raw = lemma_raw  # raw, diacritized LEM (for display; "" if absent)
 
@@ -104,18 +106,21 @@ def parse_line(line: str) -> Segment | None:
     if not raw_root:
         return None
 
-    loc_parts = location.split(":")
-    if len(loc_parts) < 2:
+    loc_parts = location.strip("()").split(":")
+    if len(loc_parts) < 3:
         return None
     try:
-        sura, aya = int(loc_parts[0]), int(loc_parts[1])
+        sura, aya, word = int(loc_parts[0]), int(loc_parts[1]), int(loc_parts[2])
     except ValueError:
         return None
 
     return Segment(
         verse_id=f"{sura}:{aya}",
+        word_ref=f"{sura}:{aya}:{word}",
         form=form,
-        root=normalize_root(raw_root),
+        # NOT normalized: the fold is a lookup key, never a stored value. The
+        # canonical spelling is decided per word by the resolver in build().
+        root=raw_root.strip(),
         lemma=normalize_root(raw_lemma) if raw_lemma else "",
         lemma_raw=raw_lemma,
     )
@@ -161,7 +166,22 @@ def parse_proper_noun(line: str) -> tuple[str, str, str, str] | None:
     return f"{sura}:{aya}", form, key, raw_lemma
 
 
-def build(lines) -> tuple[dict, dict, dict, dict, dict]:
+def _location_and_form(line: str) -> tuple[str, str, str] | None:
+    """(word_ref, verse_id, FORM) for any well-formed QAC line, rooted or not."""
+    parts = line.rstrip("\n").split("\t")
+    if len(parts) < 4:
+        return None
+    bits = parts[0].strip("()").split(":")
+    if len(bits) < 3:
+        return None
+    try:
+        s, a, w = int(bits[0]), int(bits[1]), int(bits[2])
+    except ValueError:
+        return None
+    return f"{s}:{a}:{w}", f"{s}:{a}", parts[1]
+
+
+def build(lines, resolved: dict | None = None) -> tuple[dict, dict, dict, dict, dict]:
     """Build the index + resolution maps + verse→roots map + lemma/PN indexes.
 
     Returns (index, resolution, verse_roots, lemma_index, proper_nouns):
@@ -174,7 +194,15 @@ def build(lines) -> tuple[dict, dict, dict, dict, dict]:
       - proper_nouns  : search-normalized lemma → {lemma, lemma_display, forms_found,
                         verses, count} for ROOTLESS proper nouns (لوط, إبراهيم …).
     """
+    # Pure by default: no disk read here. `run()` passes the resolved artifact in.
+    # A word absent from `resolved` falls back to folding its own root, so build()
+    # stays usable on a synthetic line list (tests) without touching the corpus.
+    resolved = resolved or {}
     verses_by_root: dict[str, set[tuple[int, int]]] = defaultdict(set)
+    # Verses reachable under a root that is only an ALTERNATE reading there. Kept
+    # apart from `verses_by_root` so a contested word (ٱلنَّاس: أنس / نوس) is findable
+    # under either reading without inflating both families' counts and IDF weights.
+    alt_verses_by_root: dict[str, set[tuple[int, int]]] = defaultdict(set)
     forms_by_root: dict[str, set[str]] = defaultdict(set)
     form_to_roots: dict[str, set[str]] = defaultdict(set)
     lem_to_roots: dict[str, set[str]] = defaultdict(set)
@@ -188,7 +216,20 @@ def build(lines) -> tuple[dict, dict, dict, dict, dict]:
     pn_forms: dict[str, set[str]] = defaultdict(set)
     pn_disp: dict[str, Counter] = defaultdict(Counter)
 
+    # Surface + verse of EVERY word, rooted or not, so a word the resolver rooted
+    # from the treebank (أُو۟لِى → اول) still enters this index. Without it the two
+    # chains would disagree by omission: chain B knows the root, chain A never
+    # sees the word because its own source carries no ROOT: field for it.
+    word_form: dict[str, str] = defaultdict(str)
+    word_verse: dict[str, str] = {}
+    seen_words: set[str] = set()
+
     for line in lines:
+        loc_form = _location_and_form(line)
+        if loc_form:
+            wref, vid, form = loc_form
+            word_form[wref] += form
+            word_verse[wref] = vid
         seg = parse_line(line)
         if seg is None:
             pn = parse_proper_noun(line)      # rootless proper noun?
@@ -200,30 +241,76 @@ def build(lines) -> tuple[dict, dict, dict, dict, dict]:
                 pn_disp[key][raw_lemma] += 1
             continue
         sura, aya = (int(x) for x in seg.verse_id.split(":"))
-        verses_by_root[seg.root].add((sura, aya))     # dedupe verses per root
-        forms_by_root[seg.root].add(seg.form)
-        roots_by_verse[seg.verse_id].add(seg.root)
+        # The resolver owns the spelling: its primary wins, even when the verdict
+        # overrides this segment's own root (107:7 ٱلْمَاعُون: source عون → معن).
+        # The ONLY exception is a word whose source carries one root per segment
+        # (20:94:2 يبنؤم = بني + أمم), where each segment must keep its own.
+        rec = resolved.get(seg.word_ref)
+        if rec is None:
+            root, alts = normalize_root(seg.root), []
+        else:
+            cands = [rec["primary"], *rec.get("alternates", [])]
+            root = rec["primary"]
+            if rec.get("multi_source"):
+                match = [c for c in cands if same_root(c, seg.root)]
+                root = match[0] if match else root
+            alts = [c for c in cands if c != root] if root == rec["primary"] else []
+
+        verses_by_root[root].add((sura, aya))         # dedupe verses per root
+        forms_by_root[root].add(seg.form)
+        roots_by_verse[seg.verse_id].add(root)
+        for alt in alts:
+            alt_verses_by_root[alt].add((sura, aya))
+            forms_by_root[alt].add(seg.form)
         form_key = normalize_root(seg.form)
         if form_key:
-            form_to_roots[form_key].add(seg.root)
+            form_to_roots[form_key].update([root, *alts])
         if seg.lemma:
-            lem_to_roots[seg.lemma].add(seg.root)
+            lem_to_roots[seg.lemma].update([root, *alts])
         # Lemma bucket. Every rooted QAC segment carries a lemma; fall back to
         # the root key if one is ever missing so no occurrence is dropped.
-        lk = (seg.root, seg.lemma or seg.root)
+        lk = (root, seg.lemma or root)
         lemma_verses[lk].add((sura, aya))
         lemma_forms[lk].add(seg.form)
         lemma_disp[lk][seg.lemma_raw or seg.root] += 1
+        seen_words.add(seg.word_ref)
+
+    # Words the resolver rooted but this source never marked with a ROOT: field
+    # (the 73 treebank-only additions: أُو۟لِى → اول, أَنَّىٰ → اني). Adding them here is
+    # what makes both chains publish the same root set for the same word.
+    for wref, rec in resolved.items():
+        if wref in seen_words or wref not in word_verse:
+            continue
+        vid = word_verse[wref]
+        sura, aya = (int(x) for x in vid.split(":"))
+        root, form = rec["primary"], word_form[wref]
+        verses_by_root[root].add((sura, aya))
+        forms_by_root[root].add(form)
+        roots_by_verse[vid].add(root)
+        form_key = normalize_root(form)
+        if form_key:
+            form_to_roots[form_key].add(root)
+        lk = (root, root)
+        lemma_verses[lk].add((sura, aya))
+        lemma_forms[lk].add(form)
+        lemma_disp[lk][root] += 1
 
     index: dict[str, dict] = {}
-    for root in sorted(verses_by_root):
-        ordered = sorted(verses_by_root[root])         # canonical: sura, aya asc
-        index[root] = {
+    for root in sorted(set(verses_by_root) | set(alt_verses_by_root)):
+        ordered = sorted(verses_by_root.get(root, set()))   # canonical: sura, aya asc
+        entry = {
             "root": root,
             "forms_found": sorted(forms_by_root[root]),
             "verses": [f"{s}:{a}" for s, a in ordered],
             "count": len(ordered),
         }
+        # Reachable-but-not-counted: verses where this root is only the alternate
+        # reading. `count` and `verses` stay the primary-only tally, so every
+        # frequency-weighted consumer (IDF, statistics) is unaffected by alternates.
+        alt = sorted(alt_verses_by_root.get(root, set()) - verses_by_root.get(root, set()))
+        if alt:
+            entry["alt_verses"] = [f"{s}:{a}" for s, a in alt]
+        index[root] = entry
 
     resolution = {
         "form_to_roots": {k: sorted(v) for k, v in sorted(form_to_roots.items())},
@@ -274,9 +361,10 @@ def run(verses: list[dict]) -> tuple[list[dict], dict]:
             f"{QAC_MORPHOLOGY_TXT} not found. The QAC morphology source is "
             f"required to build the root index."
         )
+    resolved = load_resolved()          # the single root authority (see root_resolver)
     with QAC_MORPHOLOGY_TXT.open(encoding="utf-8") as f:
         index, resolution, verse_roots, lemma_index, proper_nouns = build(
-            tqdm(f, desc="  qac-morph  ", unit="seg")
+            tqdm(f, desc="  qac-morph  ", unit="seg"), resolved
         )
 
     for v in verses:
@@ -312,7 +400,10 @@ if __name__ == "__main__":
 
     load_verses.cache_clear()  # ensure a fresh mutable list we can write back
     verses, index = run(load_verses())
-    for key in ["كرم", "اله", "سمو", "حصحص"]:
+    # Keys are the EXACT root spelling now (أله, not اله). A folded spelling no
+    # longer hits the index directly — that is what LexicalRetriever._canon is for.
+    for key in ["كرم", "أله", "سمو", "حصحص", "لؤلؤ"]:
         entry = index.get(key, {})
         print(f"  {key!r}: count={entry.get('count')} "
-              f"forms={entry.get('forms_found', [])[:4]}")
+              f"alt={len(entry.get('alt_verses', []))} "
+              f"forms={entry.get('forms_found', [])[:3]}")

@@ -1,0 +1,141 @@
+rel_id	rel_en	rel_ar	rel_nho	rel_color1	rel_color
+0	gen	مجرور	مجرور ب	Crimson	firebrick
+1	Pred	خبر	خبر للمبتداء 	Green	slategray
+2	Adj	صفة	صفة ل	BlueViolet	purple
+3	cog	مفعول مطلق	مفعول مطلق لل	YellowGreen	seagreen
+4	cert	تحقيق	تحقيق لل	DarkOrchid	purple
+5	Pass	نائب فاعل	نائب فاعل لل	DarkTurquoise	cornflowerblue
+6	state	بيان	بيان ل	Blue	Blue
+7	ans	جواب	جواب ل	Indigo	purple
+8	neg	نفي	نفي ل	Teal	red
+9	intg	استفهام	استفهام ل	DarkCyan	DarkCyan
+10	sub	صلة	صلة ل	Tomato	gold
+11	voc	منادى	منادى ل	Cyan	green
+12	circ	حال	حال ل	Lime	seagreen
+13	prp	المفعول لأجله	مفعول لأجله لل	MediumAquamarine	slategray
+14	exp	مستثني	مستثني لل	Turquoise	purple
+15	sup	زائد	زائد ل	MediumSlateBlue	purple
+16	caus	سببية	سببية ل	GreenYellow	purple
+17	conj	معطوف	معطوف على ال	OrangeRed	purple
+18	Spec	تمييز	تمييز لل	SeaGreen	cornflowerblue
+19	fut	استقبال	استقبال لل	Aqua	purple
+20	res	حصر	حصر لل	MediumTurquoise	purple
+21	amd	استدراك	استدراك لل	Chartreuse	purple
+22	link	متعلق	متعلق بال	DarkOrange	orange
+23	impv	أمر	أمر ل	HotPink	purple
+24	exl	تفصيل	تفصيل لل	LightSkyBlue	purple
+25	Poss	مضاف إليه	مضاف الى ال	DodgerBlue	cornflowerblue
+26	emph	توكيد	توكيد ل	LightSeaGreen	purple
+27	ret	اضراب	اضراب ل	DarkMagenta	purple
+28	Cpnd	مركب	مركب ل	ForestGreen	cornflowerblue
+29	eq	تسوية	تسوية لل	SkyBlue	purple
+30	prev	كاف	كاف لل	Purple	orange
+31	sur	فجاءة	فجاءة ل	DarkSlateBlue	purple
+32	Subj	فاعل	فاعل لل	DeepSkyBlue	cornflowerblue
+33	avr	ردع	ردع ل	DarkViolet	purple
+34	rslt	جواب الشرط	جواب الشرط ل	MediumSeaGreen	purple
+35	imrs	جواب أمر	جواب أمر ل	DeepPink	purple
+36	int	تفسير	تفسير ل	LawnGreen	orange
+37	Pro	نهي	نهي ل	MediumVioletRed	red
+38	exh	تحضيض	تحضيض ل	CornflowerBlue	purple
+39	inc	ابتداء	ابتداء ل	SlateBlue	purple
+40	Obj	مفعول به	مفعول به لل	SteelBlue	slategray
+41	cond	شرط	شرط ل	SpringGreen	orange
+42	App	بدل	بدل ل	DarkGreen	cornflowerblue
+43	subj <<kan>>	اسم كان	اسم كان ل	LimeGreen	cornflowerblue
+44	pred <<kan>>	خبر كان	خبر كان ل	PaleGreen	slategray
+45	subj <<tkon>>	اسم تكون	اسم تكون ل	Peru	cornflowerblue
+46	pred <<tkon>>	خبر تكون	خبر تكون ل	Chocolate	slategray
+47	subj <<yk>>	اسم يك	اسم يك ل	Lavender	cornflowerblue
+48	pred <<yk>>	خبر يك	خبر يك ل	Thistle	slategray
+49	subj <<tk>>	اسم تك	اسم تك ل	Lavender	cornflowerblue
+50	pred <<tk>>	خبر تك	خبر تك ل	Thistle	slategray
+51	subj <<lakun>>	اسم لاكن	اسم لاكن ل	Blue	cornflowerblue
+52	pred <<lakun>>	خبر لاكن	خبر لاكن ل	SlateGray	slategray
+53	subj <<akn>>	اسم اكن	اسم اكن ل	Blue	cornflowerblue
+54	pred <<akn>>	خبر اكن	خبر اكن ل	SandyBrown	slategray
+55	subj <<nkon>>	اسم نكون	اسم نكون ل	SaddleBrown	cornflowerblue
+56	pred <<nkon>>	خبر نكون	خبر نكون ل	Sienna	slategray
+57	subj <<nkn>>	اسم نكن	اسم نكن ل	LightBlue	cornflowerblue
+58	pred <<nkn>>	خبر نكن	خبر نكن ل	CadetBlue	slategray
+59	subj <<kn>>	اسم كن	اسم كن ل	PapayaWhip	cornflowerblue
+60	pred <<kn>>	خبر كن	خبر كن ل	Moccasin	slategray
+61	subj <<tkn>>	اسم تكن	اسم تكن ل	BlanchedAlmond	cornflowerblue
+62	pred <<tkn>>	خبر تكن	خبر تكن ل	Bisque	slategray
+63	subj <<tknm>>	اسم تكنۢ	اسم تكنۢ ل	BlanchedAlmond	cornflowerblue
+64	pred <<tknm>>	خبر تكنۢ	خبر تكنۢ ل	Bisque	slategray
+65	subj <<kon>>	اسم كون	اسم كون ل	Blue	cornflowerblue
+66	pred <<kon>>	خبر كون	خبر كون ل	DarkGray	slategray
+67	subj <<ykon>>	اسم يكون	اسم يكون ل	Goldenrod	cornflowerblue
+68	pred <<ykon>>	خبر يكون	خبر يكون ل	DarkGoldenrod	slategray
+69	subj <<akon>>	اسم اكون	اسم اكون ل	DarkSalmon	cornflowerblue
+70	pred <<akon>>	خبر اكون	خبر اكون ل	LightSalmon	slategray
+71	subj <<kant>>	اسم كانت	اسم كانت ل	Blue	cornflowerblue
+72	pred <<kant>>	خبر كانت	خبر كانت ل	PaleGoldenrod	slategray
+73	subj <<ykn>>	اسم يكن	اسم يكن ل	Blue	cornflowerblue
+74	pred <<ykn>>	خبر يكن	خبر يكن ل	DarkKhaki	slategray
+75	subj <<nko>>	اسم نك	اسم نك ل	Blue	cornflowerblue
+76	pred <<nko>>	خبر نك	خبر نك ل	LightGoldenrodYellow	slategray
+77	subj <<ka>>	اسم ك	اسم ك ل	Blue	cornflowerblue
+78	pred <<ka>>	خبر ك	خبر ك ل	DimGray	slategray
+79	subj <<zala>>	اسم ظل	اسم ظل ل	Blue	cornflowerblue
+80	pred <<zala>>	خبر ظل	خبر ظل ل	Blue	slategray
+81	subj <<yazal>>	اسم يزال	اسم يزال ل	Blue	cornflowerblue
+82	pred <<yazal>>	خبر يزال	خبر يزال ل	Blue	slategray
+83	subj <<lays>>	اسم ليس	اسم ليس ل	Blue	cornflowerblue
+84	pred <<lays>>	خبر ليس	خبر ليس ل	Tan	slategray
+85	subj <<layst>>	اسم ليست	اسم ليست ل	Blue	cornflowerblue
+86	pred <<layst>>	خبر ليست	خبر ليست ل	Tan	slategray
+87	subj <<tafta'>>	اسم تفتاء	اسم تفتاء ل	Blue	cornflowerblue
+88	pred <<tafta'>>	خبر تفتاء	خبر تفتاء ل	Salmon	slategray
+89	subj <<ma>>	اسم ما	اسم ما ل	Blue	cornflowerblue
+90	pred <<ma>>	خبر ما	خبر ما ل	LightGrey	slategray
+91	subj <<asbah>>	اسم أصبح	اسم أصبح ل	Blue	cornflowerblue
+92	pred <<asbah>>	خبر أصبح	خبر أصبح ل	Amethyst	slategray
+93	subj <<asbaht>>	اسم اصبحت	اسم اصبحت ل	LightSteelBlue	cornflowerblue
+94	pred <<asbaht>>	خبر اصبحت	خبر اصبحت ل	PowderBlue	slategray
+95	subj <<tusbih>>	اسم تصبح	اسم تصبح ل	LightSteelBlue	cornflowerblue
+96	pred <<tusbih>>	خبر تصبح	خبر تصبح ل	PowderBlue	slategray
+97	subj <<ysbah>>	اسم يصبح	اسم يصبح ل	NavajoWhite	cornflowerblue
+98	pred <<ysbah>>	خبر يصبح	خبر يصبح ل	Wheat	slategray
+99	subj <<barah>>	اسم برح	اسم برح ل	Blue	cornflowerblue
+100	pred <<barah>>	خبر برح	خبر برح ل	Blue	slategray
+101	subj <<dam>>	اسم دام	اسم دام ل	Brown	cornflowerblue
+102	pred <<dam>>	خبر دام	خبر دام ل	Maroon	slategray
+103	subj <<dm>>	اسم دم	اسم دم ل	Brown	cornflowerblue
+104	pred <<dm>>	خبر دم	خبر دم ل	Aquamarine	slategray
+105	subj <<las>>	اسم لس	اسم لس ل	MediumSlateBlue	cornflowerblue
+106	pred <<las>>	خبر لس	خبر لس ل	RoyalBlue	slategray
+107	subj<<in>>	اسم إن	اسم إن ل	Blue	cornflowerblue
+108	pred<<in>>	خبر إن	خبر إن ل	Violet	slategray
+109	subj<<an>>	اسم أن	اسم أن ل	Blue	cornflowerblue
+110	pred<<an>>	خبر أن	خبر أن ل	FireBrick	slategray
+111	subj<<en>>	اسم ان	اسم ان ل	Blue	cornflowerblue
+112	pred<<en>>	خبر ان	خبر ان ل	FireBrick	slategray
+113	subj<<'n>>	اسم أن	اسم أن ل	Blue	cornflowerblue
+114	pred<<'n>>	خبر أن	خبر أن ل	FireBrick	slategray
+115	subj<<yin>>	اسم أن	اسم أن ل	Blue	cornflowerblue
+116	pred<<yin>>	خبر أن	خبر أن ل	FireBrick	slategray
+117	subj <<ka'ana>>	اسم كأن	اسم كأن ل	Blue	cornflowerblue
+118	pred <<ka'ana>>	خبر كأن	خبر كأن ل	Yellow	slategray
+119	subj <<lakin>>	اسم لكن	اسم لكن ل	Blue	cornflowerblue
+120	pred <<lakin>>	خبر لكن	خبر لكن ل	MediumSlateBlue	slategray
+121	subj <<layt>>	اسم ليت	اسم ليت ل	Blue	cornflowerblue
+122	pred <<layt>>	خبر ليت	خبر ليت ل	Fuchsia	slategray
+123	subj <<la>>	اسم لا	اسم لا ل	Blue	cornflowerblue
+124	pred <<la>>	خبر لا	خبر لا ل	MediumSpringGreen	slategray
+125	subj <<lel>>	اسم لعل	اسم لعل ل	Blue	cornflowerblue
+126	pred <<lel>>	خبر لعل	خبر لعل ل	MediumOrchid	slategray
+127	subj <<kad>>	اسم كاد	اسم كاد ل	Blue	cornflowerblue
+128	pred <<kad>>	خبر كاد	خبر كاد ل	LightPink	slategray
+129	subj <<akad>>	اسم اكاد	اسم اكاد ل	Blue	cornflowerblue
+130	pred <<akad>>	خبر اكاد	خبر اكاد ل	LightPink	slategray
+131	subj <<ykad>>	اسم يكاد	اسم يكاد ل	LightCoral	cornflowerblue
+132	pred <<ykad>>	خبر يكاد	خبر يكاد ل	Salmon	slategray
+133	subj <<tkad>>	اسم تكاد	اسم تكاد ل	Blue	cornflowerblue
+134	pred <<tkad>>	خبر تكاد	خبر تكاد ل	MediumBlue	slategray
+135	subj <<easaa>>	اسم عسى	اسم عسى ل	LightSalmon	cornflowerblue
+136	pred <<easaa>>	خبر عسى	خبر عسى ل	Coral	slategray
+137	root	root	root	wite	wite
+138	NonRel	NonRel	NonRel	wite	wite
+139	_	_	_	wite	wite

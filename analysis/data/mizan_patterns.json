@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "purpose": "Curated أوزان (mīzān patterns) matched against a vocalized stem before the raw letter-by-letter projection. A pattern hit emits its canonical mīzān verbatim, which is the only way to get a broken plural right: جمع التكسير is a template, not a projection of the root (آلاء is أَفْعَال, never فَعَاء).",
+  "provenance": {
+    "schemes": "Standard صرف awzān as tabulated in the classical teaching tradition — الشافية لابن الحاجب and شرح ابن عقيل on جمع التكسير and المشتقات; cross-checked against the wazn labels used by the Quranic Arabic Corpus (corpus.quran.com) morphology.",
+    "selection": "Entries are corpus-driven, not theory-driven: each one was added because words in the Qurʾānic corpus actually need it — either the raw projection strands their radicals (مِفْعَال: مِيثَاق, مِيزَان, root وثق/وزن with the فاء و turned to ي) or, worse, the projection produces a complete-looking but WRONG mīzān under the verified badge (أَفْعَال: آلاء, root الو). Patterns whose words already project correctly are deliberately absent — adding them would buy nothing and risk over-matching.",
+    "rule": "No pattern ships without at least one gold assertion in tests/test_mizan.py binding it to a real corpus word. A matched pattern goes UNDER the «معطى محقّق» badge, so an untested entry is a silent wrong-answer generator.",
+    "reviewed": "2026-08-03"
+  },
+  "notes": {
+    "template": "`mizan` doubles as the template: the letters ف, ع and ل are radical slots (in that order; a 4th ل is the rubāʿī slot) and every other letter is fixed and must appear literally in the stem. Diacritics on the pattern are the canonical vocalization and are emitted verbatim on a hit.",
+    "family": "`singular` = derived singular, `plural` = جمع تكسير. The family orders candidates against the word's QAC `number` feature (number == 'P' tries plural first). It orders, it never filters — a word with no/odd `number` still reaches both families.",
+    "order": "Array order is the tie-break for two patterns matching one stem: first hit wins. More specific patterns (more fixed letters) come first."
+  },
+  "special_cases": {
+    "why": "The residual after the general rules is not a long tail of near-misses — it is a handful of very frequent, closed classes. Chasing them with more general إعلال rules would risk the sound-root guarantee for a few hundred words; a curated table names them instead. Everything NOT listed here stays honestly اجتهادي and enumerable in the coverage log, to be picked off case by case later.",
+    "hamza_elision_roots": {
+      "roots": ["راي", "اكل", "اخذ", "امر"],
+      "why": "A hamza radical is dropped outright in these specific verbs — يَرَى < يَرْأَى (the عين), and the imperatives كُلْ < أُكُلْ, خُذْ < أُخُذْ, مُرْ < أُمُرْ (the فاء). This is a closed, memorised class, not a productive rule: licensing hamza deletion generally would let it fire anywhere a hamzated root came up short, which is exactly the over-generalization the class gates exist to prevent. Deletion is otherwise reserved for و/ي radicals.",
+      "gold": "105:1:2 تَرَ and 11:27:22 نَرَىٰ (root راي); 20:54:1 كُلُوا (root اكل); 12:78:9 خُذْ (root اخذ)"
+    },
+    "not_weighed": [
+      {
+        "id": "lafz-al-jalala",
+        "root": "اله",
+        "lemma": "الله",
+        "pos": "PN",
+        "why": "لفظ الجلالة is a علم, and الأعلام لا توزن — proper nouns are not put on the mīzān. QAC tags it PN. Its derivation is also genuinely contested (أصله الإله on فِعَال, with the hamza dropped and the لām assimilated — but many hold it جامد and unweighed), so emitting any wazn would be picking a side the corpus does not settle. The current output «لَّه» is meaningless either way. Reporting «not weighed» is more informative than a heuristic guess AND more honest than a fabricated one.",
+        "gold": "10:10:12 لِلَّهِ"
+      },
+      {
+        "id": "allahumma",
+        "root": "اله",
+        "lemma": "اللهم",
+        "pos": "PN",
+        "why": "Same علم with the vocative ميم. It was emitting «فعلَّلُمَّ» — four slots for a triliteral root, i.e. the article's letters mapped onto ف/ع/ل — under the verified badge.",
+        "gold": "3:26:1 اللَّهُمَّ"
+      }
+    ],
+    "scope_note": "Only these exact (root, lemma, pos) triples are excluded. إله and آلهة share the root اله but are ordinary nouns and are still weighed — they yield فِعَال, which is correct."
+  },
+  "patterns": [
+    {
+      "id": "af3aal",
+      "mizan": "أَفْعَال",
+      "family": "plural",
+      "gloss": "جمع تكسير — أَفْعَال",
+      "gold": "7:69:24 آلَاء (root الو)",
+      "why": "Without it the projection binds the ء to the لام slot and emits «فعَال» as verified — confidently wrong. The hamza+hamza of أَءْلَاو is written آ, so matching needs the madda expanded back into two letters."
+    },
+    {
+      "id": "mif3aal",
+      "mizan": "مِفْعَال",
+      "family": "singular",
+      "gloss": "اسم آلة / مصدر ميمي — مِفْعَال",
+      "gold": "2:27:5 مِيثَاق (root وثق)",
+      "why": "The weak فاء surfaces as ي (مِيثَاق < مِوثاق, مِيزَان < مِوزان). قلب is not licensed at the فاء position in the projection — it ate imperfective prefixes — so these stay stranded without a pattern anchoring the م and the ا."
+    }
+  ]
+}

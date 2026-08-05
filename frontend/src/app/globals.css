@@ -16,3 +16,11 @@ body {
   font-family: "Amiri", "Scheherazade New", serif;
   line-height: 2.2;
 }
+
+/* Western Arabic numerals (0-9) inside an Arabic/RTL context.
+   Amiri and similar Quranic faces carry a `locl` feature that substitutes
+   Arabic-Indic forms (٠١٢) for ASCII digits when the surrounding text reads as
+   Arabic; disabling it keeps 111 / 93 / 83.8% in 0-9. */
+.western-digits {
+  font-feature-settings: "locl" 0;
+}

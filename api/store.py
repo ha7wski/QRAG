@@ -51,7 +51,39 @@ CREATE TABLE IF NOT EXISTS feedback (
     created_at    REAL    NOT NULL,
     UNIQUE (session_id, message_index)
 );
+CREATE TABLE IF NOT EXISTS tahlil_cache (
+    ref             TEXT NOT NULL,
+    prompt_version  TEXT NOT NULL,
+    kb_version      TEXT NOT NULL,
+    letters_version TEXT NOT NULL,
+    model_id        TEXT NOT NULL,
+    payload         TEXT NOT NULL,
+    created_at      REAL NOT NULL,
+    PRIMARY KEY (ref, prompt_version, kb_version, letters_version, model_id)
+);
+CREATE TABLE IF NOT EXISTS tahlil_review (
+    ref             TEXT    NOT NULL,
+    prompt_version  TEXT    NOT NULL,
+    kb_version      TEXT    NOT NULL,
+    letters_version TEXT    NOT NULL,
+    model_id        TEXT    NOT NULL,
+    generation      INTEGER NOT NULL,
+    reviewer        TEXT    NOT NULL DEFAULT '',
+    note            TEXT    NOT NULL DEFAULT '',
+    reviewed_at     REAL    NOT NULL,
+    PRIMARY KEY (ref, prompt_version, kb_version, letters_version, model_id, generation)
+);
 """
+
+# The columns `tahlil_review` must have. A pre-release database still carrying the
+# ref-only version of that table is dropped and recreated rather than migrated: those rows
+# attest a rendering nobody can identify any more (see `mark_tahlil_reviewed`), and the
+# honest direction is to lose a review — which only over-warns — rather than to keep one
+# that may silently mark generated prose as read. Only this table is ever touched.
+_TAHLIL_REVIEW_COLUMNS = (
+    "ref", "prompt_version", "kb_version", "letters_version", "model_id", "generation",
+    "reviewer", "note", "reviewed_at",
+)
 
 
 class Store:
@@ -64,8 +96,24 @@ class Store:
         self._conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
+        self._drop_stale_tahlil_review()
         self._conn.executescript(_SCHEMA)
         self._conn.commit()
+
+    def _drop_stale_tahlil_review(self) -> None:
+        """Drop a pre-release `tahlil_review` whose key is not the current one.
+
+        `CREATE TABLE IF NOT EXISTS` is a no-op against an existing table, so a local
+        database carrying the ref-only review table would keep it and fail every insert.
+        SQLite cannot ALTER a primary key, and the old rows are unmigratable in principle,
+        not just in practice: they record «reviewed» against a rendering whose prompt, KB,
+        letters and model versions were never stored, so nothing can say which page a
+        reviewer actually read. Touches `tahlil_review` and nothing else.
+        """
+        cols = {r["name"] for r in
+                self._conn.execute("PRAGMA table_info(tahlil_review)").fetchall()}
+        if cols and cols != set(_TAHLIL_REVIEW_COLUMNS):
+            self._conn.execute("DROP TABLE tahlil_review")
 
     # ── Sessions ────────────────────────────────────────────────────────
     def append_turn(
@@ -153,6 +201,143 @@ class Store:
         counts = {r["rating"]: r["n"] for r in rows}
         up, down = counts.get("up", 0), counts.get("down", 0)
         return {"up": up, "down": down, "total": up + down}
+
+    # ── Tahlil analysis cache ───────────────────────────────────────────
+    # Keyed on the FULL five-tuple (ref, prompt_version, kb_version,
+    # letters_version, model_id) — it is the primary key of the table AND the
+    # whole WHERE clause of the read. That is deliberate: invalidation must
+    # happen *by construction*, not by anyone remembering to purge. Edit the
+    # prompt, bump a KB, re-transcribe the letters dataset or switch models, and
+    # the old row simply stops being addressable. Drop any one component from
+    # either statement and a stale analysis is served under a new version, with
+    # its badges and citations still attached and nothing to detect it.
+    def get_tahlil(
+        self,
+        ref: str,
+        prompt_version: str,
+        kb_version: str,
+        letters_version: str,
+        model_id: str,
+    ) -> dict | None:
+        """The cached Tahlil analysis for this exact version tuple, else None."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT payload FROM tahlil_cache WHERE ref=? AND prompt_version=? "
+                "AND kb_version=? AND letters_version=? AND model_id=?",
+                (ref, prompt_version, kb_version, letters_version, model_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return json.loads(row["payload"])
+
+    def put_tahlil(
+        self,
+        ref: str,
+        prompt_version: str,
+        kb_version: str,
+        letters_version: str,
+        model_id: str,
+        payload: dict,
+    ) -> None:
+        """Store one analysis under its version tuple (replacing an equal key)."""
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO tahlil_cache "
+                "(ref, prompt_version, kb_version, letters_version, model_id, "
+                "payload, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    ref,
+                    prompt_version,
+                    kb_version,
+                    letters_version,
+                    model_id,
+                    json.dumps(payload, ensure_ascii=False),
+                    time.time(),
+                ),
+            )
+            self._conn.commit()
+
+    # ── Tahlil review state ─────────────────────────────────────────────
+    # Keyed on the ref AND the rendering: the same five-tuple the analysis is
+    # cached under, plus whether prose was generated at all. A review attests
+    # «a human read THIS page», and keying it on the ref alone silently
+    # transferred that attestation to every later rendering of the word — approve
+    # a deterministic-only page, switch generation on, and brand-new prose no one
+    # has ever read comes back `reviewed=True`, dropping the «غير مُحقَّق»
+    # mention that design decision 3b makes mandatory on un-reviewed generated
+    # blocks. `generation` is part of the key because the five-tuple alone cannot
+    # tell a deterministic page from a prose page produced by the same model under
+    # the same versions, and those are two different things to have read.
+    #
+    # It stays strictly additive to rendering: nothing here can prevent a page
+    # from being served (see `tahlil_service._reviewed`).
+    def mark_tahlil_reviewed(
+        self,
+        ref: str,
+        prompt_version: str,
+        kb_version: str,
+        letters_version: str,
+        model_id: str,
+        generation_enabled: bool,
+        reviewer: str = "",
+        note: str = "",
+    ) -> dict:
+        """Mark one *rendering* of one word reviewed (upsert); returns the stored row."""
+        now = time.time()
+        generation = int(bool(generation_enabled))
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO tahlil_review (ref, prompt_version, kb_version, "
+                "letters_version, model_id, generation, reviewer, note, reviewed_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(ref, prompt_version, kb_version, letters_version, model_id, "
+                "generation) DO UPDATE SET reviewer=excluded.reviewer, "
+                "note=excluded.note, reviewed_at=excluded.reviewed_at",
+                (ref, prompt_version, kb_version, letters_version, model_id, generation,
+                 reviewer, note, now),
+            )
+            self._conn.commit()
+        return {"ref": ref, "reviewer": reviewer, "note": note, "reviewed_at": now}
+
+    def get_tahlil_review(
+        self,
+        ref: str,
+        prompt_version: str,
+        kb_version: str,
+        letters_version: str,
+        model_id: str,
+        generation_enabled: bool,
+    ) -> dict | None:
+        """The review row for this exact rendering, or None when it was never reviewed."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT ref, reviewer, note, reviewed_at FROM tahlil_review "
+                "WHERE ref=? AND prompt_version=? AND kb_version=? AND letters_version=? "
+                "AND model_id=? AND generation=?",
+                (ref, prompt_version, kb_version, letters_version, model_id,
+                 int(bool(generation_enabled))),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "ref": row["ref"],
+            "reviewer": row["reviewer"],
+            "note": row["note"],
+            "reviewed_at": row["reviewed_at"],
+        }
+
+    def tahlil_reviewed(
+        self,
+        ref: str,
+        prompt_version: str,
+        kb_version: str,
+        letters_version: str,
+        model_id: str,
+        generation_enabled: bool,
+    ) -> bool:
+        """False until an expert marks THIS rendering — the default the UI must warn about."""
+        return self.get_tahlil_review(ref, prompt_version, kb_version, letters_version,
+                                      model_id, generation_enabled) is not None
 
     def close(self) -> None:
         with self._lock:

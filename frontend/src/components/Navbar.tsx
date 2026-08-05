@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   BookOpen,
   ListTree,
   Menu,
@@ -16,8 +17,10 @@ import {
 const links = [
   { href: "/chat", label: "Talk to Quran", icon: MessageSquare },
   { href: "/verse-study", label: "Verse Study", icon: ListTree },
+  { href: "/fassila", label: "Fassila", icon: Activity },
   { href: "/qlisan", label: "QLisan", icon: ScanText },
   { href: "/lexical", label: "Lisan Analysis", icon: Type },
+  { href: "/tahlil", label: "Tahlil", icon: BookOpen },
 ];
 
 /**

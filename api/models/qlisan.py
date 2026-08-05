@@ -54,16 +54,24 @@ class SarfiSegment(BaseModel):
 class Mizan(BaseModel):
     """الميزان الصرفي — the root projected onto ف-ع-ل, derived deterministically.
 
-    `verified` mirrors the level badge: True ⇒ exact projection («معطى محقّق»);
-    False ⇒ hollow/geminate/irregular surface, shown as an heuristic «اجتهادي» hint
-    outside the badge. `bab` is the canonical verb-form pattern (فَعَلَ/فَعَّلَ/…) for
-    verbs, else None.
+    `verified` mirrors the level badge: True ⇒ a curated wazn pattern matched, or the
+    projection resolved every radical (possibly through a recorded إعلال/إبدال rule);
+    False ⇒ genuinely uncovered, shown as an heuristic «اجتهادي» hint outside the badge.
+    `bab` is the canonical verb-form pattern (فَعَلَ/فَعَّلَ/…) for verbs, else None.
+
+    `root_class`, `hamza_positions` and `rules` are additive traceability fields: the
+    root's weak-letter class, the hamzated radical positions (orthogonal to the class —
+    a root is frequently both), and the names of the rules applied to reach this mīzān.
     """
 
     available: bool = False
     wazn: str | None = None
     verified: bool = False
     bab: str | None = None
+    root_class: str | None = None  # صحيح سالم / مضاعف / مثال / أجوف / ناقص / لفيف / رباعي
+    hamza_positions: list[int] = []  # 0-based hamzated radical positions
+    rules: list[str] = []  # applied إعلال/إبدال/pattern rule names (traceability)
+    asl: str | None = None  # pre-إدغام أصل of a geminate (مَدَّ: فَعَّ on the surface, فَعَلَ underneath)
 
 
 class SawtiLevel(BaseModel):
@@ -79,6 +87,13 @@ class SarfiLevel(BaseModel):
     available: bool
     root: str | None = None
     root_display: str | None = None
+    # Other reading(s) of a contested root (ٱلنَّاس: أنس / نوس). Rendered as a note
+    # OUTSIDE the «معطى محقّق» badge: an arbitrated root is a decision between two
+    # resources, not a field taken verbatim from one. Empty when uncontested.
+    root_alternates: list[str] = []
+    # True when the root belongs to one segment of a welded word (يَٰٓأَيُّهَا = يا+أيّ+ها,
+    # يَوْمَئِذٍ = يوم+إذ), so the fiche does not imply the whole word derives from it.
+    fused_compound: bool = False
     lemma: str | None = None
     lemma_display: str | None = None
     pos: str = ""  # raw QAC code, kept as data (not rendered); pos_ar is the display source

@@ -27,6 +27,7 @@ from ingestion import (  # noqa: E402
     enricher,
     translator,
     morphology,       # legacy tashaphyne builder — kept for validation, unused
+    root_resolver,    # decides the root of every word ONCE, ahead of both chains
     qac_morphology,   # QAC root builder (manually-verified roots)
     qac_treebank,     # QLisan per-word index + token-alignment spine (from eqtb treebank)
 )
@@ -55,6 +56,12 @@ def main() -> int:
         timed("normalizer", normalizer.run, verses)
         timed("enricher", enricher.run, verses)
         timed("translator", translator.run, verses)
+        # Stage 3.5 — root arbitration. Runs BEFORE either root consumer so both
+        # publish the same answer: it reads the two raw resources plus
+        # data/references/root_arbitration.json and writes roots_resolved.json.
+        # Raises on a disagreement nobody arbitrated rather than letting a guess
+        # through — the regression gate for the 757-word budget.
+        timed("root-resolve", root_resolver.run)
         # Stage 4 — root index. Switched from the tashaphyne stemmer (mis-roots,
         # e.g. كريم → ريم) to the QAC manually-verified roots. Old call kept,
         # commented, so we can validate the two builders before removing it:

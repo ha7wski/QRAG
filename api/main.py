@@ -34,12 +34,14 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from api.middleware import RequestLoggingMiddleware  # noqa: E402
 from api.routers import chat as chat_router  # noqa: E402
+from api.routers import fassila as fassila_router  # noqa: E402
 from api.routers import feedback as feedback_router  # noqa: E402
 from api.routers import lexical as lexical_router  # noqa: E402
 from api.routers import lisan as lisan_router  # noqa: E402
 from api.routers import madar as madar_router  # noqa: E402
 from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
+from api.routers import tahlil as tahlil_router  # noqa: E402
 from api.routers import sessions as sessions_router  # noqa: E402
 from api.routers import verse as verse_router  # noqa: E402
 from api.routers import verse_lookup as verse_lookup_router  # noqa: E402
@@ -123,8 +125,10 @@ app.include_router(lexical_router.router)
 app.include_router(lisan_router.router)
 app.include_router(madar_router.router)
 app.include_router(qlisan_router.router)
+app.include_router(tahlil_router.router)
 app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
+app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)
 app.include_router(sessions_router.router)
 

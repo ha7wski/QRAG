@@ -127,9 +127,13 @@ class SimilarVerses:
         out: dict[str, tuple[float, set]] = {}
         for r in self.content_roots(query):
             entry = self.lex.index.get(r)
-            if entry:
-                df = entry.get("count") or len(entry.get("verses", []))
-                out[r] = (math.log(self.N / max(df, 1)), set(entry.get("verses", [])))
+            # Skip a root that is nobody's PRIMARY reading (نوس, طمن): it carries no
+            # verses of its own, so it can contribute no candidate — but with df=0 it
+            # would take the maximum IDF and drag every candidate's coverage down.
+            # Alternates are for reachability by root, not for weighting a phrase.
+            if entry and entry.get("verses"):
+                df = entry.get("count") or len(entry["verses"])
+                out[r] = (math.log(self.N / max(df, 1)), set(entry["verses"]))
         return out
 
     @staticmethod
@@ -156,11 +160,11 @@ class SimilarVerses:
         scores: dict[str, float] = {}
         for r in roots:
             entry = self.lex.index.get(r)
-            if not entry:
+            if not entry or not entry.get("verses"):   # see query_root_idf
                 continue
-            df = entry.get("count") or len(entry.get("verses", []))
+            df = entry.get("count") or len(entry["verses"])
             idf = math.log(self.N / max(df, 1))
-            for vid in entry.get("verses", []):
+            for vid in entry["verses"]:
                 scores[vid] = scores.get(vid, 0.0) + idf
         if not scores:
             return None

@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexing.corpus import verses_by_id  # noqa: E402
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 MORPHOLOGY_JSON = ROOT / "data" / "processed" / "morphology.json"
@@ -108,6 +109,36 @@ class LexicalRetriever:
             self.lem_to_roots = res.get("lem_to_roots", {})
         self.verses_by_id = verses_by_id()  # shared, cached {id: verse} lookup
         self._stemmer = None  # lazily loaded only if the fallback is enabled
+        self._by_fold: dict[str, str] | None = None  # built on first use
+
+    def _fold_map(self) -> dict[str, str]:
+        """Folded spelling → the exact root key stored in the index.
+
+        Index keys are the EXACT spelling (لؤلؤ, أنس) while a user types a folded
+        one (لولو, لالا, انس), so every lookup goes through this map — the fold is
+        a key, never a stored value. Built lazily so callers that assemble a
+        retriever without __init__ (tests, fixtures) still resolve correctly.
+        """
+        # getattr, not self._by_fold: callers may build the object with __new__
+        # (tests inject in-memory maps), so the attribute can be absent entirely.
+        fm = getattr(self, "_by_fold", None)
+        if fm is None:
+            fm = {}
+            for r in self.index:
+                for k in (fold_carrier(r), fold_blind(r)):
+                    if k:
+                        fm.setdefault(k, r)
+            self._by_fold = fm
+        return fm
+
+    def _canon(self, key: str) -> str:
+        """Any spelling of a root → the canonical one stored in the index."""
+        if not key:
+            return ""
+        if key in self.index:
+            return key
+        fm = self._fold_map()
+        return fm.get(fold_carrier(key)) or fm.get(fold_blind(key)) or ""
 
     # ── root resolution (QAC ladder, D3) ──────────────────────────────────
     def _ladder(self, w: str) -> list[str]:
@@ -120,8 +151,7 @@ class LexicalRetriever:
             if rk and rk in self.index and rk not in roots:
                 roots.append(rk)
 
-        if w in self.index:                       # 1. already a root key
-            add(w)
+        add(self._canon(w))                       # 1. already a root key (any spelling)
         for rk in self.form_to_roots.get(w, []):  # 2. surface FORM → root(s)
             add(rk)
         for rk in self.lem_to_roots.get(w, []):   # 3. lemma → root(s)
@@ -196,7 +226,8 @@ class LexicalRetriever:
     # ── occurrence retrieval ──────────────────────────────────────────────
     def retrieve_by_root(self, root: str, sample: int = DEFAULT_SAMPLE) -> dict:
         """Return a structured lexical result for a root key."""
-        entry = self.index.get(root)
+        canon = self._canon(root) or root
+        entry = self.index.get(canon)
         if not entry:
             return {
                 "root": root,
@@ -205,14 +236,21 @@ class LexicalRetriever:
                 "verse_ids": [],
                 "verses": [],
             }
-        verse_ids = entry["verses"]
+        # A root reaches the verses where it is the primary reading AND those where
+        # it is only the alternate one (نوس → the 225 ٱلنَّاس verses), each verse once
+        # and in canonical order. `entry["count"]` stays primary-only — it is the
+        # statistic the IDF weights read; what a search returns is a different thing.
+        alt_ids = [v for v in entry.get("alt_verses", []) if v not in set(entry["verses"])]
+        verse_ids = sorted(set(entry["verses"]) | set(alt_ids),
+                           key=lambda v: tuple(int(x) for x in v.split(":")))
         sampled_ids = _sample_evenly(verse_ids, sample)
         verses = [self.verses_by_id[v] for v in sampled_ids if v in self.verses_by_id]
         return {
-            "root": root,
+            "root": canon,
             "forms": entry.get("forms_found", []),
-            "occurrences_count": entry.get("count", len(verse_ids)),
+            "occurrences_count": len(verse_ids),
             "verse_ids": verse_ids,
+            "alt_verse_ids": alt_ids,
             "verses": verses,
         }
 

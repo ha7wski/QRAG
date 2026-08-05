@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
+import LevelCard from "@/components/LevelCard";
 import type {
   QlisanNahwi,
   QlisanNazair,
@@ -319,65 +320,6 @@ function Fiche({ data }: { data: QlisanWordResponse }) {
   );
 }
 
-/** Card shell with an Arabic level label and a "fact vs sourced/pending" badge. */
-function LevelCard({
-  titleAr,
-  titleEn,
-  badge,
-  tone,
-  children,
-}: {
-  titleAr: string;
-  titleEn: string;
-  badge: string;
-  // "fact" = deterministic (established), "sourced" = cited lexicon,
-  // "pending" = not yet available.
-  tone: "fact" | "sourced" | "pending";
-  children: React.ReactNode;
-}) {
-  const ring =
-    tone === "fact"
-      ? "border-brand/30"
-      : tone === "sourced"
-        ? "border-emerald-300"
-        : "border-dashed border-gray-300";
-  const badgeCls =
-    tone === "fact"
-      ? "bg-brand-light text-brand-dark"
-      : tone === "sourced"
-        ? "bg-emerald-50 text-emerald-700"
-        : "bg-gray-100 text-gray-500";
-  return (
-    <section className={`overflow-hidden rounded-xl border bg-white ${ring}`}>
-      {/* RTL header: the Arabic title sits on the RIGHT (main title), the English
-          label to its left, and the badge on the far left. */}
-      <header
-        dir="rtl"
-        className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5"
-      >
-        <span className="flex items-baseline gap-2">
-          <span
-            lang="ar"
-            className="font-arabic text-xl font-semibold text-gray-800"
-          >
-            {titleAr}
-          </span>
-          <span
-            dir="ltr"
-            className="text-xs uppercase tracking-wide text-gray-400"
-          >
-            {titleEn}
-          </span>
-        </span>
-        <span className={`rounded-full px-2 py-0.5 text-xs ${badgeCls}`}>
-          {badge}
-        </span>
-      </header>
-      <div className="px-4 py-3">{children}</div>
-    </section>
-  );
-}
-
 /** صوتي / دلالي — pending or sourced stub. Shows the explanatory message
  *  visibly rather than a blank section. */
 function StubLevel({
@@ -450,6 +392,43 @@ function SarfiLevel({
             </span>
           )}
         </Row>
+
+        {/* Contested root — both readings are named rather than one being picked
+            silently. Outside the «معطى محقّق» badge: this is an arbitration, not a
+            verbatim source field. */}
+        {level.root_alternates?.length > 0 && (
+          <Row label="قراءة أخرى">
+            <span className="flex items-center gap-2">
+              <span className="font-arabic text-base text-gray-700">
+                {`الجذر الأساسي: ${level.root_display || level.root}، ويُقرأ أيضًا: ${level.root_alternates.join("، ")}`}
+              </span>
+              <span
+                className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
+                title="اختلاف بين المصدرين، والترجيح مُوثَّق — خارج نطاق «معطى محقّق»"
+              >
+                مُرجَّح
+              </span>
+            </span>
+          </Row>
+        )}
+
+        {/* Welded word: the root covers one segment, not the whole word — so a reader
+            does not infer that يا أيها derives from آية. */}
+        {level.fused_compound && (
+          <Row label="بنية الكلمة">
+            <span className="flex items-center gap-2">
+              <span className="font-arabic text-base text-gray-700">
+                كلمة مركّبة — الجذر يخصّ أحد مقاطعها لا الكلمة بأكملها
+              </span>
+              <span
+                className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
+                title="قراءة لبنية المقاطع — خارج نطاق «معطى محقّق»"
+              >
+                استنتاجي
+              </span>
+            </span>
+          </Row>
+        )}
 
         {/* Lemma. */}
         {(level.lemma_display || level.lemma) && (

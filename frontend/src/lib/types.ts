@@ -161,6 +161,13 @@ export interface QlisanSarfi {
   available: boolean;
   root: string | null;
   root_display: string | null;
+  // Other reading(s) of a contested root (ٱلنَّاس: أنس / نوس). Rendered as a note
+  // OUTSIDE the «معطى محقّق» badge — an arbitrated root is a decision between two
+  // sources, not a verbatim field. Empty when the root is uncontested.
+  root_alternates: string[];
+  // The root belongs to one segment of a welded word (يَٰٓأَيُّهَا, يَوْمَئِذٍ), so the fiche
+  // must not imply the whole word derives from it.
+  fused_compound: boolean;
   lemma: string | null;
   lemma_display: string | null;
   pos: string; // raw QAC code, kept as data (not rendered)

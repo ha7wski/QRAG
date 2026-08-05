@@ -50,3 +50,8 @@ frontend/vitest.config.ts
 frontend/vitest.setup.ts
 *.test.ts
 *.test.tsx
+
+# Root-source evaluation workbench (local-only, ~1.2 GB): downloaded resources,
+# scratch dumps and a venv. Its product is data/references/root_arbitration.json,
+# which IS committed; the scripts that produced it stay on disk like tests/.
+eval/

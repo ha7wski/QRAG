@@ -46,7 +46,8 @@ _DALALI_MESSAGE = "التحليل الدلالي غير متوفر بعد."
 _NAHWI_UNAVAILABLE_MESSAGE = "لا يوجد تحليل نحوي محفوظ لهذه الكلمة."
 
 
-def _nazair(root: str | None, lemma: str | None, self_ref: str) -> list[dict]:
+def _nazair(root: str | None, lemma: str | None, self_ref: str,
+            alternates: list[str] | None = None) -> list[dict]:
     """Up to `_NAZAIR_CAP` root siblings (refs sharing `root`), excluding `self_ref`.
 
     Filtered to the **same lemma** as the queried word (never mixing homographic
@@ -63,7 +64,18 @@ def _nazair(root: str | None, lemma: str | None, self_ref: str) -> list[dict]:
     if not root:
         return []
     words = qac_words()
-    refs = [ref for ref in root_graph().get(root, []) if ref != self_ref]
+    # A contested root gathers siblings under BOTH readings, so the strip does not
+    # depend on which one the reader holds: ٱلْمَاعُون (primary معن, alternate عون) would
+    # otherwise show no naẓīr at all, its primary being a hapax. Each ref once, in
+    # root_graph order.
+    graph = root_graph()
+    seen: set[str] = {self_ref}
+    refs: list[str] = []
+    for rk in [root, *(alternates or [])]:
+        for ref in graph.get(rk, []):
+            if ref not in seen:
+                seen.add(ref)
+                refs.append(ref)
 
     same = [ref for ref in refs if (words.get(ref) or {}).get("lemma") == lemma]
     if lemma is not None and len(same) < _NAZAIR_MIN_SAME_LEMMA:
@@ -98,10 +110,18 @@ def _sarfi(record: dict, self_ref: str) -> dict:
     """
     root = record.get("root")
     lemma = record.get("lemma")
+    alternates = list(record.get("root_alternates") or [])
     return {
         "available": True,
         "root": root,
         "root_display": record.get("root_display"),
+        # A root the two resources read differently (ٱلنَّاس: أنس / نوس). Shown as a
+        # note, outside the «معطى محقّق» badge — an arbitrated root is a decision,
+        # not a field taken verbatim from one source. Empty when uncontested.
+        "root_alternates": alternates,
+        # The root sits on one segment of a welded word (يَٰٓأَيُّهَا, يَوْمَئِذٍ), so the
+        # fiche can say so instead of implying the whole word derives from it.
+        "fused_compound": bool(record.get("fused_compound", False)),
         "lemma": lemma,
         "lemma_display": record.get("lemma_display"),
         "pos": record.get("pos", ""),  # raw, kept as data (not rendered)
@@ -110,7 +130,7 @@ def _sarfi(record: dict, self_ref: str) -> dict:
         "segments": mizan.segment_breakdown(record, self_ref),
         "mizan": mizan.compute_mizan(record, self_ref),
         "is_proper_noun": bool(record.get("is_proper_noun", False)),
-        "nazair": _nazair(root, lemma, self_ref),
+        "nazair": _nazair(root, lemma, self_ref, alternates),
     }
 
 
