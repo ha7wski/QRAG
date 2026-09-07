@@ -1,5 +1,7 @@
 import { ChevronDown, Info } from "lucide-react";
+import SarfiRows from "@/components/SarfiRows";
 import type { LisanResponse } from "@/lib/lisanTypes";
+import type { QlisanFormResponse } from "@/lib/types";
 
 /**
  * Renders a Lisan Analysis result: root, per-letter breakdown, the ordered
@@ -26,14 +28,25 @@ const CONFIDENCE_LABELS: Record<string, string> = {
   unknown: "غير مُحدَّد",
 };
 
-export default function LisanResult({ data }: { data: LisanResponse }) {
-  // No root resolved → helpful message, still carrying the disclaimer.
+export default function LisanResult({
+  data,
+  sarfi = null,
+}: {
+  data: LisanResponse;
+  /** Position-free morphology (POST /qlisan/form). Optional and independently
+   *  fetched: the letter reading must not depend on it. */
+  sarfi?: QlisanFormResponse | null;
+}) {
+  // No root resolved → helpful message, still carrying the disclaimer. The
+  // grammar section still renders: a function word (مِن, الذي) is rootless in QAC
+  // yet fully analysed morphologically, so there is real content to show here.
   if (!data.root) {
     return (
       <div className="space-y-4" dir="rtl">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 font-arabic text-amber-800">
           {data.message || `No root found for "${data.word}".`}
         </div>
+        <GrammarSection sarfi={sarfi} />
         <Disclaimer text={data.disclaimer} sources={data.sources} />
       </div>
     );
@@ -141,7 +154,11 @@ export default function LisanResult({ data }: { data: LisanResponse }) {
         </div>
       </div>
 
-      {/* 4 — Synthesis (the main reading) — deterministically composed */}
+      {/* 4 — تحليل نحوي: deterministic morphology (collapsible) — the established
+          facts about the word come before the interpretive reading of its letters. */}
+      <GrammarSection sarfi={sarfi} />
+
+      {/* 5 — Synthesis (the main reading) — deterministically composed */}
       {data.synthesis && (
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <div className="mb-2 flex flex-wrap items-baseline gap-2">
@@ -158,7 +175,7 @@ export default function LisanResult({ data }: { data: LisanResponse }) {
         </div>
       )}
 
-      {/* 5 — Ibn Jinni: ishtiqaq al-akbar (collapsible, interpretive) */}
+      {/* 6 — Ibn Jinni: ishtiqaq al-akbar (collapsible, interpretive) */}
       {data.ishtiqaq_akbar.length > 0 && (
         <details className="group rounded-lg border border-gray-200 bg-white p-4">
           <summary className="flex cursor-pointer items-center gap-2 font-arabic font-semibold text-gray-800">
@@ -193,6 +210,53 @@ export default function LisanResult({ data }: { data: LisanResponse }) {
     </div>
   );
 }
+
+/** «تحليل نحوي» — the deterministic morphology of the typed word, collapsed by
+ *  default (same `<details>` grammar as the ابن جنّي section below it).
+ *
+ * The reader typed a bare word, so there is no verse position — and QAC annotates
+ * tokens IN CONTEXT, with no form→morphology lexicon. The backend therefore reads
+ * the fiche from the word's FIRST occurrence and strips everything that belongs to
+ * that occurrence rather than to the form (الحالة الإعرابية, حالة الفعل, العلامة).
+ * النظائر stays: root and lemma decide it, so it holds for the form wherever it
+ * occurs. Only rows that are true of the form are rendered, so the card carries no
+ * provenance line — the response still names the occurrence in `ref` for callers
+ * that want it.
+ *
+ * Renders nothing at all while the request is in flight or if it failed — the
+ * letter reading is the page, this only supplements it.
+ */
+function GrammarSection({ sarfi }: { sarfi: QlisanFormResponse | null }) {
+  if (!sarfi) return null;
+
+  return (
+    <details className="group rounded-lg border border-gray-200 bg-white p-4">
+      <summary className="flex cursor-pointer items-center gap-2 font-arabic font-semibold text-gray-800">
+        <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        تحليل نحوي
+        <span dir="ltr" className="text-xs uppercase tracking-wide text-gray-400">
+          Grammatical
+        </span>
+        {sarfi.available && (
+          <span className="mr-auto rounded-full bg-brand-light px-2 py-0.5 font-arabic text-xs text-brand-dark">
+            معطى محقّق
+          </span>
+        )}
+      </summary>
+
+      <div className="mt-3">
+        {sarfi.available ? (
+          <SarfiRows level={sarfi.sarfi} />
+        ) : (
+          <p className="font-arabic text-base text-gray-500">
+            {sarfi.message || "لا يوجد تحليل صرفي لهذه الكلمة."}
+          </p>
+        )}
+      </div>
+    </details>
+  );
+}
+
 
 /** Persistent low-key disclaimer with a hover "sources" tooltip. */
 function Disclaimer({

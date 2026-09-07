@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useCachedState } from "@/lib/pageCache";
 import {
   ChevronDown,
   Loader2,
@@ -38,15 +39,21 @@ function relativeTime(ts: number): string {
 }
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<StoredMessage[]>([]);
-  const [input, setInput] = useState("");
+  // Cached across navigation: leaving for Verse Study and coming back reopens the
+  // conversation you were in, with its unsent draft, instead of a blank chat.
+  // `loading` and `menuOpen` stay plain state — restoring either would be wrong.
+  const [messages, setMessages] = useCachedState<StoredMessage[]>("chat.messages", []);
+  const [input, setInput] = useCachedState("chat.input", "");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useCachedState<string | null>("chat.error", null);
 
   // Conversation persistence (localStorage). `activeId` is the open conversation;
   // `activeIdRef` mirrors it so async stream callbacks read the current value.
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
-  const [activeId, setActiveConvId] = useState<string | null>(null);
+  const [activeId, setActiveConvId] = useCachedState<string | null>(
+    "chat.activeId",
+    null,
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const activeIdRef = useRef<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -54,18 +61,29 @@ export default function ChatInterface() {
 
   // Thumbs ratings, keyed by `${conversationId}:${messageIndex}`. UI-local;
   // the backend is the durable source of truth for the KPI.
-  const [ratings, setRatings] = useState<Record<string, "up" | "down">>({});
+  const [ratings, setRatings] = useCachedState<Record<string, "up" | "down">>(
+    "chat.ratings",
+    {},
+  );
   // The last question asked, so a failed/interrupted stream can be retried.
   const lastQuestionRef = useRef<string | null>(null);
 
   const refreshList = () => setConversations(listConversations());
 
-  // The Chat tab always opens a fresh chat. We only load the saved-conversation
-  // list (for the switcher) — the user explicitly picks one to reopen. Runs
-  // after hydration since localStorage is unavailable during SSR.
+  // Load the saved-conversation list for the switcher. Runs after hydration since
+  // localStorage is unavailable during SSR. A COLD open (hard reload) still starts
+  // a fresh chat — only a return within the same tab session restores one, from
+  // the in-memory page cache above.
   useEffect(() => {
     setConversations(listConversations());
   }, []);
+
+  // Keep the ref in step with the cached id. On a remount `activeIdRef` starts at
+  // null, so without this the first send() would silently open a NEW conversation
+  // instead of appending to the restored one.
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   // Close the conversation menu on an outside click.
   useEffect(() => {

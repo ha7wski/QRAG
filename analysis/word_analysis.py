@@ -20,6 +20,7 @@ Root/lemma keys are already `normalize_root`-normalized upstream (never
 """
 from __future__ import annotations
 
+import functools
 import sys
 from pathlib import Path
 
@@ -30,6 +31,7 @@ if str(ROOT) not in sys.path:
 from analysis import mizan, qac_labels
 from analysis.qlisan_data import qac_syntax, qac_words, root_graph
 from indexing.corpus import chakl_by_ref
+from indexing.text_normalize import normalize_search
 
 # Fixed presentation order of the four levels (شرط العقد: never reorder).
 LEVELS_ORDER = ["sawti", "sarfi", "nahwi", "dalali"]
@@ -224,6 +226,120 @@ def analyze_word(surah: int, ayah: int, word: int) -> dict:
         "sarfi": _sarfi(record, self_ref),
         "nahwi": _nahwi(self_ref, record),
         "dalali": {"available": False, "message": _DALALI_MESSAGE},
+    }
+
+
+# ── position-free lookup (the «تحليل نحوي» section of Lisan Analysis) ───────
+#
+# QAC annotates TOKENS IN CONTEXT: there is no form→morphology lexicon, every index
+# in `qlisan_data` is keyed by `"surah:ayah:word"`. A word typed with no verse
+# position is therefore read from ONE attested occurrence — the first in mushaf
+# order — and only the fields that hold for *every* occurrence of that form are
+# published — `النظائر` among them, since root and lemma decide it. The occurrence is
+# returned as `ref` so the UI can cite it: the reader never chose it, so it must not
+# look like a field about the word in the abstract.
+
+# Feature rows stating the word's syntactic POSITION rather than its form: ٱلرَّحِيمِ
+# is مجرور in 1:1:4 and مرفوع elsewhere; تُنذِرْ is مجزوم after لَمْ and مرفوع without it.
+# Keyed by feature NAME and resolved to the Arabic label here, so a renamed label
+# raises at import instead of silently letting a positional row through.
+_POSITIONAL_FEATURE_LABELS = frozenset(
+    qac_labels.FEATURE_LABEL_AR[k] for k in ("nominal_case", "verb_mood")
+)
+
+# Superscript (dagger) alef — QAC writes some forms with it (بَقَرَٰت) where the reader
+# types a plene alef. `normalize_search` strips it as a diacritic, dropping the alef
+# entirely, so it is folded on both sides first — the same reconciliation
+# `retrieval/verse_lookup.py::_norm_match` makes, kept local so this module keeps its
+# light treebank-only dependency set.
+_SUPERSCRIPT_ALEF = "\u0670"
+
+_FORM_UNATTESTED_MESSAGE = "لا يرد هذا اللفظ في المصحف، فلا تحليل صرفي محقّق له."
+_FORM_EMPTY_MESSAGE = "أدخل كلمة عربية."
+
+
+def _norm_form(text: str) -> str:
+    """Hamza-safe match key for a surface word form (dagger alef → plene alef)."""
+    return normalize_search(text.replace(_SUPERSCRIPT_ALEF, "ا"))
+
+
+def _ref_sort_key(ref: str) -> tuple[int, int, int]:
+    """Mushaf order for a `"surah:ayah:word"` ref (string order would put 10 before 2)."""
+    surah, ayah, word = ref.split(":")
+    return int(surah), int(ayah), int(word)
+
+
+@functools.lru_cache(maxsize=1)
+def _form_index() -> dict[str, str]:
+    """Normalized word form → the FIRST ref carrying it, in mushaf order.
+
+    Both the imlaai and the uthmani spelling are indexed, so a word typed either way
+    resolves. Built from `qac_words()` (not `word_index()`), which guarantees every
+    ref it hands back has a morphology record behind it.
+    """
+    words = qac_words()
+    index: dict[str, str] = {}
+    for ref in sorted(words, key=_ref_sort_key):
+        record = words[ref]
+        for surface in (record.get("imlaai"), record.get("uthmani")):
+            key = _norm_form(surface or "")
+            if key:
+                index.setdefault(key, ref)  # first occurrence wins
+    return index
+
+
+def _form_unavailable(typed: str, message: str) -> dict:
+    """The `available:false` shape — same keys as a hit, so the UI branches on one flag."""
+    return {
+        "word": typed,
+        "available": False,
+        "ref": None,
+        "word_uthmani": "",
+        "sarfi": {"available": False},
+        "message": message,
+    }
+
+
+def analyze_form(word: str | None) -> dict:
+    """The صرفي level of a word typed WITHOUT a verse position.
+
+    Returns `{word, available, ref, word_uthmani, sarfi, message}`, where `sarfi` is
+    the `analyze_word` morphology level minus its positional rows: the
+    `الحالة الإعرابية` / `حالة الفعل` features, which state where the word stands in
+    *this* sentence. `النظائر` stays — root and lemma decide it, and both hold for
+    the form wherever it occurs.
+
+    Never raises on reader input: empty, non-Arabic or unattested input comes back
+    `available:false` carrying an Arabic message.
+    """
+    typed = (word or "").strip()
+    if not typed:
+        return _form_unavailable(typed, _FORM_EMPTY_MESSAGE)
+
+    ref = _form_index().get(_norm_form(typed))
+    if ref is None:
+        return _form_unavailable(typed, _FORM_UNATTESTED_MESSAGE)
+
+    record = qac_words()[ref]
+    sarfi = _sarfi(record, ref)
+    # Stripped AFTER `_sarfi`, never before: `segments` and `mizan` read the whole
+    # record, so filtering its raw `features` upstream would perturb them.
+    #
+    # `nazair` is deliberately NOT stripped: it is decided by root + lemma, both
+    # invariant for a given form, so it states something about the word rather than
+    # about the position. `_sarfi` already leaves the cited occurrence out of its own
+    # sibling list — the provenance line names it instead.
+    sarfi["features"] = [
+        f for f in sarfi["features"] if f["label_ar"] not in _POSITIONAL_FEATURE_LABELS
+    ]
+
+    return {
+        "word": typed,
+        "available": True,
+        "ref": ref,
+        "word_uthmani": record.get("uthmani", ""),
+        "sarfi": sarfi,
+        "message": None,
     }
 
 

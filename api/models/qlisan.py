@@ -8,6 +8,10 @@ in this increment (`available:false`, explanatory message).
 
 `/qlisan/verse/{surah}/{ayah}` returns the vocalized verse plus QAC-aligned token
 boundaries so the UI's token index equals the QAC `word_id` by construction.
+
+`/qlisan/form` serves the same صرفي level for a word typed with NO verse position
+(the Lisan Analysis page): read from one attested occurrence, stripped of every
+positional row, and citing the occurrence it was read from.
 """
 from __future__ import annotations
 
@@ -18,6 +22,12 @@ class QlisanWordRequest(BaseModel):
     surah: int
     ayah: int
     word: int  # 1-based QAC word_id
+
+
+class QlisanFormRequest(BaseModel):
+    """A bare Arabic word — no verse position (Lisan Analysis types one in)."""
+
+    word: str
 
 
 class Nazair(BaseModel):
@@ -162,3 +172,25 @@ class QlisanVerseResponse(BaseModel):
     surah_name_ar: str = ""
     text: str                       # vocalized chakl verse (rendered as-is, RTL)
     tokens: list[QlisanToken] = []
+
+
+class QlisanFormResponse(BaseModel):
+    """The صرفي level of a word typed without a verse position.
+
+    QAC annotates tokens in context, so the fiche is read from ONE attested
+    occurrence — cited in `ref`, since the reader never chose it — and `sarfi`
+    carries only what holds for every occurrence of that form: the
+    `الحالة الإعرابية` / `حالة الفعل` rows are stripped upstream. `nazair` is kept,
+    being decided by root + lemma rather than by the position.
+
+    An unattested / empty word is `available:false` with an Arabic `message`,
+    never an HTTP error: this section supplements a page whose primary request
+    validates the input, so it must never be what breaks it.
+    """
+
+    word: str  # echoed back as typed (trimmed), not the normalized match key
+    available: bool
+    ref: str | None = None  # "surah:ayah:word" the fields were read from
+    word_uthmani: str = ""
+    sarfi: SarfiLevel
+    message: str | None = None

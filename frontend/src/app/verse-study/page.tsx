@@ -12,24 +12,24 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  ArrowRight,
   ChevronDown,
   ChevronLeft,
   Loader2,
   Search,
+  Type,
 } from "lucide-react";
-import { getSurahs, getVerse, madarAnalyze, searchVerses, verseLookup } from "@/lib/api";
+import { getSurahs, getVerse, searchVerses, verseLookup } from "@/lib/api";
 import type {
   SearchResponse,
   SurahMeta,
+  Verse,
   VerseDetail,
   VerseLookupResponse,
   VerseLookupVerse,
 } from "@/lib/types";
-import type { MadarResponse } from "@/lib/madarTypes";
-import ArabicText from "@/components/ArabicText";
-import MadarAslCard from "@/components/MadarAslCard";
+import { useCachedState } from "@/lib/pageCache";
 import ScrollToTop from "@/components/ScrollToTop";
+import VerseContextCard from "@/components/VerseContextCard";
 
 // Context shown around the chosen verse in the "Find Verse context" tab:
 // 3 before + 3 after (same surah).
@@ -80,7 +80,11 @@ export default function VerseStudyPage() {
 }
 
 function VerseStudy() {
-  const [tab, setTab] = useState<Tab>("word");
+  // Cached: coming back from Lisan Analysis lands on the tab you left, not on
+  // "Word in Verses". The context TARGET is deliberately not cached — it is a
+  // one-shot "open this verse" signal, and FindVerseContext restores its own
+  // result directly.
+  const [tab, setTab] = useCachedState<Tab>("verse-study.tab", "word");
   // The verse (if any) requested for the context tab from another tab or a deep link.
   const [contextTarget, setContextTarget] = useState<ContextTarget | null>(null);
 
@@ -145,7 +149,7 @@ function VerseStudy() {
         <WordInVerses openInContext={openInContext} />
       </div>
       <div className={tab === "similar" ? "" : "hidden"}>
-        <SimilarVerses openInContext={openInContext} />
+        <SimilarVerses />
       </div>
       <div className={tab === "context" ? "" : "hidden"}>
         <FindVerseContext target={contextTarget} />
@@ -240,40 +244,44 @@ function WordInVerses({
 }: {
   openInContext: (surah: number, ayah: number) => void;
 }) {
-  const [word, setWord] = useState("");
-  const [data, setData] = useState<VerseLookupResponse | null>(null);
-  // Ibn Fāris' cited aṣl for the resolved root (best-effort enrichment, shown
-  // above the occurrences). Null when madār didn't resolve a root (proper noun /
-  // out of lexicon) or the call failed.
-  const [madar, setMadar] = useState<MadarResponse | null>(null);
+  // Everything durable is cached — the search, its verses, the error banner and
+  // which sections the reader had folded away. `loading` stays plain state: a
+  // cached `true` would restore a spinner that never stops.
+  const [word, setWord] = useCachedState("verse-study.word.query", "");
+  const [data, setData] = useCachedState<VerseLookupResponse | null>(
+    "verse-study.word.data",
+    null,
+  );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useCachedState<string | null>(
+    "verse-study.word.error",
+    null,
+  );
   // Collapsed sets; empty = all open (as before). Surah key = `${root}:${lemma}:${surah}`.
-  const [collapsedSurahs, setCollapsedSurahs] = useState<Set<string>>(new Set());
-  const [collapsedLemmas, setCollapsedLemmas] = useState<Set<string>>(new Set());
+  const [collapsedSurahs, setCollapsedSurahs] = useCachedState<Set<string>>(
+    "verse-study.word.collapsedSurahs",
+    new Set(),
+  );
+  const [collapsedLemmas, setCollapsedLemmas] = useCachedState<Set<string>>(
+    "verse-study.word.collapsedLemmas",
+    new Set(),
+  );
 
   async function run() {
     if (!word.trim() || loading) return;
     const w = word.trim();
     setLoading(true);
     setError(null);
-    setMadar(null);
     setCollapsedSurahs(new Set());
     setCollapsedLemmas(new Set());
-    // verse-lookup drives the occurrences AND the error banner; the madār aṣl is
-    // a best-effort enrichment — its failure must never block the occurrences.
-    const [lookup, madarRes] = await Promise.allSettled([
-      verseLookup(w),
-      madarAnalyze(w),
-    ]);
-    if (lookup.status === "fulfilled") {
-      setData(lookup.value);
-    } else {
+    try {
+      setData(await verseLookup(w));
+    } catch (e: any) {
       setData(null);
-      setError((lookup.reason as any)?.message || "Lookup failed");
+      setError(e?.message || "Lookup failed");
+    } finally {
+      setLoading(false);
     }
-    if (madarRes.status === "fulfilled") setMadar(madarRes.value);
-    setLoading(false);
   }
 
   function toggleIn(
@@ -447,9 +455,19 @@ function WordInVerses({
                 </span>
               </div>
 
-              {/* Ibn Fāris' cited aṣl — below the root bar, above the
-                  occurrences. Skipped for proper nouns / no madār root. */}
-              {madar?.root && <MadarAslCard maqayis={madar.maqayis} />}
+              {/* Hand the SEARCHED word (never the live input, which the reader
+                  may already be retyping) to Lisan Analysis, which runs it on
+                  arrival. Left-aligned under the root bar: this wrapper is LTR —
+                  only the Arabic runs inside the bar above are RTL. */}
+              <div className="flex">
+                <Link
+                  href={`/lexical?word=${encodeURIComponent(data.word)}`}
+                  className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 font-arabic text-lg text-white transition hover:bg-brand-dark"
+                >
+                  <Type className="h-4 w-4" />
+                  تحليل لساني
+                </Link>
+              </div>
 
               {/* Verses by surah — each surah independently collapsible (open by
                   default), in order of appearance. A word with several lemmas
@@ -526,20 +544,91 @@ function WordInVerses({
 
 /** Tab 2 — an Arabic phrase (even a partial verse) → closest verses by root + keyword,
  *  reranked by a cross-encoder (no dense/semantic branch; see api/routers/search.py). */
-function SimilarVerses({
-  openInContext,
-}: {
-  openInContext: (surah: number, ayah: number) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [data, setData] = useState<SearchResponse | null>(null);
+function SimilarVerses() {
+  const [query, setQuery] = useCachedState("verse-study.similar.query", "");
+  const [data, setData] = useCachedState<SearchResponse | null>(
+    "verse-study.similar.data",
+    null,
+  );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useCachedState<string | null>(
+    "verse-study.similar.error",
+    null,
+  );
+
+  // Which result cards are open, and the context each one loaded. Both cached, so
+  // a trip to another page brings the reader back to the same opened cards
+  // without re-fetching. `ctxLoading` is transient and must never be.
+  const [expanded, setExpanded] = useCachedState<Set<string>>(
+    "verse-study.similar.expanded",
+    new Set(),
+  );
+  const [contexts, setContexts] = useCachedState<Record<string, VerseDetail>>(
+    "verse-study.similar.contexts",
+    {},
+  );
+  const [ctxError, setCtxError] = useCachedState<Record<string, string>>(
+    "verse-study.similar.contextErrors",
+    {},
+  );
+  const [ctxLoading, setCtxLoading] = useState<Set<string>>(new Set());
+
+  /** Load one verse's surrounding āyāt. Lazy by design: fetching all 20 up front
+   *  would be 20 requests for context the reader probably will not open. */
+  async function loadContext(v: Verse) {
+    if (contexts[v.id] || ctxLoading.has(v.id)) return;
+    setCtxLoading((prev) => new Set(prev).add(v.id));
+    try {
+      const res = await getVerse(v.surah_number, v.ayah_number, CONTEXT_WINDOW);
+      setContexts((prev) => ({ ...prev, [v.id]: res }));
+      setCtxError((prev) => {
+        if (!prev[v.id]) return prev;
+        const next = { ...prev };
+        delete next[v.id];
+        return next;
+      });
+    } catch (e: any) {
+      setCtxError((prev) => ({
+        ...prev,
+        [v.id]: e?.message || "Verse not found",
+      }));
+    } finally {
+      setCtxLoading((prev) => {
+        const next = new Set(prev);
+        next.delete(v.id);
+        return next;
+      });
+    }
+  }
+
+  function toggle(v: Verse) {
+    const isOpen = expanded.has(v.id);
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      isOpen ? next.delete(v.id) : next.add(v.id);
+      return next;
+    });
+    if (!isOpen) loadContext(v);
+  }
+
+  // A card left open when the reader navigated away comes back open. If its fetch
+  // was still in flight at that moment the context never landed (`ctxLoading` is
+  // not cached), so re-request it — otherwise the card would stay open and empty.
+  useEffect(() => {
+    for (const v of data?.results ?? []) {
+      if (expanded.has(v.id) && !contexts[v.id] && !ctxError[v.id]) loadContext(v);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function run() {
     if (!query.trim() || loading) return;
     setLoading(true);
     setError(null);
+    // A new search invalidates every open card and its loaded context.
+    setExpanded(new Set());
+    setContexts({});
+    setCtxError({});
     try {
       setData(await searchVerses(query.trim(), 20));
     } catch (e: any) {
@@ -629,41 +718,14 @@ function SimilarVerses({
               </div>
               <div className="space-y-3">
                 {data.results.map((v) => (
-                  <button
+                  <SimilarVerseCard
                     key={v.id}
-                    type="button"
-                    onClick={() => openInContext(v.surah_number, v.ayah_number)}
-                    dir="rtl"
-                    className="block w-full rounded-lg border border-gray-200 bg-white p-4 text-right shadow-sm transition hover:border-brand hover:shadow-md"
-                    title="افتح الآية في سياقها"
-                  >
-                    {/* Surah name (Arabic) on the right + reference; no translations. */}
-                    <header className="mb-2 flex items-center justify-between gap-2">
-                      <span className="flex items-baseline gap-2 font-arabic text-lg">
-                        <span className="font-semibold text-gray-800">
-                          {v.surah_name_ar}
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          {v.surah_number}:{v.ayah_number}
-                        </span>
-                      </span>
-                      {typeof v.relevance_score === "number" && (
-                        <span dir="ltr" className="text-xs text-gray-300">
-                          {v.relevance_score.toFixed(3)}
-                        </span>
-                      )}
-                    </header>
-                    <div
-                      dir="rtl"
-                      lang="ar"
-                      className="arabic-text text-2xl leading-loose text-gray-900"
-                    >
-                      {v.text_ar_tashkil || v.text_ar}{" "}
-                      <span className="align-middle text-sm text-gray-400">
-                        ﴿{v.ayah_number}﴾
-                      </span>
-                    </div>
-                  </button>
+                    verse={v}
+                    open={expanded.has(v.id)}
+                    context={contexts[v.id]}
+                    error={ctxError[v.id]}
+                    onToggle={() => toggle(v)}
+                  />
                 ))}
               </div>
             </>
@@ -677,22 +739,123 @@ function SimilarVerses({
 /** Tab 3 — pick a surah + ayah → that verse rendered with 3 verses of context on each
  *  side (same surah), the chosen one highlighted. This is the "Find Verse context" tab.
  *  Reacts to `target` (from in-page clicks / deep links). */
+/** One "Similar Verses" result: the verse, and — once opened — the surrounding
+ *  āyāt of its surah, rendered by the very same `VerseContextCard` the
+ *  "Find Verse context" tab uses.
+ *
+ *  The whole header is the toggle. It used to jump to that tab instead; showing
+ *  the context in place makes the hop unnecessary, and the expanded body keeps
+ *  the "Open full Sourate page" link for the full reading.
+ *
+ *  No `loading` prop: "open, no error, no context yet" IS the loading state, so
+ *  there is no second flag that could disagree with the first. */
+function SimilarVerseCard({
+  verse,
+  open,
+  context,
+  error,
+  onToggle,
+}: {
+  verse: Verse;
+  open: boolean;
+  context?: VerseDetail;
+  error?: string;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        dir="rtl"
+        className="block w-full p-4 text-right"
+        title={open ? "أخفِ السياق" : "اعرض الآية في سياقها"}
+      >
+        {/* Format: «اسم السورة (رقم)» — the same reference style the surah cards
+            of "Word in Verses" use. The āya number is not repeated here: it is
+            already badged at the end of the verse itself (﴿44﴾). */}
+        <header className="mb-2 flex items-center justify-between gap-2">
+          <span dir="rtl" className="font-arabic text-lg">
+            <span className="font-semibold text-gray-800">
+              {verse.surah_name_ar}
+            </span>
+            <span className="text-gray-400"> ({verse.surah_number})</span>
+          </span>
+          <span className="flex items-center gap-2">
+            {typeof verse.relevance_score === "number" && (
+              <span dir="ltr" className="text-xs text-gray-300">
+                {verse.relevance_score.toFixed(3)}
+              </span>
+            )}
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </span>
+        </header>
+        <div
+          dir="rtl"
+          lang="ar"
+          className="arabic-text text-2xl leading-loose text-gray-900"
+        >
+          {verse.text_ar_tashkil || verse.text_ar}{" "}
+          <span className="align-middle text-sm text-gray-400">
+            ﴿{verse.ayah_number}﴾
+          </span>
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 bg-gray-50/60 p-4">
+          {error ? (
+            <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          ) : context ? (
+            <VerseContextCard result={context} />
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span lang="ar" className="font-arabic">
+                جارٍ تحميل السياق…
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FindVerseContext({ target }: { target: ContextTarget | null }) {
-  const [surahs, setSurahs] = useState<SurahMeta[]>([]);
-  const [surah, setSurah] = useState(1);
-  const [ayah, setAyah] = useState(1);
-  const [result, setResult] = useState<VerseDetail | null>(null);
+  // The surah list is static reference data shared with QLisan — cached under a
+  // page-neutral key so it is fetched once per tab session, not once per mount.
+  const [surahs, setSurahs] = useCachedState<SurahMeta[]>("surahs.list", []);
+  const [surah, setSurah] = useCachedState("verse-study.context.surah", 1);
+  const [ayah, setAyah] = useCachedState("verse-study.context.ayah", 1);
+  const [result, setResult] = useCachedState<VerseDetail | null>(
+    "verse-study.context.result",
+    null,
+  );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useCachedState<string | null>(
+    "verse-study.context.error",
+    null,
+  );
   // Monotonic request id — only the latest lookup applies its result, so a
   // target arriving mid-fetch (or button-spam) never loses to a stale response.
   const reqSeq = useRef(0);
 
-  // Load the surah list (Arabic names) for the picker.
+  // Load the surah list (Arabic names) for the picker — skipped when the cache
+  // already holds it.
   useEffect(() => {
+    if (surahs.length) return;
     getSurahs()
       .then(setSurahs)
       .catch((e) => setError(e?.message || "Failed to load surah list"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // React to a target verse (in-page click or deep link): sync the picker and load it.
@@ -793,59 +956,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
       )}
 
       {main && result && (
-        <div className="space-y-3">
-          {/* Condensed box: Arabic only, the chosen verse highlighted, with
-              up to 3 verses of context on each side. */}
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
-              <span className="font-medium text-gray-700" dir="rtl">
-                {surahNameAr}
-              </span>
-              <span>
-                {main.surah_number}:{main.ayah_number}
-              </span>
-            </div>
-
-            <div className="divide-y divide-gray-100">
-              {result.context.map((v) => {
-                const isMain = v.id === main.id;
-                return (
-                  <div
-                    key={v.id}
-                    className={`flex items-start gap-3 px-4 py-3 ${
-                      isMain ? "bg-brand-light" : ""
-                    }`}
-                  >
-                    <span
-                      className={`mt-2 shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                        isMain
-                          ? "bg-brand text-white"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {v.ayah_number}
-                    </span>
-                    <ArabicText
-                      className={`block flex-1 text-right text-2xl leading-loose ${
-                        isMain ? "font-bold text-gray-900" : "text-gray-800"
-                      }`}
-                    >
-                      {v.text_ar_tashkil || v.text_ar}
-                    </ArabicText>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <Link
-            href={`/surah/${main.surah_number}`}
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand-dark hover:underline"
-          >
-            Open full Sourate page
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        <VerseContextCard result={result} surahNameAr={surahNameAr} />
       )}
     </div>
   );

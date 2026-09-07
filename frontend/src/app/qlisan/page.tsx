@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
+import { useCachedState } from "@/lib/pageCache";
+import FicheRow from "@/components/FicheRow";
 import LevelCard from "@/components/LevelCard";
+import SarfiRows from "@/components/SarfiRows";
 import type {
   QlisanNahwi,
-  QlisanNazair,
   QlisanSarfi,
   QlisanStubLevel,
   QlisanToken,
@@ -26,29 +28,50 @@ import type {
  * facts; the صوتي/دلالي stubs are shown visibly as pending, never blank.
  */
 export default function QlisanPage() {
-  const [surahs, setSurahs] = useState<SurahMeta[]>([]);
-  const [surah, setSurah] = useState(1);
-  const [ayah, setAyah] = useState(1);
+  // Cached across navigation: the loaded verse, the selected word and its fiche
+  // survive a trip to another page. The two `*Loading` flags never are — a cached
+  // `true` would restore a spinner that never stops.
+  const [surahs, setSurahs] = useCachedState<SurahMeta[]>("surahs.list", []);
+  const [surah, setSurah] = useCachedState("qlisan.surah", 1);
+  const [ayah, setAyah] = useCachedState("qlisan.ayah", 1);
 
-  const [verse, setVerse] = useState<QlisanVerseResponse | null>(null);
+  const [verse, setVerse] = useCachedState<QlisanVerseResponse | null>(
+    "qlisan.verse",
+    null,
+  );
   const [verseLoading, setVerseLoading] = useState(false);
-  const [verseError, setVerseError] = useState<string | null>(null);
+  const [verseError, setVerseError] = useCachedState<string | null>(
+    "qlisan.verseError",
+    null,
+  );
 
-  const [selectedWord, setSelectedWord] = useState<number | null>(null);
-  const [fiche, setFiche] = useState<QlisanWordResponse | null>(null);
+  const [selectedWord, setSelectedWord] = useCachedState<number | null>(
+    "qlisan.selectedWord",
+    null,
+  );
+  const [fiche, setFiche] = useCachedState<QlisanWordResponse | null>(
+    "qlisan.fiche",
+    null,
+  );
   const [ficheLoading, setFicheLoading] = useState(false);
-  const [ficheError, setFicheError] = useState<string | null>(null);
+  const [ficheError, setFicheError] = useCachedState<string | null>(
+    "qlisan.ficheError",
+    null,
+  );
 
   // Monotonic request ids — only the latest response for each lane applies, so a
   // fast re-click / re-load never loses to a stale response.
   const verseSeq = useRef(0);
   const ficheSeq = useRef(0);
 
-  // Load the surah list (Arabic names) for the picker.
+  // Load the surah list (Arabic names) for the picker — skipped when the shared
+  // cache already holds it (Verse Study fetches the same list).
   useEffect(() => {
+    if (surahs.length) return;
     getSurahs()
       .then(setSurahs)
       .catch((e) => setVerseError(e?.message || "Failed to load surah list"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const maxAyah = useMemo(
@@ -348,7 +371,9 @@ function StubLevel({
 }
 
 /** صرفي — deterministic morphology from the treebank. `marker` (العلامة) is the
- *  derived case-marker hint from the نحوي level, shown here under البنية الصرفية. */
+ *  derived case-marker hint from the نحوي level, shown under البنية الصرفية.
+ *  The rows live in the shared `SarfiRows`, which the «تحليل نحوي» section of
+ *  Lisan Analysis renders too (there without a `marker`, having no verse position). */
 function SarfiLevel({
   level,
   marker,
@@ -366,190 +391,9 @@ function SarfiLevel({
     );
   }
 
-  const features = (level.features || []).filter(
-    (f) => f && f.label_ar && f.value_ar,
-  );
-
   return (
     <LevelCard titleAr="صرفي" titleEn="Morphological" badge="معطى محقّق" tone="fact">
-      <dl className="space-y-3" dir="rtl">
-        {/* Part of speech (Arabic only — raw QAC code is never rendered). */}
-        <Row label="القسم">
-          <span className="font-arabic text-lg text-gray-800">
-            {level.pos_ar || "—"}
-          </span>
-        </Row>
-
-        {/* Root (or proper-noun marker). */}
-        <Row label={level.is_proper_noun ? "اسم علم" : "الجذر"}>
-          {level.is_proper_noun ? (
-            <span className="font-arabic text-lg text-gray-800">
-              {level.lemma_display || level.root_display || "—"}
-            </span>
-          ) : (
-            <span className="font-arabic text-2xl tracking-widest text-brand-dark">
-              {level.root_display || level.root || "—"}
-            </span>
-          )}
-        </Row>
-
-        {/* Contested root — both readings are named rather than one being picked
-            silently. Outside the «معطى محقّق» badge: this is an arbitration, not a
-            verbatim source field. */}
-        {level.root_alternates?.length > 0 && (
-          <Row label="قراءة أخرى">
-            <span className="flex items-center gap-2">
-              <span className="font-arabic text-base text-gray-700">
-                {`الجذر الأساسي: ${level.root_display || level.root}، ويُقرأ أيضًا: ${level.root_alternates.join("، ")}`}
-              </span>
-              <span
-                className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
-                title="اختلاف بين المصدرين، والترجيح مُوثَّق — خارج نطاق «معطى محقّق»"
-              >
-                مُرجَّح
-              </span>
-            </span>
-          </Row>
-        )}
-
-        {/* Welded word: the root covers one segment, not the whole word — so a reader
-            does not infer that يا أيها derives from آية. */}
-        {level.fused_compound && (
-          <Row label="بنية الكلمة">
-            <span className="flex items-center gap-2">
-              <span className="font-arabic text-base text-gray-700">
-                كلمة مركّبة — الجذر يخصّ أحد مقاطعها لا الكلمة بأكملها
-              </span>
-              <span
-                className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
-                title="قراءة لبنية المقاطع — خارج نطاق «معطى محقّق»"
-              >
-                استنتاجي
-              </span>
-            </span>
-          </Row>
-        )}
-
-        {/* Lemma. */}
-        {(level.lemma_display || level.lemma) && (
-          <Row label="اللفظ">
-            <span className="font-arabic text-lg text-gray-800">
-              {level.lemma_display || level.lemma}
-            </span>
-          </Row>
-        )}
-
-        {/* Morphological structure — the vocalized TEXT of each segment joined by
-            « + » in RTL reading order (prefix on the right); the type (بادئة/جذع/لاحقة)
-            is a small secondary label under each segment (also a tooltip). A single
-            segment (e.g. يَرْتَع) shows the stem alone, no « + ». */}
-        {level.segments && level.segments.length > 0 && (
-          <Row label="البنية الصرفية">
-            <span className="flex flex-wrap items-start gap-x-1.5 gap-y-1">
-              {level.segments.map((seg, i) => (
-                <span key={i} className="flex items-start gap-x-1.5">
-                  {i > 0 && (
-                    <span className="self-center font-arabic text-base text-gray-400">
-                      +
-                    </span>
-                  )}
-                  <span className="flex flex-col items-center">
-                    <span
-                      className="font-arabic text-lg text-gray-800"
-                      title={seg.type_ar}
-                    >
-                      {seg.text}
-                    </span>
-                    <span className="font-arabic text-[10px] leading-tight text-gray-400">
-                      {seg.type_ar}
-                    </span>
-                  </span>
-                </span>
-              ))}
-            </span>
-          </Row>
-        )}
-
-        {/* الميزان الصرفي — root projected onto ف-ع-ل (just under البنية الصرفية).
-            `items-start` = right edge in RTL, so the wazn aligns with the other rows. */}
-        {level.mizan && level.mizan.available && level.mizan.wazn && (
-          <Row label="الوزن">
-            <span className="flex flex-col items-start gap-1">
-              <span className="flex items-center gap-2">
-                <span className="font-arabic text-xl tracking-widest text-gray-800">
-                  {level.mizan.wazn}
-                </span>
-                {!level.mizan.verified && (
-                  <span
-                    className="rounded bg-amber-50 px-1.5 py-0.5 font-arabic text-xs text-amber-700"
-                    title="ميزان تقديري (جذر معتلّ/مضعّف) — خارج نطاق «معطى محقّق»"
-                  >
-                    اجتهادي
-                  </span>
-                )}
-              </span>
-              {level.mizan.bab && (
-                <span className="font-arabic text-sm text-gray-500">
-                  باب {level.mizan.bab}
-                </span>
-              )}
-            </span>
-          </Row>
-        )}
-
-        {/* العلامة — the derived case marker (from the نحوي level), shown under
-            البنية الصرفية as an «الأصل» hint (heuristic, not verbatim corpus data). */}
-        {marker && (
-          <Row label="العلامة">
-            <span className="flex items-baseline gap-2">
-              <span className="font-arabic text-lg text-gray-800">{marker}</span>
-              <span className="font-arabic text-xs text-gray-400">(الأصل)</span>
-            </span>
-          </Row>
-        )}
-
-        {/* Grammatical features — each an ordered Arabic {label_ar, value_ar}. */}
-        {features.map((f, i) => (
-          <Row key={`${f.label_ar}-${i}`} label={f.label_ar}>
-            <span className="font-arabic text-lg text-gray-800">
-              {f.value_ar}
-            </span>
-          </Row>
-        ))}
-
-        {/* Root siblings (naẓāʾir) → deep-links, grouped by lemma so
-            homographic senses are never mixed under one root. */}
-        {level.nazair && level.nazair.length > 0 && (
-          <Row label="النظائر">
-            <span className="flex flex-col gap-2">
-              {groupNazairByLemma(level.nazair).map((group) => (
-                <span key={group.key} className="flex flex-col gap-1">
-                  {group.label && (
-                    <span className="font-arabic text-sm text-gray-400">
-                      {group.label}
-                    </span>
-                  )}
-                  <span className="flex flex-wrap gap-1.5">
-                    {group.items.map((n) => {
-                      const [s, a] = n.ref.split(":");
-                      return (
-                        <Link
-                          key={n.ref}
-                          href={`/verse/${s}/${a}`}
-                          title={n.ref}
-                          className="rounded-md bg-gray-50 px-2 py-0.5 font-arabic text-base text-gray-700 ring-1 ring-gray-200 transition hover:bg-brand-light hover:text-brand-dark"
-                        >
-                          {n.word_uthmani}
-                        </Link>
-                      );
-                    })}
-                  </span>
-                </span>
-              ))}
-            </span>
-          </Row>
-        )}
-      </dl>
+      <SarfiRows level={level} marker={marker} />
     </LevelCard>
   );
 }
@@ -573,14 +417,14 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
     <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="معطى محقّق" tone="fact">
       <dl className="space-y-3" dir="rtl">
         {level.iraab_ar && (
-          <Row label="الموقع الإعرابي">
+          <FicheRow label="الموقع الإعرابي">
             <span className="font-arabic text-lg text-gray-800">
               {level.iraab_ar}
             </span>
-          </Row>
+          </FicheRow>
         )}
         {level.head_ref && (
-          <Row label="المتعلَّق">
+          <FicheRow label="المتعلَّق">
             {(() => {
               const [s, a] = level.head_ref.split(":");
               return (
@@ -594,57 +438,9 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
                 </Link>
               );
             })()}
-          </Row>
+          </FicheRow>
         )}
       </dl>
     </LevelCard>
-  );
-}
-
-/** Group naẓāʾir by lemma (keyed by `lemma`, labelled by `lemma_display`) so
- *  homographic senses are never mixed under one root. Insertion order is
- *  preserved (determinism). The lemma label is only surfaced when more than one
- *  lemma is present — a single homogeneous group needs no redundant heading. */
-function groupNazairByLemma(nazair: QlisanNazair[]): {
-  key: string;
-  label: string | null;
-  items: QlisanNazair[];
-}[] {
-  const groups: { key: string; display: string | null; items: QlisanNazair[] }[] =
-    [];
-  const byKey = new Map<string, number>();
-  for (const n of nazair) {
-    const key = n.lemma ?? "";
-    let idx = byKey.get(key);
-    if (idx === undefined) {
-      idx = groups.length;
-      byKey.set(key, idx);
-      groups.push({ key: key || `__${idx}`, display: n.lemma_display ?? null, items: [] });
-    }
-    groups[idx].items.push(n);
-  }
-  const multi = groups.length > 1;
-  return groups.map((g) => ({
-    key: g.key,
-    label: multi ? g.display : null,
-    items: g.items,
-  }));
-}
-
-/** One right-aligned label/value row inside a fiche level. */
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-      <dt className="min-w-[6rem] shrink-0 font-arabic text-sm text-gray-400">
-        {label}
-      </dt>
-      <dd className="flex-1">{children}</dd>
-    </div>
   );
 }

@@ -4,6 +4,7 @@ import type {
   FeedbackStats,
   HealthStatus,
   LexicalResponse,
+  QlisanFormResponse,
   QlisanVerseResponse,
   QlisanWordResponse,
   SearchResponse,
@@ -87,6 +88,19 @@ export async function qlisanWord(
   if (res.status === 404)
     throw new Error(`Word ${surah}:${ayah}:${word} not found`);
   if (!res.ok) throw new Error(`QLisan word failed: ${res.status}`);
+  return res.json();
+}
+
+// The صرفي level of a word typed with no verse position (Lisan Analysis).
+// Always resolves: an unattested word comes back `available:false` with a message,
+// so this supplementary section can never break the page that hosts it.
+export async function qlisanForm(word: string): Promise<QlisanFormResponse> {
+  const res = await fetch(`${API_URL}/qlisan/form`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word }),
+  });
+  if (!res.ok) throw new Error(`QLisan form failed: ${res.status}`);
   return res.json();
 }
 

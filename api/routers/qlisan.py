@@ -13,8 +13,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from analysis.word_analysis import analyze_word, verse_tokens
+from analysis.word_analysis import analyze_form, analyze_word, verse_tokens
 from api.models.qlisan import (
+    QlisanFormRequest,
+    QlisanFormResponse,
     QlisanVerseResponse,
     QlisanWordRequest,
     QlisanWordResponse,
@@ -54,3 +56,13 @@ def qlisan_verse(surah: int, ayah: int) -> QlisanVerseResponse:
             status_code=404, detail=f"verse not found: {surah}:{ayah}"
         ) from exc
     return QlisanVerseResponse(**data)
+
+
+@router.post("/qlisan/form", response_model=QlisanFormResponse)
+def qlisan_form(req: QlisanFormRequest) -> QlisanFormResponse:
+    """The صرفي level for a word typed with no verse position (Lisan Analysis).
+
+    Always 200: an empty / unattested word comes back `available:false` with an
+    Arabic message rather than an error, so this supplementary section can never
+    break the page that hosts it."""
+    return QlisanFormResponse(**analyze_form(req.word))

@@ -216,6 +216,24 @@ export interface QlisanWordResponse {
   dalali: QlisanStubLevel;
 }
 
+// The صرفي level of a word typed WITHOUT a verse position (POST /qlisan/form),
+// which backs the «تحليل نحوي» section of Lisan Analysis.
+//
+// QAC annotates tokens in context, so there is no form→morphology lexicon: the
+// fiche is read from ONE attested occurrence, named in `ref` so the page can cite
+// it. `sarfi` therefore arrives already stripped of its positional rows — the
+// الحالة الإعرابية / حالة الفعل features — and no `marker_ar` accompanies it.
+// `nazair` DOES arrive: root and lemma decide it, so it holds for the form itself.
+// An unattested word is `available:false` + an Arabic `message`.
+export interface QlisanFormResponse {
+  word: string; // echoed as typed (trimmed), not the normalized match key
+  available: boolean;
+  ref: string | null; // "surah:ayah:word" the fields were read from
+  word_uthmani: string;
+  sarfi: QlisanSarfi;
+  message: string | null;
+}
+
 export interface FeedbackStats {
   up: number;
   down: number;
