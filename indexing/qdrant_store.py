@@ -11,9 +11,12 @@ verse reference: id = surah_number * 1000 + ayah_number.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qm
+
+ROOT = Path(__file__).resolve().parents[1]
 
 DEFAULT_COLLECTION = "quran_verses"
 DEFAULT_URL = "http://localhost:6333"
@@ -31,16 +34,48 @@ class QuranQdrant:
         url: str | None = None,
         collection: str | None = None,
         vector_size: int = 1024,
+        path: str | None = None,
     ):
-        self.url = url or os.getenv("QDRANT_URL", DEFAULT_URL)
+        """Open the store, in embedded or server mode.
+
+        Embedded mode (`path`, or the QDRANT_PATH env var) runs Qdrant inside
+        this process against a local directory — no server, no Docker VM. The
+        corpus is ~24 MB of vectors, far below anything that needs a server.
+        An explicit `url` wins over QDRANT_PATH: a caller asking for a server
+        gets a server.
+
+        Caveat: embedded mode takes an exclusive file lock on the directory, so
+        build_index.py and the API cannot hold it at the same time.
+        """
         self.collection = collection or os.getenv(
             "QDRANT_COLLECTION", DEFAULT_COLLECTION
         )
         self.vector_size = vector_size
-        self.client = QdrantClient(url=self.url, timeout=30.0)
+
+        raw_path = path or (None if url else os.getenv("QDRANT_PATH"))
+        if raw_path:
+            # Project convention: resolve against ROOT, never the cwd, so the
+            # backend and the indexer agree on the directory from anywhere.
+            self.path = Path(raw_path)
+            if not self.path.is_absolute():
+                self.path = ROOT / self.path
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.url = None
+            self.embedded = True
+            self.client = QdrantClient(path=str(self.path))
+        else:
+            self.path = None
+            self.url = url or os.getenv("QDRANT_URL", DEFAULT_URL)
+            self.embedded = False
+            self.client = QdrantClient(url=self.url, timeout=30.0)
+
+    @property
+    def location(self) -> str:
+        """Human-readable description of where this store lives."""
+        return f"{self.path} (embedded)" if self.embedded else str(self.url)
 
     def ping(self) -> bool:
-        """Return True if the Qdrant server is reachable."""
+        """Return True if the Qdrant store is usable."""
         try:
             self.client.get_collections()
             return True
@@ -49,12 +84,19 @@ class QuranQdrant:
 
     def require_connection(self) -> None:
         """Raise a clear error if Qdrant is not reachable."""
-        if not self.ping():
+        if self.ping():
+            return
+        if self.embedded:
             raise ConnectionError(
-                f"Cannot reach Qdrant at {self.url}. "
-                "Start it with `docker compose up -d qdrant` and confirm the "
-                "port (6333) is exposed."
+                f"Cannot open the embedded Qdrant store at {self.path}. "
+                "Embedded mode takes an exclusive lock — check that no other "
+                "process (the API, or build_index.py) is already holding it."
             )
+        raise ConnectionError(
+            f"Cannot reach Qdrant at {self.url}. "
+            "Start it with `docker compose up -d qdrant` and confirm the "
+            "port (6333) is exposed."
+        )
 
     def create_collection(self, recreate: bool = False) -> None:
         """Create the collection and payload indexes (idempotent)."""

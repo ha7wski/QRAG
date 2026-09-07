@@ -42,14 +42,44 @@ class HybridSearch:
         bm25: BM25Index | None = None,
         root_ranker=None,
     ):
-        self.embedder = embedder or Embedder()
-        # Align the Qdrant vector size with the loaded embedding model.
-        self.qdrant = qdrant or QuranQdrant(vector_size=self.embedder.dimension)
+        # The embedder (~1.1 GB of wired Metal memory on Apple Silicon) and the
+        # Qdrant client are built on first use, not here: only the dense branch
+        # of search() needs them, and the lexical paths (Verse Study, QLisan,
+        # Tahlil, GET /search) never reach it. An explicitly passed instance
+        # wins and is never rebuilt. BM25 stays eager — the index is ~4 MB.
+        self._embedder = embedder
+        self._qdrant = qdrant
         self.bm25 = bm25 or BM25Index.load()
         self._verses = verses_by_id()  # shared, cached {id: verse} lookup
         # Optional 3rd RRF channel: callable (query, top_k, filters) -> [verse_id].
         # None → plain dense+sparse (identical to prior behavior).
         self.root_ranker = root_ranker
+
+    @property
+    def embedder(self) -> Embedder:
+        """The embedding model, loaded on first access."""
+        if self._embedder is None:
+            self._embedder = Embedder()
+        return self._embedder
+
+    @property
+    def qdrant(self) -> QuranQdrant:
+        """The Qdrant store, opened on first access.
+
+        Deliberately does NOT ask the embedder for its dimension: `vector_size`
+        is only read by create_collection, which this class never calls
+        (build_index.py owns creation and brings its own embedder). Reading the
+        dimension here would make GET /health — which pings Qdrant — load the
+        model on every launch.
+        """
+        if self._qdrant is None:
+            self._qdrant = QuranQdrant()
+        return self._qdrant
+
+    @property
+    def models_loaded(self) -> bool:
+        """True once the dense branch has actually paid for its models."""
+        return self._embedder is not None
 
     def search(
         self, query: str, top_k: int = 5, filters: dict | None = None

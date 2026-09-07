@@ -83,8 +83,18 @@ fi
 ok "Data present"
 
 # ── Docker services: Qdrant + Ollama ──────────────────────────────────────
-say "Starting Qdrant + Ollama (Docker)"
-docker compose up -d qdrant ollama >/dev/null 2>&1 || die "docker compose up failed"
+# QDRANT_PATH runs Qdrant embedded in the backend process, so its container is
+# skipped and only Ollama is started. Docker is still required here because this
+# launcher runs Ollama containerized (local-dev/start.sh runs it natively).
+if [ -n "${QDRANT_PATH:-}" ]; then
+  say "Starting Ollama (Docker) — Qdrant runs embedded at $QDRANT_PATH"
+  SERVICES="ollama"
+else
+  say "Starting Qdrant + Ollama (Docker)"
+  SERVICES="qdrant ollama"
+fi
+# shellcheck disable=SC2086
+docker compose up -d $SERVICES >/dev/null 2>&1 || die "docker compose up failed"
 ok "Containers up"
 
 if docker exec quran-ollama ollama list 2>/dev/null | grep -q "${OLLAMA_MODEL%%:*}"; then

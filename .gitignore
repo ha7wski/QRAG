@@ -7,6 +7,10 @@ __pycache__/
 
 # Environment
 .env
+# Backups of .env carry the same secrets as .env itself (API keys, hosts).
+.env.bak
+.env.*.bak
+.env.local
 
 # Local Claude Code config
 .claude/

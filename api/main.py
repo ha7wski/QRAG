@@ -53,6 +53,47 @@ logging.basicConfig(
 logger = logging.getLogger("quran_rag.api")
 
 
+class LazyReranker:
+    """Holds the GET /search cross-encoder, built on first use.
+
+    The model is ~1.1 GB of wired Metal memory on Apple Silicon — memory macOS
+    can neither compress nor swap. Building it in the lifespan charged every
+    launch for it, including sessions that only ever used the Arabic study
+    tools. `enabled` (SEARCH_RERANK_ENABLED) now means "allowed to load", not
+    "load now": the first similar-verse search pays, once.
+
+    A load failure degrades to no reranking rather than failing the request,
+    and is not retried on every subsequent search.
+    """
+
+    def __init__(self, enabled: bool):
+        self.enabled = enabled
+        self._model = None
+        self._failed = False
+
+    def get(self):
+        """Return the reranker, building it on first call. None = no reranking."""
+        if not self.enabled or self._failed:
+            return None
+        if self._model is None:
+            from retrieval.reranker import Reranker
+
+            logger.info("Loading search reranker on first use (~1.1 GB)...")
+            try:
+                self._model = Reranker()
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Reranker unavailable, search will not rerank: %s", exc)
+                self._failed = True
+                return None
+            logger.info("Search reranker ready.")
+        return self._model
+
+    @property
+    def loaded(self) -> bool:
+        """True once the model has actually been paid for."""
+        return self._model is not None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Build heavy components once at startup, share them via app.state."""
@@ -80,20 +121,13 @@ async def lifespan(app: FastAPI):
     # Gated by SEARCH_RERANK_ENABLED (off by default: the model is ~2.3 GB). It
     # reorders a wider fused candidate pool by true query↔verse relevance,
     # demoting the noisy dense-branch hits (basmala/short openers).
-    app.state.search_reranker = None
-    if os.getenv("SEARCH_RERANK_ENABLED", "0") == "1":
-        from retrieval.reranker import Reranker
-
-        logger.info("Loading search reranker (SEARCH_RERANK_ENABLED=1)...")
-        app.state.search_reranker = Reranker()
-        # Warm up: the first cross-encoder predict compiles the MPS/GPU graph
-        # (~10s cold), which would otherwise land on the first user search.
-        try:
-            warm = [{"id": f"0:{i}", "text_ar": "الحمد لله رب العالمين"} for i in range(32)]
-            app.state.search_reranker.rerank("الحمد لله", warm, top_k=1)
-            logger.info("Search reranker warmed up.")
-        except Exception as exc:  # pragma: no cover
-            logger.warning("Reranker warmup skipped: %s", exc)
+    # Deliberately NOT built here: the provider hands the model over on the
+    # first search that needs it. The old startup warmup is gone with it — it
+    # only ever existed to move the cold-start cost off the first search, which
+    # is now the very moment the model loads anyway.
+    app.state.search_reranker_provider = LazyReranker(
+        enabled=os.getenv("SEARCH_RERANK_ENABLED", "0") == "1"
+    )
     # Durable session history + feedback (SQLite).
     app.state.store = Store()
     logger.info(
@@ -139,7 +173,23 @@ def health() -> dict:
     engine = getattr(app.state, "engine", None)
     if engine is None:
         return {"status": "starting", "qdrant": False, "llm": False}
-    qdrant_ok = engine.retriever.hybrid.qdrant.ping()
+    hybrid = engine.retriever.hybrid
+    # Neither probe loads a model: opening the Qdrant store no longer reads the
+    # embedder's dimension, and llm.health() only lists Ollama's models.
+    qdrant_ok = hybrid.qdrant.ping()
     llm_ok = engine.llm.health()
+    provider = getattr(app.state, "search_reranker_provider", None)
     status = "ok" if (qdrant_ok and llm_ok) else "degraded"
-    return {"status": status, "qdrant": qdrant_ok, "llm": llm_ok}
+    return {
+        "status": status,
+        "qdrant": qdrant_ok,
+        "llm": llm_ok,
+        # Which heavy models are resident right now. Both load on first use, so
+        # a freshly started backend reports false/false and holds no model
+        # memory at all — this is what makes that visible rather than assumed.
+        "models": {
+            "embedder": hybrid.models_loaded,
+            "search_reranker": provider.loaded if provider is not None else False,
+        },
+        "qdrant_location": hybrid.qdrant.location,
+    }

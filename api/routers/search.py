@@ -51,7 +51,9 @@ def search(
     """Similar-verse search: root ∪ BM25 candidates → cross-encoder rerank →
     query-root-coverage blend → relevance threshold. Optional filters."""
     engine = request.app.state.engine
-    reranker = getattr(request.app.state, "search_reranker", None)
+    # Built on the first search that gets here, then reused (see LazyReranker).
+    provider = getattr(request.app.state, "search_reranker_provider", None)
+    reranker = provider.get() if provider is not None else None
     similar = getattr(request.app.state, "similar_verses", None)
     filters = {"surah_number": surah, "period": period, "juz": juz}
     filters = {k: v for k, v in filters.items() if v is not None}

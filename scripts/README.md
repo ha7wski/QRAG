@@ -101,10 +101,17 @@ print(HybridSearch().search('الرحمن الرحيم', top_k=5))"
 python generation/chat_engine.py "What does the Quran say about patience?"
 ```
 
-> The Ollama model needs ~5–6 GB RAM; raise Docker Desktop's memory limit
-> accordingly. Ollama in Docker on macOS is CPU-only — for Metal-accelerated
-> speed run Ollama natively and keep `OLLAMA_BASE_URL=http://localhost:11434`.
-> Or set `LLM_PROVIDER=anthropic` to use the Claude API.
+> The Ollama model needs ~5–6 GB RAM. Run Ollama **natively**, not in Docker:
+> Docker on macOS has no access to the Metal GPU, so a containerized model runs
+> on CPU (~2 tok/s) *and* forces you to hand that memory to the Docker VM. Keep
+> `OLLAMA_BASE_URL=http://localhost:11434`, or set `LLM_PROVIDER=anthropic` to
+> use the Claude API and load nothing locally.
+>
+> **Do not raise Docker Desktop's memory limit to fit the model** — that is the
+> opposite of what you want. Whatever you give the VM is taken from the host,
+> where the native model and the embedders actually live. Qdrant is the only
+> container here and it serves ~24 MB of vectors: 4 GB is already generous, and
+> `QDRANT_PATH` removes the VM from the picture entirely (see Gotchas).
 
 ### Run the API
 
@@ -187,5 +194,17 @@ python scripts/build_maqayis_dataset.py           # re-parse a source already on
   machine), switch them to `localhost` — this is the most common first error.
 - **First run is heavy:** the embedding model (~1–2 GB) and `qwen2.5:7b`
   (~4.7 GB) download on first use; keep ≥ 8 GB RAM free.
+- **Memory on a 16 GB Mac.** Models are loaded on demand — the embedder and the
+  `/search` reranker are built by the first request that needs them, so a session
+  spent on the Arabic study tools holds no model memory. Two settings matter more
+  than anything else: set **`QDRANT_PATH=data/runtime/qdrant`** to run Qdrant
+  in-process (no Docker VM at all — the corpus is 24 MB), and keep
+  **`OLLAMA_KEEP_ALIVE`** short (`10m`). On Apple Silicon a loaded model is wired
+  GPU memory that macOS cannot swap, so a long keep_alive starves everything else
+  for that whole window. Embedded Qdrant takes an exclusive lock: stop the backend
+  before running `build_index.py`.
+- **A full disk turns memory pressure into a freeze.** macOS grows its swapfile on
+  demand; with a nearly full SSD it cannot, and the machine hard-locks instead of
+  killing a process. Keep some tens of GB free.
 - **Two backend ports:** examples here use `:8000`; `run.sh` defaults to `:8000`
   too but is overridable. Keep `NEXT_PUBLIC_API_URL` in sync with whichever you use.

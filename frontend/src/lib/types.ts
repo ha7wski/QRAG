@@ -92,6 +92,11 @@ export interface HealthStatus {
   status: "ok" | "degraded" | "starting";
   qdrant: boolean;
   llm: boolean;
+  // Which heavy models are resident. Both load on first use, so a freshly
+  // started backend reports false/false. Absent while status is "starting".
+  models?: { embedder: boolean; search_reranker: boolean };
+  // "<path> (embedded)" when Qdrant runs in-process, else the server URL.
+  qdrant_location?: string;
 }
 
 // ── QLisan (per-word four-level analysis) ─────────────────────────────
