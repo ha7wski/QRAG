@@ -13,7 +13,7 @@ import {
   ThumbsUp,
   Trash2,
 } from "lucide-react";
-import { sendFeedback, streamChat } from "@/lib/api";
+import { sendFeedback, statusOf, detailOf, streamChat } from "@/lib/api";
 import type { ChatMessage, Verse } from "@/lib/types";
 import HealthBanner from "./HealthBanner";
 import {
@@ -27,7 +27,8 @@ import {
   setActiveId as storeSetActiveId,
 } from "@/lib/conversations";
 import VerseCard from "./VerseCard";
-import { S } from "@/lib/strings";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "./FailureNote";
 
 // The noun form depends on the count in Arabic — singular, dual, plural for
 // 3-10, singular accusative from 11 — so the wording lives in the dictionary
@@ -49,7 +50,7 @@ export default function ChatInterface() {
   const [messages, setMessages] = useCachedState<StoredMessage[]>("chat.messages", []);
   const [input, setInput] = useCachedState("chat.input", "");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useCachedState<string | null>("chat.error", null);
+  const [error, setError] = useCachedState<Failure | null>("chat.error", null);
 
   // Conversation persistence (localStorage). `activeId` is the open conversation;
   // `activeIdRef` mirrors it so async stream callbacks read the current value.
@@ -231,8 +232,11 @@ export default function ChatInterface() {
           setLoading(false);
         },
       });
-    } catch (e: any) {
-      setError(e?.message || "Request failed");
+    } catch (e) {
+      setError({
+        text: forStatus(statusOf(e), "chat"),
+        detail: detailOf(e),
+      });
       setLoading(false);
       // Persist whatever streamed before the failure so a partial answer (and
       // the question) survive a reload; the user can retry from the banner.
@@ -423,8 +427,10 @@ export default function ChatInterface() {
       </div>
 
       {error && (
-        <div className="mb-2 flex items-center justify-between gap-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          <span>{error}</span>
+        <FailureNote
+          failure={error}
+          className="mb-2 rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
           {lastQuestionRef.current && !loading && (
             <button
               onClick={retry}
@@ -433,7 +439,7 @@ export default function ChatInterface() {
               <RotateCw className="h-3.5 w-3.5" /> {S.chat.retry}
             </button>
           )}
-        </div>
+        </FailureNote>
       )}
 
       <div className="flex items-end gap-2 border-t border-gray-200 pt-3">

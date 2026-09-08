@@ -7,6 +7,9 @@ import { API_URL, qlisanForm } from "@/lib/api";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
+import { statusOf, detailOf } from "@/lib/api";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "@/components/FailureNote";
 import LisanResult from "@/components/LisanResult";
 
 /**
@@ -42,7 +45,7 @@ function LisanAnalysis() {
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useCachedState<string | null>("lexical.error", null);
+  const [error, setError] = useCachedState<Failure | null>("lexical.error", null);
 
   // Monotonic run id: only the latest run may write state, so two fast Enters
   // can never leave a reading of one word beside the morphology of another.
@@ -97,10 +100,13 @@ function LisanAnalysis() {
       }
       const payload = await res.json();
       if (seq === runSeq.current) setData(payload);
-    } catch (e: any) {
+    } catch (e) {
       if (seq === runSeq.current) {
         setData(null);
-        setError(e?.message || "Analysis failed");
+        setError({
+          text: forStatus(statusOf(e), "analysis"),
+          detail: detailOf(e),
+        });
       }
     } finally {
       if (seq === runSeq.current) setLoading(false);
@@ -145,9 +151,10 @@ function LisanAnalysis() {
       </div>
 
       {error && (
-        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </div>
+        <FailureNote
+          failure={error}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
       )}
 
       {loading && (

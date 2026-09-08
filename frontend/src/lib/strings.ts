@@ -306,6 +306,7 @@ export type FailureKind =
   | "surahList"
   | "analysis"
   | "search"
+  | "chat"
   | "network";
 
 /**
@@ -327,5 +328,8 @@ export function forStatus(status: number | undefined, kind?: FailureKind): strin
   if (kind === "surahList") return S.errors.surahListFailed;
   if (kind === "analysis") return S.errors.analysisFailed;
   if (kind === "search") return S.errors.searchFailed;
+  // A chat turn needs no sentence of its own: a failure there is either an
+  // outage or the network, both already covered above.
+  if (kind === "chat") return S.errors.generic;
   return S.errors.generic;
 }

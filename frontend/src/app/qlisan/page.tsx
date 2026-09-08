@@ -5,7 +5,9 @@ import Link from "next/link";
 import { ArrowRight, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
 import { useCachedState } from "@/lib/pageCache";
-import { S } from "@/lib/strings";
+import { statusOf, detailOf } from "@/lib/api";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "@/components/FailureNote";
 import FicheRow from "@/components/FicheRow";
 import LevelCard from "@/components/LevelCard";
 import SarfiRows from "@/components/SarfiRows";
@@ -41,7 +43,7 @@ export default function QlisanPage() {
     null,
   );
   const [verseLoading, setVerseLoading] = useState(false);
-  const [verseError, setVerseError] = useCachedState<string | null>(
+  const [verseError, setVerseError] = useCachedState<Failure | null>(
     "qlisan.verseError",
     null,
   );
@@ -55,7 +57,7 @@ export default function QlisanPage() {
     null,
   );
   const [ficheLoading, setFicheLoading] = useState(false);
-  const [ficheError, setFicheError] = useCachedState<string | null>(
+  const [ficheError, setFicheError] = useCachedState<Failure | null>(
     "qlisan.ficheError",
     null,
   );
@@ -71,7 +73,12 @@ export default function QlisanPage() {
     if (surahs.length) return;
     getSurahs()
       .then(setSurahs)
-      .catch((e) => setVerseError(e?.message || "Failed to load surah list"));
+      .catch((e) =>
+        setVerseError({
+          text: forStatus(statusOf(e), "surahList"),
+          detail: detailOf(e),
+        }),
+      );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -99,9 +106,12 @@ export default function QlisanPage() {
     try {
       const res = await qlisanVerse(s, a);
       if (seq === verseSeq.current) setVerse(res);
-    } catch (e: any) {
+    } catch (e) {
       if (seq === verseSeq.current)
-        setVerseError(e?.message || "Verse not found");
+        setVerseError({
+          text: forStatus(statusOf(e), "verse"),
+          detail: detailOf(e),
+        });
     } finally {
       if (seq === verseSeq.current) setVerseLoading(false);
     }
@@ -117,9 +127,12 @@ export default function QlisanPage() {
     try {
       const res = await qlisanWord(verse.surah, verse.ayah, word);
       if (seq === ficheSeq.current) setFiche(res);
-    } catch (e: any) {
+    } catch (e) {
       if (seq === ficheSeq.current)
-        setFicheError(e?.message || "Word analysis failed");
+        setFicheError({
+          text: forStatus(statusOf(e), "word"),
+          detail: detailOf(e),
+        });
     } finally {
       if (seq === ficheSeq.current) setFicheLoading(false);
     }
@@ -189,9 +202,10 @@ export default function QlisanPage() {
       </div>
 
       {verseError && (
-        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {verseError}
-        </div>
+        <FailureNote
+          failure={verseError}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
       )}
 
       {/* The verse with individually-selectable tokens. */}
@@ -213,9 +227,10 @@ export default function QlisanPage() {
             </div>
           )}
           {ficheError && (
-            <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-              {ficheError}
-            </div>
+            <FailureNote
+              failure={ficheError}
+              className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+            />
           )}
           {fiche && !ficheLoading && <Fiche data={fiche} />}
         </div>

@@ -24,6 +24,38 @@ import type {
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/**
+ * An API failure that carries its HTTP status.
+ *
+ * The status is what lets a caller pick the Arabic sentence by failure *kind*
+ * rather than one generic sentence per call site (design D17) — several backend
+ * details are actionable, and collapsing them would satisfy the Arabic-only
+ * requirement while making the app less usable.
+ *
+ * The English `message` is deliberately unchanged and deliberately not
+ * translated: under design D10 it is rendered as a subordinate `dir="ltr"
+ * lang="en"` technical line, never as the sentence the reader is meant to read.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+/** The HTTP status of a failure, or `undefined` when the fetch itself rejected. */
+export function statusOf(e: unknown): number | undefined {
+  return e instanceof ApiError ? e.status : undefined;
+}
+
+/** The technical detail of a failure — English, and shown only as a subordinate line. */
+export function detailOf(e: unknown): string | undefined {
+  return e instanceof Error && e.message ? e.message : undefined;
+}
+
 // ── Lexical ───────────────────────────────────────────────────────────
 export async function lexical(
   word: string,
@@ -34,7 +66,7 @@ export async function lexical(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word, language }),
   });
-  if (!res.ok) throw new Error(`Lexical lookup failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Lexical lookup failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -47,7 +79,7 @@ export async function verseLookup(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word }),
   });
-  if (!res.ok) throw new Error(`Verse lookup failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Verse lookup failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -58,7 +90,7 @@ export async function madarAnalyze(word: string): Promise<MadarResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word }),
   });
-  if (!res.ok) throw new Error(`Madar analyze failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Madar analyze failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -69,8 +101,8 @@ export async function qlisanVerse(
   ayah: number,
 ): Promise<QlisanVerseResponse> {
   const res = await fetch(`${API_URL}/qlisan/verse/${surah}/${ayah}`);
-  if (res.status === 404) throw new Error(`Verse ${surah}:${ayah} not found`);
-  if (!res.ok) throw new Error(`QLisan verse failed: ${res.status}`);
+  if (res.status === 404) throw new ApiError(`Verse ${surah}:${ayah} not found`, res.status);
+  if (!res.ok) throw new ApiError(`QLisan verse failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -86,8 +118,8 @@ export async function qlisanWord(
     body: JSON.stringify({ surah, ayah, word }),
   });
   if (res.status === 404)
-    throw new Error(`Word ${surah}:${ayah}:${word} not found`);
-  if (!res.ok) throw new Error(`QLisan word failed: ${res.status}`);
+    throw new ApiError(`Word ${surah}:${ayah}:${word} not found`, res.status);
+  if (!res.ok) throw new ApiError(`QLisan word failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -100,7 +132,7 @@ export async function qlisanForm(word: string): Promise<QlisanFormResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word }),
   });
-  if (!res.ok) throw new Error(`QLisan form failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`QLisan form failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -111,7 +143,7 @@ export async function searchVerses(
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q, limit: String(limit) });
   const res = await fetch(`${API_URL}/search?${params.toString()}`);
-  if (!res.ok) throw new Error(`Search failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Search failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -124,36 +156,36 @@ export async function getVerse(
   const res = await fetch(
     `${API_URL}/verse/${surah}/${ayah}?window=${window}`,
   );
-  if (res.status === 404) throw new Error(`Verse ${surah}:${ayah} not found`);
-  if (!res.ok) throw new Error(`Verse lookup failed: ${res.status}`);
+  if (res.status === 404) throw new ApiError(`Verse ${surah}:${ayah} not found`, res.status);
+  if (!res.ok) throw new ApiError(`Verse lookup failed: ${res.status}`, res.status);
   return res.json();
 }
 
 export async function getSurah(number: number): Promise<SurahResponse> {
   const res = await fetch(`${API_URL}/surah/${number}`);
-  if (res.status === 404) throw new Error(`Surah ${number} not found`);
-  if (!res.ok) throw new Error(`Surah lookup failed: ${res.status}`);
+  if (res.status === 404) throw new ApiError(`Surah ${number} not found`, res.status);
+  if (!res.ok) throw new ApiError(`Surah lookup failed: ${res.status}`, res.status);
   return res.json();
 }
 
 export async function getSurahs(): Promise<SurahMeta[]> {
   const res = await fetch(`${API_URL}/surahs`);
-  if (!res.ok) throw new Error(`Surah list failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Surah list failed: ${res.status}`, res.status);
   return res.json();
 }
 
 // ── Fāṣila (rhyme-letter analysis) ────────────────────────────────────
 export async function getFassila(surah: number): Promise<FassilaResponse> {
   const res = await fetch(`${API_URL}/fassila/${surah}`);
-  if (res.status === 404) throw new Error(`Surah ${surah} not found`);
-  if (!res.ok) throw new Error(`Fassila lookup failed: ${res.status}`);
+  if (res.status === 404) throw new ApiError(`Surah ${surah} not found`, res.status);
+  if (!res.ok) throw new ApiError(`Fassila lookup failed: ${res.status}`, res.status);
   return res.json();
 }
 
 /** All 114 sūras summarized in one call — the cross-sūra comparison tab's whole payload. */
 export async function getFassilaOverview(): Promise<FassilaOverviewResponse> {
   const res = await fetch(`${API_URL}/fassila/overview`);
-  if (!res.ok) throw new Error(`Fassila overview failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Fassila overview failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -170,7 +202,7 @@ export async function sendFeedback(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(`Feedback failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Feedback failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -201,7 +233,7 @@ export async function streamChat(
     body: JSON.stringify({ messages, session_id: handlers.sessionId }),
     signal: handlers.signal,
   });
-  if (!res.ok || !res.body) throw new Error(`Chat failed: ${res.status}`);
+  if (!res.ok || !res.body) throw new ApiError(`Chat failed: ${res.status}`, res.status);
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -235,7 +267,7 @@ export async function streamChat(
 // ── Health ────────────────────────────────────────────────────────────
 export async function health(): Promise<HealthStatus> {
   const res = await fetch(`${API_URL}/health`);
-  if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Health check failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -253,8 +285,8 @@ export async function tahlilWord(
     body: JSON.stringify({ surah, ayah, word }),
   });
   if (res.status === 404)
-    throw new Error(`Word ${surah}:${ayah}:${word} not found`);
-  if (!res.ok) throw new Error(`Tahlil word failed: ${res.status}`);
+    throw new ApiError(`Word ${surah}:${ayah}:${word} not found`, res.status);
+  if (!res.ok) throw new ApiError(`Tahlil word failed: ${res.status}`, res.status);
   return res.json();
 }
 
@@ -271,6 +303,6 @@ export async function tahlilReview(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ref, reviewer, note }),
   });
-  if (!res.ok) throw new Error(`Tahlil review failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`Tahlil review failed: ${res.status}`, res.status);
   return res.json();
 }

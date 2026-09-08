@@ -18,7 +18,14 @@ import {
   Search,
   Type,
 } from "lucide-react";
-import { getSurahs, getVerse, searchVerses, verseLookup } from "@/lib/api";
+import {
+  detailOf,
+  getSurahs,
+  getVerse,
+  searchVerses,
+  statusOf,
+  verseLookup,
+} from "@/lib/api";
 import type {
   SearchResponse,
   SurahMeta,
@@ -28,7 +35,8 @@ import type {
   VerseLookupVerse,
 } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
-import { S } from "@/lib/strings";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "@/components/FailureNote";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
 
@@ -258,7 +266,7 @@ function WordInVerses({
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useCachedState<string | null>(
+  const [error, setError] = useCachedState<Failure | null>(
     "verse-study.word.error",
     null,
   );
@@ -281,9 +289,9 @@ function WordInVerses({
     setCollapsedLemmas(new Set());
     try {
       setData(await verseLookup(w));
-    } catch (e: any) {
+    } catch (e) {
       setData(null);
-      setError(e?.message || "Lookup failed");
+      setError({ text: forStatus(statusOf(e), "search"), detail: detailOf(e) });
     } finally {
       setLoading(false);
     }
@@ -372,9 +380,10 @@ function WordInVerses({
       </div>
 
       {error && (
-        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </div>
+        <FailureNote
+          failure={error}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
       )}
 
       {loading && (
@@ -565,7 +574,7 @@ function SimilarVerses() {
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useCachedState<string | null>(
+  const [error, setError] = useCachedState<Failure | null>(
     "verse-study.similar.error",
     null,
   );
@@ -581,7 +590,7 @@ function SimilarVerses() {
     "verse-study.similar.contexts",
     {},
   );
-  const [ctxError, setCtxError] = useCachedState<Record<string, string>>(
+  const [ctxError, setCtxError] = useCachedState<Record<string, Failure>>(
     "verse-study.similar.contextErrors",
     {},
   );
@@ -601,10 +610,13 @@ function SimilarVerses() {
         delete next[v.id];
         return next;
       });
-    } catch (e: any) {
+    } catch (e) {
       setCtxError((prev) => ({
         ...prev,
-        [v.id]: e?.message || "Verse not found",
+        [v.id]: {
+          text: forStatus(statusOf(e), "verse"),
+          detail: detailOf(e),
+        },
       }));
     } finally {
       setCtxLoading((prev) => {
@@ -645,8 +657,8 @@ function SimilarVerses() {
     setCtxError({});
     try {
       setData(await searchVerses(query.trim(), 20));
-    } catch (e: any) {
-      setError(e?.message || "Search failed");
+    } catch (e) {
+      setError({ text: forStatus(statusOf(e), "search"), detail: detailOf(e) });
       setData(null);
     } finally {
       setLoading(false);
@@ -698,9 +710,10 @@ function SimilarVerses() {
       <p className="text-xs text-gray-400">{S.verseStudy.similarNote}</p>
 
       {error && (
-        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </div>
+        <FailureNote
+          failure={error}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
       )}
 
       {loading && (
@@ -770,7 +783,7 @@ function SimilarVerseCard({
   verse: Verse;
   open: boolean;
   context?: VerseDetail;
-  error?: string;
+  error?: Failure;
   onToggle: () => void;
 }) {
   return (
@@ -821,9 +834,10 @@ function SimilarVerseCard({
       {open && (
         <div className="border-t border-gray-100 bg-gray-50/60 p-4">
           {error ? (
-            <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
+            <FailureNote
+              failure={error}
+              className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+            />
           ) : context ? (
             <VerseContextCard result={context} />
           ) : (
@@ -851,7 +865,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useCachedState<string | null>(
+  const [error, setError] = useCachedState<Failure | null>(
     "verse-study.context.error",
     null,
   );
@@ -865,7 +879,9 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
     if (surahs.length) return;
     getSurahs()
       .then(setSurahs)
-      .catch((e) => setError(e?.message || "Failed to load surah list"));
+      .catch((e) =>
+        setError({ text: forStatus(statusOf(e), "surahList"), detail: detailOf(e) }),
+      );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -898,8 +914,9 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
     try {
       const res = await getVerse(s, a, CONTEXT_WINDOW);
       if (seq === reqSeq.current) setResult(res); // ignore superseded responses
-    } catch (e: any) {
-      if (seq === reqSeq.current) setError(e?.message || "Verse not found");
+    } catch (e) {
+      if (seq === reqSeq.current)
+        setError({ text: forStatus(statusOf(e), "verse"), detail: detailOf(e) });
     } finally {
       if (seq === reqSeq.current) setLoading(false);
     }
@@ -961,9 +978,10 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
       </div>
 
       {error && (
-        <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </div>
+        <FailureNote
+          failure={error}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
       )}
 
       {main && result && (

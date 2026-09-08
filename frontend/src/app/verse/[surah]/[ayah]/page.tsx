@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen } from "lucide-react";
-import { getVerse } from "@/lib/api";
+import { getVerse, statusOf, detailOf } from "@/lib/api";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { VerseDetail } from "@/lib/types";
 import VerseCard from "@/components/VerseCard";
 
@@ -16,7 +18,7 @@ export default function VersePage({
   const ayah = Number(params.ayah);
   const [data, setData] = useState<VerseDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Failure | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,7 +27,14 @@ export default function VersePage({
     setData(null);
     getVerse(surah, ayah)
       .then((d) => !cancelled && setData(d))
-      .catch((e) => !cancelled && setError(e?.message || "Failed to load verse"))
+      .catch(
+        (e) =>
+          !cancelled &&
+          setError({
+            text: forStatus(statusOf(e), "verse"),
+            detail: detailOf(e),
+          }),
+      )
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -42,9 +51,10 @@ export default function VersePage({
   if (error || !data) {
     return (
       <div className="space-y-3">
-        <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error || "Verse not found."}
-        </p>
+        <FailureNote
+          failure={error ?? { text: S.errors.verseNotFound }}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
         <Link href={`/verse-study?surah=${surah}&ayah=${ayah}`} className="text-sm text-brand-dark hover:underline">
           ← Back to Verse Study
         </Link>

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { getSurah } from "@/lib/api";
+import { getSurah, statusOf, detailOf } from "@/lib/api";
+import { S, forStatus } from "@/lib/strings";
+import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { SurahResponse } from "@/lib/types";
 import ArabicText from "@/components/ArabicText";
 
@@ -19,7 +21,7 @@ export default function SurahPage({
   const number = Number(params.number);
   const [data, setData] = useState<SurahResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Failure | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,7 +30,14 @@ export default function SurahPage({
     setData(null);
     getSurah(number)
       .then((d) => !cancelled && setData(d))
-      .catch((e) => !cancelled && setError(e?.message || "Failed to load surah"))
+      .catch(
+        (e) =>
+          !cancelled &&
+          setError({
+            text: forStatus(statusOf(e), "surah"),
+            detail: detailOf(e),
+          }),
+      )
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -44,9 +53,10 @@ export default function SurahPage({
   }
   if (error || !data) {
     return (
-      <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-        {error || "Surah not found."}
-      </p>
+      <FailureNote
+        failure={error ?? { text: S.errors.surahNotFound }}
+        className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+      />
     );
   }
 
