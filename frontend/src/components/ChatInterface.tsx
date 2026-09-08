@@ -453,6 +453,7 @@ export default function ChatInterface() {
             }
           }}
           rows={1}
+          aria-label={S.chat.inputLabel}
           dir="auto"
           placeholder={S.chat.placeholder}
           className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"

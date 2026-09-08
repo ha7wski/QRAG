@@ -217,6 +217,19 @@ never rendered visually — an `aria-label`, a `title` — as well as to visible
 - **WHEN** a chart segment's `aria-label` states a count
 - **THEN** the same number-aware rule applies, even though no visual review pass can see it.
 
+#### Scenario: A string that was Arabic before this change
+
+- **WHEN** a component was written in Arabic from the start and interpolates a count into a
+  fixed noun
+- **THEN** it is in scope, because the requirement is grammatical and not linguistic: a
+  language sweep sees Arabic and moves on, which is exactly how «2 آية» reached production.
+
+#### Scenario: A counted noun carrying an adjective
+
+- **WHEN** the counted noun is qualified — «فاصلة مميّزة»
+- **THEN** the adjective agrees with the number too, and the four forms are stored as whole
+  phrases rather than composed from a noun plus a separately-agreeing adjective.
+
 ### Requirement: Numeral rendering policy is preserved
 
 Arabization SHALL NOT change how numbers are rendered. Sūra and āya numbers presented

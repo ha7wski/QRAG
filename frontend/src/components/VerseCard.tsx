@@ -77,8 +77,13 @@ export default function VerseCard({
             {S.verse.juz(String(verse.juz))}
           </span>
         ) : null}
+        {/* `ms-auto` below, not the mirror table's `me-auto`: on a FLEX item an
+            auto margin is not a position but a side of the main axis, and the
+            free space already sits at the end. Measured on the running page:
+            `me-auto` renders pixel-identical to no class at all (design D12,
+            amended). */}
         {typeof verse.relevance_score === "number" && (
-          <span className="western-digits me-auto text-xs text-gray-400">
+          <span className="western-digits ms-auto text-xs text-gray-400">
             {S.verse.score} {verse.relevance_score.toFixed(4)}
           </span>
         )}

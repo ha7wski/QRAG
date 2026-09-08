@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
+import { tooltipAnchor } from "@/lib/chartTooltip";
+import { count, NOUNS } from "@/lib/strings";
 
 /**
  * One continuous line over the 114 sūras: some ascending X against the number of
@@ -138,8 +140,15 @@ export default function FassilaDiversityLine({
 
   return (
     <div className="relative">
-      {/* Magnification controls. Numbers stay Western digits like everything else. */}
-      <div dir="ltr" className="mb-2 flex items-center justify-end gap-1">
+      {/* Magnification controls — chrome belonging to the card, so they sit
+          at its start edge (physically the right, the page being RTL). This
+          row used to be a `dir="ltr"` island with `justify-end`, which
+          reached the same pixels for the wrong reason and hid a second job:
+          the «×2» label needs LTR of its own. Measured — in an RTL run the
+          multiplication sign resolves right-to-left and «×2» renders «2×» —
+          so the island moved down to the label that needs it (design D7,
+          D15). Numbers stay Western digits like everything else. */}
+      <div className="mb-2 flex items-center justify-start gap-1">
         <button
           type="button"
           aria-label="تصغير"
@@ -149,7 +158,10 @@ export default function FassilaDiversityLine({
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
-        <span className="western-digits w-8 text-center text-xs tabular-nums text-gray-500">
+        <span
+          dir="ltr"
+          className="western-digits w-8 text-center text-xs tabular-nums text-gray-500"
+        >
           ×{zoom}
         </span>
         <button
@@ -248,7 +260,10 @@ export default function FassilaDiversityLine({
                 setTip({
                   x: e.clientX,
                   y: e.clientY,
-                  text: `${p.name} · ${p.ayahs} آية · ${p.y} فاصلة`,
+                  text: `${p.name} · ${count(p.ayahs, NOUNS.aya)} · ${count(
+                    p.y,
+                    NOUNS.fasila,
+                  )}`,
                 })
               }
               onMouseLeave={() => setTip(null)}
@@ -286,7 +301,7 @@ export default function FassilaDiversityLine({
       {tip && (
         <div
           className="western-digits pointer-events-none fixed z-20 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 font-arabic text-sm text-white shadow-lg"
-          style={{ left: Math.min(tip.x + 14, 1200), top: tip.y - 38 }}
+          style={{ ...tooltipAnchor(tip.x), top: tip.y - 38 }}
         >
           {tip.text}
         </div>

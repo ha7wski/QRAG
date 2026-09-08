@@ -360,6 +360,7 @@ function WordInVerses({
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
           placeholder={S.verseStudy.wordPlaceholder}
+          aria-label={S.verseStudy.wordLabel}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button
@@ -683,6 +684,7 @@ function SimilarVerses() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
           placeholder={S.verseStudy.phrasePlaceholder}
+          aria-label={S.verseStudy.phraseLabel}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button

@@ -65,9 +65,23 @@ export function nounFor(n: number, forms: NounForms): string {
  * writing «١ آية» or «٢ آيتين» is redundant and reads as a machine translation.
  */
 export function count(n: number, forms: NounForms, digits = String(n)): string {
+  const { digits: d, noun } = countParts(n, forms, digits);
+  return d === null ? noun : `${d} ${noun}`;
+}
+
+/**
+ * `count()` split into its parts, for a caller that styles the numeral
+ * differently from the noun — «<b>93</b> آية». `digits` is null at 1 and 2,
+ * where the noun's own form carries the number; the rule stays here rather
+ * than being re-decided in JSX, which is how «2 آية» reached production.
+ */
+export function countParts(
+  n: number,
+  forms: NounForms,
+  digits = String(n),
+): { digits: string | null; noun: string } {
   const k = Math.abs(Math.trunc(n));
-  if (k === 1 || k === 2) return nounFor(k, forms);
-  return `${digits} ${nounFor(k, forms)}`;
+  return { digits: k === 1 || k === 2 ? null : digits, noun: nounFor(k, forms) };
 }
 
 /** The noun series the interface counts. */
@@ -77,6 +91,31 @@ export const NOUNS = {
   fasila: { one: "فاصلة", two: "فاصلتين", few: "فواصل", many: "فاصلة" },
   asl: { one: "أصل", two: "أصلين", few: "أصول", many: "أصلًا" },
   lafz: { one: "لفظ", two: "لفظين", few: "ألفاظ", many: "لفظًا" },
+  mawdi: { one: "موضع", two: "موضعين", few: "مواضع", many: "موضعًا" },
+  /**
+   * Noun + adjective as one form. The adjective agrees with the number too
+   * («فواصل مميّزة», «فاصلتين مميّزتين»), so storing the bare noun and
+   * appending the adjective would need a second agreement rule; a phrase
+   * needs none.
+   */
+  fasilaMumayyaza: {
+    one: "فاصلة مميّزة",
+    two: "فاصلتين مميّزتين",
+    few: "فواصل مميّزة",
+    many: "فاصلة مميّزة",
+  },
+  ayaMuhallala: {
+    one: "آية محلَّلة",
+    two: "آيتين محلَّلتين",
+    few: "آيات محلَّلة",
+    many: "آية محلَّلة",
+  },
+  ayaMuqattaa: {
+    one: "آية مقطّعة",
+    two: "آيتين مقطّعتين",
+    few: "آيات مقطّعة",
+    many: "آية مقطّعة",
+  },
   minute: { one: "دقيقة", two: "دقيقتين", few: "دقائق", many: "دقيقة" },
   hour: { one: "ساعة", two: "ساعتين", few: "ساعات", many: "ساعة" },
   day: { one: "يوم", two: "يومين", few: "أيام", many: "يومًا" },
@@ -135,6 +174,11 @@ export const S = {
 
   chat: {
     placeholder: "اكتب سؤالك…",
+    /** Accessible name for the composer. A placeholder is only the
+     *  fallback name in the accname spec, and it disappears on the
+     *  first keystroke — so the field is left unnamed exactly while it
+     *  is being used. */
+    inputLabel: "سؤالك",
     send: "إرسال",
     empty: "اطرح سؤالًا عن القرآن.",
     exampleHint: "مثال: ما يقول القرآن عن الصبر؟",
@@ -168,6 +212,10 @@ export const S = {
     search: "بحث",
     wordPlaceholder: "اكتب كلمة عربية",
     phrasePlaceholder: "اكتب آية أو عبارة",
+    /** Accessible names — see `chat.inputLabel` for why these are not
+     *  the placeholders repeated. */
+    wordLabel: "الكلمة",
+    phraseLabel: "الآية أو العبارة",
     /**
      * Echoes the user's own query. The query may be Latin script, so the guillemets
      * and the token go through `iso()` together — otherwise the mirrored guillemets
@@ -225,6 +273,13 @@ export const S = {
     sarfiSection: "الصرف والإعراب",
     /** LexicalResult — kept for the interim; the restructure deletes the component. */
     resultRoot: "الجذر",
+    resultOccurrences: (n: number) => count(n, NOUNS.mawdi),
+    /** Distinct from `noRoot`: here a root WAS resolved and simply has
+     *  no attestation, so «لم يُعرف جذر» would state something false. */
+    noOccurrences: (word: string, root?: string) =>
+      root
+        ? `لم يرد للجذر ${root} — جذرِ ${iso(`«${word}»`)} — موضعٌ في القرآن.`
+        : `لم يرد للكلمة ${iso(`«${word}»`)} موضعٌ في القرآن.`,
     resultAnalysis: "التحليل",
     resultKeyVerses: "آياتٌ شاهدة",
     noRoot: (word: string) => `لم يُعرف جذرٌ للكلمة ${iso(`«${word}»`)}.`,

@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getFassilaOverview } from "@/lib/api";
+import { NOUNS } from "@/lib/strings";
+import Counted from "./Counted";
 import type {
   FassilaOverviewResponse,
   FassilaSurahSummary,
@@ -194,12 +196,26 @@ export default function FassilaComparisonTab() {
           <span className="western-digits tabular-nums">
             {active === null ? (
               <>
-                <b className="text-gray-900">{selection.length}</b> سورة · جميع الفئات
+                <Counted
+                  n={selection.length}
+                  forms={NOUNS.surah}
+                  className="text-gray-900"
+                />{" "}
+                · جميع الفئات
               </>
             ) : (
               <>
-                <b className="text-gray-900">{selection.length}</b> سورة بها{" "}
-                <b className="text-gray-900">{active}</b> فاصلة مميّزة
+                <Counted
+                  n={selection.length}
+                  forms={NOUNS.surah}
+                  className="text-gray-900"
+                />{" "}
+                بها{" "}
+                <Counted
+                  n={active}
+                  forms={NOUNS.fasilaMumayyaza}
+                  className="text-gray-900"
+                />
               </>
             )}
           </span>

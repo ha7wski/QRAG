@@ -443,6 +443,58 @@ case — alignment set on an LTR ancestor and inherited by an RTL descendant. It
 lands on the RTL element itself. The conclusion (do not write `text-end` there) was right; the
 mechanism was not.
 
+**Amended again, 2026-09-08, by measurement: the mirror table is wrong for auto margins
+on flex items — and there the ORIGINAL two-table wording was right.**
+
+`ml-auto` is not a position, it is *the side of the main axis that absorbs the free space*.
+Mirroring it moves the margin to the side where the free space already sits, which is not a
+smaller push but no push at all. Measured on the running page, on `VerseCard`'s header
+(`display: flex`, `direction: rtl`), a probe span appended as the last child:
+
+| class | distance from the row's start edge |
+|---|---|
+| *(no class)* | 527 px |
+| `me-auto` | 527 px — **identical**, i.e. inert |
+| `ms-auto` | 0 px — pushed to the far edge |
+
+So the conversion for an auto margin preserves the **main-axis side**, not the physical one:
+
+- authored LTR: `ml-`->`ms-`, `mr-`->`me-` (the identity mapping)
+- authored RTL: `mr-`->`ms-`, `ml-`->`me-` (the mirror)
+
+which is exactly D12's original two-table rule, surviving for the one class of utility nobody
+measured. Six sites in the tree; all six mean "push me to the far edge", so all six are
+`ms-auto`, and the two the sweep had turned into `me-auto` (`VerseCard.tsx`, `LexicalResult.tsx`)
+were silently doing nothing. `text-align` cannot exhibit this, which is why the measurement
+that produced the single-table correction could not see it.
+
+### D23 — The counted-noun rule reaches strings that were already Arabic
+
+Every Arabization pass walked past `FassilaBars.tsx:50`, and so did all three reviews: the
+string is Arabic, so nothing in a language sweep flags it. What it is not is *grammatical* —
+`{count} آية` interpolates a number in front of a fixed noun, and `/fassila` therefore
+displayed «2 آية» and «1 آية», which the locale spec's own requirement forbids. Measured
+2026-09-08 before the fix.
+
+**Ten sites, all in Fāṣila**, which is simply the newest feature: it was born Arabic and so
+never passed under a translator's eye. Two of them carry an **agreeing adjective** — «فاصلة
+مميّزة» becomes «فواصل مميّزة», not «فواصل مميّزَة» plus a rule for the adjective — so those
+are stored as whole *phrases* in `NOUNS`. Nothing in `NounForms` says a form is one word, and
+a phrase needs no second agreement rule.
+
+**Why a component and not a helper.** Three sites style the numeral apart from the noun
+(`<b>93</b> آية`), which `count()` cannot express since it returns one string. Rather than
+re-deciding "is there a digit at all" in JSX — which is how «2 آية» got written in the first
+place — `countParts()` exposes the existing rule and `Counted.tsx` only chooses where the
+emphasis goes: at 1 and 2 it moves onto the noun, because there is no numeral to emphasise.
+
+**Why the pie legend was already correct, measured rather than assumed.** `FassilaDistributionPie`
+renders the same shape and does not exhibit the D15 percent-sign defect. Not luck, and not
+`.western-digits` (which sets only `font-feature-settings: "locl" 0`): each token there is a
+separate flex item, therefore blockified — measured `display: block` — therefore its own bidi
+paragraph, so the Arabic in one item cannot reclassify the number in the next. `FassilaBars`
+kept the whole «93 آية · 83.8%» inside a single item. The defect needs one paragraph.
+
 ### D13 — The direction-aware utilities are the ones the grep cannot find
 
 Two disjoint hazards exist and the inventory only covered one:

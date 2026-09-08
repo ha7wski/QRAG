@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FassilaBucket, FassilaSurahSummary } from "@/lib/fassilaTypes";
 import { fmtPercent } from "@/lib/arabicDigits";
+import { count, NOUNS } from "@/lib/strings";
 
 /**
  * How the 114 sūras distribute over their number of distinct fawāṣil, as a pie
@@ -184,7 +185,10 @@ export default function FassilaDistributionPie({
                 onMouseMove={(e) => show(e, bucket.distinct)}
                 onMouseLeave={() => setTip(null)}
                 aria-pressed={on}
-                aria-label={`${bucket.distinct} فاصلة مميّزة — ${bucket.surah_count} سورة`}
+                aria-label={`${count(bucket.distinct, NOUNS.fasilaMumayyaza)} — ${count(
+                  bucket.surah_count,
+                  NOUNS.surah,
+                )}`}
                 className={`flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-start transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                   on ? "bg-brand-light" : "hover:bg-gray-50"
                 }`}
@@ -199,10 +203,10 @@ export default function FassilaDistributionPie({
                     on ? "font-semibold text-brand-dark" : "text-gray-800"
                   }`}
                 >
-                  {bucket.distinct} فاصلة
+                  {count(bucket.distinct, NOUNS.fasila)}
                 </span>
                 <span className="western-digits w-20 shrink-0 whitespace-nowrap tabular-nums text-sm text-gray-600">
-                  {bucket.surah_count} سورة
+                  {count(bucket.surah_count, NOUNS.surah)}
                 </span>
                 <span className="western-digits tabular-nums text-sm text-gray-400">
                   {fmtPercent(bucket.percentage)}%

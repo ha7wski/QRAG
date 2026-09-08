@@ -6,6 +6,7 @@ import { getFassila, getSurahs } from "@/lib/api";
 import type { FassilaResponse } from "@/lib/fassilaTypes";
 import type { SurahMeta } from "@/lib/types";
 import { fmtPercent } from "@/lib/arabicDigits";
+import { count, NOUNS } from "@/lib/strings";
 import FassilaBars from "@/components/FassilaBars";
 import FassilaLine from "@/components/FassilaLine";
 import FassilaTile from "@/components/FassilaTile";
@@ -69,7 +70,7 @@ export default function FassilaAnalysisTab() {
         >
           {surahs.map((s) => (
             <option key={s.number} value={s.number}>
-              {s.number} · {s.name_ar} — {s.ayah_count} آية
+              {s.number} · {s.name_ar} — {count(s.ayah_count, NOUNS.aya)}
             </option>
           ))}
         </select>
@@ -106,9 +107,14 @@ export default function FassilaAnalysisTab() {
 
           {data.excluded_ayahs > 0 && (
             <p className="text-sm text-gray-500">
-              استُبعدت <span className="western-digits">{data.excluded_ayahs}</span> آية
-              مقطّعة من التحليل ·{" "}
-              <span className="western-digits">{data.analysed_ayahs}</span> آية محلَّلة
+              استُبعدت{" "}
+              <span className="western-digits">
+                {count(data.excluded_ayahs, NOUNS.ayaMuqattaa)}
+              </span>{" "}
+              من التحليل ·{" "}
+              <span className="western-digits">
+                {count(data.analysed_ayahs, NOUNS.ayaMuhallala)}
+              </span>
             </p>
           )}
 

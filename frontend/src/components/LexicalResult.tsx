@@ -1,13 +1,13 @@
 import VerseCard from "./VerseCard";
 import type { LexicalResponse } from "@/lib/types";
+import { S } from "@/lib/strings";
 
 /** Renders the result of a root analysis: root, forms, occurrences, analysis. */
 export default function LexicalResult({ data }: { data: LexicalResponse }) {
   if (!data.found) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
-        No occurrences found for &quot;{data.word}&quot;
-        {data.root ? ` (root ${data.root})` : ""}.
+        {S.lexical.noOccurrences(data.word, data.root || undefined)}
       </div>
     );
   }
@@ -16,12 +16,12 @@ export default function LexicalResult({ data }: { data: LexicalResponse }) {
     <div className="space-y-6">
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="text-sm text-gray-500">Root</span>
+          <span className="text-sm text-gray-500">{S.lexical.resultRoot}</span>
           <span className="font-arabic text-2xl text-brand-dark">
             {data.root}
           </span>
-          <span className="me-auto text-sm text-gray-600">
-            {data.occurrences_count} occurrences
+          <span className="western-digits ms-auto text-sm text-gray-600">
+            {S.lexical.resultOccurrences(data.occurrences_count)}
           </span>
         </div>
         {data.forms.length > 0 && (
@@ -39,7 +39,9 @@ export default function LexicalResult({ data }: { data: LexicalResponse }) {
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h3 className="mb-2 font-semibold text-gray-800">Analysis</h3>
+        <h3 className="mb-2 font-semibold text-gray-800">
+          {S.lexical.resultAnalysis}
+        </h3>
         <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
           {data.analysis}
         </div>
@@ -47,7 +49,9 @@ export default function LexicalResult({ data }: { data: LexicalResponse }) {
 
       {data.key_verses.length > 0 && (
         <div>
-          <h3 className="mb-2 font-semibold text-gray-800">Key verses</h3>
+          <h3 className="mb-2 font-semibold text-gray-800">
+            {S.lexical.resultKeyVerses}
+          </h3>
           <div className="space-y-3">
             {data.key_verses.map((v) => (
               <VerseCard key={v.id} verse={v} />

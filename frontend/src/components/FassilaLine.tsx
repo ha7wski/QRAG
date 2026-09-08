@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FassilaAyah, FassilaCount } from "@/lib/fassilaTypes";
+import { tooltipAnchor } from "@/lib/chartTooltip";
 
 /**
  * The sequence of fawāṣil across a sūra, as one continuous line.
@@ -85,8 +86,13 @@ export default function FassilaLine({
 
   return (
     <div className="relative">
-      {/* Long sūras scroll the chart, never the page body. */}
-      <div className="w-full overflow-x-auto">
+      {/* Long sūras scroll the chart, never the page body. LTR so it opens
+          at x = 0 — āya 1 — when the chart is wider than the viewport: an
+          overflow box in an RTL container starts scrolled to its right
+          edge, which for an axis that grows rightward is the LAST āya. The
+          sibling chart already declared this; this one never did, and the
+          page's own `dir="rtl"` was what made it wrong (design D7). */}
+      <div dir="ltr" className="w-full overflow-x-auto">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="block h-auto w-full min-w-[560px]"
@@ -186,8 +192,8 @@ export default function FassilaLine({
 
       {tip && (
         <div
-          className="western-digits pointer-events-none fixed z-20 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-sm text-white shadow-lg"
-          style={{ left: Math.min(tip.x + 14, 1200), top: tip.y - 38 }}
+          className="western-digits pointer-events-none fixed z-20 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 font-arabic text-sm text-white shadow-lg"
+          style={{ ...tooltipAnchor(tip.x), top: tip.y - 38 }}
         >
           {tip.text}
         </div>
