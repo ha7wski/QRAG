@@ -380,7 +380,7 @@ function StubLevel({
       tone={level.available ? (sourced ? "sourced" : "fact") : "pending"}
     >
       <p lang="ar" className="font-arabic text-base text-gray-500">
-        {level.message || "غير متاح بعد."}
+        {level.message || S.qlisan.notYetAvailable}
       </p>
     </LevelCard>
   );
@@ -420,7 +420,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
     return (
       <LevelCard titleAr="نحوي" badge="غير متاح" tone="pending">
         <p lang="ar" className="font-arabic text-base text-gray-500">
-          {level.message || "لا يوجد إعراب محقّق لهذه الكلمة."}
+          {level.message || S.qlisan.noIrab}
         </p>
       </LevelCard>
     );

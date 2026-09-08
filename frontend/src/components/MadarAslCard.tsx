@@ -21,16 +21,28 @@ function aslCountLabel(n: number): string {
   return "";
 }
 
-// Machine ids in the dataset → sober Arabic display strings (fallback: raw id).
-const SOURCE_DISPLAY: Record<string, string> = {
+// Machine ids in the dataset → sober Arabic display strings. `as const` closes
+// the key set, and the lookup yields `string | undefined` rather than falling back
+// to the id: an unknown source rendered `maqayis_openiti` on screen, which is a
+// machine identifier presented to a reader as a citation.
+const SOURCE_DISPLAY = {
   maqayis_openiti: "معجم مقاييس اللغة لابن فارس",
-};
-const EDITION_DISPLAY: Record<string, string> = {
+} as const;
+const EDITION_DISPLAY = {
   Harun_DarAlFikr: "تحقيق عبد السلام هارون (دار الفكر)",
-};
+} as const;
+
+const displayOf = (
+  map: Record<string, string>,
+  key: string,
+): string | undefined => (map as Record<string, string | undefined>)[key];
+
 function sourceLine(m: MaqayisCitation): string {
-  const s = SOURCE_DISPLAY[m.source] || m.source;
-  const e = EDITION_DISPLAY[m.edition] || m.edition;
+  const s = displayOf(SOURCE_DISPLAY, m.source);
+  // No source we can name, no line: a citation the reader cannot follow is worse
+  // than no citation, and the raw id is not a citation.
+  if (!s) return "";
+  const e = displayOf(EDITION_DISPLAY, m.edition);
   return e ? `${s} — ${e}` : s;
 }
 

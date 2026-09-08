@@ -58,22 +58,24 @@ D19 treatment for translations, whose script is not ours to know.
 ## 2. The suite (tasks 8.5, 8.6)
 
 ```
-npx vitest run                       11 files, 94 tests, 0 failures  (1.94 s)
+npx vitest run                       12 files, 111 tests, 0 failures
 npx tsc --noEmit                     clean
 npx tsc --noEmit -p tsconfig.test.json   clean
 ```
 
-Baseline at task 2.3 was 8 files / 77 tests. The three new files are all contract tests:
+Baseline at task 2.3 was 8 files / 77 tests. The four new files are all contract tests:
 
 | file | asserts |
 |---|---|
 | `src/app/layout.test.tsx` | the shell emits `lang="ar" dir="rtl"`, carries **exactly one** `dir`, offsets by `md:ms-64` with no `m[lr]-`, and takes its metadata from the dictionary |
 | `src/app/inputRowOrder.test.tsx` | DOM order of the chat composer and the `/tahlil` and `/qlisan` pickers |
 | `src/components/chartAxis.test.tsx` | both charts' `cx` values monotonic, both scroll wrappers `dir="ltr"`, the zoom label islanded |
+| `src/lib/strings.test.ts` | `count()` at every boundary for all eleven noun series; no un-isolated `${…}` in an Arabic template; no Latin in any runtime value of `S` outside an FSI/PDI pair |
 
-Each of the three was **proved able to fail** by injecting the regression it exists to catch:
+Each was **proved able to fail** by injecting the regression it exists to catch:
 `dir="rtl"` + `md:ml-64` on `<main>`; the `/qlisan` picker reversed in source; `FassilaLine`'s
-island removed. A contract test that has never failed is a guess.
+island removed; a Latin `chat.send`, a dual collapsed onto the singular, and a bare
+`${unchecked}`. A contract test that has never failed is a guess.
 
 `tsconfig.test.json` typechecks the test files, which nothing else did — `tsconfig` excludes
 them so `next build` ignores them, and Vitest transpiles with esbuild without typechecking. It

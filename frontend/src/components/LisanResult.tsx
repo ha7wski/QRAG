@@ -254,7 +254,7 @@ function GrammarSection({ sarfi }: { sarfi: QlisanFormResponse | null }) {
           <SarfiRows level={sarfi.sarfi} />
         ) : (
           <p className="font-arabic text-base text-gray-500">
-            {sarfi.message || "لا يوجد تحليل صرفي لهذه الكلمة."}
+            {sarfi.message || S.lexical.noSarfi}
           </p>
         )}
       </div>

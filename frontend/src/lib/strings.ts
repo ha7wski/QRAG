@@ -250,6 +250,8 @@ export const S = {
   },
 
   qlisan: {
+    notYetAvailable: "غير متاح بعد.",
+    noIrab: "لا يوجد إعراب محقّق لهذه الكلمة.",
     heading: "بطاقة الكلمة",
     caption:
       "اختر آيةً، ثم اضغط كلمةً واحدةً لترى تحليلها في أربعة مستويات — صوتي، صرفي، نحوي، دلالي. والصرفُ والنحوُ مأخوذان على وجه الحتم من المدوّنة المُعرَبة، لا من نموذج لغويّ.",
@@ -272,6 +274,10 @@ export const S = {
     loading: "جارٍ قراءة الجذر… (قد يستغرق التركيبُ لحظة)",
     /** Renamed from «تحليل نحوي» to end the D11 collision; SarfiRows renders صرف. */
     sarfiSection: "الصرف والإعراب",
+    /** Fallbacks for a backend `message` field that arrives empty. They were
+     *  Arabic already, and inline — which is how a string escapes the review
+     *  gate: nothing about them looks like a translation to be done. */
+    noSarfi: "لا يوجد تحليل صرفي لهذه الكلمة.",
     /** LexicalResult — kept for the interim; the restructure deletes the component. */
     resultRoot: "الجذر",
     resultOccurrences: (n: number) => count(n, NOUNS.mawdi),
