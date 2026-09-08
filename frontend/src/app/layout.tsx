@@ -14,19 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {/* Amiri: a typeface designed for Quranic Arabic. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+      {/* Both typefaces are self-hosted: vendored woff2 declared in
+          globals.css, so there is no runtime request to fonts.googleapis.com
+          and no build-time fetch either. See app/fonts/README.md. */}
       <body>
         <Navbar />
         {/* Offset for the fixed sidebar on md+; full width (drawer) on mobile. */}
