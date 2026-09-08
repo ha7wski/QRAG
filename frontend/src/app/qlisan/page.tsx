@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
 import { useCachedState } from "@/lib/pageCache";
+import { S } from "@/lib/strings";
 import FicheRow from "@/components/FicheRow";
 import LevelCard from "@/components/LevelCard";
 import SarfiRows from "@/components/SarfiRows";
@@ -127,30 +128,31 @@ export default function QlisanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">QLisan</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Pick a verse, then click a single word to see its four-level analysis
-          — صوتي, صرفي, نحوي, دلالي. Morphology and syntax are served
-          deterministically from the parsed corpus (no LLM).
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          {S.qlisan.heading}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">{S.qlisan.caption}</p>
       </div>
 
-      {/* Verse picker — right-aligned, reads right→left: sourat name → ayah box →
-          Load-verse button (RTL layout; the button ends up on the left). */}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <button
-          onClick={() => loadVerse()}
-          disabled={verseLoading || surahs.length === 0}
-          className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
+      {/* Verse picker. Source order is logical — sūra select, āya box, load
+          button — and the document's RTL direction is what makes it read
+          right-to-left with the button at the left end. This row used to be
+          hand-reversed inside `justify-end`, which document RTL would have
+          flipped a second time (design D4). */}
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={surah}
+          onChange={(e) => onSurahChange(Number(e.target.value))}
+          dir="rtl"
+          aria-label={S.verse.surah}
+          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >
-          {verseLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-          Load verse
-        </button>
-
+          {surahs.map((s) => (
+            <option key={s.number} value={s.number}>
+              {s.number}. {s.name_ar}
+            </option>
+          ))}
+        </select>
         <div className="flex items-center gap-1">
           <input
             value={ayah}
@@ -163,24 +165,27 @@ export default function QlisanPage() {
             type="number"
             min={1}
             max={maxAyah}
-            aria-label="Ayah number"
+            aria-label={S.verse.ayahNumber}
             className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-brand focus:outline-none"
           />
-          <span className="text-sm text-gray-400">/ {maxAyah}</span>
+          <span className="western-digits text-sm text-gray-400">
+            <span dir="ltr">/ {maxAyah}</span>
+          </span>
         </div>
 
-        <select
-          value={surah}
-          onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
-          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+        <button
+          onClick={() => loadVerse()}
+          disabled={verseLoading || surahs.length === 0}
+          className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
         >
-          {surahs.map((s) => (
-            <option key={s.number} value={s.number}>
-              {s.number}. {s.name_ar}
-            </option>
-          ))}
-        </select>
+          {verseLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
+          {S.qlisan.loadVerse}
+        </button>
+
       </div>
 
       {verseError && (
@@ -267,12 +272,13 @@ function VerseTokens({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center justify-end gap-2 border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
+      {/* Logical order: the sūra name first, then the reference. RTL reads it
+          name-then-reference from the right; `justify-end` would now mean the
+          left edge, so it is gone. */}
+      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
+        <span className="font-medium text-gray-700">{verse.surah_name_ar}</span>
         <span dir="ltr">
           {verse.surah}:{verse.ayah}
-        </span>
-        <span className="font-medium text-gray-700" dir="rtl">
-          {verse.surah_name_ar}
         </span>
       </div>
       <div

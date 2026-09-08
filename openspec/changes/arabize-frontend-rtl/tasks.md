@@ -111,10 +111,14 @@
 
 - [x] 5.3c Isolation added: `dir="auto"` on both echoed-query spans, `dir="ltr"` on the parenthesised sūra number in the group header (`(` and `)` are bidi-mirrored, so their ordering depended on neighbours), and the `/ {maxAyah}` hint wrapped and given `.western-digits` — discharging that site of task 5.4c
 
-- [ ] 5.4 `app/qlisan/page.tsx` — 9 strings; restore the verse picker to logical DOM order (select → number → button) and switch `justify-end` to `justify-start` (design D4). Still done in full even though the page leaves the navigation, so a direct URL does not reach a half-migrated page (design D11)
-- [ ] 5.4b `app/qlisan/page.tsx:270` — a **fourth** faked-RTL row: the loaded-verse card header is DOM-ordered `2:255 → سورة` and flushed right by `justify-end`. Restore to `سورة → 2:255` and drop the `justify-end` (an RTL row is start-aligned already). The `dir="rtl"` at `:274` is what makes this row look correct today, so task 7.9 must not delete it before this task runs
-- [ ] 5.4c The three `/ {maxAyah}` hints (`qlisan:169`, `tahlil:187`, `verse-study:936`) are a bare `/` beside a number with no `dir` and no `.western-digits`: under an RTL paragraph the slash resolves to the paragraph level and reorders to the other side of the digits. Replace the punctuation with an Arabic word from the dictionary («من {n}») or isolate the token in `dir="ltr"`, and add `.western-digits`. design.md's Risks bullet names this hazard; no task discharged it until now
-- [ ] 5.5 `app/tahlil/page.tsx` — 11 strings; same verse-picker restoration as 5.4
+- [x] 5.4 `app/qlisan/page.tsx` wired 2026-09-08, and its verse picker restored to logical source order — sūra select, āya box, load button — with `justify-end` removed, since under RTL it would now mean the *left* edge. Done in full even though the page has left the navigation, so a direct URL does not reach a half-migrated page (design D11). The sūra select also gained the accessible name it lacked
+
+- [x] 5.4b The fourth faked-RTL row — the loaded-verse card header — is un-reversed: source order is now sūra name then reference, and `justify-end` is gone. Finding A7, which the original D4 had missed while fixing its two siblings
+
+- [x] 5.4c All three `/ {maxAyah}` hints wrapped in `dir="ltr"` and given `.western-digits` (`qlisan`, `tahlil` here; `verse-study` in the 5.3 commit). Verified on screen: the hint reads `/ 118` with the slash before the number, rather than reordering to the far side of the digits
+
+- [x] 5.5 `app/tahlil/page.tsx` wired and its picker restored identically — `baseline/after-5.5-tahlil-picker.jpg`. **The requirement is now met visibly and for the right reason:** the row reads sūra «23. المؤمنون», then āya `61`, then `/ 118`, then the load button at the left end — produced by the document direction, with source order select → input → button. The rendered result matches what LTR-plus-the-trick produced before; only the source became honest
+
 - [ ] 5.6 `app/lexical/page.tsx` — 6 strings; add the missing `aria-label="الكلمة"` on the word input at `:126` (its only accessible name today is `placeholder="رحمة"`, a sample value)
 - [ ] 5.7 `app/fassila/page.tsx` — drop the now-redundant container `dir="rtl"` at `:41`; keep the Arabic tab labels it already has. Note this attribute is the ancestor that makes every Fassila physical utility an RTL-context site under D12, so 2.1b must be recorded first
 - [ ] 5.8 `app/surah/[number]/page.tsx` and `app/verse/[surah]/[ayah]/page.tsx` — 6 strings between them, including the Latin `Surah {n-1}` / `Surah {n+1}` pagination labels

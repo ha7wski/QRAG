@@ -12,6 +12,7 @@ import LevelCard, { type LevelTone } from "@/components/LevelCard";
 import TahlilClaim from "@/components/TahlilClaim";
 import type { QlisanVerseResponse, SurahMeta } from "@/lib/types";
 import type { TahlilBlock, TahlilWordResponse } from "@/lib/tahlilTypes";
+import { S } from "@/lib/strings";
 
 /** English sub-labels for the five blocks. The Arabic titles come from the API — they are
  *  the block's name, not a UI string — and only the latin gloss lives here. */
@@ -146,31 +147,29 @@ export default function TahlilPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">Tahlil</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Pick a verse, then click a word for its five-block analysis — الحروف,
-          صرفي, نحوي, دلالي, تركيب. Every claim carries a provenance badge and the
-          evidence it stands on. A badge says where a sentence came from, never that
-          it is correct.
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          {S.tahlil.heading}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">{S.tahlil.caption}</p>
       </div>
 
-      {/* Verse picker — the repo's established layout, right-aligned, reading
-          right→left: surah name → ayah box → Load button. */}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <button
-          onClick={() => loadVerse()}
-          disabled={verseLoading || surahs.length === 0}
-          className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
+      {/* Verse picker. Source order is logical — sūra select, āya box, load
+          button — and the document's RTL direction is what makes it read
+          right-to-left with the button at the left end (design D4). */}
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={surah}
+          onChange={(e) => onSurahChange(Number(e.target.value))}
+          dir="rtl"
+          aria-label={S.verse.surah}
+          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >
-          {verseLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-          Load verse
-        </button>
-
+          {surahs.map((s) => (
+            <option key={s.number} value={s.number}>
+              {s.number}. {s.name_ar}
+            </option>
+          ))}
+        </select>
         <div className="flex items-center gap-1">
           <input
             value={ayah}
@@ -181,25 +180,27 @@ export default function TahlilPage() {
             type="number"
             min={1}
             max={maxAyah}
-            aria-label="Ayah number"
+            aria-label={S.verse.ayahNumber}
             className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-brand focus:outline-none"
           />
-          <span className="text-sm text-gray-400">/ {maxAyah}</span>
+          <span className="western-digits text-sm text-gray-400">
+            <span dir="ltr">/ {maxAyah}</span>
+          </span>
         </div>
 
-        <select
-          value={surah}
-          onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
-          aria-label="Surah"
-          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+        <button
+          onClick={() => loadVerse()}
+          disabled={verseLoading || surahs.length === 0}
+          className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
         >
-          {surahs.map((s) => (
-            <option key={s.number} value={s.number}>
-              {s.number}. {s.name_ar}
-            </option>
-          ))}
-        </select>
+          {verseLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
+          {S.tahlil.loadVerse}
+        </button>
+
       </div>
 
       {verseError && (
