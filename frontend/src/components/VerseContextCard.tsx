@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ArabicText from "@/components/ArabicText";
+import { toArabicDigits } from "@/lib/arabicDigits";
 import type { VerseDetail } from "@/lib/types";
+import { S } from "@/lib/strings";
 
 /**
  * A verse shown in its context: the surrounding āyāt of the same surah, Arabic
@@ -33,7 +35,7 @@ export default function VerseContextCard({
           <span className="font-medium text-gray-700">
             {name}
           </span>
-          <span>
+          <span dir="ltr">
             {main.surah_number}:{main.ayah_number}
           </span>
         </div>
@@ -53,7 +55,7 @@ export default function VerseContextCard({
                     isMain ? "bg-brand text-white" : "bg-gray-100 text-gray-500"
                   }`}
                 >
-                  {v.ayah_number}
+                  {toArabicDigits(v.ayah_number)}
                 </span>
                 <ArabicText
                   className={`block flex-1 text-start text-2xl leading-loose ${
@@ -72,7 +74,7 @@ export default function VerseContextCard({
         href={`/surah/${main.surah_number}`}
         className="inline-flex items-center gap-1 text-sm font-medium text-brand-dark hover:underline"
       >
-        Open full Sourate page
+        {S.verse.openSurah}
         <ArrowLeft className="h-4 w-4" />
       </Link>
     </div>

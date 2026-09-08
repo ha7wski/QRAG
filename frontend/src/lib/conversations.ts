@@ -8,9 +8,13 @@
 // quota-exceeded storage (best-effort).
 
 import type { Verse } from "./types";
+import { S } from "./strings";
 
 const STORAGE_KEY = "quran-rag.chat.v1";
 const TITLE_MAX = 48;
+
+/** The pre-Arabization default, still present in stores already written. */
+const LEGACY_DEFAULT_TITLE = "New conversation";
 
 /** A chat message as stored/rendered (assistant turns may carry sources). */
 export interface StoredMessage {
@@ -66,7 +70,13 @@ export function loadStore(): Store {
     ) {
       return emptyStore();
     }
-    return parsed as Store;
+    const store = parsed as Store;
+    // Titles written before Arabization. Mapped on read rather than migrated:
+    // bumping `version` would make loadStore() discard every saved conversation.
+    for (const c of store.conversations) {
+      if (c.title === LEGACY_DEFAULT_TITLE) c.title = S.chat.newConversation;
+    }
+    return store;
   } catch {
     return emptyStore();
   }
@@ -86,7 +96,7 @@ export function deriveTitle(messages: StoredMessage[]): string {
   const firstUser = messages.find(
     (m) => m.role === "user" && m.content.trim(),
   );
-  if (!firstUser) return "New conversation";
+  if (!firstUser) return S.chat.newConversation;
   const text = firstUser.content.trim().replace(/\s+/g, " ");
   return text.length > TITLE_MAX
     ? `${text.slice(0, TITLE_MAX).trimEnd()}…`
@@ -120,7 +130,7 @@ export function createConversation(): Conversation {
   const now = Date.now();
   const conv: Conversation = {
     id: newId(),
-    title: "New conversation",
+    title: S.chat.newConversation,
     messages: [],
     createdAt: now,
     updatedAt: now,

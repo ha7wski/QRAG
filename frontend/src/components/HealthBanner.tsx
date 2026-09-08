@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { health } from "@/lib/api";
 import type { HealthStatus } from "@/lib/types";
+import { S } from "@/lib/strings";
 
 /**
  * Polls /health and surfaces a banner when the backend is degraded or
@@ -36,15 +37,24 @@ export default function HealthBanner() {
 
   let message: string;
   if (state === "unreachable") {
-    message = "Backend unreachable — start it with ./local-dev/start.sh.";
+    // The English original told the reader to run `./local-dev/start.sh`. That
+    // path is git-excluded, so a cloner does not have it — naming no path at all
+    // is more useful than naming one that may not exist.
+    message = S.health.unreachable;
   } else if (state.status === "starting") {
-    message = "Backend is still starting up — answers may be unavailable.";
+    message = S.health.starting;
   } else {
     const down = [
-      !state.qdrant && "the search index (Qdrant)",
-      !state.llm && "the language model (Ollama)",
-    ].filter(Boolean);
-    message = `Service degraded: ${down.join(" and ") || "a component"} is unavailable. Answers may fail until it recovers.`;
+      !state.qdrant && S.health.partIndex,
+      !state.llm && S.health.partModel,
+    ].filter(Boolean) as string[];
+    // The waw is a proclitic: a space BEFORE it and none after, so `join(" و ")`
+    // would be wrong Arabic. Each part already carries its Latin brand name
+    // inside FSI/PDI isolates (design D15), without which the parentheses
+    // reorder and «(Qdrant)» renders as «)Qdrant(».
+    message = S.health.degraded(
+      down.join(S.health.and) || S.health.fallbackPart,
+    );
   }
 
   return (
