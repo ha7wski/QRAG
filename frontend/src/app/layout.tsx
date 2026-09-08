@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { S } from "@/lib/strings";
 
 export const metadata: Metadata = {
-  title: "Quran RAG",
-  description: "Explore the Quran with retrieval-augmented search and analysis.",
+  title: S.app.title,
+  description: S.app.description,
 };
 
 export default function RootLayout({
@@ -12,8 +13,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Direction is declared exactly once, here (design D1). Every component
+  // inherits it; from now on an element-level `dir` is only ever an LTR island,
+  // or an override re-establishing RTL inside one.
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       {/* Both typefaces are self-hosted: vendored woff2 declared in
           globals.css, so there is no runtime request to fonts.googleapis.com
           and no build-time fetch either. See app/fonts/README.md. */}
