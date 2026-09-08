@@ -23,8 +23,9 @@ export default function RootLayout({
           and no build-time fetch either. See app/fonts/README.md. */}
       <body>
         <Navbar />
-        {/* Offset for the fixed sidebar on md+; full width (drawer) on mobile. */}
-        <main className="px-4 py-6 md:ml-64 md:px-8">
+        {/* Offset for the fixed sidebar on md+; full width (drawer) on mobile.
+            `ms-` follows the sidebar, which is pinned to the inline-start edge. */}
+        <main className="px-4 py-6 md:ms-64 md:px-8">
           <div className="mx-auto max-w-4xl">{children}</div>
         </main>
       </body>
