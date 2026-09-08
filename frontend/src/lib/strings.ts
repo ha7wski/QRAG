@@ -137,6 +137,8 @@ export const S = {
     placeholder: "اكتب سؤالك…",
     send: "إرسال",
     empty: "اطرح سؤالًا عن القرآن.",
+    exampleHint: "مثال: ما يقول القرآن عن الصبر؟",
+    retry: "أعد المحاولة",
     conversations: "المحادثات",
     newConversation: "محادثة جديدة",
     /** The stacked button under the switcher — short on purpose. */

@@ -27,15 +27,19 @@ import {
   setActiveId as storeSetActiveId,
 } from "@/lib/conversations";
 import VerseCard from "./VerseCard";
+import { S } from "@/lib/strings";
 
+// The noun form depends on the count in Arabic — singular, dual, plural for
+// 3-10, singular accusative from 11 — so the wording lives in the dictionary
+// rather than being assembled here (design D18).
 function relativeTime(ts: number): string {
-  const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (s < 60) return "just now";
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  const secs = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (secs < 60) return S.chat.justNow;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return S.chat.minutesAgo(mins);
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return S.chat.hoursAgo(hours);
+  return S.chat.daysAgo(Math.floor(hours / 24));
 }
 
 export default function ChatInterface() {
@@ -287,14 +291,14 @@ export default function ChatInterface() {
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             <MessageSquare className="h-4 w-4" />
-            Conversations
+            {S.chat.conversations}
             <ChevronDown className="h-4 w-4" />
           </button>
           {menuOpen && (
             <div className="absolute z-10 mt-1 max-h-80 w-72 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
               {conversations.length === 0 ? (
                 <p className="px-3 py-2 text-sm text-gray-400">
-                  No saved conversations
+                  {S.chat.noSaved}
                 </p>
               ) : (
                 conversations.map((c) => (
@@ -306,7 +310,7 @@ export default function ChatInterface() {
                   >
                     <button
                       onClick={() => switchTo(c.id)}
-                      className="min-w-0 flex-1 rounded px-2 py-2 text-left hover:bg-gray-50"
+                      className="min-w-0 flex-1 rounded px-2 py-2 text-start hover:bg-gray-50"
                     >
                       <span className="block truncate text-sm text-gray-800">
                         {c.title}
@@ -317,7 +321,7 @@ export default function ChatInterface() {
                     </button>
                     <button
                       onClick={() => removeConversation(c.id)}
-                      aria-label="Delete conversation"
+                      aria-label={S.chat.deleteConversation}
                       className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -335,22 +339,20 @@ export default function ChatInterface() {
           className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
-          New
+          {S.chat.newShort}
         </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto pb-4">
         {messages.length === 0 && (
           <div className="mt-10 text-center text-gray-500">
-            <p className="text-lg">Ask a question about the Quran.</p>
-            <p className="mt-1 text-sm">
-              e.g. &quot;What does the Quran say about patience?&quot;
-            </p>
+            <p className="text-lg">{S.chat.empty}</p>
+            <p className="mt-1 text-sm">{S.chat.exampleHint}</p>
           </div>
         )}
 
         {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "text-right" : ""}>
+          <div key={i} className={m.role === "user" ? "text-end" : ""}>
             <div
               className={
                 m.role === "user"
@@ -358,16 +360,22 @@ export default function ChatInterface() {
                   : "inline-block max-w-full rounded-2xl bg-gray-100 px-4 py-2 text-gray-900"
               }
             >
-              <span className="whitespace-pre-wrap">{m.content}</span>
+              {/* `dir="auto"` because the script is not ours to know: the model
+                  answers in the question's language, and the user may type Latin.
+                  Without it a French answer inherits RTL and its punctuation lands
+                  at the wrong end of every line (design D19). */}
+              <span dir="auto" className="whitespace-pre-wrap">
+                {m.content}
+              </span>
               {m.role === "assistant" && loading && i === messages.length - 1 && (
-                <Loader2 className="ml-1 inline h-4 w-4 animate-spin text-gray-400" />
+                <Loader2 className="ms-1 inline h-4 w-4 animate-spin text-gray-400" />
               )}
             </div>
 
             {m.sources && m.sources.length > 0 && (
               <div className="mt-3 space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                  Sources
+                <p className="text-xs font-medium tracking-wide text-gray-400">
+                  {S.chat.sources}
                 </p>
                 {m.sources.map((v) => (
                   <VerseCard key={v.id} verse={v} />
@@ -382,10 +390,10 @@ export default function ChatInterface() {
                 <div className="mt-2 flex items-center gap-3">
                   {(!m.sources || m.sources.length === 0) && (
                     <span className="text-xs text-gray-400">
-                      No verses matched — general answer.
+                      {S.chat.noVerses}
                     </span>
                   )}
-                  <div className="ml-auto flex items-center gap-1">
+                  <div className="ms-auto flex items-center gap-1">
                     {(["up", "down"] as const).map((r) => {
                       const active = ratings[`${activeId}:${i}`] === r;
                       const Icon = r === "up" ? ThumbsUp : ThumbsDown;
@@ -393,7 +401,7 @@ export default function ChatInterface() {
                         <button
                           key={r}
                           onClick={() => rate(i, r)}
-                          aria-label={r === "up" ? "Helpful" : "Not helpful"}
+                          aria-label={r === "up" ? S.chat.helpful : S.chat.notHelpful}
                           className={`rounded p-1 hover:bg-gray-100 ${
                             active
                               ? r === "up"
@@ -422,7 +430,7 @@ export default function ChatInterface() {
               onClick={retry}
               className="flex shrink-0 items-center gap-1 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
             >
-              <RotateCw className="h-3.5 w-3.5" /> Retry
+              <RotateCw className="h-3.5 w-3.5" /> {S.chat.retry}
             </button>
           )}
         </div>
@@ -439,12 +447,14 @@ export default function ChatInterface() {
             }
           }}
           rows={1}
-          placeholder="Type your question..."
+          dir="auto"
+          placeholder={S.chat.placeholder}
           className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
         />
         <button
           onClick={() => send()}
           disabled={loading || !input.trim()}
+          aria-label={S.chat.send}
           className="flex items-center gap-1 rounded-lg bg-brand px-4 py-2 text-white disabled:opacity-50"
         >
           {loading ? (
