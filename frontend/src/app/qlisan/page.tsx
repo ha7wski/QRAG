@@ -338,7 +338,7 @@ function VerseTokens({
  *  دلالي (driven by `levels_order` so the API owns the ordering). */
 function Fiche({ data }: { data: QlisanWordResponse }) {
   const renderers: Record<string, () => JSX.Element> = {
-    sawti: () => <StubLevel titleAr="صوتي" titleEn="Phonetic" level={data.sawti} />,
+    sawti: () => <StubLevel titleAr="صوتي" level={data.sawti} />,
     sarfi: () => (
       <SarfiLevel level={data.sarfi} marker={data.nahwi?.marker_ar ?? null} />
     ),
@@ -346,7 +346,7 @@ function Fiche({ data }: { data: QlisanWordResponse }) {
     dalali: () => (
       <StubLevel
         titleAr="دلالي"
-        titleEn="Semantic"
+       
         level={data.dalali}
         sourced
       />
@@ -366,19 +366,16 @@ function Fiche({ data }: { data: QlisanWordResponse }) {
  *  visibly rather than a blank section. */
 function StubLevel({
   titleAr,
-  titleEn,
   level,
   sourced = false,
 }: {
   titleAr: string;
-  titleEn: string;
   level: QlisanStubLevel;
   sourced?: boolean;
 }) {
   return (
     <LevelCard
       titleAr={titleAr}
-      titleEn={titleEn}
       badge={level.available ? "متاح" : "قيد الإعداد"}
       tone={level.available ? (sourced ? "sourced" : "fact") : "pending"}
     >
@@ -402,7 +399,7 @@ function SarfiLevel({
 }) {
   if (!level.available) {
     return (
-      <LevelCard titleAr="صرفي" titleEn="Morphological" badge="غير متاح" tone="pending">
+      <LevelCard titleAr="صرفي" badge="غير متاح" tone="pending">
         <p lang="ar" className="font-arabic text-base text-gray-500">
           لا يوجد تحليل صرفي لهذه الكلمة.
         </p>
@@ -411,7 +408,7 @@ function SarfiLevel({
   }
 
   return (
-    <LevelCard titleAr="صرفي" titleEn="Morphological" badge="معطى محقّق" tone="fact">
+    <LevelCard titleAr="صرفي" badge="معطى محقّق" tone="fact">
       <SarfiRows level={level} marker={marker} />
     </LevelCard>
   );
@@ -421,7 +418,7 @@ function SarfiLevel({
 function NahwiLevel({ level }: { level: QlisanNahwi }) {
   if (!level.available) {
     return (
-      <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="غير متاح" tone="pending">
+      <LevelCard titleAr="نحوي" badge="غير متاح" tone="pending">
         <p lang="ar" className="font-arabic text-base text-gray-500">
           {level.message || "لا يوجد إعراب محقّق لهذه الكلمة."}
         </p>
@@ -433,7 +430,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
        (relation function [+ case word]) subsumes the old «العلاقة» row, and the
        raw `relation`/`relation_ar` codes are never rendered. The العلامة marker is
        rendered in the صرفي card (under البنية الصرفية), not here. */
-    <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="معطى محقّق" tone="fact">
+    <LevelCard titleAr="نحوي" badge="معطى محقّق" tone="fact">
       <dl className="space-y-3">
         {level.iraab_ar && (
           <FicheRow label="الموقع الإعرابي">

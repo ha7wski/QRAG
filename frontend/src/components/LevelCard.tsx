@@ -37,7 +37,6 @@ const PILL: Record<LevelTone, string> = {
 /** Card shell with an Arabic level label and a provenance badge. */
 export default function LevelCard({
   titleAr,
-  titleEn,
   badge,
   tone,
   badgeTitle,
@@ -45,7 +44,6 @@ export default function LevelCard({
   children,
 }: {
   titleAr: string;
-  titleEn: string;
   badge: string;
   tone: LevelTone;
   /** Native-title tooltip for the badge pill — the repo's established mechanism. */
@@ -56,17 +54,15 @@ export default function LevelCard({
 }) {
   return (
     <section className={`overflow-hidden rounded-xl border bg-white ${RING[tone]}`}>
-      {/* RTL header: the Arabic title sits on the RIGHT (main title), the English
-          label to its left, and the badge on the far left. */}
+      {/* Header: the Arabic title leads and the badge sits at the trailing
+          edge. There used to be an uppercase Latin gloss between them — removed,
+          not translated: the Arabic label is the label. */}
       <header
         className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5"
       >
         <span className="flex items-baseline gap-2">
           <span lang="ar" className="font-arabic text-xl font-semibold text-gray-800">
             {titleAr}
-          </span>
-          <span dir="ltr" className="text-xs uppercase tracking-wide text-gray-400">
-            {titleEn}
           </span>
         </span>
         <span className="flex items-center gap-1.5">

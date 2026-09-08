@@ -16,14 +16,6 @@ import { S } from "@/lib/strings";
 
 /** English sub-labels for the five blocks. The Arabic titles come from the API — they are
  *  the block's name, not a UI string — and only the latin gloss lives here. */
-const BLOCK_EN: Record<string, string> = {
-  huruf: "Letters",
-  sarfi: "Morphological",
-  nahwi: "Syntactic",
-  dalali: "Semantic",
-  tarkib: "Synthesis",
-};
-
 /** The badge a card announces: the WEAKEST provenance among its claims.
  *
  * `badges` arrives from the API in caution order (محقّق → مُولَّد → تأويلي), so «weakest» is
@@ -378,7 +370,6 @@ function Analysis({
           <LevelCard
             key={id}
             titleAr={block.title_ar}
-            titleEn={BLOCK_EN[id] ?? id}
             badge={data.badge_labels[weakestBadge(block, badges)] ?? "—"}
             badgeTitle={data.badge_tooltips[weakestBadge(block, badges)]}
             note={unreviewed ? data.unverified_mention : undefined}

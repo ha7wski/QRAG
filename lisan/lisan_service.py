@@ -38,13 +38,15 @@ from lisan.synthesis_template import render_synthesis  # noqa: E402
 DISCLAIMER = "قراءة رمزية تأويلية لدلالات الحروف، وليست تعريفًا معجميًّا ثابتًا."
 
 # Source attributions surfaced in the response (framework, not our claim).
+# These reach the screen, so they are interface language rather than data: two
+# Arabic works, cited in their own script, with their glosses in Arabic.
 SOURCES = {
     "abbas": (
-        "Hasan Abbas, Khaṣāʾiṣ al-Ḥurūf al-ʿArabiyya wa-Maʿānīhā "
-        "(letter sound-symbolism framework)."
+        "حسن عباس، خصائص الحروف العربية ومعانيها "
+        "(إطارٌ في رمزية أصوات الحروف)."
     ),
     "ibn_jinni": (
-        "Ibn Jinnī, al-Khaṣāʾiṣ (al-ishtiqāq al-akbar; letter sound-imitation)."
+        "ابن جنّي، الخصائص (الاشتقاق الأكبر؛ محاكاة أصوات الحروف)."
     ),
 }
 
@@ -175,9 +177,13 @@ class LisanService:
                 "ishtiqaq_akbar": [],
                 "disclaimer": DISCLAIMER,
                 "sources": SOURCES,
+                # The same sentence the sibling service already returns
+                # (madar/madar_service.py). This is the most common non-happy
+                # path on «تحليل اللسان», and it used to be a whole English
+                # paragraph inside an otherwise Arabic screen.
                 "message": (
-                    f"Could not resolve an Arabic root for '{word}'. "
-                    "It may be a proper noun or a word outside the Quranic corpus."
+                    f"تعذّر إيجاد جذر عربي للكلمة «{word}». "
+                    "قد تكون اسمَ علمٍ أو كلمةً خارج المعجم القرآني."
                 ),
             }
 

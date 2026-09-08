@@ -2,6 +2,7 @@ import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import SarfiRows from "@/components/SarfiRows";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
+import { S } from "@/lib/strings";
 
 /**
  * Renders a Lisan Analysis result: root, per-letter breakdown, the ordered
@@ -44,7 +45,7 @@ export default function LisanResult({
     return (
       <div className="space-y-4">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 font-arabic text-amber-800">
-          {data.message || `No root found for "${data.word}".`}
+          {data.message || S.lexical.noRoot(data.word)}
         </div>
         <GrammarSection sarfi={sarfi} />
         <Disclaimer text={data.disclaimer} sources={data.sources} />
@@ -161,7 +162,7 @@ export default function LisanResult({
         </div>
       </div>
 
-      {/* 4 — تحليل نحوي: deterministic morphology (collapsible) — the established
+      {/* 4 — الصرف والإعراب: deterministic morphology (collapsible) — the established
           facts about the word come before the interpretive reading of its letters. */}
       <GrammarSection sarfi={sarfi} />
 
@@ -218,7 +219,7 @@ export default function LisanResult({
   );
 }
 
-/** «تحليل نحوي» — the deterministic morphology of the typed word, collapsed by
+/** «الصرف والإعراب» — the deterministic morphology of the typed word, collapsed by
  *  default (same `<details>` grammar as the ابن جنّي section below it).
  *
  * The reader typed a bare word, so there is no verse position — and QAC annotates
@@ -240,10 +241,7 @@ function GrammarSection({ sarfi }: { sarfi: QlisanFormResponse | null }) {
     <details className="group rounded-lg border border-gray-200 bg-white p-4">
       <summary className="flex cursor-pointer items-center gap-2 font-arabic font-semibold text-gray-800">
         <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-        تحليل نحوي
-        <span dir="ltr" className="text-xs uppercase tracking-wide text-gray-400">
-          Grammatical
-        </span>
+        {S.lexical.sarfiSection}
         {sarfi.available && (
           <span className="ms-auto rounded-full bg-brand-light px-2 py-0.5 font-arabic text-xs text-brand-dark">
             معطى محقّق

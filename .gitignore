@@ -52,6 +52,7 @@ pytest.ini
 requirements-test.txt
 frontend/vitest.config.ts
 frontend/vitest.setup.ts
+frontend/tsconfig.test.json
 *.test.ts
 *.test.tsx
 
