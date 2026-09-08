@@ -119,11 +119,10 @@ function LisanAnalysis() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">Lisan Analysis</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Enter an Arabic word to read its root letter-by-letter — an
-          interpretive letter-symbolism reading of the lisān.
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          {S.lexical.heading}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">{S.lexical.caption}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -131,6 +130,7 @@ function LisanAnalysis() {
           value={word}
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
+          aria-label={S.lexical.word}
           placeholder="رحمة"
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
@@ -145,7 +145,7 @@ function LisanAnalysis() {
           ) : (
             <Type className="h-4 w-4" />
           )}
-          Analyze
+          {S.lexical.analyze}
         </button>
       </div>
 
@@ -157,9 +157,7 @@ function LisanAnalysis() {
       )}
 
       {loading && (
-        <p className="text-sm text-gray-500">
-          Reading the root… (synthesis may take a moment)
-        </p>
+        <p className="text-sm text-gray-500">{S.lexical.loading}</p>
       )}
 
       {data && !loading && <LisanResult data={data} sarfi={sarfi} />}
