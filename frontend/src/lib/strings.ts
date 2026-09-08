@@ -228,8 +228,13 @@ export const S = {
     prevAyah: "الآية السابقة",
     nextAyah: "الآية التالية",
     backToStudy: "رجوع إلى دراسة الآية",
-    /** Backend `period` values, mapped rather than rendered raw. */
-    period: { Meccan: "مكية", Medinan: "مدنية" },
+    /**
+     * Backend `period` values, mapped rather than rendered raw. The keys are the
+     * transliterations the corpus actually emits — `makkiyya` (4613 verses) and
+     * `madani` (1623), asymmetric in the source and not the `Meccan` / `Medinan`
+     * pair one would guess. Verified against `verses_final.json` and `GET /surah/1`.
+     */
+    period: { makkiyya: "مكية", madani: "مدنية" },
   },
 
   health: {

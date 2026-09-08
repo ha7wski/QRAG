@@ -463,6 +463,31 @@ It is the only isolation available to a plain string, and it also works inside `
 defect. Where the token is already an element, the dictionary exports the sentence in pieces
 and the component renders a `dir="ltr"` span instead.
 
+**Measured in the running product, 2026-09-08 — this hazard is not hypothetical and not
+introduced by this change.** `FassilaBars.tsx:50` renders `{count} آية · {pct}%` and `/fassila`
+displays it as **`%83.8`**, with the percent sign on the wrong side of the number, on four rows
+of a shipped page, today, before any edit of ours.
+
+The mechanism is worth stating exactly, because it decides the fix. The DOM text is
+`93 آية · 83.8%` (`%` is U+0025). In the RTL container:
+
+1. **W2** searches backward from each European number for the first strong type. Before `83.8`
+   it finds «آية» — an Arabic letter — so `83.8` is reclassified **EN → AN**, an *Arabic* number.
+2. **W5**, which attaches a European terminator like `%` to an adjacent number, applies only to
+   **EN**. The number is now AN, so the rule does not fire.
+3. **W6** therefore demotes the orphaned `%` to a neutral, **N1/N2** resolve it right-to-left,
+   and it lands to the *left* of the digits — while `83.8` itself, as AN, sits one embedding
+   level higher as an LTR island.
+
+So this is not "digits near Arabic look odd". It is rule W2 defeating rule W5, and it means a
+number is unsafe whenever an Arabic word precedes it in the same run — which is nearly every
+count string in this product.
+
+Verified by measuring the visual order of each character in the live page: raw → `%83.8`;
+wrapped in `<span dir="ltr">` → **`83.8%`**; wrapped in FSI…PDI → the `%` likewise reattached.
+Both remedies work, which is why D15 keeps both: the element for JSX, the isolate for the
+`title` attribute of that very same component (`FassilaBars.tsx:33`), where no element can go.
+
 ### D16 — Backend *prose* is interface language; backend *data* is not
 
 D5's exemption (a) and the locale spec's exempt class 3 were meant to cover backend **data**
@@ -558,25 +583,53 @@ already prints. Tight-strip alternative: «التقارب في المعنى». �
 unavailable: it names المتشابه اللفظي, verbal similarity, which is what this tab does not do.
 The label is the owner's call (task 1.6).
 
-### D22 — `lang="ar"` arms the Arabic-Indic digit substitution document-wide
+### D22 — `lang="ar"` arms the Arabic-Indic digit substitution document-wide — measured, and disproven
 
-"Numerals — unchanged" is a Non-Goal that this change actively threatens. `globals.css:20-26`
-records the mechanism in the repo's own words: Quranic faces carry a `locl` feature that
-substitutes Arabic-Indic digits *when the surrounding text reads as Arabic* — a condition the
-browser derives from `lang`. Today `<html lang="en">` and only ~30 elements opt into Arabic
-locally; `.western-digits` neutralises the feature on 23 nodes. Task 3.3 moves `lang="ar"` to
-the root, arming the substitution on **every Amiri run in the application**, including
-numeric surfaces that have never needed protection.
+*This decision was written as a risk and closed by measurement on 2026-09-08. The mitigation
+it proposed is not needed; what it uncovered instead is a different, real defect.*
 
-The counter-measure is to invert the opt-out into an opt-in: `font-feature-settings: "locl" 0`
-on `body`, re-enabled only where Arabic-Indic digits are wanted, with every reading number made
-explicit through `toArabicDigits`. This also removes a live inconsistency — `surah/[number]/page.tsx:79`
-converts through a *local duplicate* of the helper while `verse-study/page.tsx:228` relies on the
-font feature for the same visual idiom.
+**The hypothesis.** `globals.css:20-26` records, in the repo's own words, that Quranic faces
+carry a `locl` feature substituting Arabic-Indic digits for ASCII ones *when the surrounding
+text reads as Arabic* — a condition the browser derives from `lang`. Task 3.3 moves
+`lang="ar"` to the root, so the fear was that the substitution would arm on every Amiri run in
+the application, including the numeric surfaces the policy keeps Western, and that
+`.western-digits` (23 nodes) would be too narrow a shield. Two of the three reviews reasoned
+from this premise.
 
-`.western-digits` itself stays correct but becomes inert on the new UI face, so its coverage
-— not its definition — is the risk. The rendered result is font-specific and cannot be
-inferred from the source: it must be checked (tasks 2.4, 9.2d).
+**The measurement.** Amiri v30, as this project serves it, in Chrome:
+
+| Rendering | `0123456789` renders as | advance width |
+|---|---|---|
+| Amiri, `lang="en"` | `0123456789` | 340.48 px |
+| Amiri, `lang="ar"` | `0123456789` | 340.48 px |
+| Amiri, `lang="ar"`, `locl` forced **on** | `0123456789` | 340.48 px |
+| Amiri, `lang="ar"`, `locl` forced **off** | `0123456789` | 340.48 px |
+| Amiri, real Arabic-Indic codepoints | `٠١٢٣٤٥٦٧٨٩` | (visibly different glyphs) |
+
+Pixel-identical in all four ASCII cases, confirmed visually side by side. And on the live page,
+the āya badge `﴿1﴾` in `verse-study/page.tsx:228` — Amiri, inside `lang="ar"`, **without**
+`.western-digits`, the exact configuration the hypothesis says must flip — renders a **Latin**
+digit.
+
+**Conclusions.**
+
+1. `lang="ar"` on `<html>` does **not** reshape digits in this build. Task 3.4b, which would
+   have inverted the `locl` opt-out into an opt-in across the app, is **dropped**: it defends
+   against a mechanism that is not firing.
+2. `.western-digits` is therefore a **no-op today**. It is left in place — it costs nothing, it
+   documents the intent, and it is the correct shield if a future font revision does implement
+   the substitution — but it is not what keeps the analytical numbers Western.
+3. The real defect the `locl` reasoning was masking: **two pages disagree about how an āya
+   number is written.** `surah/[number]/page.tsx:79` converts explicitly through a *local
+   duplicate* of the helper and shows `﴿١﴾`; `verse-study/page.tsx:228` converts not at all and
+   shows `﴿1﴾`. Same visual idiom, same corpus, two results on screen today. That is a product
+   inconsistency, not a font-feature question, and it makes task 3.4c *more* justified rather
+   than less: the numeral policy has to be expressed in code, because nothing in the font is
+   going to express it.
+
+*Method note, and it generalises:* the substitution acts on **glyphs**, not characters — the DOM
+still holds `255` in ASCII while the screen could show ٢٥٥. No assertion on rendered text could
+have settled this. It had to be looked at, which is why the baseline task exists.
 
 ## Risks / Trade-offs
 
