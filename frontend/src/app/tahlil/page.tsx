@@ -160,7 +160,6 @@ export default function TahlilPage() {
         <select
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
           aria-label={S.verse.surah}
           className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >
@@ -289,7 +288,6 @@ function VerseTokens({
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <header
-        dir="rtl"
         className="flex items-baseline justify-between border-b border-gray-100 px-4 py-2 text-sm text-gray-500"
       >
         <span lang="ar" className="font-arabic text-base text-gray-700">
@@ -299,11 +297,10 @@ function VerseTokens({
           {verse.surah}:{verse.ayah}
         </span>
       </header>
-      <div dir="rtl" lang="ar" className="arabic-text px-5 py-5 text-3xl leading-loose">
+      <div lang="ar" className="arabic-text px-5 py-5 text-3xl leading-loose">
         {parts}
       </div>
       <footer
-        dir="rtl"
         lang="ar"
         className="border-t border-gray-100 px-4 py-2 font-arabic text-xs text-gray-400"
       >
@@ -334,7 +331,7 @@ function Analysis({
 
   return (
     <div className="space-y-4">
-      <header dir="rtl" className="flex items-center justify-between gap-3">
+      <header className="flex items-center justify-between gap-3">
         <span lang="ar" className="arabic-text text-2xl text-gray-800">
           {data.word_vocalized}
         </span>
@@ -347,7 +344,6 @@ function Analysis({
           no expert has signed it off. It states the fact IN WORDS, not as a tint. */}
       {anyGenerated && !data.reviewed && (
         <div
-          dir="rtl"
           className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2"
         >
           <span lang="ar" className="font-arabic text-sm text-amber-800">
@@ -390,7 +386,6 @@ function Analysis({
           >
             {block.message && (
               <p
-                dir="rtl"
                 lang="ar"
                 className="mb-2 font-arabic text-sm text-gray-500"
               >
@@ -411,7 +406,6 @@ function Analysis({
             )}
             {block.attribution && (
               <div
-                dir="rtl"
                 lang="ar"
                 className="mt-3 border-t border-gray-100 pt-2 font-arabic text-xs text-gray-500"
               >

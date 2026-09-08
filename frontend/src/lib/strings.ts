@@ -232,6 +232,8 @@ export const S = {
 
   /** Shared verse chrome. */
   verse: {
+    loadingSurah: "جارٍ تحميل السورة…",
+    loadingVerse: "جارٍ تحميل الآية…",
     ayahNumber: "رقم الآية",
     surah: "السورة",
     surahNumber: (digits: string) => `السورة ${digits}`,

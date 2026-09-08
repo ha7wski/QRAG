@@ -200,11 +200,10 @@ function SurahCard({
     <div className="overflow-hidden rounded-lg border border-gray-200">
       <button
         onClick={onToggle}
-        dir="rtl"
-        className="flex w-full items-center justify-between bg-gray-50 px-4 py-2.5 text-right hover:bg-gray-100"
+        className="flex w-full items-center justify-between bg-gray-50 px-4 py-2.5 text-start hover:bg-gray-100"
       >
         {/* Format: «اسم السورة (رقم)، عدد الآيات : N» */}
-        <span dir="rtl" className="font-arabic text-lg">
+        <span className="font-arabic text-lg">
           <span className="font-semibold text-gray-800">{group.name}</span>
           <span className="text-gray-400">
             {" "}
@@ -229,10 +228,9 @@ function SurahCard({
                 type="button"
                 onClick={() => openInContext(v.surah_number, v.aya_number)}
                 title={S.verseStudy.openInContext}
-                className="block w-full px-4 py-3 text-right transition hover:bg-brand-light/50"
+                className="block w-full px-4 py-3 text-start transition hover:bg-brand-light/50"
               >
                 <div
-                  dir="rtl"
                   lang="ar"
                   className="arabic-text text-2xl text-gray-900"
                 >
@@ -340,7 +338,7 @@ function WordInVerses({
   return (
     <div className="space-y-6">
       {/* Live, non-editable Arabic question (RTL). */}
-      <div dir="rtl" className="font-arabic text-xl text-gray-800" lang="ar">
+      <div className="font-arabic text-xl text-gray-800" lang="ar">
         {word.trim() ? (
           <>
             ما هي الآيات والسور التي وردت فيها{" "}
@@ -361,7 +359,6 @@ function WordInVerses({
           value={word}
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
-          dir="rtl"
           placeholder={S.verseStudy.wordPlaceholder}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
@@ -397,7 +394,6 @@ function WordInVerses({
         <div className="space-y-4">
           {!data.root_found ? (
             <div
-              dir="rtl"
               lang="ar"
               className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
@@ -426,7 +422,6 @@ function WordInVerses({
                 }`}
               >
                 <span
-                  dir="rtl"
                   lang="ar"
                   className="flex items-baseline gap-2 font-arabic"
                 >
@@ -446,7 +441,6 @@ function WordInVerses({
                   </span>
                 </span>
                 <span
-                  dir="rtl"
                   lang="ar"
                   className="font-arabic text-lg text-gray-800"
                 >
@@ -535,11 +529,10 @@ function WordInVerses({
                   >
                     <button
                       onClick={() => toggleIn(setCollapsedLemmas, lkey)}
-                      dir="rtl"
-                      className="flex w-full items-center justify-between bg-brand-light px-4 py-2.5 text-right hover:brightness-95"
+                      className="flex w-full items-center justify-between bg-brand-light px-4 py-2.5 text-start hover:brightness-95"
                     >
                       {/* Format: «اللفظ، عدد السور : M، عدد الآيات : N» */}
-                      <span dir="rtl" className="font-arabic">
+                      <span className="font-arabic">
                         <span className="text-xl font-bold text-brand-dark">
                           {lg.lemma_display}
                         </span>
@@ -668,7 +661,7 @@ function SimilarVerses() {
   return (
     <div className="space-y-6">
       {/* Live, non-editable Arabic question (RTL). */}
-      <div dir="rtl" className="font-arabic text-xl text-gray-800" lang="ar">
+      <div className="font-arabic text-xl text-gray-800" lang="ar">
         {query.trim() ? (
           <>
             ما هي الآيات القريبة في المعنى من{" "}
@@ -689,7 +682,6 @@ function SimilarVerses() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
-          dir="rtl"
           placeholder={S.verseStudy.phrasePlaceholder}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
@@ -727,7 +719,6 @@ function SimilarVerses() {
         <div className="space-y-4">
           {data.results.length === 0 ? (
             <div
-              dir="rtl"
               lang="ar"
               className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
@@ -735,7 +726,7 @@ function SimilarVerses() {
             </div>
           ) : (
             <>
-              <div dir="rtl" className="rounded-lg bg-gray-100 px-4 py-3 text-right">
+              <div className="rounded-lg bg-gray-100 px-4 py-3 text-start">
                 <span lang="ar" className="font-arabic text-lg text-gray-800">
                   {S.verseStudy.nearest(data.results.length)}
                 </span>
@@ -792,15 +783,14 @@ function SimilarVerseCard({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        dir="rtl"
-        className="block w-full p-4 text-right"
+        className="block w-full p-4 text-start"
         title={open ? "أخفِ السياق" : "اعرض الآية في سياقها"}
       >
         {/* Format: «اسم السورة (رقم)» — the same reference style the surah cards
             of "Word in Verses" use. The āya number is not repeated here: it is
             already badged at the end of the verse itself (﴿44﴾). */}
         <header className="mb-2 flex items-center justify-between gap-2">
-          <span dir="rtl" className="font-arabic text-lg">
+          <span className="font-arabic text-lg">
             <span className="font-semibold text-gray-800">
               {verse.surah_name_ar}
             </span>
@@ -820,7 +810,6 @@ function SimilarVerseCard({
           </span>
         </header>
         <div
-          dir="rtl"
           lang="ar"
           className="arabic-text text-2xl leading-loose text-gray-900"
         >
@@ -937,7 +926,6 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
         <select
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
           aria-label={S.verse.surah}
           className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >

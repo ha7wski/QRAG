@@ -32,7 +32,7 @@ export default function SarfiRows({
   );
 
   return (
-    <dl className="space-y-3" dir="rtl">
+    <dl className="space-y-3">
       {/* Part of speech (Arabic only — raw QAC code is never rendered). */}
       <FicheRow label="القسم">
         <span className="font-arabic text-lg text-gray-800">

@@ -54,13 +54,13 @@ export default function VerseCard({
           </span>
         ) : null}
         {typeof verse.relevance_score === "number" && (
-          <span className="ml-auto text-xs text-gray-400">
+          <span className="me-auto text-xs text-gray-400">
             score {verse.relevance_score.toFixed(4)}
           </span>
         )}
       </header>
 
-      <ArabicText className="block text-right text-2xl leading-loose text-gray-900">
+      <ArabicText className="block text-start text-2xl leading-loose text-gray-900">
         {verse.text_ar_tashkil || verse.text_ar}
       </ArabicText>
 

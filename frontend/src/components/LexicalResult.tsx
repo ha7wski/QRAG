@@ -17,10 +17,10 @@ export default function LexicalResult({ data }: { data: LexicalResponse }) {
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-sm text-gray-500">Root</span>
-          <span dir="rtl" className="font-arabic text-2xl text-brand-dark">
+          <span className="font-arabic text-2xl text-brand-dark">
             {data.root}
           </span>
-          <span className="ml-auto text-sm text-gray-600">
+          <span className="me-auto text-sm text-gray-600">
             {data.occurrences_count} occurrences
           </span>
         </div>
@@ -29,7 +29,6 @@ export default function LexicalResult({ data }: { data: LexicalResponse }) {
             {data.forms.slice(0, 24).map((f) => (
               <span
                 key={f}
-                dir="rtl"
                 className="rounded bg-brand-light px-2 py-0.5 font-arabic text-base text-brand-dark"
               >
                 {f}

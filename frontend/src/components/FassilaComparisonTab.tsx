@@ -143,7 +143,7 @@ export default function FassilaComparisonTab() {
                 {["السورة", "الآيات", "فواصل مميّزة", "الفاصلة الغالبة"].map((h) => (
                   <th
                     key={h}
-                    className="border-b border-gray-200 px-3 py-1.5 text-right font-medium"
+                    className="border-b border-gray-200 px-3 py-1.5 text-start font-medium"
                   >
                     {h}
                   </th>

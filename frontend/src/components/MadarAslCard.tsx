@@ -42,7 +42,6 @@ export default function MadarAslCard({
   const hasAsl = maqayis?.asl_status === "has_asl";
   return (
     <section
-      dir="rtl"
       className={
         hasAsl
           ? "rounded-lg border-2 border-brand bg-brand-light/40 p-5"
@@ -99,7 +98,7 @@ function AslBody({ maqayis }: { maqayis: MaqayisCitation | null }) {
         </p>
       )}
       {maqayis.asl_text.length > 1 ? (
-        <ol className="list-decimal space-y-2 pr-5 font-arabic text-lg leading-relaxed text-gray-900">
+        <ol className="list-decimal space-y-2 ps-5 font-arabic text-lg leading-relaxed text-gray-900">
           {maqayis.asl_text.map((t, i) => (
             <li key={i}>{t}</li>
           ))}

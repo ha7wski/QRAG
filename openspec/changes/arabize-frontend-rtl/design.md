@@ -383,37 +383,65 @@ Task 7.11 carries the rename, including `LisanResult.test.tsx:15`, which hard-co
 string as a test constant, and routes the new label through `strings.ts` so gate 4.6 reviews
 its wording like every other Arabic string.
 
-### D12 — The physical→logical mapping is TWO tables, and the `dir` attributes are the sweep's input data
+### D12 — The physical→logical mapping is TWO tables, and the `dir` attributes are the sweep's input data — ONE table, the mirror one
 
-A physical utility is not a fact about a side. It is a fact about the side someone wanted
-**given the direction their element resolved to when they wrote it**. The tree holds both
-kinds, and roughly two thirds of the 36 occurrences are the second:
+*Corrected during implementation, 2026-09-08, by measurement. The original wording had the
+right instinct and the wrong discriminant.*
 
-| The utility sits in… | What `mr-` means there today | Correct logical form |
-|---|---|---|
-| an LTR-resolving element (no `dir` ancestor) | inline-**end** | `me-` |
-| a `dir="rtl"` subtree (48 of them) | inline-**start** | **`ms-`** |
+**What it said.** That the correct logical form depends on the direction the element resolved
+to *when the utility was written*, hence two mapping tables — the obvious one for
+LTR-authored sites, its mirror for the ~2/3 authored inside a `dir="rtl"` subtree.
 
-The RTL-subtree mapping is the exact mirror of the LTR one: `mr-`→`ms-`, `ml-`→`me-`,
-`pr-`→`ps-`, `pl-`→`pe-`, `right-`→`start-`, `left-`→`end-`, `text-right`→`text-start`,
-`text-left`→`text-end`, `border-r`→`border-s`, `border-l`→`border-e`.
+**What is actually true.** What decides the *rendering-preserving* conversion is the direction
+the element resolves to **after** the flip. And after the flip, every element outside an LTR
+island resolves RTL. Measured in the running page, in an RTL container:
 
-Confirmed RTL-context members: the whole `fassila/page.tsx:41` subtree
-(`FassilaAnalysisTab.tsx:170,173,176`; `FassilaComparisonTab.tsx:146`;
-`FassilaDistributionPie.tsx:188`; `FassilaBars.tsx:49`; `FassilaTile.tsx:29`),
-`LisanResult.tsx:72,102,241,275,282`, `MadarAslCard.tsx:102`,
-`verse-study/page.tsx:194,714,772`. The repo already states the rule at
-`SarfiRows.tsx:134`: *"`items-start` = right edge in RTL"*.
+| specified | renders at |
+|---|---|
+| `text-align: right` | RIGHT |
+| `text-align: start` | RIGHT |
+| `text-align: end` | LEFT |
 
-*Consequence for sequencing:* **deleting the redundant `dir="rtl"` attributes must run
-LAST, not first.** The original task order deleted them before converting, which destroys
-the only evidence of which mapping applies. And the residue grep cannot recover it: a
-zero-hit grep passes just as happily on an inverted conversion as on a correct one, so it
-is a **coverage** check, never a correctness check.
+So `text-right` is `text-start`, uniformly. There is **one** table, and it is the mirror:
 
-*Why this was missed:* D4 found the same pathology in DOM **order** and fixed it in two
-files, but never generalised it to **utilities**. Three independent reviews landed on this
-finding, which is why it is a decision rather than a task note.
+`mr-`->`ms-` · `ml-`->`me-` · `pr-`->`ps-` · `pl-`->`pe-` · `right-`->`start-` ·
+`left-`->`end-` · `text-right`->`text-start` · `text-left`->`text-end` ·
+`border-r`->`border-s` · `border-l`->`border-e` · `rounded-r*`->`rounded-e*` ·
+`rounded-l*`->`rounded-s*`
+
+**The correction makes the original defect worse, not milder.** Task 7.2's first table
+(`mr-`->`me-`, `text-right`->`text-end`) does not invert two thirds of the sites. It inverts
+**every one of them**, because no site outside an LTR island still resolves LTR after the
+flip. Three independent reviews found the defect; none of them, and not the first draft of
+this decision, had its scope right.
+
+**What the pre-flip direction is actually for: judging intent, not choosing the table.**
+
+- On an element that already resolved RTL, the author wrote `mr-` meaning inline-start. The
+  mirror table preserves the pixels *and* the intent. Purely mechanical.
+- On an element that resolved LTR, the author wrote `mr-` meaning inline-end. The mirror
+  table preserves the pixels but may not preserve the intent, and that is the only place a
+  per-site decision is owed. Two have been taken: the chat bubble moved deliberately
+  (`text-end`, so a speaker's own turns sit at the reading direction's arrival edge), and
+  `ScrollToTop`'s `right-6` becomes `end-6` rather than `start-6`, so the control lands
+  bottom-**left**, clear of the navigation that now occupies the right.
+
+**Annotation, measured rather than reasoned.** A site's pre-flip direction is exactly "does it
+have an explicit `dir="rtl"` ancestor", since the root was LTR before. The browser answers
+that per element with `closest('[dir="rtl"]')` — far more reliable than inferring JSX nesting
+from indentation. Measured on the running pages: every Fassila site is RTL-context; on
+`/verse-study` the surah- and lemma-card headers carry `dir="rtl"` themselves while the verse
+buttons do not, and both classes convert the same way.
+
+*Sequencing still holds, for a different reason.* The redundant `dir="rtl"` attributes are
+deleted **after** the conversion — not because they choose the table, but because they are
+what the annotation is read from.
+
+*One reviewer claim did not survive.* `VerseCard.tsx:63` was reported as a cross-boundary
+case — alignment set on an LTR ancestor and inherited by an RTL descendant. It is not:
+`ArabicText` merges the incoming `className` onto its own `dir="rtl"` span, so the alignment
+lands on the RTL element itself. The conclusion (do not write `text-end` there) was right; the
+mechanism was not.
 
 ### D13 — The direction-aware utilities are the ones the grep cannot find
 

@@ -61,7 +61,7 @@ export default function TahlilClaim({
 
   return (
     <li className="border-t border-gray-100 py-2.5 first:border-t-0 first:pt-0">
-      <div dir="rtl" className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <p lang="ar" className="arabic-text flex-1 text-lg text-gray-800">
           {claim.text_ar}
         </p>
@@ -75,7 +75,6 @@ export default function TahlilClaim({
 
       {(claim.sources.length > 0 || claim.cites.length > 0) && (
         <div
-          dir="rtl"
           className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500"
         >
           {claim.sources.map((source, i) => (

@@ -44,7 +44,7 @@ export default function VersePage({
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-gray-500">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading verse…
+        <Loader2 className="h-4 w-4 animate-spin" /> {S.verse.loadingVerse}
       </div>
     );
   }
@@ -55,8 +55,11 @@ export default function VersePage({
           failure={error ?? { text: S.errors.verseNotFound }}
           className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
         />
-        <Link href={`/verse-study?surah=${surah}&ayah=${ayah}`} className="text-sm text-brand-dark hover:underline">
-          ← Back to Verse Study
+        <Link
+          href={`/verse-study?surah=${surah}&ayah=${ayah}`}
+          className="flex items-center gap-1 text-sm text-brand-dark hover:underline"
+        >
+          <ArrowRight className="h-4 w-4" /> {S.verse.backToStudy}
         </Link>
       </div>
     );
@@ -102,7 +105,8 @@ export default function VersePage({
             href={`/verse/${prev_id.replace(":", "/")}`}
             className="flex items-center gap-1 text-brand-dark hover:underline"
           >
-            <ArrowLeft className="h-4 w-4" /> {prev_id}
+            <ArrowRight className="h-4 w-4" />{" "}
+            <span dir="ltr">{prev_id}</span>
           </Link>
         ) : (
           <span />
@@ -112,7 +116,8 @@ export default function VersePage({
             href={`/verse/${next_id.replace(":", "/")}`}
             className="flex items-center gap-1 text-brand-dark hover:underline"
           >
-            {next_id} <ArrowRight className="h-4 w-4" />
+            <span dir="ltr">{next_id}</span>{" "}
+            <ArrowLeft className="h-4 w-4" />
           </Link>
         ) : (
           <span />

@@ -26,7 +26,7 @@ export default function ScrollToTop({ threshold = 400 }: { threshold?: number })
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="العودة إلى الأعلى"
       title="العودة إلى الأعلى"
-      className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand/50"
+      className="fixed bottom-6 end-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand/50"
     >
       <ArrowUp className="h-5 w-5" />
     </button>

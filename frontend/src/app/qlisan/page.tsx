@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Loader2, Search } from "lucide-react";
+import { ArrowLeft, Loader2, Search } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
 import { useCachedState } from "@/lib/pageCache";
 import { statusOf, detailOf } from "@/lib/api";
@@ -156,7 +156,6 @@ export default function QlisanPage() {
         <select
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
-          dir="rtl"
           aria-label={S.verse.surah}
           className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >
@@ -297,7 +296,6 @@ function VerseTokens({
         </span>
       </div>
       <div
-        dir="rtl"
         lang="ar"
         className="arabic-text px-5 py-5 text-3xl leading-loose text-gray-900"
       >
@@ -384,7 +382,7 @@ function StubLevel({
       badge={level.available ? "متاح" : "قيد الإعداد"}
       tone={level.available ? (sourced ? "sourced" : "fact") : "pending"}
     >
-      <p dir="rtl" lang="ar" className="font-arabic text-base text-gray-500">
+      <p lang="ar" className="font-arabic text-base text-gray-500">
         {level.message || "غير متاح بعد."}
       </p>
     </LevelCard>
@@ -405,7 +403,7 @@ function SarfiLevel({
   if (!level.available) {
     return (
       <LevelCard titleAr="صرفي" titleEn="Morphological" badge="غير متاح" tone="pending">
-        <p dir="rtl" lang="ar" className="font-arabic text-base text-gray-500">
+        <p lang="ar" className="font-arabic text-base text-gray-500">
           لا يوجد تحليل صرفي لهذه الكلمة.
         </p>
       </LevelCard>
@@ -424,7 +422,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
   if (!level.available) {
     return (
       <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="غير متاح" tone="pending">
-        <p dir="rtl" lang="ar" className="font-arabic text-base text-gray-500">
+        <p lang="ar" className="font-arabic text-base text-gray-500">
           {level.message || "لا يوجد إعراب محقّق لهذه الكلمة."}
         </p>
       </LevelCard>
@@ -436,7 +434,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
        raw `relation`/`relation_ar` codes are never rendered. The العلامة marker is
        rendered in the صرفي card (under البنية الصرفية), not here. */
     <LevelCard titleAr="نحوي" titleEn="Syntactic" badge="معطى محقّق" tone="fact">
-      <dl className="space-y-3" dir="rtl">
+      <dl className="space-y-3">
         {level.iraab_ar && (
           <FicheRow label="الموقع الإعرابي">
             <span className="font-arabic text-lg text-gray-800">
@@ -455,7 +453,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
                   title={level.head_ref}
                 >
                   {level.head_ref}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowLeft className="h-3.5 w-3.5" />
                 </Link>
               );
             })()}

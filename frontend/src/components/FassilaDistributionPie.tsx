@@ -185,7 +185,7 @@ export default function FassilaDistributionPie({
                 onMouseLeave={() => setTip(null)}
                 aria-pressed={on}
                 aria-label={`${bucket.distinct} فاصلة مميّزة — ${bucket.surah_count} سورة`}
-                className={`flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+                className={`flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-start transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                   on ? "bg-brand-light" : "hover:bg-gray-50"
                 }`}
               >

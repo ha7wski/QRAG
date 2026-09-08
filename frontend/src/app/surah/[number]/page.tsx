@@ -8,10 +8,7 @@ import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { SurahResponse } from "@/lib/types";
 import ArabicText from "@/components/ArabicText";
-
-// Render an integer with Arabic-Indic digits (٠-٩) for the in-text ayah markers.
-const toArabicDigits = (n: number) =>
-  String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]);
+import { toArabicDigits } from "@/lib/arabicDigits";
 
 export default function SurahPage({
   params,
@@ -47,7 +44,7 @@ export default function SurahPage({
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-gray-500">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading surah…
+        <Loader2 className="h-4 w-4 animate-spin" /> {S.verse.loadingSurah}
       </div>
     );
   }
@@ -64,10 +61,12 @@ export default function SurahPage({
     <div className="space-y-5">
       <header className="space-y-1 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-800" dir="rtl">
+          <h1 className="text-2xl font-semibold text-gray-800">
             {data.surah_name_ar || data.surah_name_en}
           </h1>
-          <span className="text-gray-400">Surah {data.surah_number}</span>
+          <span className="text-gray-400">
+            {S.verse.surahNumber(toArabicDigits(data.surah_number))}
+          </span>
         </div>
         <p className="text-sm text-gray-500">
           {data.surah_name_en}
@@ -99,7 +98,7 @@ export default function SurahPage({
             href={`/surah/${number - 1}`}
             className="flex items-center gap-1 text-brand-dark hover:underline"
           >
-            <ArrowLeft className="h-4 w-4" /> Surah {number - 1}
+            <ArrowRight className="h-4 w-4" /> {S.verse.prevSurah}
           </Link>
         ) : (
           <span />
@@ -109,7 +108,7 @@ export default function SurahPage({
             href={`/surah/${number + 1}`}
             className="flex items-center gap-1 text-brand-dark hover:underline"
           >
-            Surah {number + 1} <ArrowRight className="h-4 w-4" />
+            {S.verse.nextSurah} <ArrowLeft className="h-4 w-4" />
           </Link>
         ) : (
           <span />

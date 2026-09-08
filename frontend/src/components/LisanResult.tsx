@@ -1,4 +1,4 @@
-import { ChevronDown, Info } from "lucide-react";
+import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import SarfiRows from "@/components/SarfiRows";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
@@ -42,7 +42,7 @@ export default function LisanResult({
   // yet fully analysed morphologically, so there is real content to show here.
   if (!data.root) {
     return (
-      <div className="space-y-4" dir="rtl">
+      <div className="space-y-4">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 font-arabic text-amber-800">
           {data.message || `No root found for "${data.word}".`}
         </div>
@@ -53,7 +53,7 @@ export default function LisanResult({
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6">
       {/* 1 — Root + fallback badge */}
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap items-baseline gap-3">
@@ -69,7 +69,7 @@ export default function LisanResult({
               جذر تقديري
             </span>
           )}
-          <span className="mr-auto font-arabic text-2xl text-gray-700">
+          <span className="ms-auto font-arabic text-2xl text-gray-700">
             {data.word}
           </span>
         </div>
@@ -99,7 +99,7 @@ export default function LisanResult({
                   </div>
                 </div>
                 <span
-                  className={`mr-auto rounded px-1.5 py-0.5 font-arabic text-[11px] font-medium ${
+                  className={`ms-auto rounded px-1.5 py-0.5 font-arabic text-[11px] font-medium ${
                     CONFIDENCE_STYLES[l.confidence] || CONFIDENCE_STYLES.unknown
                   }`}
                 >
@@ -146,8 +146,15 @@ export default function LisanResult({
                   </span>
                 )}
               </div>
+              {/* The chain separator. A literal `←` is Bidi_Mirrored, so its
+                  orientation inside an RTL run is engine-dependent — that
+                  delegates a directional decision to the renderer. An SVG never
+                  mirrors, and this row lays out right-to-left (design D14). */}
               {i < data.sequential_reading.length - 1 && (
-                <span className="self-center text-gray-400">←</span>
+                <ArrowLeft
+                  aria-hidden
+                  className="h-4 w-4 shrink-0 self-center text-gray-400"
+                />
               )}
             </div>
           ))}
@@ -238,7 +245,7 @@ function GrammarSection({ sarfi }: { sarfi: QlisanFormResponse | null }) {
           Grammatical
         </span>
         {sarfi.available && (
-          <span className="mr-auto rounded-full bg-brand-light px-2 py-0.5 font-arabic text-xs text-brand-dark">
+          <span className="ms-auto rounded-full bg-brand-light px-2 py-0.5 font-arabic text-xs text-brand-dark">
             معطى محقّق
           </span>
         )}
@@ -272,14 +279,14 @@ function Disclaimer({
       <Info className="h-3.5 w-3.5 shrink-0" />
       <span>{text}</span>
       {entries.length > 0 && (
-        <span className="group relative mr-1">
+        <span className="group relative ms-1">
           <button
             type="button"
             className="cursor-help underline decoration-dotted underline-offset-2"
           >
             المصادر
           </button>
-          <span className="pointer-events-none absolute bottom-full right-0 z-10 mb-1 hidden w-72 rounded-lg border border-gray-200 bg-white p-3 text-right text-gray-600 shadow-lg group-hover:block">
+          <span className="pointer-events-none absolute bottom-full start-0 z-10 mb-1 hidden w-72 rounded-lg border border-gray-200 bg-white p-3 text-start text-gray-600 shadow-lg group-hover:block">
             {entries.map(([k, v]) => (
               <span key={k} className="mb-1 block last:mb-0" dir="ltr">
                 <span className="font-medium capitalize text-gray-700">

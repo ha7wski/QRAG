@@ -131,7 +131,6 @@ function LisanAnalysis() {
           value={word}
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
-          dir="rtl"
           placeholder="رحمة"
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />

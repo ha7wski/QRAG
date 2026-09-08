@@ -59,7 +59,6 @@ export default function LevelCard({
       {/* RTL header: the Arabic title sits on the RIGHT (main title), the English
           label to its left, and the badge on the far left. */}
       <header
-        dir="rtl"
         className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5"
       >
         <span className="flex items-baseline gap-2">

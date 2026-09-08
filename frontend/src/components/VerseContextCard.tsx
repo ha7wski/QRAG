@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import ArabicText from "@/components/ArabicText";
 import type { VerseDetail } from "@/lib/types";
 
@@ -30,7 +30,7 @@ export default function VerseContextCard({
           up to 3 verses of context on each side. */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 text-sm text-gray-500">
-          <span className="font-medium text-gray-700" dir="rtl">
+          <span className="font-medium text-gray-700">
             {name}
           </span>
           <span>
@@ -56,7 +56,7 @@ export default function VerseContextCard({
                   {v.ayah_number}
                 </span>
                 <ArabicText
-                  className={`block flex-1 text-right text-2xl leading-loose ${
+                  className={`block flex-1 text-start text-2xl leading-loose ${
                     isMain ? "font-bold text-gray-900" : "text-gray-800"
                   }`}
                 >
@@ -73,7 +73,7 @@ export default function VerseContextCard({
         className="inline-flex items-center gap-1 text-sm font-medium text-brand-dark hover:underline"
       >
         Open full Sourate page
-        <ArrowRight className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" />
       </Link>
     </div>
   );

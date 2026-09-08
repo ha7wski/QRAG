@@ -167,13 +167,13 @@ export default function FassilaAnalysisTab() {
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="text-gray-500">
-                    <th className="border-b border-gray-200 px-3 py-1.5 text-right font-medium">
+                    <th className="border-b border-gray-200 px-3 py-1.5 text-start font-medium">
                       الفاصلة
                     </th>
-                    <th className="border-b border-gray-200 px-3 py-1.5 text-right font-medium">
+                    <th className="border-b border-gray-200 px-3 py-1.5 text-start font-medium">
                       عدد الآيات
                     </th>
-                    <th className="border-b border-gray-200 px-3 py-1.5 text-right font-medium">
+                    <th className="border-b border-gray-200 px-3 py-1.5 text-start font-medium">
                       النسبة
                     </th>
                   </tr>

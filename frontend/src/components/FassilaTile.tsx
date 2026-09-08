@@ -26,7 +26,7 @@ export default function FassilaTile({
         >
           {value}
         </span>
-        {hint && <span className="mr-2 font-arabic text-sm text-gray-500">{hint}</span>}
+        {hint && <span className="ms-2 font-arabic text-sm text-gray-500">{hint}</span>}
       </div>
     </div>
   );

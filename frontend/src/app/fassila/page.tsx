@@ -38,7 +38,7 @@ export default function FassilaPage() {
   };
 
   return (
-    <div dir="rtl" className="space-y-6">
+    <div className="space-y-6">
       <header>
         <h1 className="font-arabic text-2xl font-semibold text-gray-800">
           الفواصل في القرآن الكريم

@@ -46,7 +46,7 @@ export default function FassilaBars({
               style={{ width: `${(c.count / max) * 100}%` }}
             />
           </div>
-          <span className="western-digits text-left text-sm tabular-nums text-gray-500">
+          <span className="western-digits text-end text-sm tabular-nums text-gray-500">
             <b className="text-base text-gray-900">{c.count}</b> آية ·{" "}
             {fmtPercent(c.percentage)}%
           </span>
