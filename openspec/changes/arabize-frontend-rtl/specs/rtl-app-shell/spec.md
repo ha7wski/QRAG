@@ -30,6 +30,12 @@ utility inside them (see the logical-properties requirement).
 - **WHEN** a component renders Arabic content that inherits the document direction
 - **THEN** it does not carry its own `dir="rtl"` attribute.
 
+#### Scenario: The shell declares direction exactly once
+
+- **WHEN** the root layout is rendered on its own
+- **THEN** exactly one element in it carries a `dir` attribute, and that element is the
+  document element — the shell contains no island, so any second carrier is a restatement.
+
 ### Requirement: Navigation sits on the right
 
 The persistent navigation SHALL be anchored to the **right** edge of the viewport on
@@ -170,6 +176,21 @@ declaring `dir="ltr"`. This SHALL cover, at minimum:
 - **WHEN** a Fassila line chart is rendered under the RTL document
 - **THEN** its leftmost vertex is still the lowest X value and its rightmost vertex the
   highest, matching the archived comparison requirements.
+
+#### Scenario: A chart opens at its axis origin, not at its far end
+
+- **WHEN** a chart is wider than the viewport and its scroll container is inspected
+- **THEN** that container declares `dir="ltr"`, so it opens at the lowest X value
+- **AND** this holds for the sequence chart as well as the diversity chart, both of which
+  are reachable from a page whose own direction would otherwise open them at the last āya.
+
+#### Scenario: A symbol that binds to a number
+
+- **WHEN** a label pairs a neutral symbol with a number — a zoom factor «×2», a percentage
+- **THEN** that pair is isolated left-to-right, because a neutral takes the paragraph
+  direction and would otherwise render on the wrong side of its digits
+- **AND** the isolate wraps the pair alone, not the row that contains it: an island large
+  enough to also place the row is doing two jobs, and removing it for one breaks the other.
 
 #### Scenario: Verse references read correctly
 
