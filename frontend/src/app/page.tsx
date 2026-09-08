@@ -44,7 +44,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2.5 text-white hover:opacity-90"
           >
             <MessageSquare className="h-4 w-4" />
-            {S.home.cta}
+            {S.nav.chat}
           </Link>
           <Link
             href="/lexical"

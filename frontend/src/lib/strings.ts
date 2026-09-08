@@ -110,12 +110,6 @@ export const NOUNS = {
     few: "آيات محلَّلة",
     many: "آية محلَّلة",
   },
-  ayaMuqattaa: {
-    one: "آية مقطّعة",
-    two: "آيتين مقطّعتين",
-    few: "آيات مقطّعة",
-    many: "آية مقطّعة",
-  },
   minute: { one: "دقيقة", two: "دقيقتين", few: "دقائق", many: "دقيقة" },
   hour: { one: "ساعة", two: "ساعتين", few: "ساعات", many: "ساعة" },
   day: { one: "يوم", two: "يومين", few: "أيام", many: "يومًا" },
@@ -152,7 +146,12 @@ export const S = {
   home: {
     heading: "دراسةُ القرآن بالقرآن",
     lede: "أداةٌ لقراءة القرآن ودراسة ألفاظه: تسأل فتُجاب من نصّ الآيات، وتتتبّع الجذر في مواضعه، وتقرأ الآية في سياقها. وكلُّ قولٍ مسنَدٌ إلى آيته.",
-    cta: "ابدأ المحاورة",
+    /* The hero's primary button used to carry its own «ابدأ المحاورة» here,
+       one definite article away from the chat card's «ابدأ محاورة» and
+       pointing at the same route. Both hero buttons now name their
+       destination, from `nav` — the words the sidebar and the card titles
+       already use. The verb phrases stay on the cards, where a description
+       is followed by an invitation. */
     cards: {
       chat: {
         title: "محاورة القرآن",
@@ -285,8 +284,8 @@ export const S = {
      *  no attestation, so «لم يُعرف جذر» would state something false. */
     noOccurrences: (word: string, root?: string) =>
       root
-        ? `لم يرد للجذر ${root} — جذرِ ${iso(`«${word}»`)} — موضعٌ في القرآن.`
-        : `لم يرد للكلمة ${iso(`«${word}»`)} موضعٌ في القرآن.`,
+        ? `لم يُعثر على موضعٍ لجذر ${iso(`«${word}»`)} (${root}) في القرآن.`
+        : `لم يُعثر على موضعٍ للكلمة ${iso(`«${word}»`)} في القرآن.`,
     resultAnalysis: "التحليل",
     resultKeyVerses: "آياتٌ شاهدة",
     noRoot: (word: string) => `لم يُعرف جذرٌ للكلمة ${iso(`«${word}»`)}.`,

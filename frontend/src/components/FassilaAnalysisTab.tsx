@@ -107,11 +107,11 @@ export default function FassilaAnalysisTab() {
 
           {data.excluded_ayahs > 0 && (
             <p className="text-sm text-gray-500">
-              استُبعدت{" "}
+              استُبعدت من التحليل{" "}
               <span className="western-digits">
-                {count(data.excluded_ayahs, NOUNS.ayaMuqattaa)}
+                {count(data.excluded_ayahs, NOUNS.aya)}
               </span>{" "}
-              من التحليل ·{" "}
+              من الحروف المقطّعة ·{" "}
               <span className="western-digits">
                 {count(data.analysed_ayahs, NOUNS.ayaMuhallala)}
               </span>

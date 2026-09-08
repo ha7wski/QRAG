@@ -277,3 +277,71 @@ drafted:
    distinct 503 message and no label for the technical line D10 introduces.
 7. **Vocalization is partial and deliberate**: applied where it disambiguates or carries
    the register (مسنَدٌ، مشكولةً، الخادمُ), omitted elsewhere. Say if you want it uniform.
+
+---
+
+## Part C — The delta from groups 5-9 (task 4.6c)
+
+**Decided by the implementer, 2026-09-08, at the owner's instruction** («je veux que tu te
+débrouilles pour les seize chaînes»). Recorded in full because there was no second reader:
+the same person drafted these and passed them, so what follows is the reasoning, not a
+verdict to be taken on trust. Anything here can be reversed with one edit.
+
+Sixteen strings. **Three changed, thirteen kept.**
+
+### Changed
+
+| key | was | is now | why |
+|---|---|---|---|
+| `home.cta` | «ابدأ المحاورة» | *deleted* — the hero uses `nav.chat` «محاورة القرآن» | It sat one definite article away from `home.cards.chat.cta` «ابدأ محاورة», **on the same screen, pointing at the same route**. And the hero's own pair was already mismatched: an action phrase beside a feature name (`nav.lexical`). Each register now does one job — hero buttons name where they go, card CTAs name what you do — which also carries one phrase from sidebar to hero to card title. |
+| `lexical.noOccurrences` | «لم يرد للجذر رحم — جذرِ ⁨«الرحمن»⁩ — موضعٌ في القرآن.» | «لم يُعثر على موضعٍ لجذر ⁨«الرحمن»⁩ (رحم) في القرآن.» | The apposition between em-dashes is a European construction, and the sentence had no reason to invent a shape: `verseStudy.noneFound` already says «لم يُعثر على…». The root moves into parentheses, the reference style the cards use («البقرة (2)») — both sides Arabic, so the mirrored brackets carry no bidi risk. |
+| `NOUNS.ayaMuqattaa` | «آية مقطّعة» ×4 forms | *deleted*; the line reads «استُبعدت من التحليل آية من الحروف المقطّعة» | The agreement was right and **the noun was wrong**, and it predates this change: an āya is not «مقطّعة», it is an āya *of* the disconnected letters. Naming the letters instead needs no series at all — `NOUNS.aya` carries it — and fronting «من التحليل» stops the sentence being read as "an āya was excluded *from* the letters". |
+
+### Kept
+
+| key | value | why it stands |
+|---|---|---|
+| `home.cards.chat.cta` | «ابدأ محاورة» | Verb + indefinite object, parallel across the three cards. Indefinite is the accurate form: a first-time reader has no conversation to resume. |
+| `home.cards.verseStudy.cta` | «ادرس كلمة» | ⟪ same ⟫ |
+| `home.cards.lexical.cta` | «حلِّل كلمة» | ⟪ same ⟫ |
+| `chat.exampleHint` | «مثال: ما يقول القرآن عن الصبر؟» | «ما» rather than the modern «ماذا», matching the interrogative the dictionary already uses in `verseStudy.questionWord` («ما هي الآيات…»). This is the one place the app shows a reader **how to address the corpus**, so it is deliberately a whole question and not a topic. |
+| `chat.retry` | «أعد المحاولة» | Standard imperative; no competing form. |
+| `verse.loadingSurah` | «جارٍ تحميل السورة…» | `جارٍ` + maṣdar is already the file's loading idiom (`verseStudy.loadingContext`, `lexical.loading`). Changing it would mean changing all four. |
+| `verse.loadingVerse` | «جارٍ تحميل الآية…» | ⟪ same ⟫ |
+| `chat.inputLabel` | «سؤالك» | An accessible name, heard alone. Possessive where the other two are definite nouns, and that asymmetry is **meant**: this field holds the reader's own question, the other two hold a lookup key. |
+| `verseStudy.wordLabel` | «الكلمة» | Echoes its tab («الكلمة في الآيات»), which is the phrase a screen reader speaks just before it. |
+| `verseStudy.phraseLabel` | «الآية أو العبارة» | Definite form of its own placeholder — a name, not a repeat of the hint, which an `aria-label` would otherwise cost the reader. |
+| `NOUNS.mawdi` | موضع / موضعين / مواضع / موضعًا | Sound plural مواضع, singular accusative at 11+. Correct at every boundary. |
+| `NOUNS.fasilaMumayyaza` | فاصلة مميّزة / فاصلتين مميّزتين / فواصل مميّزة / فاصلة مميّزة | The adjective agrees with the number too, which is why the phrase is stored whole. Non-human plural takes the feminine singular adjective: «فواصل مميّزة», not «مميّزات». |
+| `NOUNS.ayaMuhallala` | آية محلَّلة / آيتين محلَّلتين / آيات محلَّلة / آية محلَّلة | ⟪ same rule ⟫ |
+| `verse.ayahLabel` | «الآية 255» | Same shape as `verse.surahNumber` «السورة ٢» beside it. Western digits here, Arabic-Indic there, because this header is chrome *about* a verse and that one is a reading context (task 3.4c). |
+
+### Verified in the running page
+
+The rewritten muqaṭṭaʿāt line, on three sūras:
+
+```
+sūra 2   استُبعدت من التحليل آية من الحروف المقطّعة · 285 آية محلَّلة
+sūra 7   استُبعدت من التحليل آية من الحروف المقطّعة · 205 آية محلَّلة
+sūra 42  استُبعدت من التحليل آيتين من الحروف المقطّعة · 51 آية محلَّلة
+```
+
+Sūra 42 is worth naming: الشورى opens with **two** muqaṭṭaʿāt āyāt (حم, عسق), so it is the
+one place in the corpus where this line prints a **dual** — the form the review above calls
+invisible in production until a count of 2 occurs. It prints «آيتين», with no digit.
+
+And the landing page: the hero's two buttons now read «محاورة القرآن» and «تحليل اللسان»,
+both destination names, while the cards below keep «ابدأ محاورة» / «ادرس كلمة» / «حلِّل كلمة».
+
+### Observed and deliberately not changed
+
+`verseStudy.search` is the nominal «بحث» while `lexical.analyze` is the imperative «حلِّل» —
+the inconsistency editorial choice **4** already named, and which the owner confirmed as
+drafted on 2026-09-08. It is outside this delta and stays until they say otherwise.
+
+### Not in this delta, and why
+
+`lexical.noSarfi`, `qlisan.notYetAvailable` and `qlisan.noIrab` became dictionary entries at
+task 5.9c but are **not new strings**: they were already on screen as inline literals, so
+they have been read by anyone who used those pages. Listed so their absence is a decision
+rather than an oversight.
