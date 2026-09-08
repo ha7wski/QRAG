@@ -109,6 +109,11 @@ Typing cannot detect a component that still renders an English literal while its
 sits unused, because `placeholder`, `title` and `aria-label` accept any string. That case is
 covered by the Latin-text audit, not by the compiler.
 
+Nor does typing guard a failure-message migration on its own: a `catch` clause annotated
+`any` makes the exception's `message` an `any`, which is assignable to anything, so a site
+left un-migrated typechecks silently. Catch clauses handling a failure SHALL therefore be
+left to their inferred `unknown` type, so that the shape is checked where it is built.
+
 #### Scenario: A component reads its label from the dictionary
 
 - **WHEN** the chat composer renders its send button and placeholder
