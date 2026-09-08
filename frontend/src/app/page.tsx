@@ -1,33 +1,28 @@
 import Link from "next/link";
 import {
-  ArrowRight,
+  ArrowLeft,
   BookOpen,
   ListTree,
   MessageSquare,
   Type,
 } from "lucide-react";
+import { S } from "@/lib/strings";
 
 const features = [
   {
     href: "/chat",
     icon: MessageSquare,
-    title: "Talk to Quran",
-    desc: "Ask a question in Arabic, French, or English and get a clear answer grounded in the text — every claim backed by the exact verses it comes from.",
-    cta: "Start a conversation",
+    ...S.home.cards.chat,
   },
   {
     href: "/verse-study",
     icon: ListTree,
-    title: "Verse Study",
-    desc: "Type a single Arabic word and see every verse where its root appears across the whole Quran — fully vocalized, with the word highlighted in place.",
-    cta: "Study a word",
+    ...S.home.cards.verseStudy,
   },
   {
     href: "/lexical",
     icon: Type,
-    title: "Lisan Analysis",
-    desc: "Look up an Arabic word by its root and see every place it appears in the Quran, with the shades of meaning it carries across contexts.",
-    cta: "Analyze a word",
+    ...S.home.cards.lexical,
   },
 ];
 
@@ -40,27 +35,23 @@ export default function HomePage() {
           <BookOpen className="h-7 w-7 text-brand-dark" />
         </div>
         <h1 className="text-3xl font-semibold text-gray-900 sm:text-4xl">
-          Explore the Quran, with its sources
+          {S.home.heading}
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600">
-          A trilingual companion for reading and understanding the Quran — ask
-          questions, study the meaning of words, and look up any verse. Every
-          answer points you back to the verses themselves.
-        </p>
+        <p className="mx-auto max-w-2xl text-lg text-gray-600">{S.home.lede}</p>
         <div className="flex justify-center gap-3 pt-2">
           <Link
             href="/chat"
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2.5 text-white hover:opacity-90"
           >
             <MessageSquare className="h-4 w-4" />
-            Talk to Quran
+            {S.home.cta}
           </Link>
           <Link
             href="/lexical"
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-gray-700 hover:bg-gray-50"
           >
             <Type className="h-4 w-4" />
-            Lisan Analysis
+            {S.nav.lexical}
           </Link>
         </div>
       </section>
@@ -80,7 +71,10 @@ export default function HomePage() {
             <p className="flex-1 text-sm text-gray-600">{desc}</p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-dark">
               {cta}
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              {/* An icon is an SVG: it does not mirror with `dir` (design D14).
+                  This arrow means "go here", so under RTL it points left — and
+                  the hover nudge follows it, hence the negative sign. */}
+              <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
             </span>
           </Link>
         ))}
@@ -88,8 +82,7 @@ export default function HomePage() {
 
       {/* Note */}
       <p className="mx-auto max-w-2xl text-center text-sm text-gray-400">
-        Answers are a first level of exploration and always cite their sources —
-        they don&apos;t replace scholarly interpretation (tafsir).
+        {S.home.note}
       </p>
     </div>
   );
