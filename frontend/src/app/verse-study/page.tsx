@@ -36,6 +36,10 @@ import type {
 } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
+// Explicit conversion, never the font's `locl`: design D22 measured that Amiri
+// renders 0-9 identically under `lang="ar"`, so a badge left to the font stays
+// Western while the surah page's converts — the two pages disagreed on screen.
+import { toArabicDigits } from "@/lib/arabicDigits";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
@@ -236,7 +240,7 @@ function SurahCard({
                 >
                   <HighlightedVerse text={v.text} indices={v.match_indices} />{" "}
                   <span className="align-middle text-sm text-gray-400">
-                    ﴿{v.aya_number}﴾
+                    ﴿{toArabicDigits(v.aya_number)}﴾
                   </span>
                 </div>
               </button>
@@ -817,7 +821,7 @@ function SimilarVerseCard({
         >
           {verse.text_ar_tashkil || verse.text_ar}{" "}
           <span className="align-middle text-sm text-gray-400">
-            ﴿{verse.ayah_number}﴾
+            ﴿{toArabicDigits(verse.ayah_number)}﴾
           </span>
         </div>
       </button>
@@ -947,7 +951,9 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
           min={1}
           max={maxAyah}
           aria-label={S.verse.ayahNumber}
-          className="w-28 rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
+          // `text-center` to match the two sibling āya boxes: this was the only
+          // one aligning to the start, which after the flip means the right edge.
+          className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-brand focus:outline-none"
         />
         <span className="western-digits text-sm text-gray-400">
           <span dir="ltr">/ {maxAyah}</span>

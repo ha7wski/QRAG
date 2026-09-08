@@ -122,7 +122,8 @@ export const NOUNS = {
 } as const satisfies Record<string, NounForms>;
 
 export const S = {
-  /** The application's only name. "Quran RAG" appears nowhere. */
+  /** The application's only name. The old Latin brand appears nowhere —
+   *  including here: naming it would be the sole hit of the 9.2c check. */
   app: {
     name: "القرآن بالقرآن",
     /** <title> — kept identical to the name so the browser tab is recognisable. */
@@ -292,6 +293,7 @@ export const S = {
     ayahNumber: "رقم الآية",
     surah: "السورة",
     surahNumber: (digits: string) => `السورة ${digits}`,
+    ayahLabel: (digits: string) => `الآية ${digits}`,
     ayahCount: (n: number, digits: string) => count(n, NOUNS.aya, digits),
     juz: (digits: string) => `الجزء ${digits}`,
     score: "درجة المطابقة",

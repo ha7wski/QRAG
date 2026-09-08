@@ -66,7 +66,10 @@ export default function VersePage({
   }
 
   const { verse, context, prev_id, next_id } = data;
-  const surahName = verse.surah_name_en || verse.surah_name_ar;
+  // The same reversal `VerseCard` needed: the Arabic name is the required
+  // field and the transliteration the optional one, yet this led with the
+  // transliteration — so a deep link opened in Latin.
+  const surahName = verse.surah_name_ar || verse.surah_name_en;
 
   return (
     <div className="space-y-5">
@@ -76,9 +79,18 @@ export default function VersePage({
           className="flex items-center gap-1.5 text-sm text-brand-dark hover:underline"
         >
           <BookOpen className="h-4 w-4" />
-          {surahName} (Surah {verse.surah_number})
+          {surahName}{" "}
+          {/* The reference style the cards already use. The brackets are
+              bidi-mirrored, so the numeric part is isolated rather than left
+              to resolve against whichever script precedes it. */}
+          <span dir="ltr">({verse.surah_number})</span>
         </Link>
-        <span className="text-sm text-gray-400">Verse {verse.ayah_number}</span>
+        {/* Western digits, matching the reference beside it rather than the
+            Arabic-Indic of a reading context: this header is chrome about a
+            verse, not the verse (task 3.4c). */}
+        <span className="western-digits text-sm text-gray-400">
+          {S.verse.ayahLabel(String(verse.ayah_number))}
+        </span>
       </div>
 
       <VerseCard verse={verse} linkable={false} />

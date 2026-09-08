@@ -3,12 +3,12 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Type } from "lucide-react";
-import { API_URL, qlisanForm } from "@/lib/api";
+import { API_URL, ApiError, qlisanForm } from "@/lib/api";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { statusOf, detailOf } from "@/lib/api";
-import { S, forStatus } from "@/lib/strings";
+import { S, forStatus, type FailureKind } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import LisanResult from "@/components/LisanResult";
 
@@ -96,17 +96,23 @@ function LisanAnalysis() {
         } catch {
           /* non-JSON error body — keep the status message */
         }
-        throw new Error(detail);
+        // `ApiError`, not `Error`: a plain Error drops the status, and the
+        // status is what picks the Arabic sentence. Thrown as a bare Error,
+        // a 422 read as `undefined` and announced itself as an outage.
+        throw new ApiError(detail, res.status);
       }
       const payload = await res.json();
       if (seq === runSeq.current) setData(payload);
     } catch (e) {
       if (seq === runSeq.current) {
         setData(null);
-        setError({
-          text: forStatus(statusOf(e), "analysis"),
-          detail: detailOf(e),
-        });
+        // The backend rejects a non-Arabic word with 422. Naming that kind
+        // here — from the input, which is the same rule the backend applies —
+        // turns «تعذّر التحليل» into a sentence that says what to fix (D17).
+        const kind: FailureKind = /\p{Script=Arabic}/u.test(typed)
+          ? "analysis"
+          : "nonArabicWord";
+        setError({ text: forStatus(statusOf(e), kind), detail: detailOf(e) });
       }
     } finally {
       if (seq === runSeq.current) setLoading(false);

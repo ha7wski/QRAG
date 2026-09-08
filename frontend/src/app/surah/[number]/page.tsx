@@ -57,6 +57,11 @@ export default function SurahPage({
     );
   }
 
+  // Mapped, never rendered raw: the corpus emits `makkiyya` / `madani`.
+  const period = data.period
+    ? (S.verse.period as Record<string, string | undefined>)[data.period]
+    : undefined;
+
   return (
     <div className="space-y-5">
       <header className="space-y-1 border-b border-gray-200 pb-3">
@@ -68,11 +73,16 @@ export default function SurahPage({
             {S.verse.surahNumber(toArabicDigits(data.surah_number))}
           </span>
         </div>
+        {/* This line used to read «The Cow · La Vache · 286 verses · madani».
+            The translated names are dropped rather than translated — the page
+            reads a sūra in Arabic — and the period goes through the same map
+            `VerseCard` uses, an unknown value rendering nothing rather than
+            leaking the machine id. Digits are Arabic-Indic to match the sūra
+            number above them, this being a reading context and not an
+            analytical one. */}
         <p className="text-sm text-gray-500">
-          {data.surah_name_en}
-          {data.surah_name_fr ? ` · ${data.surah_name_fr}` : ""} · {data.ayah_count}{" "}
-          verses
-          {data.period ? ` · ${data.period}` : ""}
+          {period ? `${period} · ` : ""}
+          {S.verse.ayahCount(data.ayah_count, toArabicDigits(data.ayah_count))}
         </p>
       </header>
 
