@@ -28,6 +28,7 @@ import type {
   VerseLookupVerse,
 } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
+import { S } from "@/lib/strings";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
 
@@ -88,10 +89,12 @@ function VerseStudy() {
   // The verse (if any) requested for the context tab from another tab or a deep link.
   const [contextTarget, setContextTarget] = useState<ContextTarget | null>(null);
 
+  // Identities stay `word` / `similar` / `context`; only the labels are Arabic.
+  // They read right-to-left in this order, so `word` is the rightmost tab.
   const tabs: [Tab, string][] = [
-    ["word", "Word in Verses"],
-    ["similar", "Similar Verses"],
-    ["context", "Find Verse context"],
+    ["word", S.verseStudy.tabs.word],
+    ["similar", S.verseStudy.tabs.similar],
+    ["context", S.verseStudy.tabs.context],
   ];
 
   // Open a verse in the context tab. Bump the nonce via a functional update so
@@ -120,11 +123,10 @@ function VerseStudy() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">Verse Study</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Type a single Arabic word — see every verse where its root appears,
-          fully vocalized.
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          {S.verseStudy.heading}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">{S.verseStudy.caption}</p>
       </div>
 
       {/* Tabs */}
@@ -196,7 +198,10 @@ function SurahCard({
         {/* Format: «اسم السورة (رقم)، عدد الآيات : N» */}
         <span dir="rtl" className="font-arabic text-lg">
           <span className="font-semibold text-gray-800">{group.name}</span>
-          <span className="text-gray-400"> ({group.number})</span>
+          <span className="text-gray-400">
+            {" "}
+            <span dir="ltr">({group.number})</span>
+          </span>
           <span className="text-gray-600">
             ، عدد الآيات : {group.verses.length}
           </span>
@@ -215,7 +220,7 @@ function SurahCard({
               <button
                 type="button"
                 onClick={() => openInContext(v.surah_number, v.aya_number)}
-                title="افتح الآية في سياقها"
+                title={S.verseStudy.openInContext}
                 className="block w-full px-4 py-3 text-right transition hover:bg-brand-light/50"
               >
                 <div
@@ -331,7 +336,7 @@ function WordInVerses({
         {word.trim() ? (
           <>
             ما هي الآيات والسور التي وردت فيها{" "}
-            <span className="font-bold text-brand-dark">
+            <span dir="auto" className="font-bold text-brand-dark">
               &laquo;{word.trim()}&raquo;
             </span>{" "}
             ؟
@@ -349,7 +354,7 @@ function WordInVerses({
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
           dir="rtl"
-          placeholder="اكتب كلمة عربية"
+          placeholder={S.verseStudy.wordPlaceholder}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button
@@ -396,14 +401,41 @@ function WordInVerses({
                   highlighted after the لفظ count. When the root carries many
                   lemmas (>2), the long lemma list would wrap awkwardly beside the
                   root, so the bar stacks vertically instead: root on top, the
-                  results below it. */}
+                  results below it.
+
+                  Source order is logical — root first, totals second — and the
+                  document's RTL direction is what puts the root on the right.
+                  This row used to be hand-reversed, which the root flip would
+                  have inverted. Note the coupling: `flex-col` (not `-reverse`)
+                  is what keeps the root on top now that it comes first, the
+                  block axis being direction-independent. */}
               <div
                 className={`gap-2 rounded-lg bg-gray-100 px-4 py-3 ${
                   !data.is_proper_noun && data.lemmas.length > 2
-                    ? "flex flex-col-reverse items-end"
+                    ? "flex flex-col items-start"
                     : "flex flex-wrap items-center justify-between"
                 }`}
               >
+                <span
+                  dir="rtl"
+                  lang="ar"
+                  className="flex items-baseline gap-2 font-arabic"
+                >
+                  <span className="text-sm text-gray-500">
+                    {data.is_proper_noun
+                      ? S.verseStudy.properNoun
+                      : S.verseStudy.root}
+                  </span>
+                  <span
+                    className={`text-3xl text-brand-dark ${
+                      data.is_proper_noun ? "" : "tracking-widest"
+                    }`}
+                  >
+                    {data.is_proper_noun
+                      ? data.lemmas[0]?.lemma_display
+                      : data.root}
+                  </span>
+                </span>
                 <span
                   dir="rtl"
                   lang="ar"
@@ -422,7 +454,7 @@ function WordInVerses({
                             <button
                               type="button"
                               onClick={() => goToLemma(i, lkey)}
-                              title="اذهب إلى مواضع هذا اللفظ"
+                              title={S.verseStudy.lemmaJump}
                               className="cursor-pointer rounded bg-brand/15 px-1 font-semibold text-brand-dark hover:bg-brand/25"
                             >
                               {lg.lemma_display}
@@ -434,24 +466,6 @@ function WordInVerses({
                       )
                     </>
                   )}
-                </span>
-                <span
-                  dir="rtl"
-                  lang="ar"
-                  className="flex items-baseline gap-2 font-arabic"
-                >
-                  <span className="text-sm text-gray-500">
-                    {data.is_proper_noun ? "اسم علم" : "الجذر"}
-                  </span>
-                  <span
-                    className={`text-3xl text-brand-dark ${
-                      data.is_proper_noun ? "" : "tracking-widest"
-                    }`}
-                  >
-                    {data.is_proper_noun
-                      ? data.lemmas[0]?.lemma_display
-                      : data.root}
-                  </span>
                 </span>
               </div>
 
@@ -646,7 +660,7 @@ function SimilarVerses() {
         {query.trim() ? (
           <>
             ما هي الآيات القريبة في المعنى من{" "}
-            <span className="font-bold text-brand-dark">
+            <span dir="auto" className="font-bold text-brand-dark">
               &laquo;{query.trim()}&raquo;
             </span>{" "}
             ؟
@@ -664,7 +678,7 @@ function SimilarVerses() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
           dir="rtl"
-          placeholder="اكتب آية أو عبارة"
+          placeholder={S.verseStudy.phrasePlaceholder}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button
@@ -681,10 +695,7 @@ function SimilarVerses() {
         </button>
       </div>
 
-      <p className="text-xs text-gray-400">
-        Root-aware + keyword search across all 6236 verses, reranked by
-        relevance — returns the closest matches (top 20).
-      </p>
+      <p className="text-xs text-gray-400">{S.verseStudy.similarNote}</p>
 
       {error && (
         <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -707,13 +718,13 @@ function SimilarVerses() {
               lang="ar"
               className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
-              لم يُعثر على آيات قريبة
+              {S.verseStudy.noneFound}
             </div>
           ) : (
             <>
               <div dir="rtl" className="rounded-lg bg-gray-100 px-4 py-3 text-right">
                 <span lang="ar" className="font-arabic text-lg text-gray-800">
-                  أقرب {data.results.length} آية
+                  {S.verseStudy.nearest(data.results.length)}
                 </span>
               </div>
               <div className="space-y-3">
@@ -902,10 +913,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-500">
-        Pick a surah and an ayah to read that verse in context — shown with the
-        three verses before and after it.
-      </p>
+      <p className="text-sm text-gray-500">{S.verseStudy.contextCaption}</p>
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Surah picker — Arabic names. */}
@@ -913,6 +921,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
           dir="rtl"
+          aria-label={S.verse.surah}
           className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
         >
           {surahs.map((s) => (
@@ -930,10 +939,12 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
           type="number"
           min={1}
           max={maxAyah}
-          aria-label="Ayah number"
+          aria-label={S.verse.ayahNumber}
           className="w-28 rounded-lg border border-gray-300 px-3 py-2 focus:border-brand focus:outline-none"
         />
-        <span className="text-sm text-gray-400">/ {maxAyah}</span>
+        <span className="western-digits text-sm text-gray-400">
+          <span dir="ltr">/ {maxAyah}</span>
+        </span>
 
         <button
           onClick={() => lookup()}
@@ -945,7 +956,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
           ) : (
             <Search className="h-4 w-4" />
           )}
-          Show verse
+          {S.verseStudy.showVerse}
         </button>
       </div>
 

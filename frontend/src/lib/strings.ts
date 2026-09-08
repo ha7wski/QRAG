@@ -184,9 +184,20 @@ export const S = {
     showVerse: "اعرض الآية",
     loadingContext: "جارٍ تحميل السياق…",
     root: "الجذر",
-    ayahCount: (n: number, digits: string) => `عدد الآيات : ${digits}`,
-    surahCount: (n: number, digits: string) => `عدد السور : ${digits}`,
-    lafzCount: (n: number, digits: string) => `عدد الألفاظ : ${digits}`,
+    properNoun: "اسم علم",
+    lemmaJump: "اذهب إلى مواضع هذا اللفظ",
+    openInContext: "افتح الآية في سياقها",
+    noneFound: "لم يُعثر على آيات قريبة",
+    /**
+     * Label fragments, not whole sentences. The counted-noun rule of `count()`
+     * does not apply here: «عدد الآيات» is a definite plural in an annexation, so
+     * one form is correct for every value. They are fragments rather than
+     * functions because the sentence they belong to embeds clickable lemma
+     * buttons, so it has to be composed in JSX (design D5).
+     */
+    ayahCountLabel: "عدد الآيات :",
+    surahCountLabel: "عدد السور :",
+    lafzCountLabel: "عدد الألفاظ :",
   },
 
   qlisan: {
