@@ -1,129 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { getSurah, statusOf, detailOf } from "@/lib/api";
-import { S, forStatus } from "@/lib/strings";
-import FailureNote, { type Failure } from "@/components/FailureNote";
-import type { SurahResponse } from "@/lib/types";
-import ArabicText from "@/components/ArabicText";
-import { toArabicDigits } from "@/lib/arabicDigits";
+import SurahReader from "@/components/SurahReader";
 
-export default function SurahPage({
-  params,
-}: {
-  params: { number: string };
-}) {
-  const number = Number(params.number);
-  const [data, setData] = useState<SurahResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Failure | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setData(null);
-    getSurah(number)
-      .then((d) => !cancelled && setData(d))
-      .catch(
-        (e) =>
-          !cancelled &&
-          setError({
-            text: forStatus(statusOf(e), "surah"),
-            detail: detailOf(e),
-          }),
-      )
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [number]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-gray-500">
-        <Loader2 className="h-4 w-4 animate-spin" /> {S.verse.loadingSurah}
-      </div>
-    );
-  }
-  if (error || !data) {
-    return (
-      <FailureNote
-        failure={error ?? { text: S.errors.surahNotFound }}
-        className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
-      />
-    );
-  }
-
-  // Mapped, never rendered raw: the corpus emits `makkiyya` / `madani`.
-  const period = data.period
-    ? (S.verse.period as Record<string, string | undefined>)[data.period]
-    : undefined;
-
-  return (
-    <div className="space-y-5">
-      <header className="space-y-1 border-b border-gray-200 pb-3">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            {data.surah_name_ar || data.surah_name_en}
-          </h1>
-          <span className="text-gray-400">
-            {S.verse.surahNumber(toArabicDigits(data.surah_number))}
-          </span>
-        </div>
-        {/* This line used to read «The Cow · La Vache · 286 verses · madani».
-            The translated names are dropped rather than translated — the page
-            reads a sūra in Arabic — and the period goes through the same map
-            `VerseCard` uses, an unknown value rendering nothing rather than
-            leaking the machine id. Digits are Arabic-Indic to match the sūra
-            number above them, this being a reading context and not an
-            analytical one. */}
-        <p className="text-sm text-gray-500">
-          {period ? `${period} · ` : ""}
-          {S.verse.ayahCount(data.ayah_count, toArabicDigits(data.ayah_count))}
-        </p>
-      </header>
-
-      {/* The whole surah as one continuous block (Arabic only): verses flow
-          together, each followed by its ayah number, and the page scrolls to
-          the end. */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <ArabicText className="block text-justify text-3xl leading-[2.6] text-gray-900">
-          {data.verses.map((v) => (
-            <span key={v.id}>
-              {v.text_ar_tashkil || v.text_ar}
-              <span className="mx-1.5 align-middle text-xl font-semibold text-brand-dark">
-                ﴿{toArabicDigits(v.ayah_number)}﴾
-              </span>{" "}
-            </span>
-          ))}
-        </ArabicText>
-      </div>
-
-      <nav className="flex items-center justify-between border-t border-gray-200 pt-3 text-sm">
-        {number > 1 ? (
-          <Link
-            href={`/surah/${number - 1}`}
-            className="flex items-center gap-1 text-brand-dark hover:underline"
-          >
-            <ArrowRight className="h-4 w-4" /> {S.verse.prevSurah}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {number < 114 ? (
-          <Link
-            href={`/surah/${number + 1}`}
-            className="flex items-center gap-1 text-brand-dark hover:underline"
-          >
-            {S.verse.nextSurah} <ArrowLeft className="h-4 w-4" />
-          </Link>
-        ) : (
-          <span />
-        )}
-      </nav>
-    </div>
-  );
+/**
+ * A surah at its own address — the target of every verse reference emitted
+ * elsewhere in the app (`VerseCard`, `VerseContextCard`, `/verse/{s}/{a}`).
+ *
+ * A thin wrapper on purpose: `/surah` and `/surah/{n}` render the SAME
+ * component, so the resumed and the addressed reading surfaces cannot drift.
+ */
+export default function SurahPage({ params }: { params: { number: string } }) {
+  return <SurahReader number={Number(params.number)} />;
 }

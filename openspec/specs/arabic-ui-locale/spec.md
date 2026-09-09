@@ -157,11 +157,15 @@ realignment.
 |---|---|---|
 | — (application) | «القرآن بالقرآن» | brand |
 | `/chat` | «محاورة القرآن» | yes |
+| `/surah` | «سور القرآن» | yes |
 | `/verse-study` | «دراسة الآية» | yes |
-| `/fassila` | «الفواصل» | yes |
 | `/lexical` | «تحليل اللسان» | yes |
 | `/tahlil` | «التحليل النحوي» | yes |
+| `/fassila` | «الفواصل» | yes |
 | `/qlisan` | «بطاقة الكلمة» | **no** |
+
+`/surah/{number}` is the same page as `/surah`, addressed at a particular sūra; it carries
+the same Arabic name and is not a separate entry.
 
 The string "Quran RAG" SHALL NOT appear anywhere in the interface; «القرآن بالقرآن» is
 the application's only name.
@@ -175,6 +179,12 @@ half-migrated page.
 - **WHEN** a route is named in the navigation and in its own page heading
 - **THEN** both show the same Arabic name
 - **AND** the browser URL for that route is unchanged from before this change.
+
+#### Scenario: A route addressed at a resource keeps its page name
+
+- **WHEN** `/surah/2` is opened
+- **THEN** the page is named «سور القرآن» wherever the interface names the page
+- **AND** the sūra's own name is shown as the content's heading, not as the page's name.
 
 #### Scenario: The old application name is gone
 

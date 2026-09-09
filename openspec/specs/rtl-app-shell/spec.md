@@ -67,10 +67,16 @@ opened from a top bar whose menu control sits at the right.
 #### Scenario: Navigation item set and order
 
 - **WHEN** the navigation renders its items
-- **THEN** it shows exactly five entries, top to bottom: «محاورة القرآن»، «دراسة الآية»،
-  «الفواصل»، «تحليل اللسان»، «التحليل النحوي»
+- **THEN** it shows exactly six entries, top to bottom: «محاورة القرآن»، «سور القرآن»،
+  «دراسة الآية»، «تحليل اللسان»، «التحليل النحوي»، «الفواصل»
 - **AND** no entry points to `/qlisan`
 - **AND** each item's icon and Arabic label read right-to-left within the row.
+
+#### Scenario: Each entry is told apart by its icon
+
+- **WHEN** the navigation renders its items
+- **THEN** no two entries carry the same icon
+- **AND** no entry carries the icon used for the brand.
 
 #### Scenario: Brand in the navigation header
 

@@ -9,20 +9,28 @@ import {
   ListTree,
   Menu,
   MessageSquare,
+  ScrollText,
   Type,
   X,
 } from "lucide-react";
 import { S } from "@/lib/strings";
 
-// Five entries. `/qlisan` keeps its route, its page and its endpoints but leaves
-// the navigation (design D11), so it is reachable by direct URL only — which is
-// why it is still Arabized and re-directioned like every other route.
+// Six entries, reading before analysis: the reader arrives at the Quran itself.
+// `/qlisan` keeps its route, its page and its endpoints but leaves the
+// navigation (design D11), so it is reachable by direct URL only — which is why
+// it is still Arabized and re-directioned like every other route.
+//
+// `/surah` is the resume entry point; `isActive` uses `startsWith`, so it also
+// highlights on `/surah/{n}`. `ScrollText` is the reading mark: `BookOpen` is
+// taken twice over (the brand, and «التحليل النحوي»), and no two entries may
+// share an icon.
 const links = [
   { href: "/chat", label: S.nav.chat, icon: MessageSquare },
+  { href: "/surah", label: S.nav.surahs, icon: ScrollText },
   { href: "/verse-study", label: S.nav.verseStudy, icon: ListTree },
-  { href: "/fassila", label: S.nav.fassila, icon: Activity },
   { href: "/lexical", label: S.nav.lexical, icon: Type },
   { href: "/tahlil", label: S.nav.tahlil, icon: BookOpen },
+  { href: "/fassila", label: S.nav.fassila, icon: Activity },
 ];
 
 /**

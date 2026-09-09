@@ -129,6 +129,7 @@ export const S = {
 
   nav: {
     chat: "محاورة القرآن",
+    surahs: "سور القرآن",
     verseStudy: "دراسة الآية",
     fassila: "الفواصل",
     lexical: "تحليل اللسان",
@@ -315,6 +316,19 @@ export const S = {
      * pair one would guess. Verified against `verses_final.json` and `GET /surah/1`.
      */
     period: { makkiyya: "مكية", madani: "مدنية" },
+  },
+
+  /** The «سور القرآن» reading page: the picker above the surah, and its failures. */
+  reading: {
+    pickerLabel: "اختر السورة",
+    /** Option text: «٢ · البقرة». The number is Arabic-Indic, this being a
+     *  reading context — the same choice the surah header makes. */
+    option: (digits: string, name: string) => `${digits} · ${name}`,
+    loadingSurahs: "جارٍ تحميل السور…",
+    /** The picker failed while the surah itself may still be readable, so the
+     *  note invites a retry rather than reporting the page as broken. */
+    surahsFailed: "تعذّر تحميل قائمة السور؛ أعد المحاولة.",
+    resuming: "جارٍ فتح آخر ما قرأت…",
   },
 
   health: {

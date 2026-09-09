@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from indexing.corpus import chakl_by_ref
+from indexing.corpus import chakl_by_ref, strip_leading_basmala
 
 
 class Verse(BaseModel):
@@ -57,6 +57,11 @@ class SurahResponse(BaseModel):
     surah_name_fr: str = ""
     period: str = ""
     ayah_count: int
+    # The surah's own opening Basmala, to be shown once as a heading rather than
+    # welded onto ayah 1. Empty for al-Fatiha (where it IS ayah 1, already in
+    # `verses`) and for at-Tawba (which has none) — so a consumer renders the
+    # field when non-empty and holds no scripture rule of its own.
+    basmala: str = ""
     verses: list[Verse]
 
 
@@ -66,10 +71,23 @@ def verse_from_record(record: dict, text_ar_tashkil: str | None = None) -> Verse
     `text_ar_tashkil` (fully vocalized text) is auto-filled from the shared
     chakl source so every verse shown in the UI is vocalized; pass it
     explicitly only to override.
+
+    The auto-filled text goes through `strip_leading_basmala`: the chakl CSV
+    prepends the Basmala to ayah 1 of 113 surahs, and this function is the choke
+    point every display surface passes through (`/chat` sources, `/search`,
+    `/verse/{s}/{a}`, `/surah/{n}`), so correcting it here corrects all of them
+    at once. An explicitly passed override is the caller's own text and is left
+    exactly as given.
     """
     if text_ar_tashkil is None:
         entry = chakl_by_ref().get((record["surah_number"], record["ayah_number"]))
-        text_ar_tashkil = entry["text"] if entry else ""
+        text_ar_tashkil = (
+            strip_leading_basmala(
+                record["surah_number"], record["ayah_number"], entry["text"]
+            )
+            if entry
+            else ""
+        )
     return Verse(
         id=record["id"],
         surah_number=record["surah_number"],

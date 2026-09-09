@@ -9,6 +9,7 @@ from api.models.verse import (
     VerseDetailResponse,
     verse_from_record,
 )
+from indexing.corpus import surah_basmala
 
 router = APIRouter(tags=["verse"])
 
@@ -62,5 +63,8 @@ def get_surah(
         surah_name_fr=first.get("surah_name_fr", ""),
         period=first.get("period", ""),
         ayah_count=len(verses),
+        # Derived from the corpus, not from the surah number: the field is empty
+        # exactly where the corpus row for ayah 1 carried no prepended Basmala.
+        basmala=surah_basmala(number),
         verses=[verse_from_record(v) for v in verses],
     )

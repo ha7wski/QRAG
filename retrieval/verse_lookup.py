@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.corpus import chakl_by_ref  # noqa: E402
+from indexing.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
 from indexing.text_normalize import normalize_search  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
     LexicalRetriever,
@@ -163,12 +163,17 @@ class VerseLookup:
         if chakl is None:
             logger.warning("VerseLookup: no vocalized row for %s, skipping.", vid)
             return None
+        # This row bypasses `verse_from_record`, so it applies the strip itself —
+        # and applies it BEFORE `_match_indices`, whose output is a list of token
+        # positions in the emitted text. Highlighting the raw row and shipping the
+        # stripped one would shift every index by the Basmala's four tokens.
+        text = strip_leading_basmala(s, a, chakl["text"])
         return {
             "surah_number": s,
             "surah_name": chakl["surah_name"],
             "aya_number": a,
-            "text": chakl["text"],
-            "match_indices": self._match_indices(chakl["text"], forms),
+            "text": text,
+            "match_indices": self._match_indices(text, forms),
         }
 
     def _rows_for(self, verse_ids: list[str], forms_found: list[str]) -> list[dict]:

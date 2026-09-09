@@ -77,6 +77,9 @@ export interface SurahResponse {
   surah_name_fr?: string;
   period?: string;
   ayah_count: number;
+  /** The surah's opening Basmala, to render once as a heading. Empty for
+   *  al-Fatiha (where it is ayah 1, already in `verses`) and for at-Tawba. */
+  basmala?: string;
   verses: Verse[];
 }
 
