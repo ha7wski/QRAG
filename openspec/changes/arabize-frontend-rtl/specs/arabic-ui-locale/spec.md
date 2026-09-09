@@ -46,6 +46,15 @@ not make a string exempt.
 - **AND** a `placeholder` is never the only accessible name, because a placeholder is an
   example value rather than a label.
 
+#### Scenario: An English string already written to a reader's storage
+
+- **WHEN** a previous version persisted an interface string into the reader's browser
+  storage — a default conversation title, say — so that it reaches the screen from disk
+  rather than from the code
+- **THEN** it is mapped to its Arabic form **on read**, and no English default reappears
+- **AND** the stored data is not discarded to achieve this: bumping a store version would
+  make the reader's saved conversations the price of a translation.
+
 #### Scenario: Failure and empty states are Arabic
 
 - **WHEN** a request fails, returns nothing, or the backend reports a degraded or

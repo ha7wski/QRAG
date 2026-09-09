@@ -64,6 +64,13 @@ removes that decision from every future change.
   site by the direction the element resolves to today** (design D12) — `text-right` means
   `text-end` on an LTR-resolving element and `text-start` inside a `dir="rtl"` subtree — and
   the redundant `dir` attributes are deleted *after* the sweep, because they are its input.
+  > **Corrected during implementation, by measurement.** There is **one** table, the mirror
+  > one, because after the flip every element outside an LTR island resolves RTL — so this
+  > paragraph's table would have inverted *every* site, not some of them. The pre-flip
+  > direction judges intent, it does not choose the mapping. The two-table rule survives for
+  > exactly one class, auto margins on flex items, where the physical side names the side of
+  > the main axis that absorbs the free space. See design D12 and the logical-properties
+  > requirement.
 - The properties that follow no direction at all are handled by hand and enumerated:
   transforms, gradient direction, inline `style` insets, and the nine directional icon
   glyphs, which are SVG paths and do not mirror.
@@ -92,6 +99,14 @@ class. Moving `lang` from `en` to `ar` on `<html>` arms the OpenType `locl` subs
 document-wide — the very mechanism `.western-digits` exists to disable — so the policy is
 preserved by inverting that opt-out into an opt-in and by making every reading number
 explicit, rather than by leaving it alone (design D22).
+
+> **Disproven during implementation, by measurement.** Amiri v30 renders `0123456789`
+> pixel-identically under `lang="en"`, under `lang="ar"`, and with `locl` forced on or off:
+> the substitution this paragraph fears does not fire, and the inversion it proposes was
+> therefore dropped. The *other* half survived and turned out to matter more — a badge left
+> to a font feature had never been Arabic-Indic at all, which is why `/surah/2` and
+> `/verse-study` disagreed on screen until every reading number was made explicit. See
+> design D22 and task 3.4c.
 
 ## Capabilities
 

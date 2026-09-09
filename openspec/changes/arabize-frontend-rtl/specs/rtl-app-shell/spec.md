@@ -16,8 +16,9 @@ explicit `dir="rtl"`, because the direction it declares is part of that componen
 contract rather than a restatement scattered through the tree.
 
 The redundant attributes SHALL be removed **after** the physical-utility sweep, not before
-it: those attributes are what tells the sweep which of the two mappings applies to each
-utility inside them (see the logical-properties requirement).
+it: they are the only record of which sites resolved left-to-right before the flip, and that
+record is what shows where the conversion changed an author's *intent* rather than only its
+spelling (see the logical-properties requirement).
 
 #### Scenario: Document direction
 
@@ -109,18 +110,37 @@ with direction-aware logical utilities (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-
 physical ones (`ml-`/`mr-`, `pl-`/`pr-`, `left-`/`right-`, `border-l`/`border-r`,
 `rounded-l`/`rounded-r`, `text-left`/`text-right`).
 
-Converting a physical utility to a logical one is **not** a name-for-name substitution. A
-physical utility encodes the side its author wanted **given the direction their element
-resolved to at the time**, so the correct logical form depends on that direction: on an
-LTR-resolving element `mr-` means inline-end (`me-`), while inside a `dir="rtl"` subtree the
-same `mr-` already means inline-**start** (`ms-`). The two mappings are mirrors, and applying
-one table to the whole tree inverts every site of the other kind. A residue grep confirms
-**coverage**, never correctness — it passes identically on a correct and an inverted
-conversion.
+Converting a physical utility to a logical one is **not** a name-for-name substitution, and
+which substitution is correct SHALL be settled by measuring the rendered result rather than
+by reasoning about the author's intent.
 
-Utilities that are *already* logical — `justify-end`, `items-end`, `self-end`, `*-auto`
-margins — are invisible to that grep and yet invert when the root direction flips. Each SHALL
-be re-derived from its intent rather than assumed correct because the diff did not touch it.
+Once direction is declared at the root, every element outside an LTR island resolves
+right-to-left. The rendering-preserving conversion is therefore the **mirror** one, and it is
+uniform: `mr-`→`ms-`, `ml-`→`me-`, `text-right`→`text-start`, `text-left`→`text-end`,
+`right-`→`start-`, `left-`→`end-`. The obvious name-for-name table (`mr-`→`me-`) does not
+invert *some* sites — it inverts **every** site outside an island.
+
+The direction an element resolved to before the flip does not choose the table; it says
+whether the conversion preserved the author's intent as well as the pixels. On an element
+that already resolved RTL it preserves both. On one that resolved LTR the author wrote the
+utility meaning inline-end and the mirror hands them inline-start, so those sites SHALL be
+decided individually and each decision recorded.
+
+**One class is exempt, and exempt in the opposite direction.** An auto inline margin on a
+flex item is not a position: it is the side of the main axis that absorbs the free space.
+Mirroring it moves the margin to the side where the free space already sits, which does not
+weaken the push but removes it — the element renders identically to one carrying no margin at
+all. For auto margins the conversion SHALL preserve the main-axis **side**, which is the
+name-for-name table on an LTR-authored site (`ml-`→`ms-`) and the mirror on an RTL-authored
+one (`mr-`→`ms-`).
+
+A residue grep confirms **coverage**, never correctness — it passes identically on a correct
+and an inverted conversion.
+
+Utilities that are *already* logical — `justify-end`, `items-end`, `self-end`, and auto
+inline margins — are invisible to that grep and yet invert when the root direction flips.
+Each SHALL be re-derived from its intent rather than assumed correct because the diff did not
+touch it; for auto margins, by the main-axis rule above.
 
 Physical utilities MAY remain only inside a declared LTR island, where the physical side
 is the intended one regardless of document direction. An LTR island SHALL be **bounded so
@@ -143,6 +163,15 @@ SHALL record its empty results too, so the check can be re-run identically.
   renders on today — `text-align` being inherited but resolved against each element's own
   `direction`, the physical and logical keywords are not interchangeable here
 - **AND** verse bodies stay flush to the right edge of their container.
+
+#### Scenario: An auto margin that pushes a flex item to the far edge
+
+- **WHEN** a flex item carries an auto inline margin so that it sits at the far end of its row
+- **THEN** the converted utility places that margin on the item's main-**start** side, so the
+  free space is absorbed before the item rather than after it
+- **AND** the mirror conversion is a defect here although it is correct everywhere else: an
+  auto margin on the main-end side renders identically to no margin at all, so the push is
+  not weakened but silently removed.
 
 #### Scenario: A component spaces its icon logically
 
@@ -274,6 +303,17 @@ The interface SHALL load a dedicated Arabic screen typeface for its chrome — n
 tabs, buttons, labels, headings and captions. Amiri SHALL remain reserved for Qurʾānic
 text and its immediate renderings (verse bodies, vocalized words, the analysed token),
 so that revealed text stays typographically distinct from the application around it.
+
+Both typefaces SHALL be served by the application itself — vendored into the repository and
+declared in its own stylesheet — and SHALL NOT be fetched from a third party at build time or
+at runtime. A build-time fetch turns an offline build into a failure rather than a
+degradation, and a runtime one makes an application that needs no network depend on one.
+
+#### Scenario: The application is built with no outbound network
+
+- **WHEN** the frontend is built on a machine that cannot reach a font CDN
+- **THEN** the build completes and both typeface families are emitted as static assets
+- **AND** no rendered page requests a font from a third-party host.
 
 #### Scenario: Chrome uses the UI face
 
