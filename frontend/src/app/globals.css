@@ -12,13 +12,26 @@
    — the directory `frontend/Dockerfile` already copies. `public/` is not used:
    it does not exist here and the Dockerfile does not copy it.
 
-   Two faces, two roles: Amiri is reserved for Qurʾānic text; IBM Plex Sans
-   Arabic carries the interface. Amiri is a naskh book face whose fine strokes
-   lose legibility at 12-14 px in a tab strip, and using it for chrome would
-   erase the boundary between the revealed text and the software around it.
+   Two faces, one per script: **Amiri draws Arabic, IBM Plex Sans Arabic draws
+   everything else** — Western digits, percent and decimal signs, `2:255`, QAC
+   tags, the translation paragraphs. That is the whole rule, and it is enforced
+   by the `unicode-range` fields below rather than by a class on each element:
+   Amiri claims the Arabic ranges and the word space, so a Latin run finds no
+   Amiri face that covers it and falls through to Plex on its own — mid-word,
+   mid-sentence, with no markup. This is why the Amiri `-latin` subsets are
+   deliberately NOT vendored: re-adding one would silently pull digits back into
+   Amiri. The word space is the one character carved back out of `latin` — see
+   the Amiri block below for why that is a correctness fix, not a preference.
+
+   Amiri is therefore the document default (`fontFamily.sans` in
+   tailwind.config.ts), interface included. It supersedes the earlier split
+   (design D6) where Plex carried the chrome and Amiri was reserved for
+   Qurʾānic text; the boundary between the revealed text and the software
+   around it is now carried by size, weight and the leading of `.arabic-text`,
+   which no chrome surface reproduces.
    --------------------------------------------------------------------------- */
 
-/* --- IBM Plex Sans Arabic: the interface face ----------------------------- */
+/* --- IBM Plex Sans Arabic: digits and every non-Arabic run ---------------- */
 
 @font-face {
   font-family: "IBM Plex Sans Arabic";
@@ -86,7 +99,17 @@
     U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* --- Amiri: Qurʾānic text only ------------------------------------------- */
+/* --- Amiri: every Arabic run, chrome included -----------------------------
+
+   `U+0020` is prepended to the range on purpose, and it is not decoration. The
+   word space lives in Google's `latin` subset, so dropping the Amiri `-latin`
+   files handed every space inside an Arabic sentence to Plex — measured on the
+   running page, Amiri's space is 7.007 px at 24 px against Plex's 5.664 px, so
+   Qurʾānic word spacing silently tightened by 19 %. The glyph is already inside
+   `amiri-*-arabic.woff2` (verified by declaring it over U+0020 and measuring
+   7.008 px); only the range omitted it. Zero extra bytes, and it is what keeps
+   an Arabic run entirely in one face. `U+00A0` rides along for engines that do
+   not fold a no-break space onto the space glyph. */
 
 @font-face {
   font-family: "Amiri";
@@ -94,20 +117,9 @@
   font-weight: 400;
   font-display: swap;
   src: url("./fonts/amiri-400-arabic.woff2") format("woff2");
-  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
-    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
-    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
-}
-
-@font-face {
-  font-family: "Amiri";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("./fonts/amiri-400-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
-    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E,
+    U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F,
+    U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -116,45 +128,45 @@
   font-weight: 700;
   font-display: swap;
   src: url("./fonts/amiri-700-arabic.woff2") format("woff2");
-  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
-    U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
-    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
-}
-
-@font-face {
-  font-family: "Amiri";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("./fonts/amiri-700-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
-    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E,
+    U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F,
+    U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 :root {
   color-scheme: light;
 }
 
-/* The interface face is the document default: `fontFamily.sans` in
-   tailwind.config.ts is the Arabic UI stack, and Tailwind's preflight applies
-   it to `html`. `font-sans` is used nowhere in the source, so overriding the
-   `sans` key changes no existing class. */
+/* Amiri is the document default: `fontFamily.sans` in tailwind.config.ts is
+   the Amiri-first stack, and Tailwind's preflight applies it to `html`. That
+   single line is what puts Amiri on the navigation, the tab strips, the
+   buttons and the captions — no component carries a font class for it, and a
+   component written tomorrow gets it by rendering Arabic. */
 body {
   @apply bg-gray-50 text-gray-900;
 }
 
-/* Arabic text is always rendered right-to-left with the Quranic font. */
+/* Qurʾānic text: right-to-left, Amiri, and open leading.
+   The face is now the document default, so `@apply font-arabic` is redundant
+   on every current surface — it is kept so a Qurʾānic rendering is guaranteed
+   Amiri even inside a `font-ui` island. What still marks this text apart from
+   the chrome around it is the leading (and the type size its callers pass):
+   after this change the boundary is carried by measure, not by face. */
 .arabic-text {
   direction: rtl;
-  font-family: "Amiri", "Scheherazade New", serif;
+  @apply font-arabic;
   line-height: 2.2;
 }
 
 /* Western Arabic numerals (0-9) inside an Arabic/RTL context.
-   Amiri and similar Quranic faces carry a `locl` feature that substitutes
+   Amiri and similar Qurʾānic faces carry a `locl` feature that substitutes
    Arabic-Indic forms (٠١٢) for ASCII digits when the surrounding text reads as
-   Arabic; disabling it keeps 111 / 93 / 83.8% in 0-9. */
+   Arabic; disabling it keeps 111 / 93 / 83.8% in 0-9.
+
+   Since Amiri no longer draws digits at all, this is belt-and-braces on every
+   current surface. It stays: it is required by the numeral policy, it is what
+   would survive someone re-vendoring an Amiri Latin subset, and it costs one
+   declaration. */
 .western-digits {
   font-feature-settings: "locl" 0;
 }
