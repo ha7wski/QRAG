@@ -106,6 +106,22 @@ amiri-{400,700}-{arabic,latin}.<hash>.woff2
 plexarabic-{400,500,600}-{arabic,latin}.<hash>.woff2
 ```
 
+### Self-hosting, verified rather than assumed (the requirement added by task 9.8)
+
+Every `@font-face` in the emitted CSS resolves to the application's own origin:
+
+```
+src:url(/_next/static/media/amiri-400-arabic.5aae3a1c.woff2)      … and nine more
+```
+
+No pre-rendered page carries a font `<link>`. A grep for `fonts.googleapis`/`fonts.gstatic`
+over the built output does return **three** files — `main-<hash>.js`, `chunks/161.js` and
+`pages/_error.js` — and none of them is a reference this application makes: they hold
+**Next's own table of known font providers**, the list its font optimiser matches `<link>`
+tags against. Inert with no such tag to match. Worth recording precisely, because the naive
+form of this check ("does the build mention a font CDN?") answers yes on a build that never
+contacts one.
+
 ---
 
 ## 4. The Latin-text audit (task 7.10c)
