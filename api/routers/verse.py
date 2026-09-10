@@ -9,7 +9,7 @@ from api.models.verse import (
     VerseDetailResponse,
     verse_from_record,
 )
-from indexing.corpus import surah_basmala
+from quran_data.corpus import surah_basmala
 
 router = APIRouter(tags=["verse"])
 

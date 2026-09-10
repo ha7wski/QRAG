@@ -1,5 +1,5 @@
 """
-corpus.py — Single cached loader for the processed verse corpus.
+corpus.py — the verse corpus, and the one place the Basmala is dealt with.
 
 `verses_final.json` (~6.8 MB, 6236 verses) is needed by several components in
 the same backend process — `HybridSearch`, `Retriever`, and `LexicalRetriever`.
@@ -15,8 +15,8 @@ from __future__ import annotations
 import csv
 import functools
 import json
-import re
 
+from arabic_text import bare as _bare
 from quran_data import paths
 
 VERSES_FINAL = paths.VERSES_FINAL_JSON
@@ -79,31 +79,10 @@ def chakl_by_ref() -> dict[tuple[int, int], dict]:
 # the text is displayed — but NOT inside `chakl_by_ref()`, whose rows are
 # addressed by character offset (see its docstring).
 
-# Arabic marks to drop when comparing "bare" (undiacritized) forms.
-#
-# WRITTEN WITH \u ESCAPES ON PURPOSE — never with literal Arabic characters.
-# Under bidirectional reordering a malformed range is visually indistinguishable
-# from a correct one on screen, and an over-broad class silently deletes Arabic
-# LETTERS instead of marks (a prototype of this class reduced whole ayat to
-# whitespace and the bug was invisible in review). Ranges, in order:
-#   U+0610-U+061A  Quranic annotation signs (sallallahou alayhe wasallam, ...)
-#   U+064B-U+065F  harakat: tanwin, fatha/damma/kasra, shadda, sukun, and the
-#                  extended editorial marks U+064C-U+0659 a two-range class misses
-#   U+0670         superscript (dagger) alef
-#   U+06D6-U+06ED  waqf marks and Quranic annotation (small alef/waw/ya, sajda)
-#   U+0640         tatweel (kashida), a pure elongation glyph
-_DIACRITICS = re.compile(
-    "[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]"
-)
-
-
-def _bare(text: str) -> str:
-    """`text` stripped of every diacritic, waqf mark and tatweel.
-
-    Letters and whitespace survive untouched; this is a comparison key, never a
-    value to store or display.
-    """
-    return _DIACRITICS.sub("", text)
+# `_bare` is `arabic_text.bare`: it drops every mark — harakat, waqf signs and
+# tatweel — leaving letters and whitespace. A COMPARISON KEY, never a value to
+# store or display. The character ranges behind it are defined once, in
+# `arabic_text/marks.py`, and written with \u escapes only.
 
 
 @functools.lru_cache(maxsize=1)
@@ -143,10 +122,10 @@ def strip_leading_basmala(surah: int, ayah: int, text: str) -> str:
     kept = 0
     i = 0
     while i < len(text) and kept < len(prefix):
-        if not _DIACRITICS.match(text[i]):
+        if _bare(text[i]):
             kept += 1
         i += 1
-    while i < len(text) and _DIACRITICS.match(text[i]):
+    while i < len(text) and not _bare(text[i]):
         i += 1
     return text[i:].lstrip()
 

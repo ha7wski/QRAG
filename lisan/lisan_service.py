@@ -29,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from ingestion.root_normalize import normalize_root  # noqa: E402
+from arabic_text import normalize_root  # noqa: E402
 from retrieval.lexical_retriever import _clitic_alif_candidates  # noqa: E402
 from lisan import letter_lexicon  # noqa: E402
 from lisan.synthesis_template import render_synthesis  # noqa: E402

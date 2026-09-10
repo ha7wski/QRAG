@@ -36,7 +36,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from ingestion.root_normalize import normalize_root  # noqa: E402
+# The folds and the root normalizer are primitives, and live with the other
+# Arabic primitives. This module keeps its STAGE duties: the arbitration
+# cascade, its invariants, writing roots_resolved.json, and the lookups over
+# its own output.
+from arabic_text import fold_blind, fold_carrier, normalize_root  # noqa: E402
 from quran_data import loaders, paths, qac  # noqa: E402
 
 TREEBANK_CSV = paths.TREEBANK_CSV
@@ -48,29 +52,6 @@ NULL_TOKENS = {"_", "", "ـ", "-", "(*)"}
 # Cross-source fold: hamza-BLIND. The treebank ships every root with its hamza
 # stripped (0 hamzated roots out of 1642), so `لؤلؤ` arrives as `لالا`. Folding both
 # sides to a bare alif is the only way to see they are the same root. Never stored.
-_BLIND = {"ء": "ا", "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
-          "ؤ": "ا", "ئ": "ا", "ى": "ي", "ة": "ه"}
-_BLIND_TABLE = {ord(k): v for k, v in _BLIND.items()}
-_MARKS = "".join(chr(c) for c in list(range(0x0610, 0x061B))
-                 + list(range(0x064B, 0x0660)) + [0x0670]
-                 + list(range(0x06D6, 0x06ED)))
-_MARK_TABLE = {ord(c): None for c in _MARKS}
-_SEP_RE = re.compile(r"[\s.\-_·+]")
-
-
-def fold_blind(text: str) -> str:
-    """Hamza-blind fold — comparison key only, never a stored value."""
-    if not text:
-        return ""
-    t = unicodedata.normalize("NFC", text).translate(_MARK_TABLE).replace("ـ", "")
-    return _SEP_RE.sub("", t).translate(_BLIND_TABLE).strip()
-
-
-def fold_carrier(text: str) -> str:
-    """Project fold (hamza carriers -> carrier letter, bare hamza kept)."""
-    return normalize_root(text) if text else ""
-
-
 def same_root(a: str, b: str) -> bool:
     """Do two spellings denote one root? Equal under EITHER fold.
 

@@ -5,7 +5,7 @@ The four artifacts built by `ingestion/qac_treebank.py` are read-only, keyed by
 `"surah:ayah:word"` (or normalized root, for the root graph). Several QLisan
 services need them in the same process; the shared `quran_data.loaders` registry
 parses each file once and hands back a shared object (same pattern as
-`indexing/corpus.py`). Reading them through the registry rather than through a
+`quran_data/corpus.py`). Reading them through the registry rather than through a
 second set of caches here is what keeps a backend serving both QLisan and Tahlīl
 to ONE resident copy of `qac_words.json` (29 MB) instead of two.
 
@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
+from arabic_text import fold_blind, fold_carrier  # noqa: E402
 from quran_data import loaders  # noqa: E402
 
 

@@ -63,9 +63,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from ingestion.root_normalize import normalize_root  # noqa: E402
+from arabic_text import normalize_root  # noqa: E402
 from ingestion.root_resolver import load_resolved  # noqa: E402
-from indexing.text_normalize import normalize_search  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
 from quran_data import loaders, paths  # noqa: E402
 
 # --- Paths ---------------------------------------------------------------------

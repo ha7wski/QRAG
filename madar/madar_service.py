@@ -26,8 +26,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from indexing.text_normalize import normalize_search  # noqa: E402
-from ingestion.root_normalize import normalize_root  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
+from arabic_text import normalize_root  # noqa: E402
 from lisan.lisan_service import LisanService  # noqa: E402
 from madar.maqayis_store import MaqayisStore  # noqa: E402
 from madar.synthesis_prompt import SYSTEM_PROMPT, build_user_message  # noqa: E402

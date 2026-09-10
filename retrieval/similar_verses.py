@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.text_normalize import normalize_search  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
 
 # Arabic function words to drop before root extraction. Stored raw; normalized
 # with normalize_search at load so comparison matches the tokenized query

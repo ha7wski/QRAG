@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ingestion.normalizer import normalize_text  # noqa: E402
+from arabic_text import normalize_text  # noqa: E402
 
 try:
     from langdetect import detect as _ld_detect  # type: ignore

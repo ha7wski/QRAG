@@ -30,8 +30,8 @@ if str(ROOT) not in sys.path:
 
 from analysis import mizan, qac_labels
 from analysis.qlisan_data import qac_syntax, qac_words, root_graph
-from indexing.corpus import chakl_by_ref
-from indexing.text_normalize import normalize_search
+from quran_data.corpus import chakl_by_ref
+from arabic_text import normalize_search
 
 # Fixed presentation order of the four levels (شرط العقد: never reorder).
 LEVELS_ORDER = ["sawti", "sarfi", "nahwi", "dalali"]

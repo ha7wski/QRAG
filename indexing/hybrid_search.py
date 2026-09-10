@@ -21,7 +21,7 @@ from the morphology resolver.
 from __future__ import annotations
 
 from indexing.bm25_index import BM25Index
-from indexing.corpus import verses_by_id
+from quran_data.corpus import verses_by_id
 from indexing.embedder import Embedder
 from indexing.qdrant_store import QuranQdrant
 

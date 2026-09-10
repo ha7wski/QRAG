@@ -4,6 +4,7 @@ quran_data — the single authority on every dataset this project reads.
 Four modules, each with one job:
 
     paths.py      where every dataset lives; the only place a `data/` path is built
+    corpus.py     the verse corpus, and the single Basmala choke point
     loaders.py    one lazy, process-cached loader per dataset
     qac.py        the one reader of `quran-morphology.txt`, which had four
     manifest.py   what each dataset is, where it came from, who reads it
@@ -30,7 +31,7 @@ Typical use:
 """
 from __future__ import annotations
 
-from quran_data import loaders, manifest, paths, qac
+from quran_data import corpus, loaders, manifest, paths, qac
 from quran_data.loaders import (
     DatasetMissing,
     alignment_overrides,
@@ -53,6 +54,14 @@ from quran_data.loaders import (
     translation_fr,
     word_index,
 )
+from quran_data.corpus import (
+    basmala_text,
+    chakl_by_ref,
+    load_verses,
+    strip_leading_basmala,
+    surah_basmala,
+    verses_by_id,
+)
 from quran_data.paths import ROOT, app_db_path, qdrant_path, tahlil_coverage_path
 
 __all__ = [
@@ -62,6 +71,9 @@ __all__ = [
     "app_db_path",
     "arabic_letters",
     "bab_contrast",
+    "basmala_text",
+    "chakl_by_ref",
+    "corpus",
     "lemma_index",
     "letter_semantics",
     "loaders",
@@ -79,9 +91,13 @@ __all__ = [
     "root_arbitration",
     "root_graph",
     "roots_resolved",
+    "load_verses",
     "sigha_dalala",
+    "strip_leading_basmala",
+    "surah_basmala",
     "tahlil_coverage_path",
     "translation_en",
     "translation_fr",
+    "verses_by_id",
     "word_index",
 ]

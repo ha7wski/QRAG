@@ -10,7 +10,7 @@ first occurrences).
 
 Resolution is QAC-only by default (D3): the roots are manually verified, so a
 typed word maps to the exact root key that was stored, keyed by the root-safe
-normalization in `ingestion.root_normalize` (never `normalizer.normalize_text`,
+normalization in `arabic_text` (never `normalizer.normalize_text`,
 which deletes hamza). An external stemmer fallback exists but is gated behind
 `QAC_STEMMER_FALLBACK=1` (OFF by default, mirroring the reranker toggle); when
 off, out-of-corpus words simply return no match.
@@ -23,9 +23,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.corpus import verses_by_id  # noqa: E402
-from ingestion.root_normalize import normalize_root  # noqa: E402
-from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
+from quran_data.corpus import verses_by_id  # noqa: E402
+from arabic_text import normalize_root  # noqa: E402
+from arabic_text import fold_blind, fold_carrier  # noqa: E402
 from quran_data import loaders  # noqa: E402
 
 DEFAULT_SAMPLE = 30

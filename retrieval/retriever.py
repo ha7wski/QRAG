@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.corpus import load_verses  # noqa: E402
+from quran_data.corpus import load_verses  # noqa: E402
 from indexing.hybrid_search import HybridSearch  # noqa: E402
 from retrieval.root_channel import maybe_build as _maybe_root_channel  # noqa: E402
 

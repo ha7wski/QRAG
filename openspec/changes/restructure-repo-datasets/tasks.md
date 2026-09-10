@@ -69,15 +69,24 @@
 
 ## 4. Extract the shared text primitives
 
-- [ ] 4.1 Create `arabic_text/` and move `normalize_text` (from `ingestion/normalizer.py`), `normalize_search` (from `indexing/text_normalize.py`) and `normalize_root` (from `ingestion/root_normalize.py`) into it
-- [ ] 4.2 Move the hamza-fold primitives `fold_blind` and `fold_carrier` out of the pipeline stage `ingestion/root_resolver.py` into `arabic_text/`; leave `root_resolver.py` with its stage duties only (arbitration cascade, invariants, writing `roots_resolved.json`, `load_resolved` / `same_root`)
-- [ ] 4.3 Leave `ingestion/normalizer.py` with its pipeline stage `run()` only, importing `normalize_text` from `arabic_text/`
-- [ ] 4.4 Define the diacritic-stripping table **once** (it is currently written out in `ingestion/normalizer.py`, `ingestion/root_normalize.py` and `indexing/corpus.py`), `\u`-escaped only — never a literal Arabic character class
-- [ ] 4.5 Write the package docstring with the three-normalizer comparison table: what each does to hamza, what it is for, what it must never touch
-- [ ] 4.6 Absorb `indexing/corpus.py`'s loaders into `quran_data`, keeping `strip_leading_basmala` and `surah_basmala` beside the chakl loader so the Basmala choke point stays a single point
-- [ ] 4.7 Verify `chakl_by_ref()` is still **never** stripped — `analysis/qlisan_data.word_index()` and `analysis/mizan._vocalized_surface` address its rows by character offset (`2:1:1` sits at `[39, 42)`), and stripping in the loader would shift every one
-- [ ] 4.8 Verify each normalizer's output is byte-identical to the pre-change output across the whole corpus
-- [ ] 4.9 Checkpoint: replay 0.2 (watch the `/verse-lookup` highlight offsets and every Basmala case), run both test suites including `test_basmala_strip.py`, `test_normalizer.py`, `test_root_normalize.py`
+- [x] 4.1 Create `arabic_text/` and move `normalize_text` (from `ingestion/normalizer.py`), `normalize_search` (from `indexing/text_normalize.py`) and `normalize_root` (from `ingestion/root_normalize.py`) into it
+- [x] 4.2 Move the hamza-fold primitives `fold_blind` and `fold_carrier` out of the pipeline stage `ingestion/root_resolver.py` into `arabic_text/`; leave `root_resolver.py` with its stage duties only (arbitration cascade, invariants, writing `roots_resolved.json`, `load_resolved` / `same_root`)
+- [x] 4.3 Leave `ingestion/normalizer.py` with its pipeline stage `run()` only, importing `normalize_text` from `arabic_text/`
+- [x] 4.4 Define the diacritic-stripping table **once** (it is currently written out in `ingestion/normalizer.py`, `ingestion/root_normalize.py` and `indexing/corpus.py`), `\u`-escaped only — never a literal Arabic character class
+- [x] 4.5 Write the package docstring with the three-normalizer comparison table: what each does to hamza, what it is for, what it must never touch
+- [x] 4.6 Absorb `indexing/corpus.py`'s loaders into `quran_data`, keeping `strip_leading_basmala` and `surah_basmala` beside the chakl loader so the Basmala choke point stays a single point
+  - **Layering deviation, deliberate and recorded.** `module-layout` says `quran_data/` and
+    `arabic_text/` SHALL each import from no project package. This task and 4.4 cannot both be
+    satisfied under that reading: `strip_leading_basmala` must sit beside the chakl loader (in
+    `quran_data`) AND must use the one diacritic table (in `arabic_text`). Keeping a second copy
+    of the table in `quran_data` would reinstate exactly the duplication 4.4 removes.
+    Resolved as `arabic_text` ← `quran_data`: `arabic_text` imports nothing at all and is the
+    bottom layer; `quran_data` sits one step above it. The dependency is acyclic and still
+    upward-free, which is what the requirement is actually protecting. The import-direction
+    test in 5.9 encodes this corrected order.
+- [x] 4.7 Verify `chakl_by_ref()` is still **never** stripped — `analysis/qlisan_data.word_index()` and `analysis/mizan._vocalized_surface` address its rows by character offset (`2:1:1` sits at `[39, 42)`), and stripping in the loader would shift every one
+- [x] 4.8 Verify each normalizer's output is byte-identical to the pre-change output across the whole corpus
+- [x] 4.9 Checkpoint: replay 0.2 (watch the `/verse-lookup` highlight offsets and every Basmala case), run both test suites including `test_basmala_strip.py`, `test_normalizer.py`, `test_root_normalize.py`
 
 ## 5. Group the domain packages
 

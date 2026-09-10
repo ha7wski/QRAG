@@ -7,11 +7,11 @@ dagger alif `ٰ → ا` folded. Its distribution and its run-structure across a 
 the object of the `/fassila` page.
 
 Everything here is pure and offline — one linear pass over `quran_chakl.csv` (via the
-shared `indexing.corpus.chakl_by_ref()` loader) plus the two QAC projections this module
+shared `quran_data.corpus.chakl_by_ref()` loader) plus the two QAC projections this module
 needs, taken from `quran_data.qac` (which builds them from a SINGLE pass over
 `quran-morphology.txt`; this module used to open that 6 MB file twice by itself). No ML,
 no LLM, no network. Results are `@lru_cache`d per process, same pattern as
-`indexing/corpus.py`.
+`quran_data/corpus.py`.
 
 **Words come from the QAC treebank, not from `quran_chakl.csv`** — the single most
 important thing to know about this module. The two corpora use different orthographies
@@ -45,7 +45,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from indexing.corpus import chakl_by_ref  # noqa: E402
+from quran_data.corpus import chakl_by_ref  # noqa: E402
 from quran_data import qac  # noqa: E402
 
 # Tashkīl + Qurʾānic annotation marks.

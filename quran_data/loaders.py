@@ -1,7 +1,7 @@
 """
 loaders.py — one loader per dataset, each parsing its file once per process.
 
-The pattern `indexing/corpus.py` established for the verse corpus, extended to
+The pattern `quran_data/corpus.py` established for the verse corpus, extended to
 every dataset: a cached function returns a shared object, so a file needed by
 three components in the same backend is not held three times over.
 

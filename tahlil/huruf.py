@@ -51,7 +51,7 @@ and part of its `source` block are written in French; rendering them would break
 Arabic-only rule and trip the Latin-purity gate that voids a block. The raw dataset meta stays
 available for auditing under `source_meta()[AUDIT_KEY]`, which is never rendered.
 
-Root-related normalization goes through `ingestion.root_normalize.normalize_root` (the
+Root-related normalization goes through `arabic_text.normalize_root` (the
 project-wide rule — `normalizer.normalize_text` deletes hamza and must never touch a root).
 Pure stdlib + two on-disk files: no LLM, no network.
 """
@@ -70,7 +70,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from analysis.qlisan_data import canonical_root, root_graph
-from ingestion.root_normalize import normalize_root
+from arabic_text import normalize_root
 from quran_data import loaders, paths, qac
 
 # The single source of truth. The byte-identical `data/derived/` copy was deleted with

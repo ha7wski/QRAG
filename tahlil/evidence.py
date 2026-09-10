@@ -120,7 +120,7 @@ if str(ROOT) not in sys.path:
 from analysis import qac_labels
 from analysis.qlisan_data import qac_words, root_graph, word_index
 from analysis.word_analysis import analyze_word
-from indexing.corpus import chakl_by_ref
+from quran_data.corpus import chakl_by_ref
 from madar.maqayis_store import MaqayisStore
 from tahlil import form_kb, huruf
 from tahlil.citations import (

@@ -63,7 +63,7 @@ MANIFEST: dict[str, Entry] = {
         origin="Third-party vocalized Quran corpus, committed to this repo.",
         producer=None,
         consumers=(
-            "indexing/corpus.py",
+            "quran_data/corpus.py",
             "ingestion/qac_treebank.py",
             "retrieval/verse_lookup.py",
         ),
@@ -332,7 +332,7 @@ MANIFEST: dict[str, Entry] = {
         origin="End of the ingestion pipeline.",
         producer="ingestion/qac_morphology.py",
         consumers=(
-            "indexing/corpus.py",
+            "quran_data/corpus.py",
             "indexing/build_index.py",
             "indexing/bm25_index.py",
         ),

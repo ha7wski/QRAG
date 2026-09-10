@@ -20,7 +20,7 @@ builder consumes `qac.records()` and reads the fields:
 Design decisions (fixed):
   D1 — root keys are the RAW QAC root, root-safe normalized (D2), NOT hyphen-
        joined. Quadriliteral (4-letter) roots are handled natively.
-  D2 — normalization comes from `ingestion.root_normalize.normalize_root`
+  D2 — normalization comes from `arabic_text.normalize_root`
        (never `normalizer.normalize_text`).
   D3 — resolution maps (form→roots, lemma→roots) are emitted for the resolver.
   D4 — this is a NEW, separate builder; `ingestion/morphology.py` is untouched.
@@ -47,8 +47,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.text_normalize import normalize_search  # noqa: E402
-from ingestion.root_normalize import normalize_root  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
+from arabic_text import normalize_root  # noqa: E402
 from ingestion.root_resolver import load_resolved, same_root  # noqa: E402
 from quran_data import paths, qac  # noqa: E402
 from quran_data.qac import Record  # noqa: E402
@@ -377,7 +377,7 @@ def _save(index: dict, resolution: dict, lemma_index: dict, proper_nouns: dict,
 
 if __name__ == "__main__":
     # Standalone (re)build of the QAC index over the existing processed corpus.
-    from indexing.corpus import load_verses
+    from quran_data.corpus import load_verses
 
     load_verses.cache_clear()  # ensure a fresh mutable list we can write back
     verses, index = run(load_verses())

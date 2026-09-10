@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from indexing.corpus import chakl_by_ref, strip_leading_basmala
+from quran_data.corpus import chakl_by_ref, strip_leading_basmala
 
 
 class Verse(BaseModel):

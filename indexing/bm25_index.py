@@ -3,7 +3,7 @@ bm25_index.py — Sparse lexical index (BM25Okapi).
 
 Builds a BM25 index over the concatenation of each verse's Arabic text and its
 French/English translations. Tokenization is whitespace-based after HAMZA-SAFE
-Arabic normalization (`indexing.text_normalize.normalize_search`).
+Arabic normalization (`arabic_text.normalize_search`).
 
 Two deliberate choices fix a lexical-matching bug:
   - Index the RAW `text_ar` (hamza preserved), NOT `text_ar_clean`. The latter
@@ -24,7 +24,7 @@ from pathlib import Path
 from rank_bm25 import BM25Okapi
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from indexing.text_normalize import normalize_search  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
 from quran_data import paths  # noqa: E402
 
 INDEX_PATH = paths.BM25_INDEX_PKL

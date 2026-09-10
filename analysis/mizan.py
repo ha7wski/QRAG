@@ -54,8 +54,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from analysis.qlisan_data import word_index
-from ingestion.root_normalize import normalize_root
-from indexing.corpus import chakl_by_ref
+from arabic_text import normalize_root
+from quran_data.corpus import chakl_by_ref
 from quran_data import loaders
 
 # Combining marks we copy verbatim onto the mīzān (ḥarakāt, tanwīn, shadda, sukūn,

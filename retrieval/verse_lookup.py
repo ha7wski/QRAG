@@ -14,13 +14,13 @@ Design (isolated but reuses existing infrastructure):
   - root resolution + morphology index + clean corpus come from the shared
     `LexicalRetriever`, whose QAC maps resolve a queried word to the SAME root
     key that was stored (root-safe normalization on both sides).
-  - word-highlight matching uses the hamza-safe `indexing.text_normalize.
+  - word-highlight matching uses the hamza-safe `arabic_text.
     normalize_search` (keeps the alif; `normalize_text` deletes hamza and would
     over-match, e.g. أَرْض → رض matching every عرض/مرض token).
   - the ONLY new data dependency is the vocalized corpus
     (`quran_data.paths.QURAN_CHAKL_CSV`), the sole source of fully diacritized
     text (the processed corpus `text_ar` has no harakat). It is reached through
-    `indexing.corpus.chakl_by_ref()`, never opened here.
+    `quran_data.corpus.chakl_by_ref()`, never opened here.
 """
 from __future__ import annotations
 
@@ -30,8 +30,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from indexing.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
-from indexing.text_normalize import normalize_search  # noqa: E402
+from quran_data.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
+from arabic_text import normalize_search  # noqa: E402
 from quran_data import loaders, paths  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
     LexicalRetriever,
