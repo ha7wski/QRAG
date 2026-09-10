@@ -125,10 +125,10 @@
 
 ## 7. Final verification
 
-- [ ] 7.1 Fresh-clone check: confirm the shipped repo still builds from what is committed, with no reference to a git-ignored path
+- [x] 7.1 Fresh-clone check: confirm the shipped repo still builds from what is committed, with no reference to a git-ignored path
 - [x] 7.2 Cold-start check: `GET /health` answers with `models: {embedder: false, search_reranker: false}` — the lazy-model discipline survives the restructure and a backend serving only the lexical paths holds no model memory
-- [ ] 7.3 Full replay of 0.2 against the finished tree: every response identical to the baseline
-- [ ] 7.4 Walk all nine frontend pages and the six nav entries; confirm identical behaviour, including the `/surah` resume position and the deep links from `VerseCard`
+- [x] 7.3 Full replay of 0.2 against the finished tree: every response identical to the baseline
+- [x] 7.4 Walk all nine frontend pages and the six nav entries; confirm identical behaviour, including the `/surah` resume position and the deep links from `VerseCard`
 - [x] 7.5 Confirm the quarantine holds: `POST /madar/analyze` returns 404 while `python -m pytest tests/test_madar.py` passes
 - [x] 7.6 Confirm the toggles still work: `RERANK_ENABLED=1`, `HYDE_ENABLED=1`, `QAC_STEMMER_FALLBACK=1`, `ROOT_CHANNEL_ENABLED=0` each change behaviour as documented
 - [x] 7.7 Verify `python ingestion/run_pipeline.py` and `python indexing/build_index.py` still run end-to-end against the new layout — with the backend stopped, and into a scratch copy so the 69 MB derived set is never overwritten by the test
