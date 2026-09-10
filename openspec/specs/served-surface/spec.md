@@ -1,4 +1,18 @@
-## ADDED Requirements
+# served-surface Specification
+
+## Purpose
+
+Define the HTTP surface the backend actually exposes, and the rule that keeps it equal to what the
+product calls.
+
+An audit found 22 mounted routes and 15 consumed. That gap is not merely untidy: one of the dead
+routes owned the `LexicalRetriever` that four live features borrowed, so the obvious cleanup would
+have broken them and the obvious audit — it is on `app.state`, it must be used — would have kept a
+dead route forever. This capability ties every mounted route to a real consumer and has a test say
+so, states which routes went and why the write paths behind them stayed, and defines the
+**quarantine** convention for a subsystem that is finished and tested but no longer reached.
+
+## Requirements
 
 ### Requirement: Every mounted route has a real consumer
 
@@ -81,8 +95,13 @@ When a subsystem is finished and tested but no longer reachable from the product
 the router is not mounted, its frontend components are removed, and its service package and tests stay
 in the repo with a header stating why it is dormant and what rebranching costs.
 
-Madār (`linguistics/madar/`, its `MadarService`, `MaqayisStore` and `tests/test_madar.py`) SHALL be
-quarantined. Its Verse Study integration was pulled after the LLM synthesis proved unreliable on
+Madār SHALL be quarantined — but the boundary matters, because reading it too widely would break a
+route that is served. What is dormant is the **route and its service**: `api/routers/madar.py`,
+`api/models/madar.py`, `linguistics/madar/madar_service.py` and `tests/test_madar.py`.
+`linguistics/madar/maqayis_store.py` is **NOT** dormant: `linguistics/tahlil/evidence.py` builds a
+`MaqayisStore` on every Tahlīl analysis, so it sits on the `POST /tahlil/word` request path. Ibn
+Fāris' cited aṣl still reaches the reader through Tahlīl with Madār off the surface. The package
+SHALL NOT be deleted as dead code. Its Verse Study integration was pulled after the LLM synthesis proved unreliable on
 witness roots; the sourced-`aṣl` machinery behind it is sound and worth keeping.
 
 `api/routers/madar.py` and `api/models/madar.py` SHALL be retained but unmounted, so rebranching is one
@@ -98,6 +117,19 @@ not a build artefact, and `scripts/build_maqayis_dataset.py` remains its documen
 - **AND** `linguistics/madar/`, `api/routers/madar.py`, `api/models/madar.py` and `tests/test_madar.py`
   SHALL still exist
 - **AND** `python -m pytest tests/test_madar.py` SHALL pass
+
+#### Scenario: A second subsystem is quarantined on the same terms
+
+- **WHEN** the Tahlīl verse layer is considered
+- **THEN** `POST /tahlil/verse` SHALL be unmounted, no page having called it
+- **AND** `tahlil_service.analyze_verse` and everything it alone reaches SHALL be retained intact,
+  together with `prompts.build_verse_message`, `TahlilGenerator.verse()` and
+  `citations.validate_verse`, which serve that entry point and nothing else
+- **AND** its tests SHALL keep running, so a dormant feature cannot decay into one nobody can
+  rebranch
+- **AND** the notice at §10 of `linguistics/tahlil/tahlil_service.py` SHALL state the state, the
+  reason and the exact rebranch step, including the two request/response models that must return
+  with the route
 
 #### Scenario: The quarantine states its own terms
 

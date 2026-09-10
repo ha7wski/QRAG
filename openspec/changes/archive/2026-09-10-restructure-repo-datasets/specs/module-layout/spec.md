@@ -31,7 +31,11 @@ is a pipeline stage. The grouping SHALL make that legible without a doc.
 
 ### Requirement: Imports flow one way, and no layer reaches upward
 
-Dependencies SHALL be directed. `quran_data/` and `arabic_text/` SHALL import from no project package.
+Dependencies SHALL be directed. `arabic_text/` SHALL import from no project package at all — it is
+the bottom of the order. `quran_data/` SHALL import from `arabic_text/` and from nothing else:
+the Basmala helper has to sit beside the chakl loader (so the choke point stays single) AND use
+the one diacritic table (so it is not duplicated a fourth time), and both cannot hold otherwise.
+The order stays acyclic and upward-free, which is what this requirement protects.
 Pipeline packages SHALL import from shared packages and from pipeline packages earlier in the order.
 Domain packages SHALL import from shared packages, and from `retrieval/` for verse lookup — never from
 `api/`. No package SHALL import from `linguistics/` except `api/`.
@@ -133,7 +137,21 @@ live consumers, and its removal looks safe while being fatal.
 
 - **WHEN** the backend starts
 - **THEN** exactly one `LexicalRetriever` SHALL be constructed
-- **AND** the QAC morphology index behind it SHALL be parsed once, as today
+- **AND** the QAC morphology index behind it SHALL be parsed once
+
+**NOT MET TODAY — the second clause is, the first is not.** Measured over a real lifespan, **two**
+`LexicalRetriever` instances are constructed: the shared one the lifespan publishes, and one built
+inside `retrieval/root_channel.maybe_build()` by way of `ChatEngine → Retriever`, since
+`ROOT_CHANNEL_ENABLED` is on by default. This predates the restructure and was not introduced by it.
+
+What the registry did fix is the half that costs memory: both instances now read `morphology.json`
+through `quran_data.loaders.morphology()`, so `a.index is b.index` — one parse, one resident copy,
+and the file is opened once per process rather than twice. The remaining gap is object identity with
+no memory attached to it.
+
+Closing it needs an injection point `maybe_build()` does not have, so that it can be handed the
+retriever the lifespan already built instead of constructing its own. That is a `retrieval/` change,
+deliberately left out of a restructure whose acceptance bar was byte-identical behaviour.
 
 ### Requirement: Every import in the repo moves with the structure
 
