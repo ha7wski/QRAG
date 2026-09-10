@@ -48,6 +48,9 @@ pytest.ini
 requirements-test.txt
 frontend/vitest.config.ts
 frontend/vitest.setup.ts
+# The tsconfig that type-checks the tests below — local-only for the same reason
+# they are: it exists only to check files the published build never compiles.
+frontend/tsconfig.test.json
 *.test.ts
 *.test.tsx
 
