@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from analysis.word_analysis import analyze_form, analyze_word, verse_tokens
+from linguistics.analysis.word_analysis import analyze_form, analyze_word, verse_tokens
 from api.models.qlisan import (
     QlisanFormRequest,
     QlisanFormResponse,

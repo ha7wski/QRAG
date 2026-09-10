@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Path
 
-from analysis.fassila import analyse_surah, overview
+from linguistics.analysis.fassila import analyse_surah, overview
 from api.models.fassila import FassilaOverviewResponse, FassilaResponse
 
 router = APIRouter(tags=["fassila"])

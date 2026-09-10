@@ -28,7 +28,7 @@ def _service(request: Request):
     QAC resolver (LexicalRetriever) — no LLM, no new heavy components."""
     svc = getattr(request.app.state, "lisan_service", None)
     if svc is None:
-        from lisan.lisan_service import LisanService
+        from linguistics.lisan.lisan_service import LisanService
 
         svc = LisanService(
             resolver=request.app.state.lexical_retriever,

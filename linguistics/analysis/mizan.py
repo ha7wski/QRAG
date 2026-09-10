@@ -49,11 +49,11 @@ import sys
 import unicodedata
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis.qlisan_data import word_index
+from linguistics.analysis.qlisan_data import word_index
 from arabic_text import normalize_root
 from quran_data.corpus import chakl_by_ref
 from quran_data import loaders

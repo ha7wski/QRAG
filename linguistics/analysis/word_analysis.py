@@ -24,12 +24,12 @@ import functools
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis import mizan, qac_labels
-from analysis.qlisan_data import qac_syntax, qac_words, root_graph
+from linguistics.analysis import mizan, qac_labels
+from linguistics.analysis.qlisan_data import qac_syntax, qac_words, root_graph
 from quran_data.corpus import chakl_by_ref
 from arabic_text import normalize_search
 
@@ -366,7 +366,7 @@ def verse_tokens(surah: int, ayah: int) -> dict:
         raise KeyError(f"{surah}:{ayah}")
     text = entry.get("text", "")
 
-    from analysis.qlisan_data import word_index
+    from linguistics.analysis.qlisan_data import word_index
 
     idx = word_index()
     tokens: list[dict] = []

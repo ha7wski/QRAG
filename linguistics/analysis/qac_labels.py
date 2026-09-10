@@ -33,12 +33,12 @@ import unicodedata
 import warnings
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 # `verb_marker` (section 5b) gates one of its omissions on the root's weak-letter
-# class. `analysis.mizan` already owns that classification and is the project's
+# class. `linguistics.analysis.mizan` already owns that classification and is the project's
 # single definition of it; importing it here keeps one definition rather than a
 # second copy free to drift. The dependency costs this module nothing it did not
 # already promise: `mizan` is pure stdlib with lazy file loaders — no LLM, no
@@ -56,7 +56,7 @@ if str(ROOT) not in sys.path:
 # assumption is precisely the confident-and-wrong output this module exists to
 # refuse.
 try:
-    from analysis.mizan import CLASS_LAFIF, CLASS_NAQIS, classify_root
+    from linguistics.analysis.mizan import CLASS_LAFIF, CLASS_NAQIS, classify_root
 except ImportError:  # pragma: no cover - forced by the test's import blocker
     CLASS_LAFIF = CLASS_NAQIS = None  # type: ignore[assignment]
     classify_root = None  # type: ignore[assignment]
@@ -418,7 +418,7 @@ _SHADDA = "ّ"
 _MOOD_IND = "MOOD:IND"
 
 # The dependency named in the warning, spelled out so the message is actionable.
-_ROOT_CLASSIFIER_DEP = "analysis.mizan (CLASS_NAQIS / CLASS_LAFIF / classify_root)"
+_ROOT_CLASSIFIER_DEP = "linguistics.analysis.mizan (CLASS_NAQIS / CLASS_LAFIF / classify_root)"
 
 # Warn once per process, never once per word: 861 مضارع records reach the guard
 # that consults the classifier, and 861 identical warnings would bury the one
@@ -436,7 +436,7 @@ def _warn_root_classifier_unavailable() -> None:
         f"{_ROOT_CLASSIFIER_DEP} is unavailable (ImportError): verb_marker cannot "
         "tell a defective-final (naqis/lafif) jussive from a sound one, so it "
         "omits the marker for every non-khamsa jussive rather than implying "
-        "sukun. Restore analysis.mizan to get those markers back.",
+        "sukun. Restore linguistics.analysis.mizan to get those markers back.",
         RuntimeWarning,
         stacklevel=3,
     )
@@ -580,7 +580,7 @@ def verb_marker(record: dict) -> str | None:
        يَأْتِ). Silence is the honest answer; :func:`classify_root` decides. The
        معتل الآخر jussive *population* is 209; 203 is what this guard drops,
        the other 6 having already been dropped by case 2 (5 نون النسوة) and
-       case 3 (1 نون التوكيد). When `analysis.mizan` is unavailable the class
+       case 3 (1 نون التوكيد). When `linguistics.analysis.mizan` is unavailable the class
        cannot be read at all, and the guard then drops **every** non-khamsa
        jussive (658 more markers lost) and warns once — never assuming صحيح.
     6. Any ``verb_mood`` value outside the three mapped in :data:`VERB_MOOD_AR`.
@@ -793,7 +793,7 @@ def translate_segments(segments: list | None) -> list[str]:
 
 
 if __name__ == "__main__":
-    from analysis.qlisan_data import qac_words
+    from linguistics.analysis.qlisan_data import qac_words
 
     words = qac_words()
     # One line per behaviour worth eyeballing: the pinned أفعال خمسة case, the two

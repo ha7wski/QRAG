@@ -66,9 +66,16 @@ def _alif_variants(stem: str) -> list[str]:
     return [stem[:i] + stem[i + 1:] for i in range(1, len(stem)) if stem[i] == "ا"]
 
 
-def _clitic_alif_candidates(w: str) -> list[str]:
+def clitic_alif_candidates(w: str) -> list[str]:
     """Ordered, deduped stem candidates for a normalized word that did not
-    resolve strictly: clitic-stripped forms plus their alif-collapsed variants."""
+    resolve strictly: clitic-stripped forms plus their alif-collapsed variants.
+
+    **Public API.** This is peeling logic, not an implementation detail: Lisān
+    needs exactly the same candidates the retriever tries, and reaching for it
+    through an underscore meant a rename here broke Lisān with no signal at the
+    call site. Order matters — callers walk it and stop at the first hit, so the
+    unstripped word comes first and the most-stripped variants last.
+    """
     seen = {w}
     out: list[str] = []
 
@@ -199,7 +206,7 @@ class LexicalRetriever:
         w = normalize_root(word)
         if not w:
             return []
-        for stem in _clitic_alif_candidates(w):
+        for stem in clitic_alif_candidates(w):
             r = self._ladder(stem)
             if r:
                 return r

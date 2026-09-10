@@ -90,17 +90,17 @@
 
 ## 5. Group the domain packages
 
-- [ ] 5.1 Create `linguistics/` and move `analysis/`, `lisan/`, `madar/`, `tahlil/` under it, preserving every internal module name
-- [ ] 5.2 Correct `parents[N]` in every moved module for its new depth — a moved module keeping its old `N` resolves to the wrong root and finds no data
-- [ ] 5.3 Rewrite the 47 production import sites across `api/routers/*`, `api/models/*`, `api/main.py` and the domain packages themselves
-- [ ] 5.4 Rewrite imports in the 29 local-only test files and in `tests/eval/*`; sweep the whole working tree, not `git ls-files` — `tests/`, `plans/` and `local-dev/` are git-ignored and CI is local-only, so nothing external catches a break
-- [ ] 5.5 Update `pytest.ini`, `Dockerfile`, `docker-compose.yml` and the launcher scripts for the new package paths
-- [ ] 5.6 Promote `retrieval.lexical_retriever._clitic_alif_candidates` to a public function and repoint `linguistics/lisan/lisan_service.py` at it
-- [ ] 5.7 Verify no `from <package> import _name` remains anywhere in production code
-- [ ] 5.8 Repoint the domain packages off `indexing.corpus` onto `quran_data`, ending the analysis→indexer inversion
-- [ ] 5.9 Add the import-direction test over the project's own packages (shared → pipeline → api; domain may use shared and `retrieval/`, never `api/`; nothing imports `linguistics/` except `api/`)
-- [ ] 5.10 Verify the `ROOT`-depth test from 2.7 still passes for every moved module
-- [ ] 5.11 Checkpoint: start the backend, replay 0.2, run both test suites, and open each of the nine pages to confirm identical rendering
+- [x] 5.1 Create `linguistics/` and move `analysis/`, `lisan/`, `madar/`, `tahlil/` under it, preserving every internal module name
+- [x] 5.2 Correct `parents[N]` in every moved module for its new depth — a moved module keeping its old `N` resolves to the wrong root and finds no data
+- [x] 5.3 Rewrite the 47 production import sites across `api/routers/*`, `api/models/*`, `api/main.py` and the domain packages themselves
+- [x] 5.4 Rewrite imports in the 29 local-only test files and in `tests/eval/*`; sweep the whole working tree, not `git ls-files` — `tests/`, `plans/` and `local-dev/` are git-ignored and CI is local-only, so nothing external catches a break
+- [x] 5.5 Update `pytest.ini`, `Dockerfile`, `docker-compose.yml` and the launcher scripts for the new package paths
+- [x] 5.6 Promote `retrieval.lexical_retriever._clitic_alif_candidates` to a public function and repoint `linguistics/lisan/lisan_service.py` at it
+- [x] 5.7 Verify no `from <package> import _name` remains anywhere in production code
+- [x] 5.8 Repoint the domain packages off `indexing.corpus` onto `quran_data`, ending the analysis→indexer inversion
+- [x] 5.9 Add the import-direction test over the project's own packages (shared → pipeline → api; domain may use shared and `retrieval/`, never `api/`; nothing imports `linguistics/` except `api/`)
+- [x] 5.10 Verify the `ROOT`-depth test from 2.7 still passes for every moved module
+- [x] 5.11 Checkpoint: start the backend, replay 0.2, run both test suites, and open each of the nine pages to confirm identical rendering
 
 ## 6. Documentation and dead weight
 

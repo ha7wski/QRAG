@@ -43,11 +43,11 @@ import functools
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis.qac_labels import DERIVED_NOUNS_AR, VERB_ASPECT_AR
+from linguistics.analysis.qac_labels import DERIVED_NOUNS_AR, VERB_ASPECT_AR
 from quran_data import loaders, paths
 
 # Named here only so the validation errors below can say WHICH table refused to load;
@@ -368,8 +368,8 @@ def contrast_candidates(mizan: dict, record: dict) -> list[dict]:
 
 
 if __name__ == "__main__":  # smoke test — mirrors mizan.py / qlisan_data.py
-    from analysis.mizan import compute_mizan
-    from analysis.qlisan_data import qac_words
+    from linguistics.analysis.mizan import compute_mizan
+    from linguistics.analysis.qlisan_data import qac_words
 
     print(f"kb_version: {kb_version()}")
     print(f"sigha rows: {len(load_sigha()['rows'])}  contrast rows: {len(load_contrast()['rows'])}")

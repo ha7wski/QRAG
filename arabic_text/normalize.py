@@ -23,6 +23,16 @@ except Exception:  # pragma: no cover - optional dependency
     _HAS_PYARABIC = False
 
 
+def backend() -> str:
+    """Which implementation `normalize_text` is using, for a pipeline log line.
+
+    Public so the ingestion stage can report it without reaching for a private
+    flag across a package boundary. The two paths are equivalent on this corpus;
+    the name is reported so a surprise is visible rather than silent.
+    """
+    return "pyarabic" if _HAS_PYARABIC else "internal fallback"
+
+
 # Hamza-carrier folding. The bare hamza `ء` (U+0621) is deliberately ABSENT —
 # it is kept as-is, never deleted. That single omission is the whole difference
 # between a root index that works and one that merges distinct roots.

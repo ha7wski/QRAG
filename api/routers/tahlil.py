@@ -29,7 +29,7 @@ from api.models.tahlil import (
     TahlilWordRequest,
     TahlilWordResponse,
 )
-from tahlil.tahlil_service import analyze_word, review_key
+from linguistics.tahlil.tahlil_service import analyze_word, review_key
 
 router = APIRouter(tags=["tahlil"])
 
@@ -53,7 +53,7 @@ def _generator():
     reads `model_id` from it always, which is exactly why it is passed on both paths.
     """
     try:
-        from tahlil.generator import default_generator
+        from linguistics.tahlil.generator import default_generator
 
         return default_generator()
     except Exception:
@@ -121,7 +121,7 @@ def tahlil_review(req: TahlilReviewRequest, request: Request) -> TahlilReviewRes
     if surah < 1 or ayah < 1 or word < 1:
         raise HTTPException(status_code=400, detail="ref indices must be positive (1-based)")
 
-    from analysis.qlisan_data import qac_words
+    from linguistics.analysis.qlisan_data import qac_words
 
     ref = f"{surah}:{ayah}:{word}"
     if ref not in qac_words():

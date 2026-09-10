@@ -64,11 +64,11 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tahlil import citations, coverage  # noqa: E402
+from linguistics.tahlil import citations, coverage  # noqa: E402
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. The five blocks, in the ONE order they may ever be rendered.
@@ -173,7 +173,7 @@ _NAZAIR_INLINE = 8
 # job: `evidence.py` knows what is missing, only the renderer knows where a reader will look
 # for it.
 #
-# The codes are mirrored as literals rather than imported, because `tahlil.evidence` is
+# The codes are mirrored as literals rather than imported, because `linguistics.tahlil.evidence` is
 # imported lazily and defensively (a missing evidence layer must degrade, not break import).
 # The drift is pinned by a test asserting `set(NOTE_BLOCK) == evidence.NOTE_CODES` — the same
 # contract as the `qac:` field vocabulary below.
@@ -226,7 +226,7 @@ def prompt_version() -> str:
     by anyone remembering to purge a table.
     """
     try:
-        from tahlil.prompts import PROMPT_VERSION  # type: ignore[attr-defined]
+        from linguistics.tahlil.prompts import PROMPT_VERSION  # type: ignore[attr-defined]
 
         return str(PROMPT_VERSION)
     except Exception:
@@ -245,7 +245,7 @@ def tarkib_enabled() -> bool:
     too many.
     """
     try:
-        from tahlil.prompts import tarkib_enabled as _te
+        from linguistics.tahlil.prompts import tarkib_enabled as _te
 
         return bool(_te())
     except Exception:
@@ -254,14 +254,14 @@ def tarkib_enabled() -> bool:
 
 def kb_version() -> str:
     """Combined دلالة-الصيغة + contrast version, owned by `form_kb`."""
-    from tahlil.form_kb import kb_version as _kb
+    from linguistics.tahlil.form_kb import kb_version as _kb
 
     return _kb()
 
 
 def letters_version() -> str:
     """Letters-dataset version, owned by `huruf`."""
-    from tahlil.huruf import letters_version as _lv
+    from linguistics.tahlil.huruf import letters_version as _lv
 
     return _lv()
 
@@ -283,14 +283,14 @@ def model_id_of(generator: object | None) -> str:
 # 4. Evidence bundle — lazily, defensively
 # ─────────────────────────────────────────────────────────────────────────────
 def default_evidence_builder():
-    """Return `tahlil.evidence.build`, or raise with a reason we can render.
+    """Return `linguistics.tahlil.evidence.build`, or raise with a reason we can render.
 
     Imported *inside the call* rather than at module import so that (a) the API can start
     before the evidence layer exists, and (b) the failure is per-request and observable
     instead of a module-level ImportError that takes the whole router down. The caller
     turns the raise into a stated reason on every block — never into a fabricated one.
     """
-    from tahlil.evidence import build  # noqa: PLC0415  (deliberate: see docstring)
+    from linguistics.tahlil.evidence import build  # noqa: PLC0415  (deliberate: see docstring)
 
     return build
 
@@ -427,7 +427,7 @@ def _dalala_text(entry: dict) -> str:
 
 def _letter_source(entry: dict, with_page: bool) -> str:
     """The citation strip line for a letter row: author + work (+ page, task 10.4)."""
-    from tahlil.huruf import SOURCE_AR
+    from linguistics.tahlil.huruf import SOURCE_AR
 
     line = f"{SOURCE_AR['author']} — {SOURCE_AR['title']}"
     pages = (entry.get("dalala") or {}).get("pages") or ""
@@ -820,7 +820,7 @@ def _block_attribution(block_id: str) -> dict | None:
     if block_id != BLOCK_HURUF:
         return None
     try:
-        from tahlil.huruf import source_meta
+        from linguistics.tahlil.huruf import source_meta
     except Exception:                                   # pragma: no cover - dataset absent
         return None
     meta = source_meta()
@@ -926,7 +926,7 @@ def analyze_word(surah: int, ayah: int, word: int, *, store=None, generator=None
     # is missing — telling the reader that a nonexistent word has no evidence, which is a
     # different and false statement. This is an index lookup, not a second alignment path:
     # selection still goes through `GET /qlisan/verse/{surah}/{ayah}`.
-    from analysis.qlisan_data import qac_words
+    from linguistics.analysis.qlisan_data import qac_words
 
     if ref not in qac_words():
         raise KeyError(ref)
@@ -941,7 +941,7 @@ def analyze_word(surah: int, ayah: int, word: int, *, store=None, generator=None
         try:
             builder = default_evidence_builder()
         except Exception as exc:
-            _warn_once(f"tahlil.evidence unavailable: {type(exc).__name__}: {exc}")
+            _warn_once(f"linguistics.tahlil.evidence unavailable: {type(exc).__name__}: {exc}")
             return _unavailable_response(ref, surah, ayah, word, _MSG_NO_EVIDENCE,
                                          gen_enabled, reviewed)
     bundle, no_evidence = _build_bundle(builder, surah, ayah, word)
@@ -1243,8 +1243,8 @@ def _rooted_word_ids(surah: int, ayah: int) -> list[int]:
     map the word pipeline routes on — rather than re-deriving, so «rooted» means here
     exactly what it means one layer down.
     """
-    from analysis.qlisan_data import qac_words
-    from analysis.word_analysis import verse_tokens
+    from linguistics.analysis.qlisan_data import qac_words
+    from linguistics.analysis.word_analysis import verse_tokens
 
     words = qac_words()
     ids: list[int] = []
@@ -1272,7 +1272,7 @@ def analyze_verse(surah: int, ayah: int, *, store=None, generator=None,
     Raises `ValueError` / `KeyError` on a bad or absent reference, decided before any work,
     exactly as `analyze_word` does.
     """
-    from analysis.word_analysis import verse_tokens
+    from linguistics.analysis.word_analysis import verse_tokens
 
     verse_tokens(surah, ayah)                    # validates: ValueError / KeyError, early
     surah, ayah = int(surah), int(ayah)
@@ -1339,7 +1339,7 @@ def analyze_verse(surah: int, ayah: int, *, store=None, generator=None,
 def _verse_claims(items: dict, refs: set[str], surah: int, ayah: int,
                   capped_note: str, generator) -> tuple[list[dict], list[dict]]:
     """The one generation call, gated. Returns `(render_ready_claims, log_events)`."""
-    from tahlil import prompts
+    from linguistics.tahlil import prompts
 
     message, handles = prompts.build_verse_message(
         items, surah=surah, ayah=ayah, capped_note=capped_note)

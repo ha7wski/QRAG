@@ -61,11 +61,11 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tahlil import citations  # noqa: E402
+from linguistics.tahlil import citations  # noqa: E402
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Version — participates in the cache key (tasks.md 7.1)
@@ -721,7 +721,7 @@ def build_verse_message(items: dict, *, surah: object = "", ayah: object = "",
 
 
 if __name__ == "__main__":  # smoke test — mirrors evidence.py / citations.py
-    from tahlil.evidence import build
+    from linguistics.tahlil.evidence import build
 
     for position in ((23, 61, 2), (23, 61, 3)):
         bundle = build(*position)

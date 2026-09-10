@@ -23,14 +23,14 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from arabic_text import normalize_search  # noqa: E402
 from arabic_text import normalize_root  # noqa: E402
-from lisan.lisan_service import LisanService  # noqa: E402
-from madar.maqayis_store import MaqayisStore  # noqa: E402
-from madar.synthesis_prompt import SYSTEM_PROMPT, build_user_message  # noqa: E402
+from linguistics.lisan.lisan_service import LisanService  # noqa: E402
+from linguistics.madar.maqayis_store import MaqayisStore  # noqa: E402
+from linguistics.madar.synthesis_prompt import SYSTEM_PROMPT, build_user_message  # noqa: E402
 
 # Occurrences sampled for the surface/ref list AND fed to the LLM prompt. The
 # full ref list + true count are always returned separately (cheap, "s:a" only).

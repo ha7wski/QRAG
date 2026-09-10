@@ -65,11 +65,11 @@ import sys
 import unicodedata
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis.qlisan_data import canonical_root, root_graph
+from linguistics.analysis.qlisan_data import canonical_root, root_graph
 from arabic_text import normalize_root
 from quran_data import loaders, paths, qac
 
@@ -134,7 +134,7 @@ _REQUIRED_DALALA_FIELDS = ("core_meaning", "pages")
 # apart invisibly" failure this module's own loader exists to prevent — and it would drift
 # in the worst possible direction, since a letter claim whose badge string stopped matching
 # the gate's would be silently rejected as un-badged.
-from tahlil.citations import (  # noqa: E402  (placed with the constants it defines)
+from linguistics.tahlil.citations import (  # noqa: E402  (placed with the constants it defines)
     BADGE_INTERPRETIVE as BADGE_DALALA,
     BADGE_VERIFIED as BADGE_SIFAT,
     BADGE_LABELS as _BADGE_LABELS,

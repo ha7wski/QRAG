@@ -91,7 +91,7 @@ def render_synthesis(word: str, root: str, letters: list[dict]) -> str:
 
 
 if __name__ == "__main__":
-    from lisan import letter_lexicon
+    from linguistics.lisan import letter_lexicon
 
     letters = [letter_lexicon.describe(ch) for ch in "رحم"]
     print(render_synthesis("رحمة", "رحم", letters))

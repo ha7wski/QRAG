@@ -35,7 +35,7 @@ from arabic_text import normalize_search  # noqa: E402
 from quran_data import loaders, paths  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
     LexicalRetriever,
-    _clitic_alif_candidates,
+    clitic_alif_candidates,
 )
 
 logger = logging.getLogger("quran_rag.verse_lookup")
@@ -196,7 +196,7 @@ class VerseLookup:
         pn = self.proper_nouns.get(key)
         if pn:
             return pn
-        for stem in _clitic_alif_candidates(key):
+        for stem in clitic_alif_candidates(key):
             pn = self.proper_nouns.get(stem)
             if pn:
                 return pn

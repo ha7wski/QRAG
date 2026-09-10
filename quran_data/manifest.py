@@ -134,7 +134,7 @@ MANIFEST: dict[str, Entry] = {
                "artefact — Madār is quarantined but this file is not its "
                "by-product.",
         producer="scripts/build_maqayis_dataset.py",
-        consumers=("madar/maqayis_store.py",),
+        consumers=("linguistics/madar/maqayis_store.py",),
         regenerable=False,
     ),
     "ARABIC_LETTERS_CSV": Entry(
@@ -144,7 +144,7 @@ MANIFEST: dict[str, Entry] = {
         origin="Curated from Ḥasan ʿAbbās, *Khaṣāʾiṣ al-ḥurūf al-ʿarabiyya wa-"
                "maʿānīhā*, at `confidence='summary'` granularity.",
         producer=None,
-        consumers=("lisan/letter_lexicon.py",),
+        consumers=("linguistics/lisan/letter_lexicon.py",),
         regenerable=False,
     ),
     "LETTER_SEMANTICS_JSON": Entry(
@@ -155,7 +155,7 @@ MANIFEST: dict[str, Entry] = {
         origin="Curated from Ḥasan ʿAbbās, *Khaṣāʾiṣ al-ḥurūf al-ʿarabiyya wa-"
                "maʿānīhā*, cited per letter.",
         producer=None,
-        consumers=("tahlil/huruf.py",),
+        consumers=("linguistics/tahlil/huruf.py",),
         regenerable=False,
     ),
     "BAB_CONTRAST_JSON": Entry(
@@ -163,7 +163,7 @@ MANIFEST: dict[str, Entry] = {
         what="11 bāb contrasts, verbs only, v0.1.0 (12 KB).",
         origin="Hand-written from classical ṣarf.",
         producer=None,
-        consumers=("tahlil/form_kb.py",),
+        consumers=("linguistics/tahlil/form_kb.py",),
         regenerable=False,
     ),
     "SIGHA_DALALA_JSON": Entry(
@@ -172,7 +172,7 @@ MANIFEST: dict[str, Entry] = {
              "`analysis/mizan.py`.",
         origin="Hand-written from classical ṣarf.",
         producer=None,
-        consumers=("tahlil/form_kb.py",),
+        consumers=("linguistics/tahlil/form_kb.py",),
         regenerable=False,
     ),
     "MIZAN_PATTERNS_JSON": Entry(
@@ -181,7 +181,7 @@ MANIFEST: dict[str, Entry] = {
              "Corrects the mīzān where letter-by-letter projection fails.",
         origin="Hand-written. Lived outside `data/` entirely until this change.",
         producer=None,
-        consumers=("analysis/mizan.py",),
+        consumers=("linguistics/analysis/mizan.py",),
         regenerable=False,
     ),
 
@@ -247,7 +247,7 @@ MANIFEST: dict[str, Entry] = {
              "segments, is_proper_noun (29 MB). The ṣarfī foundation.",
         origin="Chain B.",
         producer="ingestion/qac_treebank.py",
-        consumers=("analysis/qlisan_data.py",),
+        consumers=("linguistics/analysis/qlisan_data.py",),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -258,7 +258,7 @@ MANIFEST: dict[str, Entry] = {
              "omitted, which is what makes `nahwi.available` false.",
         origin="Chain B.",
         producer="ingestion/qac_treebank.py",
-        consumers=("analysis/qlisan_data.py",),
+        consumers=("linguistics/analysis/qlisan_data.py",),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -268,7 +268,7 @@ MANIFEST: dict[str, Entry] = {
              "Powers naẓāʾir and usage attestation.",
         origin="Chain B.",
         producer="ingestion/qac_treebank.py",
-        consumers=("analysis/qlisan_data.py", "tahlil/huruf.py"),
+        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/huruf.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -280,7 +280,7 @@ MANIFEST: dict[str, Entry] = {
              "Basmala-INCLUSIVE chakl rows.",
         origin="Chain B, aligned onto QURAN_CHAKL_CSV.",
         producer="ingestion/qac_treebank.py",
-        consumers=("analysis/qlisan_data.py", "tahlil/evidence.py"),
+        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/evidence.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -409,8 +409,8 @@ MANIFEST: dict[str, Entry] = {
              "`TAHLIL_COVERAGE_LOG`, which is what keeps a test run off the "
              "real file.",
         origin="Written by the app as it serves.",
-        producer="tahlil/coverage.py",
-        consumers=("tahlil/coverage.py",),
+        producer="linguistics/tahlil/coverage.py",
+        consumers=("linguistics/tahlil/coverage.py",),
         regenerable=True,
         rebuild="Deleting it loses the measurement; the app recreates it.",
     ),

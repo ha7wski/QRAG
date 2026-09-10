@@ -26,13 +26,13 @@ import sys
 from itertools import permutations
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from arabic_text import normalize_root  # noqa: E402
-from retrieval.lexical_retriever import _clitic_alif_candidates  # noqa: E402
-from lisan import letter_lexicon  # noqa: E402
-from lisan.synthesis_template import render_synthesis  # noqa: E402
+from retrieval.lexical_retriever import clitic_alif_candidates  # noqa: E402
+from linguistics.lisan import letter_lexicon  # noqa: E402
+from linguistics.lisan.synthesis_template import render_synthesis  # noqa: E402
 
 # Interpretive disclaimer (Arabic — the feature is Arabic-only).
 DISCLAIMER = "قراءة رمزية تأويلية لدلالات الحروف، وليست تعريفًا معجميًّا ثابتًا."
@@ -96,7 +96,7 @@ class LisanService:
         # 2. Lenient QAC retries (clitic-stripped / plene→defective alif), still
         #    QAC-backed — the ladder is re-run on each candidate stem, never the
         #    stemmer. This is why it stays labeled "qac".
-        for stem in _clitic_alif_candidates(w):
+        for stem in clitic_alif_candidates(w):
             retried = self.lex._ladder(stem)
             if retried:
                 return {"root": retried[0], "roots": retried, "root_source": "qac"}

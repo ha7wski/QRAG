@@ -26,7 +26,7 @@ def _service(request: Request):
     QAC resolver and LLM client — no new heavy components."""
     svc = getattr(request.app.state, "madar_service", None)
     if svc is None:
-        from madar.madar_service import MadarService
+        from linguistics.madar.madar_service import MadarService
 
         svc = MadarService(
             resolver=request.app.state.lexical_retriever,

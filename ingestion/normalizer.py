@@ -18,17 +18,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from arabic_text import normalize_text  # noqa: E402
+from arabic_text.normalize import backend  # noqa: E402
 
 
 def run(verses: list[dict]) -> list[dict]:
     """Fill `text_ar_clean` for each verse (in place) and return the list."""
-    from arabic_text.normalize import _HAS_PYARABIC
-
-    backend = "pyarabic" if _HAS_PYARABIC else "internal fallback"
+    used = backend()
     for v in verses:
         v["text_ar_clean"] = normalize_text(v["text_ar"])
     n_empty = sum(1 for v in verses if not v["text_ar_clean"])
-    print(f"  normalizer : {len(verses)} verses normalized ({backend})"
+    print(f"  normalizer : {len(verses)} verses normalized ({used})"
           + (f", ⚠️ {n_empty} empty" if n_empty else ""))
     return verses
 

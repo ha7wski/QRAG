@@ -24,7 +24,7 @@ from pydantic import BaseModel
 # specified display strings of design decision 3b (contract, not UI choice: «مُولَّد» must
 # say «غير مُحقَّق» in words, and تأويلي must differ from محقّق in LABEL TEXT so the
 # distinction survives greyscale and a screenshot).
-from tahlil.citations import (  # noqa: F401  (re-export is the point)
+from linguistics.tahlil.citations import (  # noqa: F401  (re-export is the point)
     BADGE_GENERATED,
     BADGE_INTERPRETIVE,
     BADGE_LABELS,
@@ -36,7 +36,7 @@ from tahlil.citations import (  # noqa: F401  (re-export is the point)
 
 # The five block ids, in their one rendering order — also imported from the module that
 # enforces block membership, for the same reason as the badges.
-from tahlil.tahlil_service import BLOCKS_ORDER  # noqa: F401
+from linguistics.tahlil.tahlil_service import BLOCKS_ORDER  # noqa: F401
 
 
 class TahlilWordRequest(BaseModel):

@@ -113,17 +113,17 @@ import sys
 from pathlib import Path
 from typing import Callable
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis import qac_labels
-from analysis.qlisan_data import qac_words, root_graph, word_index
-from analysis.word_analysis import analyze_word
+from linguistics.analysis import qac_labels
+from linguistics.analysis.qlisan_data import qac_words, root_graph, word_index
+from linguistics.analysis.word_analysis import analyze_word
 from quran_data.corpus import chakl_by_ref
-from madar.maqayis_store import MaqayisStore
-from tahlil import form_kb, huruf
-from tahlil.citations import (
+from linguistics.madar.maqayis_store import MaqayisStore
+from linguistics.tahlil import form_kb, huruf
+from linguistics.tahlil.citations import (
     KIND_CONTRAST,
     KIND_LETTER,
     KIND_MAQAYIS,
