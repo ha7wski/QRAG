@@ -1155,7 +1155,36 @@ if __name__ == "__main__":  # smoke test — mirrors mizan.py / form_kb.py
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. The verse layer (tasks.md §11)
+# 10. The verse layer (tasks.md §11)  ——  QUARANTINED
+# ─────────────────────────────────────────────────────────────────────────────
+# Everything from here to the end of this module is OFF the served surface.
+# `POST /tahlil/verse` was unmounted in the repo restructure because no page
+# called it: the Tahlil page uses /tahlil/word and /tahlil/review only.
+#
+# It is quarantined, not deleted, for the same reason madar/ is (see
+# linguistics/madar/__init__.py, which states the convention): this is a
+# complete, tested feature that was deliberately left unwired, not code that
+# rotted. Its 201 lines of tests — §11 of tests/test_tahlil_service.py — still
+# run and still guard it, so it cannot silently decay while dormant.
+#
+# WHAT IS DORMANT HERE: `analyze_verse` and everything it alone reaches —
+# `verse_evidence`, `_verse_cite_id`, `_rooted_word_ids`, `_verse_claims`,
+# VERSE_WORD_CAP, BLOCK_VERSE, VERSE_TITLE_AR and the _MSG_VERSE_* strings.
+# The slice extends beyond this module: `prompts.build_verse_message` /
+# `verse_lines` / `VERSE_TASK` / `VERSE_PROMPT_VERSION`,
+# `generator.TahlilGenerator.verse()`, and `citations.validate_verse` /
+# `R_VERSE_UNANCHORED` exist to serve this entry point and nothing else. Each
+# keeps its own tests in its own suite.
+#
+# HOW TO REBRANCH IT: re-add the route to api/routers/tahlil.py —
+#
+#     @router.post("/tahlil/verse", response_model=TahlilVerseResponse)
+#     def tahlil_verse(req: TahlilVerseRequest, request: Request) -> ...:
+#         return analyze_verse(req.surah, req.ayah, store=..., generator=...)
+#
+# and restore TahlilVerseRequest / TahlilVerseResponse in api/models/tahlil.py.
+# Both were removed with the route; git has them at 46d06e9^. The service below
+# is unchanged and needs nothing done to it.
 # ─────────────────────────────────────────────────────────────────────────────
 # Mean verse length is 12.4 words and the longest is 128 (2:282). Analysing every word of
 # 2:282 would be 128 word analyses plus a synthesis, which is not a latency problem so much
