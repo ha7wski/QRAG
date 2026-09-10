@@ -6,7 +6,7 @@ Define what the API means by fully vocalized verse text, and hold one line throu
 endpoint that emits it: the text of an āya carries that āya's own words and nothing else.
 
 The line needs defending because the sole source of vocalized text,
-`data/raw/quran_chakl.csv`, prepends the Basmala to āya 1 of 113 sūras — an artefact of
+`data/source/quran_chakl.csv`, prepends the Basmala to āya 1 of 113 sūras — an artefact of
 the file, not of the revelation. This capability places the removal at the API's display
 layer, names the two āyāt that are exempt and the one place a Basmala legitimately sits
 inside an āya, and specifies how the Basmala is recognised at all: by comparing
@@ -25,7 +25,7 @@ Every field the API emits as fully vocalized verse text — `Verse.text_ar_tashk
 `text` of a Verse Study word-lookup row — SHALL contain the words of that āya and nothing
 else.
 
-`data/raw/quran_chakl.csv`, the sole source of vocalized text, prepends the Basmala to
+`data/source/quran_chakl.csv`, the sole source of vocalized text, prepends the Basmala to
 āya 1 of 113 sūras. That prefix is an artefact of the source file, not part of the āya, and
 SHALL be removed before the text leaves the API.
 

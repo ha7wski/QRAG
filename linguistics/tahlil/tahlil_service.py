@@ -23,7 +23,7 @@ Five rules run through the whole file, and each one is the scar of a measured fa
      teaches them why.
 
   3. **Never mutate what we were handed.** The bundle's `fiche` is the very object
-     `analysis/word_analysis.py` returned, and its sub-dicts reach into the process-lifetime
+     `linguistics/analysis/word_analysis.py` returned, and its sub-dicts reach into the process-lifetime
      `qac_words()` cache. Editing one in place would rewrite the QLisan fiche for every
      later request in the process — a silent, global corruption of the page this change
      promised to leave untouched. Every claim is built by *reading*; nothing here writes
@@ -41,7 +41,8 @@ Five rules run through the whole file, and each one is the scar of a measured fa
 
   5. **Only what the MODEL produced is cached; the deterministic half is re-assembled on
      every read.** The cache key carries the prompt/KB/letters/model versions — nothing
-     about the corpus, `analysis/mizan.py`, `analysis/qac_labels.py` or `evidence.py`. So a
+     about the corpus, `linguistics/analysis/mizan.py`,
+     `linguistics/analysis/qac_labels.py` or `evidence.py`. So a
      cached *whole response* would keep serving a stale مِيزان wazn after a corpus or
      projection change (exactly what the in-flight `harden-mizan-irregular-roots` does to
      258 of 405 sampled words) with a **محقّق** badge on it and nothing able to detect the
@@ -51,7 +52,7 @@ Five rules run through the whole file, and each one is the scar of a measured fa
      it is `lru_cache`d.
 
 Degradation is honest at every seam, including the seam with our own dependency:
-`tahlil/evidence.py` is imported lazily and defensively, so a missing or broken evidence
+`linguistics/tahlil/evidence.py` is imported lazily and defensively, so a missing or broken evidence
 layer produces a stated reason rather than an exception or, worse, a page assembled from
 nothing.
 
@@ -94,12 +95,12 @@ BLOCK_TITLES = {
 LEVEL_BLOCKS: tuple[str, ...] = tuple(b for b in BLOCKS_ORDER if b != BLOCK_TARKIB)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. Generation gate. Mirrors `madar/madar_service.py::_synthesis_enabled` — the
+# 2. Generation gate. Mirrors `linguistics/madar/madar_service.py::_synthesis_enabled` — the
 #    project's opt-in convention for anything a model writes.
 # ─────────────────────────────────────────────────────────────────────────────
 GENERATION_ENV = "TAHLIL_GENERATION_ENABLED"
 
-# Cache-key component when `tahlil/prompts.py` does not exist yet (§7 owns it). Named
+# Cache-key component when `linguistics/tahlil/prompts.py` does not exist yet (§7 owns it). Named
 # «stub» on purpose: the day the real PROMPT_VERSION lands, every entry cached under this
 # value misses BY CONSTRUCTION, which is exactly the invalidation the design asks for.
 PROMPT_VERSION_STUB = "0-stub"
@@ -220,7 +221,7 @@ def generation_enabled() -> bool:
 def prompt_version() -> str:
     """The prompt version that participates in the cache key.
 
-    Imported lazily from `tahlil/prompts.py` because §7 has not written it yet, and NOT
+    Imported lazily from `linguistics/tahlil/prompts.py` because §7 has not written it yet, and NOT
     cached: the moment that module lands, the next request keys on the real version and
     every stub-keyed entry becomes unreachable — invalidation by construction rather than
     by anyone remembering to purge a table.
@@ -236,7 +237,7 @@ def prompt_version() -> str:
 def tarkib_enabled() -> bool:
     """Whether the تركيب is switched on *within* generation (tasks.md 8.4).
 
-    Owned by `tahlil/prompts.py` — the only pure-stdlib half of the generation layer — and
+    Owned by `linguistics/tahlil/prompts.py` — the only pure-stdlib half of the generation layer — and
     read here lazily for the same reason `prompt_version` is: this module must stay
     importable, and the page must stay renderable, on a machine where the generation layer
     is absent entirely. Absent ⇒ True, so the block never *claims* to be switched off when
@@ -922,7 +923,7 @@ def analyze_word(surah: int, ayah: int, word: int, *, store=None, generator=None
 
     # Existence is checked HERE, against the same word index the fiche is read from, and
     # not left to the evidence layer: without it, a request for a position the corpus does
-    # not hold would come back 200-with-a-reason on any machine where `tahlil/evidence.py`
+    # not hold would come back 200-with-a-reason on any machine where `linguistics/tahlil/evidence.py`
     # is missing — telling the reader that a nonexistent word has no evidence, which is a
     # different and false statement. This is an index lookup, not a second alignment path:
     # selection still goes through `GET /qlisan/verse/{surah}/{ayah}`.
@@ -1122,8 +1123,8 @@ def _cache_put(store, ref: str, model_id: str, claims_by_block: dict, events: li
     """Store the MODEL's output only — never the assembled response.
 
     The key is `(ref, prompt_version, kb_version, letters_version, model_id)`. Read what is
-    *not* in that tuple: the corpus, `analysis/mizan.py`, `analysis/qac_labels.py`,
-    `tahlil/evidence.py`. Caching the whole response therefore froze every **محقّق** fact
+    *not* in that tuple: the corpus, `linguistics/analysis/mizan.py`, `linguistics/analysis/qac_labels.py`,
+    `linguistics/tahlil/evidence.py`. Caching the whole response therefore froze every **محقّق** fact
     under a key that cannot notice when the fact changes — bump the mīzān projection (what
     `harden-mizan-irregular-roots` does to 258 of 405 sampled words) and the page keeps
     serving the old wazn, badged verified, with nothing in the system able to detect the

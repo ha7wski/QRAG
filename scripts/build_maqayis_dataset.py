@@ -4,7 +4,7 @@ build_maqayis_dataset.py — OFFLINE, one-shot builder for the Maqāyīs aṣl d
 
 Parses Ibn Fāris' *Muʿjam Maqāyīs al-Lugha* (m. 395 AH) into a small CSV mapping
 each triliteral/quadriliteral root to the canonical **aṣl** (أصل, the semantic
-pivot Ibn Fāris assigns it) — the SOURCED, verified half of the `madar/` feature.
+pivot Ibn Fāris assigns it) — the SOURCED, verified half of the `linguistics/madar/` feature.
 
 Source (public-domain text, open-access edition; whitelisted repo):
   OpenITI/0400AH → data/0395IbnFarisQazwini/0395IbnFarisQazwini.MucjamMaqayis/
@@ -17,7 +17,7 @@ and roots explicitly declared root-less ("شيء لا أصل له") are stored a
 with an EMPTY aṣl text. Nothing carries Ibn Fāris' name unless it is his text.
 
 This script is NOT on the runtime path — it is run once to produce
-`data/references/maqayis_asl.csv`, which the `madar/` package then reads offline.
+`data/references/maqayis_asl.csv`, which the `linguistics/madar/` package then reads offline.
 
 Usage:
     python scripts/build_maqayis_dataset.py            # parse local source → CSV

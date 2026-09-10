@@ -46,7 +46,7 @@ if str(ROOT) not in sys.path:
 #
 # The import is **guarded**, and that guard is load-bearing rather than defensive
 # habit: `classify_root` / `CLASS_NAQIS` / `CLASS_LAFIF` are contributed by a
-# *sibling* change (`harden-mizan-irregular-roots`), while `analysis/word_analysis.py`
+# *sibling* change (`harden-mizan-irregular-roots`), while `linguistics/analysis/word_analysis.py`
 # imports this module at module level — so a bare `from … import` here would take
 # the entire /qlisan fiche down with an ImportError the day that change is reverted
 # or lands out of order. Non-fatal must not mean invisible: with the classifier

@@ -13,10 +13,10 @@ it is not a substitute for scholarly interpretation (tafsir).
 > pipeline, indexing, the base RAG pipeline (retrieval + generation), the
 > FastAPI backend, the Next.js frontend, and the quality layer (query
 > processing, HyDE, cross-encoder reranking). Two root-based study tools (Verse
-> Study — exhaustive vocalized lookup; Lisan Analysis — LLM root analysis), plus
-> single-verse / full-surah endpoints and pages (deep-linking), fully vocalized
-> verse display, server-side session persistence (SQLite), and 👍/👎 answer
-> feedback.
+> Study — exhaustive vocalized lookup; Lisan Analysis — deterministic
+> letter-level root reading), plus single-verse / full-surah endpoints and pages
+> (deep-linking), fully vocalized verse display, chat turns persisted server-side
+> (SQLite), and 👍/👎 answer feedback.
 
 ---
 
@@ -38,17 +38,21 @@ it is not a substitute for scholarly interpretation (tafsir).
     against the query, with a query-root-coverage step that keeps verses sharing
     the query's whole context (full-coverage / AND when the query has ≥2 roots).
     Arabic-only, no translations shown. Backed by `GET /search`.
-- **Lisan Analysis (linguistic root analysis)** — look up an Arabic word by its
-  trilateral root and get an LLM analysis of the shades of meaning the root
-  carries across a representative sample of its occurrences.
+- **Lisan Analysis (letter-level root reading)** — look up an Arabic word by its
+  trilateral root and read the sense each root letter carries, composed
+  **deterministically** from a sound-symbolism dataset (Hasan Abbas' framework +
+  classical makhraj/ṣifāt). Arabic-only, no LLM, and interpretive by
+  construction — the disclaimer travels in the response. Backed by
+  `POST /lisan/analyze`.
 - **Find Verse context & surah reading** — jump straight to any verse (surah
   picker + ayah number) with its surrounding context, and read a full surah as
   one continuous Arabic block. Verses deep-link via `/verse/{surah}/{ayah}` and
   `/surah/{number}`.
-- **Session persistence & feedback** — conversations persist (browser +
-  server-side SQLite) and each answer can be rated 👍/👎.
+- **Session persistence & feedback** — conversations persist in the browser,
+  each chat turn is also written server-side to SQLite, and each answer can be
+  rated 👍/👎.
 - **Fully vocalized display** — every verse shown in the UI is rendered with
-  full diacritics (chakl), sourced from `data/raw/quran_chakl.csv`; the
+  full diacritics (chakl), sourced from `data/source/quran_chakl.csv`; the
   undiacritized text is kept for search/matching.
 - **Multilingual throughout** — Arabic text is always shown in its original
   script; questions and answers work across ar/fr/en.
@@ -57,9 +61,9 @@ it is not a substitute for scholarly interpretation (tafsir).
 
 ## Run it locally
 
-The repo ships the source and the raw corpora — `data/raw/quran.csv`
-(undiacritized, used for indexing/matching) and `data/raw/quran_chakl.csv`
-(fully vocalized, used for display); the processed data and indexes are
+The repo ships the source and the original corpora — `data/source/quran.csv`
+(undiacritized, used for indexing/matching) and `data/source/quran_chakl.csv`
+(fully vocalized, used for display); the derived data and indexes are
 generated locally. See **[`scripts/README.md`](scripts/README.md)**
 for prerequisites, the one-time build, and the one-command launcher
 (`./scripts/run.sh`).
@@ -70,21 +74,42 @@ for prerequisites, the one-time build, and the one-command launcher
 
 ```
 quran-rag/
-├── ingestion/        # Data pipeline: parse → normalize → enrich → morphology
+├── arabic_text/      # Shared: the Arabic text/root normalizers, folds, mark ranges
+├── quran_data/       # Shared: every dataset — paths, lazy loaders, provenance manifest
+│
+├── ingestion/        # Pipeline: parse → normalize → enrich → morphology (QAC)
 ├── indexing/         # Embeddings, Qdrant, BM25, hybrid (RRF) search
 ├── retrieval/        # Hybrid retrieval + quality layer (query proc, HyDE, rerank)
 ├── generation/       # RAG orchestration + LLM client
 ├── api/              # FastAPI backend (HTTP layer)
+│
+├── linguistics/      # The Arabic study engines
+│   ├── analysis/     #   deterministic foundation: mīzān, QAC labels, word fiche, fāṣila
+│   ├── lisan/        #   letter-symbolism reading of a root (no LLM)
+│   ├── madar/        #   sourced lexical reading (Ibn Fāris) — quarantined, see its __init__
+│   └── tahlil/       #   integral word analysis (تحليل)
+│
 ├── frontend/         # Next.js UI
+├── documentation/    # Deep dives on specific pipelines and open issues
 ├── data/
-│   ├── raw/          # quran.csv (indexing) + quran_chakl.csv (vocalized display)
-│   └── processed/    # generated JSON / indexes
+│   ├── source/       # Third-party originals, never rewritten (quran.csv, quran_chakl.csv, QAC)
+│   ├── references/   # Curated scholarship, each file carrying a human decision
+│   ├── derived/      # Anything a script can rebuild (generated JSON / indexes)
+│   └── runtime/      # Mutable state the running app owns (SQLite, embedded Qdrant)
 └── scripts/          # setup / run / ingest / translation helpers
 ```
 
-Four decoupled layers — ingestion → indexing → retrieval → generation — each
-replaceable without refactoring the others, wired together and exposed over HTTP
-by `api/` and consumed by the Next.js `frontend/`.
+`data/` is organized by what a file **is**, not by which stage happened to write
+it — so "can I delete this?" is answered by the directory name. Every dataset
+also has an entry in `quran_data/manifest.py` recording where it came from, which
+step produces it, who reads it, and the exact command that rebuilds it.
+
+Dependencies point one way: `arabic_text` imports nothing from the project,
+`quran_data` imports only `arabic_text`, then the four decoupled pipeline layers
+— ingestion → indexing → retrieval → generation — each replaceable without
+refactoring the others, wired together and exposed over HTTP by `api/` and
+consumed by the Next.js `frontend/`. The `linguistics/` engines are leaves that
+`api/` mounts; nothing else imports them.
 
 ---
 
@@ -134,7 +159,10 @@ All runtime settings live in `.env` (see `.env.example`):
 - **LLM:** `LLM_PROVIDER` (`ollama` | `anthropic`), `OLLAMA_MODEL` /
   `OLLAMA_BASE_URL` or `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL`.
 - **Vector DB:** `QDRANT_URL` (use `http://localhost:6333` on the host,
-  `http://qdrant:6333` in Docker), `QDRANT_COLLECTION`.
+  `http://qdrant:6333` in Docker), `QDRANT_COLLECTION`. Set
+  `QDRANT_PATH=data/runtime/qdrant` instead to run Qdrant **embedded** in the
+  backend process — no server, no Docker VM for a 24 MB vector set. An empty
+  value means "use the server at `QDRANT_URL`".
 - **Embedding:** `EMBEDDING_MODEL`, `EMBEDDING_DEVICE` (`auto`/`cpu`/`cuda`/`mps`),
   `EMBEDDING_BATCH_SIZE`.
 - **Quality toggles:** `QUERY_PROCESSOR_ENABLED` (on), `HYDE_ENABLED` (off),

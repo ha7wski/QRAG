@@ -7,7 +7,7 @@ differs is epistemic: QLisan is deterministic end to end, while ~80 % of Tahlil'
 generated, so **every claim carries a badge and its citations travel with it** rather than
 living in a footnote.
 
-THE BADGE VOCABULARY IS IMPORTED, NEVER RE-DECLARED. `tahlil/citations.py` owns the three
+THE BADGE VOCABULARY IS IMPORTED, NEVER RE-DECLARED. `linguistics/tahlil/citations.py` owns the three
 badge strings, their labels and their tooltips because it is the module that ENFORCES them:
 the gate compares a claim's badge against those exact strings. A literal copy here would be
 the third instance of the "two tables drift apart invisibly" failure this change has already

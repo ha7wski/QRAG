@@ -104,23 +104,42 @@
 
 ## 6. Documentation and dead weight
 
-- [ ] 6.1 Rewrite the affected sections of `CLAUDE.md`: package tree, dataset paths, the three normalizers, the `app.state` wiring, the served surface, the quarantine convention
-- [ ] 6.2 Update `README.md`, `scripts/README.md` and `architecture.md` for the new layout and commands
-- [ ] 6.3 Point provenance documentation at the manifest instead of repeating it in module docstrings
-- [ ] 6.4 Untrack `data/source/treebank/{Quran.csv,Quranic.rar,RelLabels.csv,pos.csv}` and `data/references/zero_theory_pitch_deck.pdf` (~9.5 MB), only after the manifest records the upstream archive they came from
-- [ ] 6.5 Reduce `scripts/start_dev.sh` to Ollama only (decision R1), with a comment stating that Qdrant runs embedded under `QDRANT_PATH` and that starting its container re-creates the Docker memory reservation documented as the cause of a hard machine freeze
-- [ ] 6.6 Add an index line to `CLAUDE.md` pointing at `documentation/root-lookup.md` and `documentation/root-highlight-alignment-issue.md` (decision R3) — neither file is deleted; the second holds the live diagnostic for the unresolved highlight-alignment bug
-- [ ] 6.7 Leave `requirements.txt` untouched (decision R4): `httpx` is required by FastAPI's `TestClient` and by the step-0 parity harness, `transformers` is a legitimate transitive pin
-- [ ] 6.8 Delete `eval/` (decision R2, 1.2 GB, git-ignored, cross-source investigation concluded) — **before running the irreversible step, surface once more that `eval/roots/scripts/` is only 148 KB yet holds `build_arbitration.py` and `validate_arbitration.py`, which produce and validate the shipped `data/references/root_arbitration.json`; `ingestion/root_resolver.py` raises rather than writing on an unarbitrated disagreement, so a future corpus update needs them. Deleting `work/`, `sources/`, `.venv-camel/` and the bulk dumps reclaims essentially all 1.2 GB. Then do what the user says.**
-- [ ] 6.9 Confirm after the deletion that `data/references/root_arbitration.json` is still present and tracked, and that `python -m pytest -q` is unaffected
+- [x] 6.1 Rewrite the affected sections of `CLAUDE.md`: package tree, dataset paths, the three normalizers, the `app.state` wiring, the served surface, the quarantine convention
+  - **Spec correction found while writing this.** `served-surface` says «Madār
+    (`linguistics/madar/`, its `MadarService`, `MaqayisStore` and `tests/test_madar.py`)
+    SHALL be quarantined». `MaqayisStore` is NOT dormant: `linguistics/tahlil/evidence.py`
+    builds one on every Tahlīl analysis, so it sits on the `POST /tahlil/word` request
+    path — a mounted, consumed route (verified: the route answers 200 and the import is
+    module-level). The quarantine covers the ROUTE and the SERVICE; the store beneath
+    them is a shared reference reader Tahlīl depends on. Reading the spec literally and
+    deleting the package would break a served route, so `linguistics/madar/__init__.py`
+    now spells out, file by file, what is dormant and what is live.
+- [x] 6.2 Update `README.md`, `scripts/README.md` and `architecture.md` for the new layout and commands
+- [x] 6.3 Point provenance documentation at the manifest instead of repeating it in module docstrings
+- [x] 6.4 Untrack `data/source/treebank/{Quran.csv,Quranic.rar,RelLabels.csv,pos.csv}` and `data/references/zero_theory_pitch_deck.pdf` (~9.5 MB), only after the manifest records the upstream archive they came from
+- [x] 6.5 Reduce `scripts/start_dev.sh` to Ollama only (decision R1), with a comment stating that Qdrant runs embedded under `QDRANT_PATH` and that starting its container re-creates the Docker memory reservation documented as the cause of a hard machine freeze
+- [x] 6.6 Add an index line to `CLAUDE.md` pointing at `documentation/root-lookup.md` and `documentation/root-highlight-alignment-issue.md` (decision R3) — neither file is deleted; the second holds the live diagnostic for the unresolved highlight-alignment bug
+- [x] 6.7 Leave `requirements.txt` untouched (decision R4): `httpx` is required by FastAPI's `TestClient` and by the step-0 parity harness, `transformers` is a legitimate transitive pin
+- [x] 6.8 Delete `eval/` (decision R2, 1.2 GB, git-ignored, cross-source investigation concluded) — **before running the irreversible step, surface once more that `eval/roots/scripts/` is only 148 KB yet holds `build_arbitration.py` and `validate_arbitration.py`, which produce and validate the shipped `data/references/root_arbitration.json`; `ingestion/root_resolver.py` raises rather than writing on an unarbitrated disagreement, so a future corpus update needs them. Deleting `work/`, `sources/`, `.venv-camel/` and the bulk dumps reclaims essentially all 1.2 GB. Then do what the user says.**
+- [x] 6.9 Confirm after the deletion that `data/references/root_arbitration.json` is still present and tracked, and that `python -m pytest -q` is unaffected
 
 ## 7. Final verification
 
 - [ ] 7.1 Fresh-clone check: confirm the shipped repo still builds from what is committed, with no reference to a git-ignored path
-- [ ] 7.2 Cold-start check: `GET /health` answers with `models: {embedder: false, search_reranker: false}` — the lazy-model discipline survives the restructure and a backend serving only the lexical paths holds no model memory
+- [x] 7.2 Cold-start check: `GET /health` answers with `models: {embedder: false, search_reranker: false}` — the lazy-model discipline survives the restructure and a backend serving only the lexical paths holds no model memory
 - [ ] 7.3 Full replay of 0.2 against the finished tree: every response identical to the baseline
 - [ ] 7.4 Walk all nine frontend pages and the six nav entries; confirm identical behaviour, including the `/surah` resume position and the deep links from `VerseCard`
-- [ ] 7.5 Confirm the quarantine holds: `POST /madar/analyze` returns 404 while `python -m pytest tests/test_madar.py` passes
-- [ ] 7.6 Confirm the toggles still work: `RERANK_ENABLED=1`, `HYDE_ENABLED=1`, `QAC_STEMMER_FALLBACK=1`, `ROOT_CHANNEL_ENABLED=0` each change behaviour as documented
-- [ ] 7.7 Verify `python ingestion/run_pipeline.py` and `python indexing/build_index.py` still run end-to-end against the new layout — with the backend stopped, and into a scratch copy so the 69 MB derived set is never overwritten by the test
-- [ ] 7.8 Sequence against the in-flight `migrate-llm-qwen-to-jais` change: it touches `generation/llm_client.py` and overlaps `POST /chat` — land these removals first or rebase it, never run both against `api/routers/chat.py` concurrently
+- [x] 7.5 Confirm the quarantine holds: `POST /madar/analyze` returns 404 while `python -m pytest tests/test_madar.py` passes
+- [x] 7.6 Confirm the toggles still work: `RERANK_ENABLED=1`, `HYDE_ENABLED=1`, `QAC_STEMMER_FALLBACK=1`, `ROOT_CHANNEL_ENABLED=0` each change behaviour as documented
+- [x] 7.7 Verify `python ingestion/run_pipeline.py` and `python indexing/build_index.py` still run end-to-end against the new layout — with the backend stopped, and into a scratch copy so the 69 MB derived set is never overwritten by the test
+- [x] 7.8 Sequence against the in-flight `migrate-llm-qwen-to-jais` change: it touches `generation/llm_client.py` and overlaps `POST /chat` — land these removals first or rebase it, never run both against `api/routers/chat.py` concurrently
+  - **Checked: there is no code collision, but there IS a plan collision.**
+    The feared overlap does not exist — that change's only `/chat` reference is task 4.3,
+    «exercise `POST /chat/stream`», which is the endpoint this change KEEPS. It edits
+    `generation/llm_client.py:24` (`DEFAULT_OLLAMA_MODEL`) and its docstring; `generation/`
+    did not move, and `api/routers/chat.py` is not in its impact list at all.
+  - What DOES need rebasing is its own artifacts: `design.md` names `analysis/`, `lisan/`,
+    `madar/`, `tahlil/`, `madar_service.py`, `tahlil/citations.py` and `tahlil/prompts.py`
+    at their pre-move paths, all now under `linguistics/`. Update that change's design and
+    tasks before implementing it, or it will be written against a map that no longer
+    matches the territory — the exact failure this restructure exists to end.

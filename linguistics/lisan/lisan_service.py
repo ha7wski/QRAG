@@ -178,7 +178,7 @@ class LisanService:
                 "disclaimer": DISCLAIMER,
                 "sources": SOURCES,
                 # The same sentence the sibling service already returns
-                # (madar/madar_service.py). This is the most common non-happy
+                # (linguistics/madar/madar_service.py). This is the most common non-happy
                 # path on «تحليل اللسان», and it used to be a whole English
                 # paragraph inside an otherwise Arabic screen.
                 "message": (

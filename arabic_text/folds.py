@@ -2,7 +2,7 @@
 folds.py — the two hamza folds used to decide whether two spellings are one root.
 
 These were exported by the pipeline stage `ingestion/root_resolver.py`, and
-imported at runtime by `analysis/qlisan_data.py` and
+imported at runtime by `linguistics/analysis/qlisan_data.py` and
 `retrieval/lexical_retriever.py` — a request path reaching into a build step for
 a primitive. They are primitives; this is where primitives live. `root_resolver`
 keeps its stage duties: the arbitration cascade, its invariants, writing

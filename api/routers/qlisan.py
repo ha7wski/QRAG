@@ -5,7 +5,7 @@ word at `surah:ayah:word`; صرفي + نحوي come only from the parsed on-disk
 صوتي + دلالي are stubs in this increment. `GET /qlisan/verse/{surah}/{ayah}` returns
 the vocalized verse with QAC-aligned token boundaries for word selection.
 
-The analysis module (`analysis/word_analysis.py`) is pure/light (cached dict
+The analysis module (`linguistics/analysis/word_analysis.py`) is pure/light (cached dict
 lookups), so this layer just validates input and maps errors to HTTP status —
 no heavy service on `app.state` is needed.
 """

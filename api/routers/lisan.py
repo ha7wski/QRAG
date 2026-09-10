@@ -2,9 +2,9 @@
 Lisan endpoint: letter-symbolism reading of an Arabic word's root.
 
 Arabic-only and LLM-free: the reading is composed deterministically from the
-letter data (see `lisan/synthesis_template.py`). Interpretive (Hasan Abbas'
+letter data (see `linguistics/lisan/synthesis_template.py`). Interpretive (Hasan Abbas'
 sound-symbolism + Ibn Jinni), NOT lexicography — the disclaimer travels in the
-response. Pure pipeline logic lives in `lisan/`; this layer only validates input
+response. Pure pipeline logic lives in `linguistics/lisan/`; this layer only validates input
 and lazily builds the shared `LisanService` from the already-loaded QAC resolver
 (so app startup / main.py wiring is a single include_router line, no lifespan
 change).

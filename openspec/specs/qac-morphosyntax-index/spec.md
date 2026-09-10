@@ -118,7 +118,7 @@ believed.
 
 Folding SHALL remain available as a lookup key but SHALL NOT be the stored value. This closes the
 gap where the index carried 0 hamzated roots out of 1642, and where a consumer walking root
-radicals — `analysis/mizan.py` computing the الميزان الصرفي — walked `لالا` instead of `لؤلؤ`.
+radicals — `linguistics/analysis/mizan.py` computing the الميزان الصرفي — walked `لالا` instead of `لؤلؤ`.
 
 The fused-compound marker SHALL travel with the index entry, so a consumer can tell a word whose
 root covers the whole word from one whose root covers a segment.

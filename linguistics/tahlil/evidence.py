@@ -16,7 +16,7 @@ load-bearing, and each one has a measured failure behind it:
 pinned exemplar analyse a word the Quran does not contain, and the block would look
 complete while doing it. The surface is therefore read through the **existing** token
 alignment (`word_index.json`'s `chakl_char_start/end` into `chakl_by_ref()`), exactly as
-`analysis/word_analysis.py::verse_tokens` does — one alignment path, not two.
+`linguistics/analysis/word_analysis.py::verse_tokens` does — one alignment path, not two.
 
 **2. Ids are COPIED from the module that owns the evidence, never re-derived.**
 `huruf.py` mints `letter:…` (with a page **range**, `letter:ء@p94-95`); `form_kb.py` mints
@@ -98,7 +98,7 @@ package is pure stdlib by contract. The reranker is therefore a **documented sea
 seam is validated — an injected ranker may reorder and drop, never invent, so it cannot
 smuggle a ref into the citation vocabulary.
 
-**Maqāyīs is reused, not re-parsed** (`madar/maqayis_store.py`). Honest coverage, measured
+**Maqāyīs is reused, not re-parsed** (`linguistics/madar/maqayis_store.py`). Honest coverage, measured
 two ways because they differ: a *plain* CSV lookup — what the change's baseline measured and
 what a re-parse would have reproduced — reaches 1 142/1 642 roots (37 844 words, 75.7 %),
 while the store's geminate bridge (`اب` ↔ `ابب`) recovers 141 roots / 4 106 words more, for
@@ -211,7 +211,7 @@ _POS_SCOPE_AR: dict[str, str] = {
 # The POS values `attestation` can answer for today. A verb is identified in the corpus by
 # a fact QAC records — `verb_form` — so «is there a verb of this باب under this root?» is a
 # lookup. A nominal صيغة is identified by its WAZN, which the corpus does not record: it is
-# a projection (`analysis/mizan.py`, `verified=False` on hollow/geminate/irregular roots,
+# a projection (`linguistics/analysis/mizan.py`, `verified=False` on hollow/geminate/irregular roots,
 # and an open hardening change against it), so crediting or denying a nominal candidate
 # would rest on a guess. Refuse instead — see `attestation`.
 _ATTESTABLE_POS: frozenset[str] = frozenset({"V"})
@@ -245,7 +245,7 @@ def surface_vocalized(surah: int, ayah: int, word: int) -> tuple[str, bool]:
 
     Returns the slice of the **fully vocalized verse** that the QAC token occupies,
     using `word_index.json`'s `chakl_char_start/end` — the alignment
-    `analysis/word_analysis.py::verse_tokens` already publishes. This is a *read* of that
+    `linguistics/analysis/word_analysis.py::verse_tokens` already publishes. This is a *read* of that
     alignment, not a second one: no boundary is recomputed here.
 
     **Never** `qac_words()[ref]["uthmani"]`. That field is not reliably vocalized and, for
@@ -637,7 +637,7 @@ def _qac_items(fiche: dict, record: dict,
 def build(surah: int, ayah: int, word: int, *, rank: NazairRanker | None = None) -> dict:
     """Assemble the evidence bundle for the word at `surah:ayah:word`.
 
-    Composes **on top of** `analysis.word_analysis.analyze_word` (task 4.1): the fiche is
+    Composes **on top of** `linguistics.analysis.word_analysis.analyze_word` (task 4.1): the fiche is
     carried whole under `fiche` and its deterministic facts are never re-derived here.
 
     Returns a JSON-serialisable dict:
@@ -827,7 +827,7 @@ def build(surah: int, ayah: int, word: int, *, rank: NazairRanker | None = None)
 
 
 def bundle_for_claims(bundle: dict) -> dict:
-    """The projection `tahlil.citations.validate(claims, bundle)` consumes — checked.
+    """The projection `linguistics.tahlil.citations.validate(claims, bundle)` consumes — checked.
 
     The gate resolves a claim's cites against `bundle["items"]`, reads `multi_sense` off a
     `sigha:` item, and reads `attested` **plus `absence_scope_ar`** off a `contrast:` item.

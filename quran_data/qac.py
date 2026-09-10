@@ -1,9 +1,9 @@
 """
 qac.py — the one reader of `quran-morphology.txt`.
 
-Before this module the file had four independent readers — `analysis/fassila.py`
+Before this module the file had four independent readers — `linguistics/analysis/fassila.py`
 (twice), `ingestion/qac_morphology.py`, `ingestion/root_resolver.py` and
-`tahlil/huruf.py` — each re-deriving the same four-column layout and each opening
+`linguistics/tahlil/huruf.py` — each re-deriving the same four-column layout and each opening
 the file again. A backend serving Fassila and Tahlīl paid three reads of 6 MB and
 carried three copies of the format knowledge, so a change to the source would have
 had to be found in four places.
@@ -18,7 +18,7 @@ written. It applies no normalization, no folding and no linguistic judgement, an
 it imports nothing from the project — that is the rule that keeps the registry at
 the bottom of the dependency order. So the root projection hands back the raw
 `ROOT:` spellings, hamza seat intact, and the caller that needs a folded key folds
-them itself (`tahlil/huruf.py` does, and raises on a collision).
+them itself (`linguistics/tahlil/huruf.py` does, and raises on a collision).
 
 **Two entry points, deliberately.**
 
@@ -49,7 +49,7 @@ from quran_data.paths import QAC_MORPHOLOGY_TXT
 # existing readers used, character for character.
 #
 # One rule was tightened in the process, deliberately: this scans the FEATURES
-# field and takes EVERY match, where `tahlil/huruf.py` used to `re.search` the
+# field and takes EVERY match, where `linguistics/tahlil/huruf.py` used to `re.search` the
 # whole line and keep the first. The two agree over the corpus as it stands —
 # 1651 identical root spellings, verified — because `ROOT:` only ever appears
 # once, and only in column 4. They would diverge on a source that put a second

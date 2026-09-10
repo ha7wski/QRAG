@@ -14,8 +14,9 @@ token spans, so the `word` index a client sends back IS the QAC `word_id` by con
 a second aligner would be a second chance to disagree with the treebank.
 
 Like `api/routers/qlisan.py`, this layer only validates input and maps errors to HTTP
-status. `tahlil/` is pure stdlib and `analysis/word_analysis.py` is cached-dict-light, so
-no heavy service goes on `app.state` — the router calls the service directly. The SQLite
+status. `linguistics/tahlil/` is pure stdlib and `linguistics/analysis/word_analysis.py`
+is cached-dict-light, so no heavy service goes on `app.state` — the router calls the
+service directly. The SQLite
 `Store` (cache + review state) IS shared, and is read defensively: an app assembled without
 one still serves analyses, uncached and un-reviewed.
 """

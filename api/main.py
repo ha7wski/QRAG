@@ -43,7 +43,7 @@ from api.routers import fassila as fassila_router  # noqa: E402
 from api.routers import feedback as feedback_router  # noqa: E402
 from api.routers import lisan as lisan_router  # noqa: E402
 
-# QUARANTINED, deliberately imported but NOT mounted — see madar/__init__.py.
+# QUARANTINED, deliberately imported but NOT mounted — see linguistics/madar/__init__.py.
 # The import stays so the dormant router is type-checked and proven to import on
 # every startup, and so rebranching Madar is the single `include_router` line the
 # quarantine notice promises rather than an archaeology exercise.
@@ -181,7 +181,7 @@ app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)
-# NOT mounted: `madar_router` — quarantined, see madar/__init__.py. Rebranching is
+# NOT mounted: `madar_router` — quarantined, see linguistics/madar/__init__.py. Rebranching is
 # exactly one line here: `app.include_router(madar_router.router)`.
 
 

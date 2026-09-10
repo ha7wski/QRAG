@@ -169,7 +169,7 @@ MANIFEST: dict[str, Entry] = {
     "SIGHA_DALALA_JSON": Entry(
         bucket="references",
         what="27 ṣīgha → possible-sense rules (24 KB); keys aligned with "
-             "`analysis/mizan.py`.",
+             "`linguistics/analysis/mizan.py`.",
         origin="Hand-written from classical ṣarf.",
         producer=None,
         consumers=("linguistics/tahlil/form_kb.py",),

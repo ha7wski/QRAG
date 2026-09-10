@@ -7,7 +7,7 @@ TBD - created by archiving change add-fassila-analysis. Update Purpose after arc
 
 The system SHALL derive, for every āya of the Qurʾān, the **fāṣila**: the final letter of
 the āya's final word rendered in pausal form (صيغة الوقف). Derivation SHALL operate on the
-**Uthmānī rasm** as carried by the QAC treebank (`data/raw/quran-morphology.txt`), whose
+**Uthmānī rasm** as carried by the QAC treebank (`data/source/quran-morphology.txt`), whose
 per-word surface forms concatenate back to the orthographic word, and SHALL be
 deterministic, offline, and free of any ML model or LLM call.
 
@@ -62,7 +62,7 @@ The fāṣila is then the last remaining character.
 
 ### Requirement: Derivation uses the Uthmānī rasm, not the imlāʾī corpus
 
-The fāṣila is a property of the **Uthmānī rasm**. `data/raw/quran_chakl.csv` stores the
+The fāṣila is a property of the **Uthmānī rasm**. `data/source/quran_chakl.csv` stores the
 **imlāʾī** (modern plene) orthography, which differs from the rasm precisely word-finally,
 where the rhyme lives: it writes `فَاعْبُدْنِي` where the rasm has `فَٱعْبُدْنِى`. Deriving from
 the plene text yields `ي` where the fāṣila is `ا`, corrupting 43 āyāt — most of Sūrat Ṭā-Hā,
@@ -104,7 +104,7 @@ absent from the source and requires no stripping.
 Āyāt composed **only** of disconnected letters (الحروف المقطّعة) carry no fāṣila in the
 rhetorical sense and SHALL be excluded from every count, percentage and plotted point.
 
-Detection SHALL use the QAC treebank (`data/raw/quran-morphology.txt`): an āya is
+Detection SHALL use the QAC treebank (`data/source/quran-morphology.txt`): an āya is
 muqaṭṭaʿāt-only **iff every one of its words carries the `INL` tag**. This method is
 self-maintaining and requires no hardcoded string list.
 

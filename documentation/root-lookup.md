@@ -26,7 +26,7 @@ api/routers/verse_lookup.py   →   retrieval/verse_lookup.py (VerseLookup)
         ├─ Récupération : pour chaque racine, toutes ses occurrences,
         │     groupées par lemme (sens dominant en premier)
         │
-        └─ Affichage vocalisé : texte chakl depuis data/raw/quran_chakl.csv,
+        └─ Affichage vocalisé : texte chakl depuis data/source/quran_chakl.csv,
               groupé par sourate, mot surligné (matching hamza-safe)
 ```
 
@@ -45,8 +45,8 @@ api/routers/verse_lookup.py   →   retrieval/verse_lookup.py (VerseLookup)
 2. **Récupération** — pour chaque racine, on lit ses occurrences dans l'index, **groupées
    par lemme** (ex. `سمو` → `سماء` « ciel » / `اسم` « nom »).
 
-3. **Affichage vocalisé** — le texte vocalisé (chakl) vient de `data/raw/quran_chakl.csv`
-   via `indexing.corpus.chakl_by_ref()` (le corpus traité `text_ar` n'a **pas** de
+3. **Affichage vocalisé** — le texte vocalisé (chakl) vient de `data/source/quran_chakl.csv`
+   via `quran_data.corpus.chakl_by_ref()` (le corpus dérivé `text_ar` n'a **pas** de
    harakat). Regroupé par sourate, avec le mot **surligné** (`_match_indices`).
 
 4. **Cas nom propre** — `لوط`, `موسى`, `إبراهيم`… sont **sans racine dans QAC** → résolus
@@ -55,13 +55,15 @@ api/routers/verse_lookup.py   →   retrieval/verse_lookup.py (VerseLookup)
 
 ### Normalisation : le bon normaliseur au bon endroit
 
-Trois normaliseurs coexistent dans le projet, à ne pas confondre :
+Trois normaliseurs coexistent dans le projet, à ne pas confondre. Ils vivent désormais
+**côte à côte dans `arabic_text/`**, précisément pour que le choix soit visible au moment
+où on le fait ; le tableau comparatif de `arabic_text/__init__.py` fait autorité :
 
-- **`root_normalize.normalize_root`** — pour les **racines** : folde les porteurs de hamza
+- **`arabic_text.normalize_root`** — pour les **racines** : folde les porteurs de hamza
   mais **ne supprime jamais** la hamza. Utilisé par la résolution.
-- **`indexing.text_normalize.normalize_search`** — hamza-safe (folde ى/ة, retire les
+- **`arabic_text.normalize_search`** — hamza-safe (folde ى/ة, retire les
   marques de waqf) : pour le **surlignage** et BM25.
-- **`normalizer.normalize_text`** — **supprime** la hamza (أَرْض → رض) : **jamais** pour le
+- **`arabic_text.normalize_text`** — **supprime** la hamza (أَرْض → رض) : **jamais** pour le
   matching de racines (over-matcherait عرض/مرض/فرض).
 
 Le surlignage (`_match_indices` + `_norm_match`) utilise `normalize_search` avec en plus
@@ -75,7 +77,9 @@ le **dagger alef** (U+0670) replié en alif plène, pour réconcilier `بَقَ�
 Les racines **ne viennent pas d'un stemmer algorithmique** mais du **Quranic Arabic
 Corpus**, en arabe natif et **vérifiées manuellement**.
 
-- **Source brute** : `data/raw/quran-morphology.txt` (fork *mustafa0x/quran-morphology*).
+- **Source brute** : `data/source/quran-morphology.txt` (fork *mustafa0x/quran-morphology*),
+  lue **uniquement** via `quran_data/qac.py` — le lecteur unique de ce fichier, qui en avait
+  quatre. Sa provenance complète est dans `quran_data/manifest.py`.
 - Cela remplace l'ancien builder à base de tashaphyne (`ingestion/morphology.py`), qui
   mis-roote (ex. `كريم` → `ريم` au lieu de `كرم`). L'ancien builder est **laissé en place,
   inutilisé**, comme fallback optionnel derrière `QAC_STEMMER_FALLBACK=0` (off).
@@ -115,11 +119,14 @@ Le module lit le fichier brut ligne par ligne et, pour chaque segment porteur d'
 
 | Fichier | Contenu | Rôle au lookup |
 |---|---|---|
-| **`data/processed/morphology.json`** | racine → `{root, forms_found, verses, count}` | index principal : toutes les occurrences d'une racine |
-| **`data/processed/qac_resolution.json`** | `form_to_roots` + `lem_to_roots` | maps inverses : d'une **forme** ou d'un **lemme** on remonte à la/les racine(s) — résout le mot tapé |
-| **`data/processed/lemma_index.json`** | racine → `[{lemma, lemma_display, forms_found, verses, count}]`, **sens dominant en premier** | sépare une racine en ses sens pour le groupement UI |
-| **`data/processed/proper_nouns.json`** | lemme normalisé → `{lemma_display, forms_found, verses, count}` | trouve les noms propres sans racine |
-| `data/processed/verses_final.json` | corpus + champ `roots` rempli par verset | (mis à jour au passage) |
+| **`data/derived/morphology.json`** | racine → `{root, forms_found, verses, count}` | index principal : toutes les occurrences d'une racine |
+| **`data/derived/qac_resolution.json`** | `form_to_roots` + `lem_to_roots` | maps inverses : d'une **forme** ou d'un **lemme** on remonte à la/les racine(s) — résout le mot tapé |
+| **`data/derived/lemma_index.json`** | racine → `[{lemma, lemma_display, forms_found, verses, count}]`, **sens dominant en premier** | sépare une racine en ses sens pour le groupement UI |
+| **`data/derived/proper_nouns.json`** | lemme normalisé → `{lemma_display, forms_found, verses, count}` | trouve les noms propres sans racine |
+| `data/derived/verses_final.json` | corpus + champ `roots` rempli par verset | (mis à jour au passage) |
+
+Ces chemins ne sont jamais écrits à la main dans le code : ils viennent des constantes de
+`quran_data/paths.py`, et se lisent via les loaders paresseux de `quran_data/loaders.py`.
 
 ### Reconstruire les index
 

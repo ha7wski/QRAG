@@ -50,10 +50,10 @@ def chakl_by_ref() -> dict[tuple[int, int], dict]:
 
     **Rows are returned exactly as stored — do NOT strip the Basmala here.**
     The CSV prepends the Basmala to ayah 1 of 113 surahs, and these rows are
-    addressed by CHARACTER OFFSET: `analysis.qlisan_data.word_index()` records
+    addressed by CHARACTER OFFSET: `linguistics.analysis.qlisan_data.word_index()` records
     `chakl_char_start` / `chakl_char_end` computed against the Basmala-inclusive
     string (`2:1:1` is stored at `[39, 42)`), and both the QLisan word fiche and
-    `analysis.mizan._vocalized_surface` slice rows by those offsets. Stripping
+    `linguistics.analysis.mizan._vocalized_surface` slice rows by those offsets. Stripping
     the prefix here would shift every one of them and silently return the wrong
     word. Display consumers call `strip_leading_basmala()` instead.
     """

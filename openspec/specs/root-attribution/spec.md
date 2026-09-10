@@ -41,7 +41,7 @@ keys, index entries, and comparisons — never as the persisted or rendered valu
 
 This is a one-way constraint: a folded form cannot be restored to its spelling, while an exact
 spelling can always be folded on demand. All 139 hamzated roots of the reference source SHALL
-survive into `data/processed/`, against 1 today.
+survive into `data/derived/`, against 1 today.
 
 #### Scenario: A hamzated root survives storage
 

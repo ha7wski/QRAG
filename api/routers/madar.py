@@ -4,7 +4,7 @@ Madar endpoint: sourced lexical reading of an Arabic word's root.
 Returns Ibn Fāris' cited aṣl (verified), the root's Quranic occurrences (proof),
 and an optional, clearly-flagged LLM synthesis of the pivot (GENERATED — off
 unless MADAR_SYNTHESIS_ENABLED=1). Arabic-only. Pure pipeline logic lives in
-`madar/`; this layer validates input and lazily builds the shared service from
+`linguistics/madar/`; this layer validates input and lazily builds the shared service from
 the already-loaded QAC resolver + LLM client (no lifespan change).
 """
 from __future__ import annotations

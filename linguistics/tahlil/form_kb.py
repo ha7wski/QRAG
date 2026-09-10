@@ -18,7 +18,7 @@ pay for it with a corpus disambiguator (design decision 3 / spec §5.3). `multi_
 the flag that drives that badge rule downstream — it is computed here, from the data,
 never carried in the file.
 
-**Why the keys are never re-typed.** A KB key must byte-match what `analysis/mizan.py`
+**Why the keys are never re-typed.** A KB key must byte-match what `linguistics/analysis/mizan.py`
 emits, and a missing ḥarakah is invisible on screen while making the row permanently
 unreachable. The shipped `key` values are therefore generated *from* `mizan._VERB_BAB_AR`,
 `qac_labels.VERB_ASPECT_AR` and `qac_labels.DERIVED_NOUNS_AR`, and a drift guard in the
@@ -246,7 +246,7 @@ def match(record: dict, mizan: dict) -> list[dict]:
     """The KB rows that apply to this word, most specific first.
 
     `record` is a `qac_words.json` record (pos / features / root / lemma); `mizan` is the
-    output of `analysis.mizan.compute_mizan`. Returns `[]` — never a fabricated row — when
+    output of `linguistics.analysis.mizan.compute_mizan`. Returns `[]` — never a fabricated row — when
     nothing matches; the caller is expected to *say* that no form row matched rather than
     render an empty صرفي block, since a silently empty block reads as «no form meaning
     here» instead of «we have no row for this form».
@@ -321,7 +321,7 @@ def contrast_candidates(mizan: dict, record: dict) -> list[dict]:
 
     Deliberately carries **no** attestation field. Whether the opposed form actually occurs
     is a corpus question computed downstream at `(lemma, POS/باب)` granularity by
-    `tahlil/evidence.py`; answering it here, or at root granularity anywhere, inverts the
+    `linguistics/tahlil/evidence.py`; answering it here, or at root granularity anywhere, inverts the
     verdict on the pinned word — root `سرع` *does* contain أَسْرَع, but as an اسم تفضيل
     (6:62), not as a verb of باب أفعَلَ, so «ولم ترد صيغة أفعَلَ فعلاً من هذا الجذر» is true
     while a root-level check would call it false. Every target therefore ships its own

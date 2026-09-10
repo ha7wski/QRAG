@@ -2,7 +2,7 @@
 prompts.py — what the Tahlil generator is allowed to SEE, and what it is allowed to SAY.
 
 This module is the seam where an untrusted component meets a proved gate, so it is written
-from the gate backwards: everything here exists to make `tahlil/citations.py` able to reach
+from the gate backwards: everything here exists to make `linguistics/tahlil/citations.py` able to reach
 a verdict, never to persuade the model to behave. A prompt instruction is a request; the
 validator is the guarantee (`citations.py`, module docstring). Where the two disagree the
 validator wins, and the prompt's only job is to stop the model from producing output the
@@ -160,7 +160,7 @@ _FIELD_MIN_NAZAIR = 3
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. The system contract
 # ─────────────────────────────────────────────────────────────────────────────
-# Terse and imperative, in Arabic, for the reason `madar/synthesis_prompt.py` records:
+# Terse and imperative, in Arabic, for the reason `linguistics/madar/synthesis_prompt.py` records:
 # qwen2.5:7b drifts into Latin/CJK fragments on long chatty prompts, and a drifted claim is
 # voided by the purity check — so verbosity here is paid for in dropped claims.
 SYSTEM_PROMPT = (

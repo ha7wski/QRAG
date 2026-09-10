@@ -41,7 +41,7 @@ fragile ; on ne peut pas le rustiner proprement.
 ### Tentative 2 — surlignage par **position de mot** (index QAC) ⚠️
 
 QAC fournit `sourate:aya:mot:segment` et la racine de chaque mot. Idée : ne plus matcher de
-texte, mais surligner le **N-ᵉ mot** du verset. Émettre `data/processed/word_occurrences.json`
+texte, mais surligner le **N-ᵉ mot** du verset. Émettre `data/derived/word_occurrences.json`
 = `{verset: [{w, root, lemma}]}` / `[{w, pn}]`, et mapper « mot QAC N » → « N-ᵉ token réel »
 (en sautant les tokens de waqf `ۖ ۗ …` que le CSV chakl émet séparément).
 
@@ -86,7 +86,7 @@ d'orthographe **résiduelles** entre QAC et mushaf, non foldées identiquement :
 ## Le fix recommandé (à faire)
 
 1. **Alignement au build**, une fois, dans `ingestion/qac_morphology.py` :
-   - charger le CSV chakl (`indexing.corpus.chakl_by_ref`),
+   - charger le CSV chakl (`quran_data.corpus.chakl_by_ref`),
    - reconstruire chaque **mot QAC = concat de tous ses segments** (y compris particules et
      pronoms — actuellement les segments sans racine/PN sont *skippés* et leur forme est
      perdue),
@@ -121,7 +121,27 @@ Harness de validation : ne PAS utiliser l'oracle « la forme est sous-chaîne du
 pour valider — il échoue sur exactement les cas qu'on répare (`آباءكم` jugé « faux » à
 tort). Valider par l'alignement lui-même (taux de réussite) et par inspection ciblée.
 
+## Depuis la rédaction : la colonne vertébrale d'alignement existe
+
+> Ajouté après coup, sans rien retirer du diagnostic ci-dessus — **le bug, lui, n'est
+> toujours pas corrigé** : `retrieval/verse_lookup.py::_match_indices` fait encore du
+> matching par sous-chaîne.
+
+Ce que « Le fix recommandé » §1 demande — un alignement calculé **au build**, une fois — a
+depuis été construit par `ingestion/qac_treebank.py` (Stage 5), pour un autre besoin
+(QLisan). Il produit `data/derived/word_index.json` : `s:a:w` →
+`{uthmani, imlaai, chakl_char_start, chakl_char_end, aligned}`, soit **77 429 mots QAC
+alignés sur 77 429** (couverture 1,00) par décalage de caractères dans la ligne chakl.
+
+Deux différences avec le plan d'origine, à prendre en compte avant de s'en servir :
+
+- l'ancrage est un **décalage de caractères**, pas un indice de token d'affichage (`t`) ;
+- ces décalages sont calculés sur les lignes chakl **Basmala incluse**, alors que
+  `_verse_row` retire le préfixe avant `_match_indices`. Il faut donc rebaser, sans quoi
+  tout se décale des quatre mots de la Basmala.
+
 ## Voir aussi
 
 - [`root-lookup.md`](root-lookup.md) — pipeline « Word in Verses » et construction des index
   QAC (§5.1 y décrit déjà la fragilité du surlignage).
+- `quran_data/manifest.py` — la fiche de `WORD_INDEX_JSON` et de tout autre dataset cité ici.

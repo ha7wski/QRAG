@@ -1,7 +1,7 @@
 """Fāṣila endpoints: the pausal rhyme-letter of every āya, per sūra and corpus-wide.
 
 Read-only and derived entirely from the corpus — no LLM, no state, no retrieval.
-The computation lives in `analysis/fassila.py` and is cached per process, so this
+The computation lives in `linguistics/analysis/fassila.py` and is cached per process, so this
 router is a thin pass-through.
 """
 from __future__ import annotations

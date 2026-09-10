@@ -22,6 +22,22 @@ separation of verified from generated — all of that is finished, tested
 Quarantine, not deletion, is the point: this is working scholarship-backed code
 whose UI question is unresolved, not code that was wrong.
 
+WHAT IS DORMANT, EXACTLY — this package is NOT dead code, and the distinction
+matters because deleting it would break a route that is served today.
+
+    madar_service.py   DORMANT — nothing constructs MadarService except the
+                       unmounted router and tests/test_madar.py.
+    maqayis_store.py   **LIVE.** `linguistics/tahlil/evidence.py::_maqayis()`
+                       builds a MaqayisStore on every Tahlil analysis, so it sits
+                       on the POST /tahlil/word request path — a mounted, consumed
+                       route. Ibn Faris' cited asl reaches the reader through
+                       Tahlil even with Madar off the surface.
+
+So: the ROUTE and the SERVICE are quarantined. The store beneath them is a
+shared reference reader that Tahlil depends on. `data/references/maqayis_asl.csv`
+is retained for the same reason, on top of being curated scholarship rather than
+a build artefact of a dormant feature.
+
 HOW TO REBRANCH IT — exactly one line. In `api/main.py`, next to the other
 `include_router` calls, add:
 

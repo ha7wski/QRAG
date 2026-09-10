@@ -13,7 +13,7 @@ fold below is therefore **load-bearing, not cosmetic**, and `describe` **raises*
 unresolvable letter rather than skipping it, so the truncation can only ever surface as a
 failure.
 
-This is the deliberate opposite of `lisan/letter_lexicon.py::describe`, which returns a
+This is the deliberate opposite of `linguistics/lisan/letter_lexicon.py::describe`, which returns a
 neutral placeholder for an unknown letter and never raises. That is right *there*: `/lexical`
 renders a standalone per-letter reading, so a blank row is visibly blank and costs the reader
 nothing. Here the per-letter دلالة is composed into one root-level synthesis, and a missing
@@ -96,7 +96,7 @@ _ROOT_FIELD_RE = re.compile(r"ROOT:([^|\t\r\n]+)")
 _TATWEEL = "ـ"  # U+0640 — decorative elongation; carries no phonetic identity.
 
 # Hamza carriers → the bare `ء` entry, the same convention as
-# `lisan/letter_lexicon.py::_HAMZA_SEATS`. This fold only ever fires on a root because
+# `linguistics/lisan/letter_lexicon.py::_HAMZA_SEATS`. This fold only ever fires on a root because
 # `decompose` now resolves the root through `unfolded_root()` FIRST; on the normalized
 # index key it is dead code (`normalize_root` has already folded أ إ آ ٱ → ا, ؤ → و, ئ → ي,
 # and the dataset has its own `ا` / `و` / `ي` entries, distinct from `ء`).
