@@ -2,7 +2,7 @@
 qac_morphology.py — Stage 4 (QAC) of the ingestion pipeline.
 
 Builds the Arabic root index that powers the Verse Study / lexical features
-from the Quranic Arabic Corpus (QAC), `data/raw/quran-morphology.txt`
+from the Quranic Arabic Corpus (QAC), `data/source/quran-morphology.txt`
 (mustafa0x/quran-morphology fork), whose roots are manually verified. This
 replaces the tashaphyne light-stemmer builder in `ingestion/morphology.py`,
 which mis-roots words (e.g. كريم → ريم instead of كرم). The old builder is kept
@@ -26,17 +26,17 @@ Design decisions (fixed):
   D4 — this is a NEW, separate builder; `ingestion/morphology.py` is untouched.
 
 Outputs:
-  - data/processed/morphology.json     : root → {root, forms_found, verses, count}
-  - data/processed/qac_resolution.json : {form_to_roots, lem_to_roots}
-  - data/processed/lemma_index.json    : root → [{lemma, lemma_display, forms_found,
+  - data/derived/morphology.json     : root → {root, forms_found, verses, count}
+  - data/derived/qac_resolution.json : {form_to_roots, lem_to_roots}
+  - data/derived/lemma_index.json    : root → [{lemma, lemma_display, forms_found,
                                           verses, count}] (a root's occurrences split
                                           per lemma; powers the Verse Study grouping)
-  - data/processed/proper_nouns.json   : search-normalized lemma → {lemma_display,
+  - data/derived/proper_nouns.json   : search-normalized lemma → {lemma_display,
                                           forms_found, verses, count} for rootless
                                           proper nouns (لوط, إبراهيم …), which carry
                                           NO root in QAC and so are absent from the
                                           root index — this lets Verse Study find them
-  - data/processed/verses_final.json   : verses with the `roots` field filled
+  - data/derived/verses_final.json   : verses with the `roots` field filled
 """
 from __future__ import annotations
 

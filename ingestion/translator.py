@@ -1,5 +1,5 @@
 """
-translator.py — Fill verse translations from data/translations/ (phase 2).
+translator.py — Fill verse translations from data/derived/translations/ (phase 2).
 
 Loads the normalized translation maps produced by scripts/fetch_translations.py
 and fills each verse's `translation_fr` / `translation_en` by id. If a
@@ -7,8 +7,8 @@ translation file is missing, that language is skipped (no-op) so the pipeline
 still runs in an Arabic-only configuration.
 
 Files expected (keyed by "surah:ayah"):
-  data/translations/fr_hamidullah.json
-  data/translations/en_sahih.json
+  data/derived/translations/fr_hamidullah.json
+  data/derived/translations/en_sahih.json
 """
 from __future__ import annotations
 

@@ -15,19 +15,15 @@ __pycache__/
 # Local Claude Code config
 .claude/
 
-# Generated data / indexes
-data/processed/
-!data/processed/.gitkeep
-
-# Runtime SQLite (session history + feedback)
+# Data buckets that are not committed. The rule is now the layout itself:
+# `derived/` is whatever a script can rebuild, `runtime/` is mutable state the
+# running app owns, and `source/maqayis/` is the one documented departure from
+# its bucket — a large re-downloadable original (build_maqayis_dataset.py
+# --fetch) whose curated derivative `data/references/maqayis_asl.csv` is what
+# the repo actually ships.
+data/derived/
 data/runtime/
-
-# Fetched translations (regenerable via scripts/fetch_translations.py)
-data/translations/
-
-# Raw Maqayis source (re-downloadable via build_maqayis_dataset.py --fetch).
-# Only the curated derivative data/references/maqayis_asl.csv is committed.
-data/raw/maqayis/
+data/source/maqayis/
 
 # Local dev runtime logs
 local-dev/logs/

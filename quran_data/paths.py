@@ -31,17 +31,25 @@ DATA = ROOT / "data"
 #   REFERENCES  curated scholarship carrying a human decision
 #   DERIVED     anything a script can rebuild
 #   RUNTIME     mutable state the running app owns
-SOURCE = DATA / "raw"
+#
+# `references/` and `runtime/` keep their exact paths: the first already says what
+# it holds, and the second keeps `QDRANT_PATH=data/runtime/qdrant` and `APP_DB_PATH`
+# valid in every developer's `.env`, so nobody has to touch their environment and
+# the embedded Qdrant collection is never relocated under its own exclusive lock.
+# Only `raw/` -> `source/` ("raw" read as pipeline stage zero, when the point is
+# "not ours, never rewritten"), `processed/` -> `derived/`, and `translations/`
+# into `derived/` actually moved.
+SOURCE = DATA / "source"
 REFERENCES = DATA / "references"
-DERIVED = DATA / "processed"
+DERIVED = DATA / "derived"
 RUNTIME = DATA / "runtime"
-TRANSLATIONS = DATA / "translations"
+TRANSLATIONS = DERIVED / "translations"
 
 # ── source: third-party originals ─────────────────────────────────────────
 QURAN_CSV = SOURCE / "quran.csv"
 QURAN_CHAKL_CSV = SOURCE / "quran_chakl.csv"
 QAC_MORPHOLOGY_TXT = SOURCE / "quran-morphology.txt"
-TREEBANK_CSV = SOURCE / "eqtb" / "quranic-treebank.csv"
+TREEBANK_CSV = SOURCE / "treebank" / "quranic-treebank.csv"
 MAQAYIS_SOURCE_TXT = SOURCE / "maqayis" / "maqayis_shamela.txt"
 
 # ── references: curated scholarship ───────────────────────────────────────
@@ -51,9 +59,8 @@ ARABIC_LETTERS_CSV = REFERENCES / "arabic_letters_dataset.csv"
 LETTER_SEMANTICS_JSON = REFERENCES / "arabic_letter_semantics_hasan_abbas.json"
 BAB_CONTRAST_JSON = REFERENCES / "bab_contrast.json"
 SIGHA_DALALA_JSON = REFERENCES / "sigha_dalala.json"
-# The one dataset that lived outside `data/` entirely. Its constant already
-# points where it belongs conceptually; the file itself moves in checkpoint 3.
-MIZAN_PATTERNS_JSON = ROOT / "analysis" / "data" / "mizan_patterns.json"
+# The one dataset that lived outside `data/` entirely, in `analysis/data/`.
+MIZAN_PATTERNS_JSON = REFERENCES / "mizan_patterns.json"
 
 # ── derived: everything a script rebuilds ─────────────────────────────────
 VERSES_RAW_JSON = DERIVED / "verses_raw.json"

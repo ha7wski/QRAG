@@ -1,9 +1,9 @@
 """
 parser.py — Stage 1 of the ingestion pipeline.
 
-Reads the raw Quran CSV (`data/raw/quran.csv`) and produces a list of
+Reads the raw Quran CSV (`data/source/quran.csv`) and produces a list of
 structured verses following the project's canonical schema, saved to
-`data/processed/verses_raw.json`.
+`data/derived/verses_raw.json`.
 
 Expected CSV columns: num_soura, num_aya, aya, name_soura
 """
@@ -54,7 +54,7 @@ def parse(raw_csv: Path = RAW_CSV) -> list[dict]:
     if not raw_csv.exists():
         raise FileNotFoundError(
             f"Source file not found: {raw_csv}\n"
-            "Place the corpus at data/raw/quran.csv before running the pipeline."
+            "Place the corpus at data/source/quran.csv before running the pipeline."
         )
 
     verses: list[dict] = []

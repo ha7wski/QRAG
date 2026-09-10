@@ -2,7 +2,7 @@
 build_index.py — Build the dense (Qdrant) and sparse (BM25) indexes.
 
 Steps:
-  1. Load verses from data/processed/verses_final.json
+  1. Load verses from data/derived/verses_final.json
   2. Verify Qdrant is reachable (clear error otherwise)
   3. Create/ensure the collection
   4. Embed verses and upsert them into Qdrant in chunks, with a checkpoint
@@ -10,7 +10,7 @@ Steps:
   5. Build and persist the BM25 sparse index
 
 Checkpoint: the index of the last verse successfully upserted is written to
-data/processed/.checkpoint, so an interrupted run resumes where it stopped.
+data/derived/.checkpoint, so an interrupted run resumes where it stopped.
 Use --rebuild to recreate the collection and ignore the checkpoint.
 
 Usage:

@@ -56,16 +56,16 @@
 
 ## 3. Move the data on disk
 
-- [ ] 3.1 Stop the backend (embedded Qdrant lock)
-- [ ] 3.2 `git mv data/raw data/source`, then `git mv data/source/eqtb data/source/treebank`
-- [ ] 3.3 `mv data/processed data/derived` and `mv data/translations data/derived/translations` — **move, never copy-and-delete, never rebuild**: `data/derived/` is 69 MB whose regeneration costs an embedding run
-- [ ] 3.4 `git mv analysis/data/mizan_patterns.json data/references/` and remove the now-empty `analysis/data/`
-- [ ] 3.5 Update the constants in `quran_data` to the new locations — this file is the entire code-side blast radius of the move
-- [ ] 3.6 Rewrite `.gitignore` to the three-entry rule: `data/derived/`, `data/runtime/`, `data/source/maqayis/`
-- [ ] 3.7 Update data paths in `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `scripts/run.sh`, `scripts/ingest.sh`, `scripts/setup.sh`, `local-dev/start.sh`, `local-dev/stop.sh`, `.env.example`
-- [ ] 3.8 Confirm `QDRANT_PATH=data/runtime/qdrant` and `APP_DB_PATH` still resolve — `data/runtime/` deliberately does not move, so no developer `.env` needs editing
-- [ ] 3.9 Re-run the 0.3 inventory and diff: same file count, same total size, nothing under `data/derived/` regenerated
-- [ ] 3.10 Checkpoint: restart the backend, replay 0.2, run both test suites
+- [x] 3.1 Stop the backend (embedded Qdrant lock)
+- [x] 3.2 `git mv data/raw data/source`, then `git mv data/source/eqtb data/source/treebank`
+- [x] 3.3 `mv data/processed data/derived` and `mv data/translations data/derived/translations` — **move, never copy-and-delete, never rebuild**: `data/derived/` is 69 MB whose regeneration costs an embedding run
+- [x] 3.4 `git mv analysis/data/mizan_patterns.json data/references/` and remove the now-empty `analysis/data/`
+- [x] 3.5 Update the constants in `quran_data` to the new locations — this file is the entire code-side blast radius of the move
+- [x] 3.6 Rewrite `.gitignore` to the three-entry rule: `data/derived/`, `data/runtime/`, `data/source/maqayis/`
+- [x] 3.7 Update data paths in `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `scripts/run.sh`, `scripts/ingest.sh`, `scripts/setup.sh`, `local-dev/start.sh`, `local-dev/stop.sh`, `.env.example`
+- [x] 3.8 Confirm `QDRANT_PATH=data/runtime/qdrant` and `APP_DB_PATH` still resolve — `data/runtime/` deliberately does not move, so no developer `.env` needs editing
+- [x] 3.9 Re-run the 0.3 inventory and diff: same file count, same total size, nothing under `data/derived/` regenerated
+- [x] 3.10 Checkpoint: restart the backend, replay 0.2, run both test suites
 
 ## 4. Extract the shared text primitives
 

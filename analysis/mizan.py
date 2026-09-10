@@ -22,7 +22,7 @@ radicals surface unchanged, so two layers run ahead of it:
    root is frequently both (آلاء, QAC root الو, is ناقص with a hamzated فاء — not لفيف).
    The class gates every إعلال rule: a sound root reaches none of them, which is what
    keeps regular words projecting exactly as they always did.
-2. **Match a curated wazn pattern** (`analysis/data/mizan_patterns.json`) — a جمع تكسير
+2. **Match a curated wazn pattern** (`data/references/mizan_patterns.json`) — a جمع تكسير
    is a *template*, not a projection of the root, so the letter-walk can only get it
    wrong: for آلاء it binds the ء to the لام slot and reports «فعَال». A pattern hit
    emits its canonical mīzān (أَفْعَال) and stops.

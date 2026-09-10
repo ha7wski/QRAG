@@ -4,7 +4,7 @@ Runs BEFORE either processing chain writes, so `qac_morphology.py` (chain A) and
 `qac_treebank.py` (chain B) stop deciding roots for themselves and publish the same
 answer. Reads the two RAW resources plus the arbitration file; emits one artifact:
 
-    data/processed/roots_resolved.json    "s:a:w" -> {primary, alternates, rule, ...}
+    data/derived/roots_resolved.json    "s:a:w" -> {primary, alternates, rule, ...}
 
 Cascade, first rule that answers wins:
 

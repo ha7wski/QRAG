@@ -6,7 +6,7 @@ Chains the four ingestion stages in order:
 
 The pipeline is idempotent: re-running it simply regenerates the processed
 JSON files from the raw CSV. Final artifacts are written under
-`data/processed/`.
+`data/derived/`.
 
 Usage:
     python ingestion/run_pipeline.py
@@ -69,7 +69,7 @@ def main() -> int:
         verses, index = timed("qac-morphology", qac_morphology.run, verses)
         # Stage 5 — QLisan per-word index + alignment spine. Independent of the
         # verse records above (reads the eqtb treebank + quran_chakl.csv directly);
-        # writes qac_words/qac_syntax/root_graph/word_index.json under data/processed.
+        # writes qac_words/qac_syntax/root_graph/word_index.json under data/derived.
         timed("qac-treebank", qac_treebank.run)
     except Exception as exc:  # surface a clear failure, keep a clean exit code
         print(f"\n❌ Pipeline failed: {exc}")
@@ -95,10 +95,10 @@ def main() -> int:
         print(f"    {name:<12}: {dt:6.2f}s")
     print(f"  total elapsed       : {elapsed:.1f}s")
     print("  outputs:")
-    print("    data/processed/verses_raw.json")
-    print("    data/processed/verses_enriched.json")
-    print("    data/processed/morphology.json")
-    print("    data/processed/verses_final.json")
+    print("    data/derived/verses_raw.json")
+    print("    data/derived/verses_enriched.json")
+    print("    data/derived/morphology.json")
+    print("    data/derived/verses_final.json")
     print("=" * 60)
     return 0
 

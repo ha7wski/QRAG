@@ -74,7 +74,7 @@ fi
 
 # ── Data check (built once via the README "Run from a clone" steps) ───────
 say "Checking processed data & indexes"
-if [ ! -f "$ROOT/data/processed/verses_final.json" ] || [ ! -f "$ROOT/data/processed/bm25_index.pkl" ]; then
+if [ ! -f "$ROOT/data/derived/verses_final.json" ] || [ ! -f "$ROOT/data/derived/bm25_index.pkl" ]; then
   die "Data/indexes missing. Run the one-time build first:
     $PY scripts/fetch_translations.py
     $PY ingestion/run_pipeline.py

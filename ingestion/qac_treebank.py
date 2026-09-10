@@ -2,7 +2,7 @@
 qac_treebank.py — QLisan foundation: token-alignment spine + per-word indexes.
 
 Parses the on-disk QAC dependency treebank
-(`data/raw/eqtb/quranic-treebank.csv`, TAB-separated, 139376 data rows) into the
+(`data/source/treebank/quranic-treebank.csv`, TAB-separated, 139376 data rows) into the
 four keyed artifacts every downstream QLisan level (صرفي / نحوي / دلالي) keys off:
 
   * `qac_words.json`   — "surah:ayah:word" -> morphology (root / lemma / pos /

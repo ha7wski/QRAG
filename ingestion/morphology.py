@@ -11,8 +11,8 @@ Backend selection (best available wins, with graceful fallback):
   3. heuristic    — internal affix-stripping fallback (no extra dependency)
 
 Outputs:
-  - data/processed/morphology.json    : root → {root, forms, verses, count}
-  - data/processed/verses_final.json  : verses with the `roots` field filled
+  - data/derived/morphology.json    : root → {root, forms, verses, count}
+  - data/derived/verses_final.json  : verses with the `roots` field filled
 """
 from __future__ import annotations
 

@@ -6,7 +6,7 @@ Adds static metadata to each verse using mappings embedded in code:
   - English and French surah names
   - Juz number (1–30)
 
-Saves to `data/processed/verses_enriched.json`.
+Saves to `data/derived/verses_enriched.json`.
 
 Note: French surah names are intentional application data (the project is a
 trilingual ar/fr/en Quran app), not French authoring — they are kept on

@@ -348,7 +348,7 @@ def case_marker(word: dict) -> str | None:
 #
 # `verb_mood` on those 8 330: absent 5 582 · MOOD:JUS 1 418 · MOOD:SUBJ 1 330.
 # **Absent means indicative, not unknown.** The raw treebank
-# (`data/raw/eqtb/quranic-treebank.csv`) carries a `verb_mood` *column* on every
+# (`data/source/treebank/quranic-treebank.csv`) carries a `verb_mood` *column* on every
 # row and writes the treebank's null token `_` on exactly those 5 582 words —
 # measured, not assumed: the column's IMPF distribution there is
 # {'_': 5582, 'MOOD:JUS': 1418, 'MOOD:SUBJ': 1330}. The QAC tagset's own name for

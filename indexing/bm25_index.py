@@ -13,7 +13,7 @@ Two deliberate choices fix a lexical-matching bug:
     hamza carriers without deleting them (أشده and a plain-alif "اشده" both →
     "اشده"), strips Quranic waqf marks, and folds ى/ة. Query and index agree.
 
-Serialized to `data/processed/bm25_index.pkl`.
+Serialized to `data/derived/bm25_index.pkl`.
 """
 from __future__ import annotations
 

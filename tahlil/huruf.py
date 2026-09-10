@@ -73,7 +73,7 @@ from analysis.qlisan_data import canonical_root, root_graph
 from ingestion.root_normalize import normalize_root
 from quran_data import loaders, paths, qac
 
-# The single source of truth. The byte-identical `data/processed/` copy was deleted with
+# The single source of truth. The byte-identical `data/derived/` copy was deleted with
 # this change: two copies of a table are a future divergence, and the divergence would be
 # invisible (both parse, both look complete).
 #
