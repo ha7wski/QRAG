@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FassilaCount } from "@/lib/fassilaTypes";
-import { fmtPercent } from "@/lib/arabicDigits";
+import { fmtPercent } from "@/lib/numerals";
 import { iso, NOUNS } from "@/lib/strings";
 import Counted from "./Counted";
 

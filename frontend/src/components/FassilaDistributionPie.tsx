@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FassilaBucket, FassilaSurahSummary } from "@/lib/fassilaTypes";
-import { fmtPercent } from "@/lib/arabicDigits";
+import { fmtPercent } from "@/lib/numerals";
 import { count, NOUNS } from "@/lib/strings";
 
 /**

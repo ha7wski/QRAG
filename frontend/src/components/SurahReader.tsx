@@ -9,7 +9,6 @@ import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { SurahMeta, SurahResponse } from "@/lib/types";
 import ArabicText from "@/components/ArabicText";
-import { toArabicDigits } from "@/lib/arabicDigits";
 import { writePosition } from "@/lib/readingPosition";
 
 /** How long the scroll must rest before the position is written (ms). */
@@ -208,11 +207,11 @@ export default function SurahReader({ number }: { number: number }) {
           id="surah-picker"
           value={number}
           onChange={(e) => router.push(`/surah/${e.target.value}`)}
-          className="min-w-[240px] rounded-lg border border-gray-300 px-3 py-2 font-arabic text-base focus:border-brand focus:outline-none"
+          className="western-digits min-w-[240px] rounded-lg border border-gray-300 px-3 py-2 font-arabic text-base focus:border-brand focus:outline-none"
         >
           {(surahs ?? []).map((s) => (
             <option key={s.number} value={s.number}>
-              {S.reading.option(toArabicDigits(s.number), s.name_ar ?? "")}
+              {S.reading.option(s.number, s.name_ar ?? "")}
             </option>
           ))}
           {/* Until the list arrives (or when it failed), the select still has to
@@ -220,7 +219,7 @@ export default function SurahReader({ number }: { number: number }) {
           {!surahs && (
             <option value={number}>
               {S.reading.option(
-                toArabicDigits(number),
+                number,
                 data.surah_name_ar || data.surah_name_en || "",
               )}
             </option>
@@ -236,20 +235,18 @@ export default function SurahReader({ number }: { number: number }) {
           <h1 className="text-2xl font-semibold text-gray-800">
             {data.surah_name_ar || data.surah_name_en}
           </h1>
-          <span className="text-gray-400">
-            {S.verse.surahNumber(toArabicDigits(data.surah_number))}
+          <span className="western-digits text-gray-400">
+            {S.verse.surahNumber(data.surah_number)}
           </span>
         </div>
         {/* This line used to read «The Cow · La Vache · 286 verses · madani».
             The translated names are dropped rather than translated — the page
             reads a sūra in Arabic — and the period goes through the same map
             `VerseCard` uses, an unknown value rendering nothing rather than
-            leaking the machine id. Digits are Arabic-Indic to match the sūra
-            number above them, this being a reading context and not an
-            analytical one. */}
-        <p className="text-sm text-gray-500">
+            leaking the machine id. */}
+        <p className="western-digits text-sm text-gray-500">
           {period ? `${period} · ` : ""}
-          {S.verse.ayahCount(data.ayah_count, toArabicDigits(data.ayah_count))}
+          {S.verse.ayahCount(data.ayah_count)}
         </p>
       </header>
 
@@ -279,9 +276,9 @@ export default function SurahReader({ number }: { number: number }) {
               <span
                 id={`ayah-${v.ayah_number}`}
                 data-ayah={v.ayah_number}
-                className="mx-1.5 align-middle text-xl font-semibold text-brand-dark"
+                className="western-digits mx-1.5 align-middle text-xl font-semibold text-brand-dark"
               >
-                ﴿{toArabicDigits(v.ayah_number)}﴾
+                ﴿{v.ayah_number}﴾
               </span>{" "}
             </span>
           ))}

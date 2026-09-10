@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { getFassila, getSurahs } from "@/lib/api";
 import type { FassilaResponse } from "@/lib/fassilaTypes";
 import type { SurahMeta } from "@/lib/types";
-import { fmtPercent } from "@/lib/arabicDigits";
+import { fmtPercent } from "@/lib/numerals";
 import { count, NOUNS } from "@/lib/strings";
 import FassilaBars from "@/components/FassilaBars";
 import FassilaLine from "@/components/FassilaLine";

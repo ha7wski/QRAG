@@ -1,6 +1,5 @@
 import StatusBadge from "./StatusBadge";
 import type { MaqayisCitation } from "@/lib/madarTypes";
-import { toArabicDigits } from "@/lib/arabicDigits";
 
 /**
  * Ibn Fāris' aṣl — the CITED, sourced lexical pivot. Prominence tracks
@@ -17,7 +16,7 @@ import { toArabicDigits } from "@/lib/arabicDigits";
 function aslCountLabel(n: number): string {
   if (n === 2) return "أصلان";
   if (n === 3) return "ثلاثة أصول";
-  if (n >= 4) return `${toArabicDigits(n)} أصول`;
+  if (n >= 4) return `${n} أصول`;
   return "";
 }
 
@@ -123,7 +122,7 @@ function AslBody({ maqayis }: { maqayis: MaqayisCitation | null }) {
       {/* Only when we couldn't surface every aṣl (fallback single sentence);
           when the numbered list already shows them all, the note is redundant. */}
       {maqayis.asl_count > maqayis.asl_text.length && label && (
-        <p className="mt-2 font-arabic text-sm text-gray-500">
+        <p className="western-digits mt-2 font-arabic text-sm text-gray-500">
           يذكر ابن فارس {label}.
         </p>
       )}

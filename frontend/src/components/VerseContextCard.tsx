@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ArabicText from "@/components/ArabicText";
-import { toArabicDigits } from "@/lib/arabicDigits";
 import type { VerseDetail } from "@/lib/types";
 import { S } from "@/lib/strings";
 
@@ -51,11 +50,11 @@ export default function VerseContextCard({
                 }`}
               >
                 <span
-                  className={`mt-2 shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                  className={`western-digits mt-2 shrink-0 rounded-full px-2 py-0.5 text-xs ${
                     isMain ? "bg-brand text-white" : "bg-gray-100 text-gray-500"
                   }`}
                 >
-                  {toArabicDigits(v.ayah_number)}
+                  {v.ayah_number}
                 </span>
                 <ArabicText
                   className={`block flex-1 text-start text-2xl leading-loose ${

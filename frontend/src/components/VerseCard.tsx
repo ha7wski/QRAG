@@ -74,7 +74,7 @@ export default function VerseCard({
         )}
         {verse.juz ? (
           <span className="western-digits rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-            {S.verse.juz(String(verse.juz))}
+            {S.verse.juz(verse.juz)}
           </span>
         ) : null}
         {/* `ms-auto` below, not the mirror table's `me-auto`: on a FLEX item an

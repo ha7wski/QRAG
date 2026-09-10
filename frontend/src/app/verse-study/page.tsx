@@ -39,7 +39,6 @@ import { S, forStatus } from "@/lib/strings";
 // Explicit conversion, never the font's `locl`: design D22 measured that Amiri
 // renders 0-9 identically under `lang="ar"`, so a badge left to the font stays
 // Western while the surah page's converts — the two pages disagreed on screen.
-import { toArabicDigits } from "@/lib/arabicDigits";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
@@ -239,8 +238,8 @@ function SurahCard({
                   className="arabic-text text-2xl text-gray-900"
                 >
                   <HighlightedVerse text={v.text} indices={v.match_indices} />{" "}
-                  <span className="align-middle text-sm text-gray-400">
-                    ﴿{toArabicDigits(v.aya_number)}﴾
+                  <span className="western-digits align-middle text-sm text-gray-400">
+                    ﴿{v.aya_number}﴾
                   </span>
                 </div>
               </button>
@@ -820,8 +819,8 @@ function SimilarVerseCard({
           className="arabic-text text-2xl leading-loose text-gray-900"
         >
           {verse.text_ar_tashkil || verse.text_ar}{" "}
-          <span className="align-middle text-sm text-gray-400">
-            ﴿{toArabicDigits(verse.ayah_number)}﴾
+          <span className="western-digits align-middle text-sm text-gray-400">
+            ﴿{verse.ayah_number}﴾
           </span>
         </div>
       </button>

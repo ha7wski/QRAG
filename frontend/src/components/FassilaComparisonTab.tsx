@@ -9,7 +9,7 @@ import type {
   FassilaOverviewResponse,
   FassilaSurahSummary,
 } from "@/lib/fassilaTypes";
-import { fmtPercent } from "@/lib/arabicDigits";
+import { fmtPercent } from "@/lib/numerals";
 import FassilaTile from "@/components/FassilaTile";
 import FassilaDistributionPie from "@/components/FassilaDistributionPie";
 import FassilaDiversityLine, {

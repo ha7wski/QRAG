@@ -89,7 +89,7 @@ export default function VersePage({
             Arabic-Indic of a reading context: this header is chrome about a
             verse, not the verse (task 3.4c). */}
         <span className="western-digits text-sm text-gray-400">
-          {S.verse.ayahLabel(String(verse.ayah_number))}
+          {S.verse.ayahLabel(verse.ayah_number)}
         </span>
       </div>
 
