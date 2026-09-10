@@ -66,7 +66,7 @@ sys.path.insert(0, str(ROOT))
 from arabic_text import normalize_root  # noqa: E402
 from ingestion.root_resolver import load_resolved  # noqa: E402
 from arabic_text import normalize_search  # noqa: E402
-from quran_data import loaders, paths  # noqa: E402
+from quran_data import loaders, paths, qac  # noqa: E402
 
 # --- Paths ---------------------------------------------------------------------
 # Sources read and artifacts written, all named by the registry.
@@ -77,6 +77,7 @@ QAC_WORDS = paths.QAC_WORDS_JSON
 QAC_SYNTAX = paths.QAC_SYNTAX_JSON
 ROOT_GRAPH = paths.ROOT_GRAPH_JSON
 WORD_INDEX = paths.WORD_INDEX_JSON
+WORD_FUNCTION = paths.WORD_FUNCTION_JSON
 OVERRIDES = paths.OVERRIDES_JSON
 AUDIT = paths.QLISAN_ALIGNMENT_AUDIT_JSON
 
@@ -110,6 +111,75 @@ _MARK_RANGES = [
 ]
 
 _BASMALA_WORDS = ["بسم", "الله", "الرحمن", "الرحيم"]
+
+
+# ── grammatical-tool classification ───────────────────────────────────────────
+# A word can carry a root and still not be an occurrence of that root's MEANING:
+# in «يَٰٓأَيُّهَا ٱلنَّاسُ» the segment `أَيُّ` bears ROOT:أيي but the word is a calling
+# formula, not the noun «sign». Listing it under آية is noise — which is the report
+# this classification answers.
+#
+# The labels are Arabic grammar's own, because the page they surface on is Arabic.
+TOOL_VOCATIVE = "أداة نداء"
+TOOL_INTERROGATIVE = "أداة استفهام"
+TOOL_CONDITIONAL = "أداة شرط"
+
+
+def classify_word(features: list[str], role_ar: str = "") -> str | None:
+    """The tool a word serves as, or None when it carries its own meaning.
+
+    `features` is the QAC feature string of each segment of ONE word, in order;
+    `role_ar` is the treebank's syntactic role for that word, when known.
+
+    BOTH layers are consulted because neither is complete: the morphology marks
+    INTG on 30 of كيف's segments where the treebank calls 80 of them حرف استفهام,
+    and conversely the vocative formula is visible only in the morphology (the
+    treebank files 2:21:1 as a plain اسم / منادى).
+
+    The vocative test is ATT (حرف تنبيه), and ATT alone. On a root-bearing word it
+    occurs 154 times in the corpus and every single one is أَيّ — never a noun — so
+    it identifies the dummy vocative exactly. The calling particle is NOT the test:
+    it is optional («إِنْ يَشَأْ يُذْهِبْكُمْ أَيُّهَا ٱلنَّاسُ» has none), so requiring it left
+    10 behind; and it is not sufficient either, since QAC glues it onto the noun it
+    calls — «يَٰقَوْمِ» is VOC too, but قوم means «people», and filtering on VOC would
+    take 143 genuine occurrences with it.
+
+    Returns None for a word with no root at all: it appears in no lemma card, so
+    there is nothing to set it apart from.
+    """
+    rooted = next((f for f in features if "ROOT:" in f), None)
+    if rooted is None:
+        return None
+    own = set(rooted.split("|"))
+    others = {t for f in features if f is not rooted for t in f.split("|")}
+    if "ATT" in others:
+        return TOOL_VOCATIVE
+    if "INTG" in own or role_ar == "حرف استفهام":
+        return TOOL_INTERROGATIVE
+    if "COND" in own or role_ar == "حرف شرط":
+        return TOOL_CONDITIONAL
+    return None
+
+
+def _build_word_functions(qac_syntax: dict) -> dict[str, str]:
+    """`s:a:w` → its tool label, for the words that serve as one.
+
+    Only tools are stored: absence means "carries its own meaning", which is
+    50 055 of 50 342 occurrences, and storing that would be storing the default.
+    """
+    by_word: dict[str, list[str]] = defaultdict(list)
+    for rec in qac.records():
+        by_word[f"{rec.surah}:{rec.ayah}:{rec.word}"].append(rec.features)
+    out: dict[str, str] = {}
+    for ref, features in by_word.items():
+        label = classify_word(features, (qac_syntax.get(ref) or {}).get("role_ar", ""))
+        if label:
+            out[ref] = label
+    return dict(sorted(out.items(), key=_ref_sort_key_item))
+
+
+def _ref_sort_key_item(item: tuple[str, str]) -> tuple[int, int, int]:
+    return _ref_sort_key(item[0])
 
 
 def _is_mark(cp: int) -> bool:
@@ -520,6 +590,7 @@ def run() -> dict:
     _write_json(QAC_SYNTAX, qac_syntax)
     _write_json(ROOT_GRAPH, root_graph)
     _write_json(WORD_INDEX, word_index)
+    _write_json(WORD_FUNCTION, _build_word_functions(qac_syntax))
     _write_json(AUDIT, audit)
     # Ensure overrides.json exists (seed if absent) so the artifact set is complete.
     if not OVERRIDES.exists():
@@ -530,6 +601,8 @@ def run() -> dict:
     print(f"  qac_syntax.json : {len(qac_syntax):>6} words   -> {QAC_SYNTAX}")
     print(f"  root_graph.json : {len(root_graph):>6} roots   -> {ROOT_GRAPH}")
     print(f"  word_index.json : {len(word_index):>6} words   -> {WORD_INDEX}")
+    print(f"  word_function   : {len(json.loads(WORD_FUNCTION.read_text())):>6} tools"
+          f"   -> {WORD_FUNCTION}")
     print(
         f"  alignment       : {audit['verses_fully_aligned']}/{audit['total_verses']} "
         f"verses ({audit['pct_aligned']}%) "

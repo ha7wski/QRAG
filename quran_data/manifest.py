@@ -208,8 +208,11 @@ MANIFEST: dict[str, Entry] = {
     ),
     "LEMMA_INDEX_JSON": Entry(
         bucket="derived",
-        what="root → lemmas, dominant sense first (1.7 MB). Splits a root into "
-             "its senses for «الكلمة في الآيات».",
+        what="root → lemmas, dominant sense first (2.9 MB). Splits a root into "
+             "its senses for «الكلمة في الآيات». Each lemma carries `word_refs` "
+             "(`s:a:w`) beside `verses`: verse granularity alone cannot separate "
+             "two lemmas of one root inside one verse (40:81 = آيَاتِهِ + فَأَيَّ, both "
+             "أيي), which is what the highlighting needs.",
         origin="Chain A.",
         producer="ingestion/qac_morphology.py",
         consumers=("retrieval/verse_lookup.py",),
@@ -218,8 +221,9 @@ MANIFEST: dict[str, Entry] = {
     ),
     "PROPER_NOUNS_JSON": Entry(
         bucket="derived",
-        what="62 rootless proper nouns (23 KB) — makes `إبراهيم` findable even "
-             "though QAC gives it no root.",
+        what="62 rootless proper nouns (39 KB) — makes `إبراهيم` findable even "
+             "though QAC gives it no root. Carries `word_refs` like the lemma "
+             "index, so a name highlights by position, not by substring.",
         origin="Chain A.",
         producer="ingestion/qac_morphology.py",
         consumers=("retrieval/verse_lookup.py",),
@@ -262,13 +266,29 @@ MANIFEST: dict[str, Entry] = {
         regenerable=True,
         rebuild=PIPELINE,
     ),
+    "WORD_FUNCTION_JSON": Entry(
+        bucket="derived",
+        what="The 297 words that serve as a grammatical TOOL rather than carry "
+             "their own meaning: `s:a:w` → أداة نداء | أداة استفهام | أداة شرط "
+             "(10 KB). «الكلمة في الآيات» FILTERS them out — «أيها» is a calling "
+             "formula and is not an occurrence of آية «sign». The cost is real and "
+             "accepted: كيف keeps 3 of its 83 occurrences. No root is emptied.",
+        origin="Chains A and B together: the morphology's VOC+ATT / INTG / COND "
+               "markers, unioned with the treebank's `role_ar` (حرف استفهام, حرف "
+               "شرط). Neither layer sees every case on its own.",
+        producer="ingestion/qac_treebank.py",
+        consumers=("retrieval/verse_lookup.py",),
+        regenerable=True,
+        rebuild=PIPELINE,
+    ),
     "ROOT_GRAPH_JSON": Entry(
         bucket="derived",
         what="1642 roots → 49 967 `s:a:w` refs at WORD granularity (565 KB). "
              "Powers naẓāʾir and usage attestation.",
         origin="Chain B.",
         producer="ingestion/qac_treebank.py",
-        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/huruf.py"),
+        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/huruf.py",
+                   "retrieval/verse_lookup.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -280,7 +300,8 @@ MANIFEST: dict[str, Entry] = {
              "Basmala-INCLUSIVE chakl rows.",
         origin="Chain B, aligned onto QURAN_CHAKL_CSV.",
         producer="ingestion/qac_treebank.py",
-        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/evidence.py"),
+        consumers=("linguistics/analysis/qlisan_data.py", "linguistics/tahlil/evidence.py",
+                   "retrieval/verse_lookup.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),

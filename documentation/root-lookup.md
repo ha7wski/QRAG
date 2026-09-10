@@ -47,7 +47,10 @@ api/routers/verse_lookup.py   →   retrieval/verse_lookup.py (VerseLookup)
 
 3. **Affichage vocalisé** — le texte vocalisé (chakl) vient de `data/source/quran_chakl.csv`
    via `quran_data.corpus.chakl_by_ref()` (le corpus dérivé `text_ar` n'a **pas** de
-   harakat). Regroupé par sourate, avec le mot **surligné** (`_match_indices`).
+   harakat). Regroupé par sourate, avec le mot **surligné** — par sa **position**, lue
+   dans `root_graph.json` × `word_index.json` (voir
+   [`root-highlight-alignment-issue.md`](root-highlight-alignment-issue.md)), et non plus
+   par matching de texte. `_match_indices` ne sert plus que de repli.
 
 4. **Cas nom propre** — `لوط`, `موسى`, `إبراهيم`… sont **sans racine dans QAC** → résolus
    via `proper_nouns.json` et renvoyés comme un seul groupe avec racine vide et
@@ -62,13 +65,30 @@ où on le fait ; le tableau comparatif de `arabic_text/__init__.py` fait autorit
 - **`arabic_text.normalize_root`** — pour les **racines** : folde les porteurs de hamza
   mais **ne supprime jamais** la hamza. Utilisé par la résolution.
 - **`arabic_text.normalize_search`** — hamza-safe (folde ى/ة, retire les
-  marques de waqf) : pour le **surlignage** et BM25.
+  marques de waqf) : pour BM25 et pour le **repli** de surlignage.
+- **`arabic_text.fold_madda`** — replie le digraphe `ءا` (et lui seul) en `ا`, pour
+  faire se rencontrer la graphie othmanienne des formes QAC (`ءايات`) et celle que
+  l'utilisateur tape (`آيات`, `ايات`). Ce n'est **pas** une suppression de hamza : une
+  hamza isolée reste une lettre (`جزاء` ne devient pas `جزا`).
 - **`arabic_text.normalize_text`** — **supprime** la hamza (أَرْض → رض) : **jamais** pour le
   matching de racines (over-matcherait عرض/مرض/فرض).
 
-Le surlignage (`_match_indices` + `_norm_match`) utilise `normalize_search` avec en plus
-le **dagger alef** (U+0670) replié en alif plène, pour réconcilier `بَقَرَٰت` (QAC) et
-`بَقَرَات` (mushaf vocalisé).
+Le **repli** de surlignage (`_match_indices` + `_norm_match`) utilise `normalize_search`
+avec en plus le **dagger alef** (U+0670) replié en alif plène, pour réconcilier `بَقَرَٰت`
+(QAC) et `بَقَرَات` (mushaf vocalisé). Le chemin principal n'en a plus besoin : il compare
+des positions, pas des graphies.
+
+**Le piège de la graphie othmanienne.** QAC écrit le ā long à la manière du muṣḥaf — hamza
+isolée + alif (`ءَا`) — là où l'utilisateur tape la madda `آ` ou un simple `ا`.
+`normalize_root` conserve la hamza isolée, comme il le doit, si bien que la clé stockée
+`ءايات` et la clé tapée `ايات` ne pouvaient **jamais** se rencontrer : ni l'une ni l'autre
+des deux plis hamza ne les réconcilie (`fold_blind` donne `اايات`, alif doublé). La
+résolution échouait donc, puis le repli « lenient » retirait des alifs jusqu'à tomber sur
+`ايت` — une clé réelle mais ambiguë, qui répond `أتي` (venir) avant `أيي` (signe). D'où
+`الايات` → racine `أتي`, 988 versets, dont aucun ne contenait le mot cherché.
+`fold_madda`, appliqué **des deux côtés** aux étapes FORM et lemme de l'échelle, ferme le
+trou : 27 formes `ءا` sur 27 résolvent maintenant vers la bonne racine (5 avant, 3 fausses,
+19 sans réponse).
 
 ---
 
@@ -167,20 +187,76 @@ Point de départ : **la donnée QAC est déjà le plafond de qualité** (vérifi
 On n'améliore donc pas la justesse des racines elles-mêmes, mais la **résolution**, la
 **précision d'affichage** et la **couverture**. Classées du plus rentable au plus marginal.
 
-### 5.1. Stocker la racine *par occurrence* (le plus gros levier)
+### 5.1. Stocker la racine *par occurrence* — ✅ fait, et le surlignage en a vécu
 
-Aujourd'hui `morphology.json` enregistre `racine → {formes, versets}` **au niveau racine
-seulement** — jamais « quelle forme / quelle racine dans quel verset ». Deux conséquences :
+`morphology.json` enregistre `racine → {formes, versets}` **au niveau racine seulement** —
+jamais « quelle forme / quelle racine dans quel verset ». Deux conséquences étaient
+annoncées ici ; la première est réglée, la seconde reste ouverte.
 
-- **Surlignage reconstruit à la main** (`_match_indices`) : matching par sous-chaîne,
-  « imperfect for very short forms » — sur/sous-surligne.
-- **Homographes non désambiguïsés** : `كل` renvoie `اكل` / `كلل` / `كيل` sans savoir lequel
-  est réellement dans tel verset.
+- ~~**Surlignage reconstruit à la main**~~ — **résolu.** La racine par occurrence existe
+  bien (`roots_resolved.json`, exposée par racine dans `root_graph.json`) et l'alignement
+  mot ↔ ligne chakl aussi (`word_index.json`, 77 429/77 429). `verse_lookup.py` croise les
+  deux : surlignage exact, 100 % des 50 343 occurrences, zéro faux positif — là où le
+  matching par sous-chaîne se trompait sur 9,0 % des tokens surlignés. Détail et mesures :
+  [`root-highlight-alignment-issue.md`](root-highlight-alignment-issue.md).
+- ~~**Lemme non identifié dans le verset**~~ — **résolu.** `lemma_index.json` porte
+  maintenant `word_refs` (`s:a:w`) par lemme, si bien que chaque carte surligne le mot de
+  SON lemme et non ceux de ses voisins de racine (40:81 = `آيَاتِهِ` pour آيَة, `فَأَيَّ` pour
+  أَيّ). `proper_nouns.json` en porte aussi, ce qui retire les noms propres du repli
+  sous-chaîne. Reconstruction : `python -m ingestion.qac_morphology`.
+### 5.1 bis. La fonction grammaticale, et pas seulement la racine
 
-Or QAC connaît déjà la racine exacte de **chaque segment** (chaque ligne brute). En
-stockant un mapping `verset → [(segment, forme, racine)]`, on obtient un surlignage
-**exact** et une attribution racine **par occurrence**, sans plus jamais deviner. C'est un
-enrichissement de `qac_morphology.py` + du format JSON.
+Porter une racine ne suffit pas à être une occurrence du **sens** de cette racine. Dans
+«يَٰٓأَيُّهَا ٱلنَّاسُ», le segment `أَيُّ` porte bien `ROOT:أيي`, mais le mot est une formule
+d'appel — le lister sous آية comme s'il s'agissait du nom « signe » est du bruit.
+
+`word_function.json` (étape 5) nomme les mots qui servent d'**outil** :
+
+| classe | occurrences | où |
+|---|---|---|
+| `أداة نداء` | 154 | أيي — «يا أيها» **et** «أيها» sans particule |
+| `أداة استفهام` | 138 | كيف (80), أيي (58) |
+| `أداة شرط` | 5 | أيي (3), حيث (2) |
+
+**297 sur 50 342 (0,59 %)**, concentrées sur trois racines. Le classement vient de ce que
+QAC annote, jamais d'une liste de mots écrite à la main, et il faut les **deux** couches :
+la morphologie marque `INTG`/`COND` et le suffixe `ATT` ; le treebank rattrape les
+interrogatifs qu'elle laisse nus (كيف est `INTG` sur 30 segments mais حرف استفهام sur 80).
+
+**Le critère du vocatif est `ATT` (حرف تنبيه), et lui seul.** Sur un mot porteur de racine
+il apparaît 154 fois et chacune est `أَيّ`, jamais un nom : il identifie donc exactement le
+vocatif postiche. La particule d'appel `يا` n'est **pas** le critère — elle est facultative
+(«إِنْ يَشَأْ يُذْهِبْكُمْ أَيُّهَا ٱلنَّاسُ» n'en a pas, et exiger `VOC` en laissait 10 passer), et
+elle ne suffit pas non plus, puisque QAC la colle au nom qu'elle appelle : «يَٰقَوْمِ» est
+`VOC` lui aussi, mais قوم signifie « peuple », et filtrer sur `VOC` emporterait **143
+occurrences authentiques**.
+
+Conséquence pour أيي : **la totalité** du lemme `أَيّ` est fonctionnelle (154 + 58 + 3 = 215),
+donc le lemme disparaît et «الآيات» ne répond plus que `آيَة` — 382 مواضع, 353 آيات, 59 سور.
+
+**Ces occurrences sont retirées des résultats** — ni listées, ni surlignées, ni comptées.
+Les quatre statistiques de l'en-tête (`عدد المواضع`, `عدد الآيات`, `عدد السور`,
+`عدد الألفاظ`) décrivent toutes le **même ensemble filtré** : أيي passe de 597 مواضع /
+562 آيات à **382 / 353 / 59 سور / 1 لفظ**.
+
+Attention, le **mode de comptage n'est pas uniforme**, par décision : `عدد المواضع` (mots),
+`عدد الآيات` et `عدد الألفاظ` sont des décomptes **distincts** sur toute la racine, tandis
+que `عدد السور` est la **somme des cartes**, pour que l'en-tête s'additionne avec ce que le
+lecteur voit. شجر affiche donc 13 + 7 = 20 alors que la sourate 56 porte les deux lemmes
+(56:72 `شَجَرَتَهَا`, 56:52 `شَجَرٍ`) et que seules 19 sourates contiennent la racine. Coût
+assumé : قوم, avec ses 18 lemmes, annonce 225 sourates sur les 114 existantes.
+
+Le filtre porte sur l'**occurrence**, jamais sur le verset. 40:81 contient `آيَاتِهِ`
+(lexical) et `فَأَيَّ` (outil) : le verset reste, seule l'occurrence d'outil disparaît.
+Supprimer l'āya entière perdrait un vrai résultat آيات parce qu'un outil s'y trouvait.
+
+**Le coût, assumé et épinglé par un test** : sur كيف, 80 occurrences sur 83 sont des
+أدوات استفهام — la racine ne rend plus que 3 versets. Aucune racine n'est vidée entièrement.
+
+- **Homographes non désambiguïsés** — **toujours ouvert** : `كل` renvoie `اكل` / `كلل` /
+  `كيل` sans savoir lequel est réellement dans tel verset. La donnée pour trancher est
+  pourtant là, dans `roots_resolved.json` ; c'est la résolution (`resolve_roots`) qui ne la
+  consulte pas, seul le surlignage le fait.
 
 ### 5.2. Désambiguïser les homographes par fréquence (quick win)
 

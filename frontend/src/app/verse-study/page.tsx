@@ -187,6 +187,83 @@ function groupBySurah(verses: VerseLookupVerse[]) {
   return out;
 }
 
+/** How the surah cards are ordered. `mushaf` is the backend's own order. */
+type SurahOrder = "mushaf" | "desc" | "asc";
+
+/**
+ * Reorder a lemma's surah cards by how many āyāt of that surah hold the root —
+ * the very number each card prints, so the ranking is checkable on screen.
+ *
+ * Ties are broken by the HIGHER surah number, in both directions (owner's call):
+ * «الآيات» puts الأعراف (7) ahead of الأنعام (6), both at 27. This is an explicit
+ * second key, not the stability of `Array.prototype.sort` — leaving ties to the
+ * stable sort would have kept the mushaf order, i.e. the opposite. The
+ * consequence to know is that ascending mode does NOT mirror it: its ties also
+ * read 7 before 6, which is what was asked for.
+ *
+ * The copy is deliberate — sorting `groups` in place would mutate the array a
+ * later render reuses.
+ */
+function sortSurahs<T extends { number: number; verses: unknown[] }>(
+  groups: T[],
+  order: SurahOrder,
+): T[] {
+  if (order === "mushaf") return groups;
+  const sign = order === "desc" ? -1 : 1;
+  return [...groups].sort(
+    (a, b) => sign * (a.verses.length - b.verses.length) || b.number - a.number,
+  );
+}
+
+/** The three-way ordering control shown above the results. A radio group, not
+ *  three loose buttons: the options are exclusive, and `aria-checked` is what
+ *  tells a screen reader which one is in force. */
+function SurahOrderPicker({
+  value,
+  onChange,
+}: {
+  value: SurahOrder;
+  onChange: (order: SurahOrder) => void;
+}) {
+  const options: [SurahOrder, string][] = [
+    ["mushaf", S.verseStudy.sortMushaf],
+    ["desc", S.verseStudy.sortDesc],
+    ["asc", S.verseStudy.sortAsc],
+  ];
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span lang="ar" className="font-arabic text-sm text-gray-500">
+        {S.verseStudy.sortLabel}
+      </span>
+      {/* A padded track with a raised pill on the selected option — no dividers
+          between the buttons, deliberately: a `divide-x` rule is physical and
+          under `dir="rtl"` would draw its line on the wrong side of each item. */}
+      <div
+        role="radiogroup"
+        aria-label={S.verseStudy.sortGroupLabel}
+        className="flex items-center gap-1 rounded-lg bg-gray-100 p-1"
+      >
+        {options.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="radio"
+            aria-checked={value === key}
+            onClick={() => onChange(key)}
+            className={`rounded-md px-3 py-1 font-arabic text-sm transition ${
+              value === key
+                ? "bg-white font-semibold text-brand-dark shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** One surah's verses, independently collapsible (default open). */
 function SurahCard({
   group,
@@ -280,6 +357,13 @@ function WordInVerses({
     "verse-study.word.collapsedLemmas",
     new Set(),
   );
+  // A reading preference, not per-result state: unlike the collapsed sets below,
+  // `run()` deliberately does NOT reset it — a reader who ranked one root by
+  // frequency wants the next one ranked the same way.
+  const [surahOrder, setSurahOrder] = useCachedState<SurahOrder>(
+    "verse-study.word.surahOrder",
+    "mushaf",
+  );
 
   async function run() {
     if (!word.trim() || loading) return;
@@ -323,14 +407,20 @@ function WordInVerses({
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // KPI totals are ADDITIVE over the lemma cards (the header tallies the cards,
-  // it does not de-duplicate). A verse or surah that hosts two lemmas of the same
-  // root — e.g. روح: 34:12 (ريح+رواح), 56:89 (روح+ريحان) — is counted once per
-  // lemma, so `sum(card) === header`. Each term mirrors exactly what its card
-  // shows: آية = lemma.count, سورة = distinct surahs within that lemma.
-  const ayaCount = data
-    ? data.lemmas.reduce((sum, l) => sum + l.count, 0)
-    : 0;
+  // The three header totals answer deliberately different questions.
+  //   مواضع — WORDS, not verses: 7:22 holds الشَّجَرَةَ twice, so شجر is 27 مواضع in
+  //           26 آيات. 0 for a rootless proper noun, and then omitted rather than
+  //           printed as a zero.
+  //   آيات  — DISTINCT over the whole root (the backend's own `total`), so an āya
+  //           holding two lemmas counts once.
+  //   سور   — the SUM of the cards, so the header adds up against what is on
+  //           screen: شجر shows 13 + 7 = 20 even though sūra 56 hosts both lemmas
+  //           (56:72 شَجَرَتَهَا and 56:52 شَجَرٍ) and only 19 sūras hold the root.
+  // The asymmetry is the owner's call. Its cost is real: قوم has 18 lemmas and
+  // announces 225, more than the 114 sūras there are. To go back to a distinct
+  // count, take the size of one Set over every card's verses.
+  const occCount = data?.occurrences ?? 0;
+  const ayaCount = data?.total ?? 0;
   const surahCount = data
     ? data.lemmas.reduce(
         (sum, l) => sum + new Set(l.verses.map((v) => v.surah_number)).size,
@@ -448,6 +538,8 @@ function WordInVerses({
                   lang="ar"
                   className="font-arabic text-lg text-gray-800"
                 >
+                  {/* مواضع leads both shapes; a rootless name has no ألفاظ list. */}
+                  {occCount > 0 ? `عدد المواضع : ${occCount} · ` : ""}
                   {data.is_proper_noun ? (
                     `عدد الآيات : ${ayaCount} · عدد السور : ${surahCount}`
                   ) : (
@@ -476,14 +568,31 @@ function WordInVerses({
                 </span>
               </div>
 
-              {/* Hand the SEARCHED word (never the live input, which the reader
-                  may already be retyping) to Lisan Analysis, which runs it on
-                  arrival. Left-aligned under the root bar: this wrapper is LTR —
-                  only the Arabic runs inside the bar above are RTL. */}
-              <div className="flex">
+              {/* The band between the root bar and the results: the ordering
+                  control reads first (so, under the document's `dir="rtl"`, it
+                  sits on the right, directly above the cards it reorders) and
+                  the Lisan Analysis link is pushed to the far end — the left.
+
+                  `ms-auto` on the link, not `justify-between` on the row: with
+                  the picker hidden (a single-surah root) `justify-between`
+                  would drop its one remaining child back at the start, i.e. the
+                  right. An auto inline-start margin pins the link to the end
+                  whether or not the picker is there. Source order stays
+                  logical and the row is never hand-reversed — same rule as the
+                  root bar above.
+
+                  The link hands Lisan Analysis the SEARCHED word, never the
+                  live input, which the reader may already be retyping. */}
+              <div className="flex flex-wrap items-center gap-3">
+                {surahCount > 1 && (
+                  <SurahOrderPicker
+                    value={surahOrder}
+                    onChange={setSurahOrder}
+                  />
+                )}
                 <Link
                   href={`/lexical?word=${encodeURIComponent(data.word)}`}
-                  className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 font-arabic text-lg text-white transition hover:bg-brand-dark"
+                  className="ms-auto flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 font-arabic text-lg text-white transition hover:bg-brand-dark"
                 >
                   <Type className="h-4 w-4" />
                   تحليل لساني
@@ -496,7 +605,7 @@ function WordInVerses({
               {data.lemmas.map((lg, idx) => {
                 const lkey = `${lg.root}:${lg.lemma}`;
                 const blockId = `lemma-block-${idx}`;
-                const surahs = groupBySurah(lg.verses);
+                const surahs = sortSurahs(groupBySurah(lg.verses), surahOrder);
                 const surahCards = (
                   <div className="space-y-3">
                     {surahs.map((g) => {

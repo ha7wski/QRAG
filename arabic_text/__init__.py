@@ -28,6 +28,9 @@ never diverge between them.
 Alongside them, the two hamza FOLDS that decide whether two spellings denote one
 root — `fold_blind` and `fold_carrier`. Neither alone answers the question:
 `رأي`/`رئى` agree only when hamza-blind, `لؤلؤ`/`لولو` only under the carrier fold.
+`fold_madda` is a third fold asking a different question — not "same root?" but
+"same word, spelled the Uthmānī way?": it folds the digraph `ءا` (and only the
+digraph) to `ا`, so a typed `آيات` meets the QAC surface form `ءايات`.
 
 **The stored root is the EXACT spelling; a fold is a lookup key, never a stored
 value.** `لؤلؤ` is stored as `لؤلؤ`, and a query typed `لولو` or `لالا` still
@@ -42,7 +45,7 @@ dependency order; every other layer may use it.
 """
 from __future__ import annotations
 
-from arabic_text.folds import fold_blind, fold_carrier
+from arabic_text.folds import fold_blind, fold_carrier, fold_madda
 from arabic_text.marks import (
     HARAKAT,
     QURANIC_MARKS,
@@ -59,6 +62,7 @@ __all__ = [
     "bare",
     "fold_blind",
     "fold_carrier",
+    "fold_madda",
     "normalize_root",
     "normalize_search",
     "normalize_text",

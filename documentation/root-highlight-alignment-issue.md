@@ -1,8 +1,15 @@
-# Issue — surlignage du mot dans « Word in Verses » (non résolu, reverté)
+# Issue — surlignage du mot dans « Word in Verses » (RÉSOLU)
 
-> **Statut : investigué, puis reverté au dernier commit.** Le fix propre (alignement
-> mot-QAC ↔ token d'affichage au build) est **différé**. Ce document conserve le
-> diagnostic complet et les mesures pour qui reprendra le sujet.
+> **Statut : résolu.** `_match_indices` ne décide plus du surlignage : `retrieval/
+> verse_lookup.py` lit désormais les **positions** que QAC connaît déjà (`root_graph` ×
+> `word_index`), exactement le §« Le fix recommandé » ci-dessous, mais **au runtime** —
+> la colonne vertébrale d'alignement existait déjà, il n'y avait plus rien à construire
+> au build. Mesures après correction en fin de document.
+>
+> Le diagnostic et les trois tentatives sont conservés tels quels : ils expliquent
+> pourquoi le matching par sous-chaîne ne pouvait pas être rustiné, et ce repli existe
+> toujours pour les cas que la colonne vertébrale ne couvre pas (noms propres, racine
+> absente du graphe, mot non aligné).
 
 ## Symptôme
 
@@ -145,3 +152,103 @@ Deux différences avec le plan d'origine, à prendre en compte avant de s'en ser
 - [`root-lookup.md`](root-lookup.md) — pipeline « Word in Verses » et construction des index
   QAC (§5.1 y décrit déjà la fragilité du surlignage).
 - `quran_data/manifest.py` — la fiche de `WORD_INDEX_JSON` et de tout autre dataset cité ici.
+
+## Résolution (livrée)
+
+Le surlignage se lit maintenant, et ne se devine plus.
+
+`VerseLookup._indices` interroge d'abord la **colonne vertébrale d'alignement** :
+
+- `root_graph.json` — racine → les références de mots `s:a:w` qui la portent, lecture
+  primaire **et** alternante (donc ٱلنَّاس est joignable sous `أنس` comme sous `نوس`) ;
+- `word_index.json` — pour ce mot, sa **tranche de caractères** dans la ligne chakl.
+
+Trois points de mise en œuvre, chacun couvert par un test dans `tests/test_verse_lookup.py` :
+
+1. **Rebasage Basmala.** `word_index` mesure ses décalages sur la ligne chakl *brute*,
+   Basmala comprise — c'est délibéré, la fiche QLisan tranche par ces décalages. Or
+   `_verse_row` retire le préfixe avant de surligner. Sans rebasage, tout verset en
+   Basmala décale de quatre mots (10:1 surlignait `تِلْكَ` au lieu de `آيَاتُ`).
+2. **Mots fusionnés.** On retient **tous** les tokens que la tranche du mot recoupe, pas
+   celui où tombe son premier caractère : QAC compte `يٰأبت` pour un mot là où la ligne
+   chakl écrit `يَا أَبَتِ`. S'ancrer sur le début surlignait la particule et laissait le
+   nom nu — 282 occurrences. C'est le cas limite annoncé plus haut, traité comme
+   recommandé : on surligne le mot fusionné en entier.
+3. **Trois états, pas deux.** Verset *avec* position → on l'utilise ; verset où la racine
+   est absente → on ne surligne **rien** ; racine hors du graphe, ou mot non aligné → repli
+   sur `_match_indices`. Confondre les deux derniers transformerait « je ne sais pas » en
+   « il n'y a rien ».
+
+### Mesures après correction
+
+Vérification sans pliage : pour chaque occurrence, la tranche `[chakl_char_start,
+chakl_char_end)` est-elle exactement couverte par les tokens surlignés ?
+
+| | avant | après |
+|---|---|---|
+| occurrences vérifiées | 50 343 | 50 343 |
+| tokens surlignés reproduisant le mot QAC | — | **50 343 (100,00 %)** |
+| occurrences non surlignées (« trous ») | 737 | **0** |
+| faux positifs (token surligné sans rapport) | 4 928 — **9,0 %** des surlignages | **0** |
+
+`فتى` → 12:30 surligne `فَتَاهَا`, 18:60/62 `لِفَتَاهُ`, 21:60 `فَتًى`. Le cas d'origine de
+ce document est clos.
+
+### Deuxième passe : du niveau RACINE au niveau LEMME
+
+La première livraison surlignait au niveau **racine** : `root_graph` sait quels mots
+portent أيي, pas lequel relève de `آيَة` plutôt que de `أَيّ`. Dans les versets qui portent
+les deux, **les deux cartes surlignaient les mêmes mots** — 40:81
+«وَيُرِيكُمْ آيَاتِهِ فَأَيَّ آيَاتِ اللَّهِ تُنْكِرُونَ» allumait les trois mots dans chacune.
+Ampleur : **2 505 lignes affichées sur 46 097 (5,4 %)**.
+
+Croiser les deux chaînes sur la clé de lemme est **impossible** : elles ne s'accordent que
+sur 1 186 racines sur 1 654 (chaîne A dit `اي / اية` pour أيي, chaîne B `ءاية / اى / ايها /
+ايتها`). La correction se fait donc **dans la chaîne A**, qui construit déjà les lemmes et
+possède déjà `seg.word_ref` : `lemma_index.json` (et `proper_nouns.json`) portent désormais
+`word_refs` — les refs `s:a:w` de chaque occurrence — à côté de `verses`.
+
+Au runtime, `verse_lookup.py` a trois niveaux, du plus précis au plus grossier :
+
+1. `word_refs` du lemme → positions exactes de **ce** lemme ;
+2. `root_graph` → positions de la racine (corpus construit avant `word_refs`) ;
+3. `_match_indices` → sous-chaîne (dernier recours).
+
+Effets mesurés après cette passe, sur les 46 097 lignes affichées :
+
+| | valeur |
+|---|---|
+| tokens surlignés | 50 626 |
+| n'appartenant pas au lemme de la carte | **0** (avant : 5,4 % des lignes touchées) |
+| lignes sans aucun surlignage | **0** |
+| lignes retombées sur le repli sous-chaîne | **0** |
+
+Bénéfice collatéral : les **noms propres** (rootless, donc absents de `root_graph`) portent
+eux aussi des `word_refs`. Ils quittent le repli sous-chaîne — le dernier chemin qui
+l'utilisait encore — et deviennent comptables (`عدد المواضع`).
+
+Reconstruction nécessaire : `python -m ingestion.qac_morphology` (≈ 1 s). Seuls
+`lemma_index.json` (1,7 → 2,9 Mo) et `proper_nouns.json` (23 → 39 Ko) changent ;
+`morphology.json`, `qac_resolution.json` et `verses_final.json` restent identiques au
+bit près.
+
+### Troisième passe : ne pas surligner la particule
+
+Couvrir « tout le mot QAC » débordait dans l'autre sens : QAC compte `يٰأيها` pour un mot,
+l'affichage écrit deux tokens, et l'on marquait `يَا` — une particule sans racine — en plus
+de `أَيُّهَا`. Parmi les tokens qu'un mot recouvre, on ne garde donc que ceux qui portent sa
+partie lexicale, en comparant aux formes du lemme. Ce test de sous-chaîne est sûr **ici** et
+ne l'était pas dans `_match_indices` : il s'applique à l'intérieur d'une tranche que
+l'alignement a déjà validée, il peut donc restreindre mais jamais dériver, et au pire il
+garde tout.
+
+283 tokens en trop retirés, 0 régression. Le cas le plus dur passe : 20:94 «يَا ابْنَ أُمَّ»
+est **un** mot QAC de trois tokens portant **deux** racines — la carte ابْن marque `ابْنَ`,
+la carte أُمّ marque `أُمَّ`, et `يَا` n'est marqué nulle part.
+
+### Ce que ce document a fait gagner
+
+Les tentatives 1 et 2 ont été **évitées** grâce à lui : la tentative 1 (normalisation plus
+agressive) régressait, et la tentative 2 (comptage positionnel) était déjà connue pour
+casser sur 460 versets. Le décalage Basmala et les mots fusionnés étaient tous deux écrits
+ici avant d'être rencontrés.

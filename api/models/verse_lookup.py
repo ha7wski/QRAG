@@ -30,5 +30,6 @@ class VerseLookupResponse(BaseModel):
     roots: list[str]                # every matched root (homographs → several)
     root_found: bool                # True also for a resolved proper noun
     is_proper_noun: bool = False    # rootless name (لوط …): lemmas has one group
+    occurrences: int = 0            # WORDS carrying the root; 0 for a proper noun
     total: int                      # distinct verses across all lemma groups
     lemmas: list[VerseLookupLemma]  # a root's occurrences split per lemma

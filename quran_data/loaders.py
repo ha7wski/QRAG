@@ -129,6 +129,16 @@ def word_index() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def word_function() -> dict:
+    """`{"s:a:w": "أداة نداء" | "أداة استفهام" | "أداة شرط"}`.
+
+    Only the words that ARE a tool are listed — absence means the word carries its
+    own meaning, which is the overwhelming majority (297 of 50 342 are tools).
+    """
+    return _json("WORD_FUNCTION_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def alignment_overrides() -> dict:
     """The 6 hand-resolved alignment cases the treebank build reads back."""
     return _json("OVERRIDES_JSON")

@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from quran_data.corpus import verses_by_id  # noqa: E402
 from arabic_text import normalize_root  # noqa: E402
-from arabic_text import fold_blind, fold_carrier  # noqa: E402
+from arabic_text import fold_blind, fold_carrier, fold_madda  # noqa: E402
 from quran_data import loaders  # noqa: E402
 
 DEFAULT_SAMPLE = 30
@@ -64,6 +64,21 @@ def _alif_variants(stem: str) -> list[str]:
     with a dagger alif that normalization strips, so a user's plene spelling
     carries an extra ا the stored QAC form lacks (e.g. سماوات vs stored سموات)."""
     return [stem[:i] + stem[i + 1:] for i in range(1, len(stem)) if stem[i] == "ا"]
+
+
+def _madda_index(mapping: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Group a FORM/LEM map's keys by their madda-folded spelling.
+
+    Only keys the fold actually changes are indexed — an unchanged key is already
+    reachable by the exact lookup, so storing it again would only add a second,
+    slower way to the same answer.
+    """
+    out: dict[str, list[str]] = {}
+    for k in mapping:
+        fk = fold_madda(k)
+        if fk and fk != k:
+            out.setdefault(fk, []).append(k)
+    return out
 
 
 def clitic_alif_candidates(w: str) -> list[str]:
@@ -118,6 +133,9 @@ class LexicalRetriever:
         self.verses_by_id = verses_by_id()  # shared, cached {id: verse} lookup
         self._stemmer = None  # lazily loaded only if the fallback is enabled
         self._by_fold: dict[str, str] | None = None  # built on first use
+        # (FORM, LEM) madda-folded key -> the exact keys stored under it; built on
+        # first use, like _by_fold.
+        self._by_madda: tuple[dict[str, list[str]], dict[str, list[str]]] | None = None
 
     def _fold_map(self) -> dict[str, str]:
         """Folded spelling → the exact root key stored in the index.
@@ -139,6 +157,42 @@ class LexicalRetriever:
             self._by_fold = fm
         return fm
 
+    def _madda_maps(self) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+        """Madda-folded key → the exact FORM / LEM keys that fold to it.
+
+        The root step of the ladder has gone through `_canon`, and so through the
+        folds, ever since roots were stored in their exact spelling. The FORM and
+        LEM steps were plain `dict.get`, so a spelling difference the folds
+        reconcile was reconciled for roots and not for surface forms. This is the
+        missing half: QAC writes a long ā the Uthmānī way (`ءايات`) while a user
+        types `آيات`/`ايات`, and the two met nothing.
+
+        Built lazily, together, and read through `getattr` for the same reason as
+        `_fold_map`: a retriever assembled by `__new__` never ran `__init__`.
+        """
+        mm = getattr(self, "_by_madda", None)
+        if mm is None:
+            mm = (_madda_index(self.form_to_roots), _madda_index(self.lem_to_roots))
+            self._by_madda = mm
+        return mm
+
+    @staticmethod
+    def _roots_from(mapping: dict[str, list[str]], folded: dict[str, list[str]],
+                    w: str) -> list[str]:
+        """`mapping[w]`, falling back to the keys `w` reaches under the madda fold.
+
+        Exact first, so a stored spelling always wins over a folded one. The fold
+        can legitimately reach several keys (`اثار` is both آثار and أثار); every
+        one contributes, exactly as a homograph FORM already does.
+        """
+        exact = mapping.get(w)
+        if exact:
+            return exact
+        out: list[str] = []
+        for k in folded.get(fold_madda(w), ()):
+            out.extend(mapping[k])
+        return out
+
     def _canon(self, key: str) -> str:
         """Any spelling of a root → the canonical one stored in the index."""
         if not key:
@@ -159,10 +213,11 @@ class LexicalRetriever:
             if rk and rk in self.index and rk not in roots:
                 roots.append(rk)
 
-        add(self._canon(w))                       # 1. already a root key (any spelling)
-        for rk in self.form_to_roots.get(w, []):  # 2. surface FORM → root(s)
+        form_folded, lem_folded = self._madda_maps()
+        add(self._canon(w))                                              # 1. root key
+        for rk in self._roots_from(self.form_to_roots, form_folded, w):  # 2. FORM
             add(rk)
-        for rk in self.lem_to_roots.get(w, []):   # 3. lemma → root(s)
+        for rk in self._roots_from(self.lem_to_roots, lem_folded, w):    # 3. lemma
             add(rk)
         return roots
 

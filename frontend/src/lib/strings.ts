@@ -252,6 +252,21 @@ export const S = {
     ayahCountLabel: "عدد الآيات :",
     surahCountLabel: "عدد السور :",
     lafzCountLabel: "عدد الألفاظ :",
+    /**
+     * The surah-card ordering control of "Word in Verses". It sorts on «عدد
+     * الآيات» — the count each card already prints — not on مواضع: two of the
+     * three header totals count words, and a control that silently ranked on a
+     * different number than the one on the card would be unreadable.
+     * «حسب المصحف» is the backend's own order and stays the default; the two
+     * others name what is being counted rather than saying تصاعدي/تنازلي, which
+     * would leave "more of what?" unanswered. آياتٍ is a tamyīz — منصوب, and a
+     * sound feminine plural takes kasra there.
+     */
+    sortLabel: "ترتيب السور :",
+    sortMushaf: "حسب المصحف",
+    sortDesc: "الأكثر آياتٍ",
+    sortAsc: "الأقلّ آياتٍ",
+    sortGroupLabel: "ترتيب السور",
   },
 
   qlisan: {

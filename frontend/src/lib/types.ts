@@ -43,6 +43,7 @@ export interface VerseLookupResponse {
   roots: string[]; // every matched root (homographs → several)
   root_found: boolean; // true also for a resolved proper noun
   is_proper_noun?: boolean; // rootless name (لوط …): lemmas has one group
+  occurrences?: number; // WORDS carrying the root; 0 for a rootless proper noun
   total: number; // distinct verses across all lemma groups
   lemmas: VerseLookupLemma[];
 }

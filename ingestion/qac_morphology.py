@@ -162,6 +162,16 @@ def parse_proper_noun(item: Record | str) -> tuple[str, str, str, str] | None:
     return f"{rec.surah}:{rec.ayah}", rec.form, key, raw_lemma
 
 
+def _sorted_refs(refs: set[str]) -> list[str]:
+    """`s:a:w` refs in corpus order — NUMERICALLY, not as strings.
+
+    Sorting them as text would put "2:10:1" before "2:9:1"; a consumer walking the
+    list in what it believes is recitation order would then read the verse out of
+    sequence.
+    """
+    return sorted(refs, key=lambda r: tuple(int(x) for x in r.split(":")))
+
+
 def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict, dict]:
     """Build the index + resolution maps + verse→roots map + lemma/PN indexes.
 
@@ -192,10 +202,16 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
     lem_to_roots: dict[str, set[str]] = defaultdict(set)
     roots_by_verse: dict[str, set[str]] = defaultdict(set)
     # Per (root, normalized-lemma) accumulators for the lemma index.
+    # `lemma_words` records WHICH word each occurrence is, not merely which verse:
+    # a verse can hold two lemmas of one root (40:81 = آيَاتِهِ + فَأَيَّ, both أيي), and
+    # verse granularity alone leaves a consumer unable to tell them apart. It is
+    # what lets Verse Study highlight the word of THIS lemma and no other.
+    lemma_words: dict[tuple[str, str], set[str]] = defaultdict(set)
     lemma_verses: dict[tuple[str, str], set[tuple[int, int]]] = defaultdict(set)
     lemma_forms: dict[tuple[str, str], set[str]] = defaultdict(set)
     lemma_disp: dict[tuple[str, str], Counter] = defaultdict(Counter)
     # Rootless proper-noun accumulators (keyed by search-normalized lemma).
+    pn_words: dict[str, set[str]] = defaultdict(set)
     pn_verses: dict[str, set[tuple[int, int]]] = defaultdict(set)
     pn_forms: dict[str, set[str]] = defaultdict(set)
     pn_disp: dict[str, Counter] = defaultdict(Counter)
@@ -220,6 +236,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
             pn = parse_proper_noun(rec)       # rootless proper noun?
             if pn is not None:
                 vid, form, key, raw_lemma = pn
+                pn_words[key].add(wref)
                 s, a = (int(x) for x in vid.split(":"))
                 pn_verses[key].add((s, a))
                 pn_forms[key].add(form)
@@ -255,6 +272,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
         # Lemma bucket. Every rooted QAC segment carries a lemma; fall back to
         # the root key if one is ever missing so no occurrence is dropped.
         lk = (root, seg.lemma or root)
+        lemma_words[lk].add(seg.word_ref)
         lemma_verses[lk].add((sura, aya))
         lemma_forms[lk].add(seg.form)
         lemma_disp[lk][seg.lemma_raw or seg.root] += 1
@@ -276,6 +294,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
         if form_key:
             form_to_roots[form_key].add(root)
         lk = (root, root)
+        lemma_words[lk].add(wref)
         lemma_verses[lk].add((sura, aya))
         lemma_forms[lk].add(form)
         lemma_disp[lk][root] += 1
@@ -313,6 +332,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
             "lemma_display": top_disp[0][0] if top_disp else lemma,
             "forms_found": sorted(lemma_forms[(root, lemma)]),
             "verses": [f"{s}:{a}" for s, a in ordered],
+            "word_refs": _sorted_refs(lemma_words[(root, lemma)]),
             "count": len(ordered),
         })
     lemma_index: dict[str, list[dict]] = {}
@@ -331,6 +351,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
             "lemma_display": top_disp[0][0] if top_disp else key,
             "forms_found": sorted(pn_forms[key]),
             "verses": [f"{s}:{a}" for s, a in ordered],
+            "word_refs": _sorted_refs(pn_words[key]),
             "count": len(ordered),
         }
     return index, resolution, verse_roots, lemma_index, proper_nouns
