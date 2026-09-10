@@ -31,7 +31,7 @@ def _service(request: Request):
         from lisan.lisan_service import LisanService
 
         svc = LisanService(
-            resolver=request.app.state.lexical_analyzer.retriever,
+            resolver=request.app.state.lexical_retriever,
         )
         request.app.state.lisan_service = svc
     return svc

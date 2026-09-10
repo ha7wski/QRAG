@@ -13,7 +13,7 @@ logger = logging.getLogger("quran_rag.api")
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Log method, path, status, and full latency for each request.
 
-    For streaming endpoints (SSE /chat/stream, /lexical/stream) ``call_next``
+    For the streaming endpoint (SSE /chat/stream) ``call_next``
     returns as soon as the response *starts* — the body (the LLM generation) is
     streamed afterwards. Timing right there would only capture time-to-first-byte
     and hide the slow part. So we wrap the body iterator and log once the whole

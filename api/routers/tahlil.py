@@ -1,8 +1,12 @@
 """Tahlil endpoints: the five-block per-word analysis (الحروف → صرفي → نحوي → دلالي → تركيب).
 
-Three routes: `POST /tahlil/word` (the analysis), `POST /tahlil/verse` (§11 — declared and
-NOT yet implemented; it says so rather than returning a plausible-looking empty page) and
-`POST /tahlil/review` (an expert marking one analysis reviewed).
+Two routes: `POST /tahlil/word` (the analysis) and `POST /tahlil/review` (an expert marking
+one analysis reviewed).
+
+The verse-level route is gone: no page ever called it, so it was unmounted with the rest of
+the unconsumed surface. `tahlil_service.analyze_verse` — the synthesis itself, and its whole
+gate — is untouched and still covered by `tests/test_tahlil_service.py`; only the HTTP door
+in front of it was removed, so serving the verse synthesis again is a handler, not a rebuild.
 
 **Word selection reuses `GET /qlisan/verse/{surah}/{ayah}`** — there is deliberately no
 second alignment path here. That endpoint returns the vocalized verse with QAC-aligned
@@ -22,22 +26,12 @@ from fastapi import APIRouter, HTTPException, Request
 from api.models.tahlil import (
     TahlilReviewRequest,
     TahlilReviewResponse,
-    TahlilVerseRequest,
     TahlilWordRequest,
-    TahlilVerseResponse,
     TahlilWordResponse,
 )
-from tahlil.tahlil_service import analyze_verse, analyze_word, review_key
+from tahlil.tahlil_service import analyze_word, review_key
 
 router = APIRouter(tags=["tahlil"])
-
-# §11 owns the verse path. Until then this is stated in the response, in Arabic, with the
-# 501 that means «declared, not implemented» — never a 200 carrying an empty synthesis,
-# which would read as «this verse composes to nothing».
-_VERSE_NOT_IMPLEMENTED = (
-    "تحليل الآية كاملةً غير مُنفَّذ بعد؛ وهو يُركَّب من تحاليل كلماتها لا من نصّ الآية. "
-    "استعمل تحليل الكلمة الواحدة الآن."
-)
 
 
 def _store(request: Request):
@@ -98,30 +92,6 @@ def tahlil_word(req: TahlilWordRequest, request: Request) -> TahlilWordResponse:
             detail=f"word position not found: {req.surah}:{req.ayah}:{req.word}",
         ) from exc
     return TahlilWordResponse(**analysis)
-
-
-@router.post("/tahlil/verse", response_model=TahlilVerseResponse)
-def tahlil_verse(req: TahlilVerseRequest, request: Request) -> TahlilVerseResponse:
-    """One synthesis over the verse's analysed words (tasks.md §11).
-
-    Same error mapping as `/tahlil/word`, and for the same reason: the reference is
-    validated BEFORE any work, so a 400/404 always means «that verse», never an internal
-    fault wearing a user error's clothes.
-
-    The synthesis composes the words' surviving claims. **The verse text is never given to
-    the model** — see `prompts.build_verse_message`. Long verses are capped, and the cap is
-    stated in the payload and in the block's Arabic message rather than applied quietly.
-    """
-    try:
-        analysis = analyze_verse(req.surah, req.ayah, store=_store(request),
-                                 generator=_generator())
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"verse not found: {req.surah}:{req.ayah}"
-        ) from exc
-    return TahlilVerseResponse(**analysis)
 
 
 @router.post("/tahlil/review", response_model=TahlilReviewResponse)

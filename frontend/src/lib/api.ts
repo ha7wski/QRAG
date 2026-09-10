@@ -3,7 +3,6 @@ import type {
   ChatMessage,
   FeedbackStats,
   HealthStatus,
-  LexicalResponse,
   QlisanFormResponse,
   QlisanVerseResponse,
   QlisanWordResponse,
@@ -14,7 +13,6 @@ import type {
   VerseDetail,
   VerseLookupResponse,
 } from "./types";
-import type { MadarResponse } from "./madarTypes";
 import type { FassilaOverviewResponse, FassilaResponse } from "./fassilaTypes";
 import type {
   TahlilReviewResponse,
@@ -56,20 +54,6 @@ export function detailOf(e: unknown): string | undefined {
   return e instanceof Error && e.message ? e.message : undefined;
 }
 
-// ── Lexical ───────────────────────────────────────────────────────────
-export async function lexical(
-  word: string,
-  language: string = "en",
-): Promise<LexicalResponse> {
-  const res = await fetch(`${API_URL}/lexical`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word, language }),
-  });
-  if (!res.ok) throw new ApiError(`Lexical lookup failed: ${res.status}`, res.status);
-  return res.json();
-}
-
 // ── Verse Lookup (exhaustive, vocalized root lookup) ──────────────────
 export async function verseLookup(
   word: string,
@@ -80,17 +64,6 @@ export async function verseLookup(
     body: JSON.stringify({ word }),
   });
   if (!res.ok) throw new ApiError(`Verse lookup failed: ${res.status}`, res.status);
-  return res.json();
-}
-
-// ── Madār (sourced lexical reading: Ibn Fāris' cited aṣl) ─────────────
-export async function madarAnalyze(word: string): Promise<MadarResponse> {
-  const res = await fetch(`${API_URL}/madar/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word }),
-  });
-  if (!res.ok) throw new ApiError(`Madar analyze failed: ${res.status}`, res.status);
   return res.json();
 }
 

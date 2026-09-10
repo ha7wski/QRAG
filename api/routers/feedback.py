@@ -1,4 +1,10 @@
-"""Feedback endpoint (👍/👎): a KPI signal on answer quality."""
+"""Feedback endpoint (👍/👎): a KPI signal on answer quality.
+
+Write-only over the store. The `GET /feedback/stats` read-back was removed — no page
+read it — but the running totals it served still travel back on every `POST /feedback`
+response, so the writer that cares sees them without a second endpoint. The store and
+its `feedback_stats()` are unchanged.
+"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
@@ -20,9 +26,3 @@ def submit_feedback(req: FeedbackRequest, request: Request) -> FeedbackResponse:
         answer=req.answer,
     )
     return FeedbackResponse(ok=True, stats=store.feedback_stats())
-
-
-@router.get("/feedback/stats", response_model=FeedbackResponse)
-def feedback_stats(request: Request) -> FeedbackResponse:
-    """Aggregate thumbs counts (up/down/total)."""
-    return FeedbackResponse(ok=True, stats=request.app.state.store.feedback_stats())

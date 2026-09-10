@@ -1,9 +1,12 @@
-"""Pydantic models for the chat endpoints."""
+"""Pydantic models for the chat endpoint.
+
+Request only: `POST /chat/stream` answers as Server-Sent Events, whose payloads
+are framed by the router, so there is no response model to declare. `ChatResponse`
+went with the non-streaming `POST /chat` it existed for.
+"""
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
-
-from api.models.verse import Verse
 
 
 class ChatMessage(BaseModel):

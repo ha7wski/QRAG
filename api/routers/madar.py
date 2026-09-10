@@ -29,7 +29,7 @@ def _service(request: Request):
         from madar.madar_service import MadarService
 
         svc = MadarService(
-            resolver=request.app.state.lexical_analyzer.retriever,
+            resolver=request.app.state.lexical_retriever,
             llm=request.app.state.engine.llm,
         )
         request.app.state.madar_service = svc

@@ -8,21 +8,31 @@
 
 ## 1. Remove what the app does not reach
 
-- [ ] 1.1 Publish the shared `LexicalRetriever` on `app.state` under its own name in the lifespan, and repoint `/lisan`, `/madar`, `VerseLookup` and `SimilarVerses` at it — **before** touching `lexical_analyzer` (this is the step where the dead-object-holding-live-wiring trap fires)
-- [ ] 1.2 Verify exactly one `LexicalRetriever` is still constructed at startup and the QAC morphology index is parsed once
-- [ ] 1.3 Unmount and delete `api/routers/lexical.py` (`POST /lexical`, `POST /lexical/stream`) and `api/models/lexical.py`; drop `LexicalAnalyzer` from the lifespan
-- [ ] 1.4 Remove `POST /chat` (non-stream) from `api/routers/chat.py`, keeping `POST /chat/stream` and its per-turn persistence under `session_id`
-- [ ] 1.5 Remove `POST /tahlil/verse` from `api/routers/tahlil.py`
-- [ ] 1.6 Unmount and delete `api/routers/sessions.py` (`GET /sessions/{id}`)
-- [ ] 1.7 Remove `GET /feedback/stats`, keeping `POST /feedback` and the `Store` writes behind it
-- [ ] 1.8 Quarantine Madār: unmount `api/routers/madar.py` in `api/main.py`, retain the router and `api/models/madar.py`, and write the quarantine docstring (state, reason, exact rebranch step) into `madar/__init__.py`
-- [ ] 1.9 Delete `frontend/src/components/MadarAslCard.tsx`, `StatusBadge.tsx` and `LexicalResult.tsx`
-- [ ] 1.10 Delete `lexical()` and `madarAnalyze()` from `frontend/src/lib/api.ts` and the `LexicalResult` entry from `lib/strings.ts`
-- [ ] 1.11 Remove the stale Madār assertions from `frontend/src/app/verse-study/page.test.tsx`
-- [ ] 1.12 Delete the untracked scratch files `requirements.txt.bak-preuv`, `requirements-test.txt.bak-preuv`, `scripts/setup.sh.bak-preuv`, and the stray `.DS_Store` files under `data/`
-- [ ] 1.13 Add the surface-parity test: mounted routes equal the endpoints the frontend calls, plus `GET /health`
-- [ ] 1.14 Add a test asserting the frontend component tree is fully reachable from the nine pages and every `lib/api.ts` export has a caller
-- [ ] 1.15 Checkpoint: replay 0.2, run both test suites, confirm `next build` succeeds and the six removed endpoints answer 404
+- [x] 1.1 Publish the shared `LexicalRetriever` on `app.state` under its own name in the lifespan, and repoint `/lisan`, `/madar`, `VerseLookup` and `SimilarVerses` at it — **before** touching `lexical_analyzer` (this is the step where the dead-object-holding-live-wiring trap fires)
+- [x] 1.2 Verify exactly one `LexicalRetriever` is still constructed at startup and the QAC morphology index is parsed once
+  - **Finding — the task is not achievable as written, and never was.** Measured over a real
+    lifespan, **two** `LexicalRetriever` instances are constructed, before and after this change
+    alike: one by the lifespan (the shared one 1.1 publishes) and one inside
+    `retrieval/root_channel.maybe_build()`, reached through `ChatEngine → Retriever`, since
+    `ROOT_CHANNEL_ENABLED=1` by default. Collapsing them needs an injection point
+    `maybe_build()` does not have — a `retrieval/` change, outside a removal-only checkpoint.
+    What IS verified: all four borrowers (`/lisan`, `/madar`, `VerseLookup`, `SimilarVerses`)
+    hold the *same* object, and `app.state.lexical_analyzer` is gone. The morphology file is
+    still parsed twice here; step 2.9 fixes that half for free, because both instances then
+    read it through the registry's process-cached loader.
+- [x] 1.3 Unmount and delete `api/routers/lexical.py` (`POST /lexical`, `POST /lexical/stream`) and `api/models/lexical.py`; drop `LexicalAnalyzer` from the lifespan
+- [x] 1.4 Remove `POST /chat` (non-stream) from `api/routers/chat.py`, keeping `POST /chat/stream` and its per-turn persistence under `session_id`
+- [x] 1.5 Remove `POST /tahlil/verse` from `api/routers/tahlil.py`
+- [x] 1.6 Unmount and delete `api/routers/sessions.py` (`GET /sessions/{id}`)
+- [x] 1.7 Remove `GET /feedback/stats`, keeping `POST /feedback` and the `Store` writes behind it
+- [x] 1.8 Quarantine Madār: unmount `api/routers/madar.py` in `api/main.py`, retain the router and `api/models/madar.py`, and write the quarantine docstring (state, reason, exact rebranch step) into `madar/__init__.py`
+- [x] 1.9 Delete `frontend/src/components/MadarAslCard.tsx`, `StatusBadge.tsx` and `LexicalResult.tsx`
+- [x] 1.10 Delete `lexical()` and `madarAnalyze()` from `frontend/src/lib/api.ts` and the `LexicalResult` entry from `lib/strings.ts`
+- [x] 1.11 Remove the stale Madār assertions from `frontend/src/app/verse-study/page.test.tsx`
+- [x] 1.12 Delete the untracked scratch files `requirements.txt.bak-preuv`, `requirements-test.txt.bak-preuv`, `scripts/setup.sh.bak-preuv`, and the stray `.DS_Store` files under `data/`
+- [x] 1.13 Add the surface-parity test: mounted routes equal the endpoints the frontend calls, plus `GET /health`
+- [x] 1.14 Add a test asserting the frontend component tree is fully reachable from the nine pages and every `lib/api.ts` export has a caller
+- [x] 1.15 Checkpoint: replay 0.2, run both test suites, confirm `next build` succeeds and the six removed endpoints answer 404
 
 ## 2. Build the dataset registry against today's paths
 

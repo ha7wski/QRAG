@@ -283,17 +283,6 @@ export const S = {
      *  Arabic already, and inline — which is how a string escapes the review
      *  gate: nothing about them looks like a translation to be done. */
     noSarfi: "لا يوجد تحليل صرفي لهذه الكلمة.",
-    /** LexicalResult — kept for the interim; the restructure deletes the component. */
-    resultRoot: "الجذر",
-    resultOccurrences: (n: number) => count(n, NOUNS.mawdi),
-    /** Distinct from `noRoot`: here a root WAS resolved and simply has
-     *  no attestation, so «لم يُعرف جذر» would state something false. */
-    noOccurrences: (word: string, root?: string) =>
-      root
-        ? `لم يُعثر على موضعٍ لجذر ${iso(`«${word}»`)} (${root}) في القرآن.`
-        : `لم يُعثر على موضعٍ للكلمة ${iso(`«${word}»`)} في القرآن.`,
-    resultAnalysis: "التحليل",
-    resultKeyVerses: "آياتٌ شاهدة",
     noRoot: (word: string) => `لم يُعرف جذرٌ للكلمة ${iso(`«${word}»`)}.`,
   },
 

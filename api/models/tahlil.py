@@ -45,11 +45,6 @@ class TahlilWordRequest(BaseModel):
     word: int  # 1-based QAC word_id — identical to the QLisan token index by construction
 
 
-class TahlilVerseRequest(BaseModel):
-    surah: int
-    ayah: int
-
-
 class TahlilReviewRequest(BaseModel):
     """An expert marking one analysis reviewed. `ref` is «surah:ayah:word»."""
 
@@ -152,20 +147,8 @@ class TahlilReviewResponse(BaseModel):
     reviewed_at: float | None = None
 
 
-class TahlilVerseResponse(TahlilWordResponse):
-    """The verse synthesis. Same shape as the word analysis, plus what it was built on.
-
-    Inheriting rather than declaring a parallel model is deliberate: a client renders this
-    with the machinery it already has, and the badge vocabulary, `blocks_order`/`blocks` and
-    the honesty flags mean exactly what they mean one layer down. `word` is 0 — there is no
-    single word — and `blocks` holds ONE block, `verse`, which is not one of the five.
-
-    The three added fields exist so a truncated verse can never read as a whole one:
-    `word_total` is the verse's rooted-word count, `words` the refs actually analysed, and
-    `capped` says whether the two differ. The block message states it in Arabic as well, so
-    the fact survives a client that ignores these fields (tasks.md 11.3).
-    """
-
-    words: list[str] = []
-    word_total: int = 0
-    capped: bool = False
+# `TahlilVerseRequest` / `TahlilVerseResponse` lived here for `POST /tahlil/verse`, which no
+# page ever called and which is no longer mounted. They went with it: an unserved wire shape
+# is a shape nothing can hold to its word. The verse synthesis they described is still built
+# by `tahlil_service.analyze_verse` and still tested there, so re-serving it means declaring
+# the models again next to a handler — not reconstructing what they meant.

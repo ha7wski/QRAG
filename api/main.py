@@ -3,7 +3,12 @@ main.py — FastAPI application for the Quran RAG backend.
 
 Builds a single shared ChatEngine at startup (it loads the embedding model,
 Qdrant client, BM25 index, and LLM client) and exposes it to the routers via
-`app.state.engine`.
+`app.state.engine`, alongside the shared QAC resolver
+(`app.state.lexical_retriever`) and the SQLite store (`app.state.store`).
+
+Every shared component is published under ITS OWN name. A router must never
+reach a dependency through an object built for a different feature: that makes
+the wrong object load-bearing, and deleting it then looks safe while being fatal.
 
 Run locally:
     uvicorn api.main:app --reload --port 8000
@@ -36,13 +41,16 @@ from api.middleware import RequestLoggingMiddleware  # noqa: E402
 from api.routers import chat as chat_router  # noqa: E402
 from api.routers import fassila as fassila_router  # noqa: E402
 from api.routers import feedback as feedback_router  # noqa: E402
-from api.routers import lexical as lexical_router  # noqa: E402
 from api.routers import lisan as lisan_router  # noqa: E402
-from api.routers import madar as madar_router  # noqa: E402
+
+# QUARANTINED, deliberately imported but NOT mounted — see madar/__init__.py.
+# The import stays so the dormant router is type-checked and proven to import on
+# every startup, and so rebranching Madar is the single `include_router` line the
+# quarantine notice promises rather than an archaeology exercise.
+from api.routers import madar as madar_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import tahlil as tahlil_router  # noqa: E402
-from api.routers import sessions as sessions_router  # noqa: E402
 from api.routers import verse as verse_router  # noqa: E402
 from api.routers import verse_lookup as verse_lookup_router  # noqa: E402
 
@@ -98,25 +106,36 @@ class LazyReranker:
 async def lifespan(app: FastAPI):
     """Build heavy components once at startup, share them via app.state."""
     from generation.chat_engine import ChatEngine
-    from generation.lexical_analyzer import LexicalAnalyzer
 
     from api.store import Store
+    from retrieval.lexical_retriever import LexicalRetriever
     from retrieval.verse_lookup import VerseLookup
 
     logger.info("Initializing ChatEngine (embedder, Qdrant, BM25, LLM)...")
     app.state.engine = ChatEngine()
-    # Reuse the engine's LLM client for lexical analysis.
-    app.state.lexical_analyzer = LexicalAnalyzer(llm=app.state.engine.llm)
-    # Verse Lookup (exhaustive, vocalized, no LLM) reuses the lexical analyzer's
+    # The shared QAC resolver, published UNDER ITS OWN NAME. Four features borrow
+    # it — /lisan, /madar, VerseLookup and SimilarVerses — so it must not hang off
+    # an object that exists to serve a fifth: reaching a shared dependency through
+    # an unrelated owner makes that owner load-bearing, and its removal looks safe
+    # while being fatal. All four borrow THIS object; none builds its own.
+    #
+    # It is not, however, the only one in the process: `ChatEngine` above builds a
+    # second `LexicalRetriever` inside `root_channel.maybe_build()` (the retrieval
+    # root channel, ROOT_CHANNEL_ENABLED=1), so morphology.json is parsed twice at
+    # startup — as it was before this wiring change, not because of it. Collapsing
+    # the two means injecting a resolver into the root channel, which `maybe_build`
+    # has no parameter for; it is a retrieval-side change, not an api/ one.
+    app.state.lexical_retriever = LexicalRetriever()
+    # Verse Lookup (exhaustive, vocalized, no LLM) reuses the shared QAC
     # morphology index + root extractor; it only adds the diacritized CSV.
-    app.state.verse_lookup = VerseLookup(retriever=app.state.lexical_analyzer.retriever)
+    app.state.verse_lookup = VerseLookup(retriever=app.state.lexical_retriever)
     # Root-based candidate generation for GET /search ("Similar Verses"): cleans
     # the query to content-word roots and pulls verses by IDF-weighted root
     # coverage — a tight, noise-free pool the reranker then orders. Reuses the
     # already-loaded QAC index (no model, cheap).
     from retrieval.similar_verses import SimilarVerses
 
-    app.state.similar_verses = SimilarVerses(app.state.lexical_analyzer.retriever)
+    app.state.similar_verses = SimilarVerses(app.state.lexical_retriever)
     # Optional cross-encoder reranker for GET /search ("Similar Verses" tab).
     # Gated by SEARCH_RERANK_ENABLED (off by default: the model is ~2.3 GB). It
     # reorders a wider fused candidate pool by true query↔verse relevance,
@@ -131,7 +150,7 @@ async def lifespan(app: FastAPI):
     # Durable session history + feedback (SQLite).
     app.state.store = Store()
     logger.info(
-        "Engine ready (LLM provider=%s, model=%s); lexical analyzer ready.",
+        "Engine ready (LLM provider=%s, model=%s); QAC resolver ready.",
         app.state.engine.llm.provider,
         app.state.engine.llm.model,
     )
@@ -155,16 +174,15 @@ app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(chat_router.router)
 app.include_router(search_router.router)
-app.include_router(lexical_router.router)
 app.include_router(lisan_router.router)
-app.include_router(madar_router.router)
 app.include_router(qlisan_router.router)
 app.include_router(tahlil_router.router)
 app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)
-app.include_router(sessions_router.router)
+# NOT mounted: `madar_router` — quarantined, see madar/__init__.py. Rebranching is
+# exactly one line here: `app.include_router(madar_router.router)`.
 
 
 @app.get("/health", tags=["health"])

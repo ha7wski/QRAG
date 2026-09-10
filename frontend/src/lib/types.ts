@@ -22,16 +22,6 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface LexicalResponse {
-  word: string;
-  root: string;
-  forms: string[];
-  occurrences_count: number;
-  analysis: string;
-  key_verses: Verse[];
-  found: boolean;
-}
-
 export interface VerseLookupVerse {
   surah_number: number;
   surah_name: string;
