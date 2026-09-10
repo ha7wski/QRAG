@@ -1,10 +1,10 @@
 ## 0. Snapshot the baseline (nothing changes yet)
 
-- [ ] 0.1 Write a replayable route-parity harness covering all 15 consumed endpoints, with the cases the project has already been bitten by: `2:1` (Basmala-prefixed āya 1), `1:1` (al-Fātiḥa, where the Basmala genuinely is āya 1), sūra 9 (no Basmala), a hamzated root (`لؤلؤ`), a contested root (ٱلنَّاس → `أنس`/`نوس`), a multi-root `/search` phrase exercising the AND-coverage path, and a `/verse-lookup` with highlight offsets
-- [ ] 0.2 Record the baseline responses (ordered results, not just status codes — the `/search` pool caps are load-bearing for quality) into a snapshot file outside the repo tree
-- [ ] 0.3 Record a `data/` inventory: every file with size and mtime, plus per-bucket totals
-- [ ] 0.4 Record baselines for `python -m pytest -q` and `cd frontend && npx vitest run`, noting any test already failing so a pre-existing failure is never mistaken for a regression
-- [ ] 0.5 Confirm the backend is stopped before any step that touches `data/runtime/qdrant` (embedded Qdrant holds an exclusive file lock)
+- [x] 0.1 Write a replayable route-parity harness covering all 15 consumed endpoints, with the cases the project has already been bitten by: `2:1` (Basmala-prefixed āya 1), `1:1` (al-Fātiḥa, where the Basmala genuinely is āya 1), sūra 9 (no Basmala), a hamzated root (`لؤلؤ`), a contested root (ٱلنَّاس → `أنس`/`نوس`), a multi-root `/search` phrase exercising the AND-coverage path, and a `/verse-lookup` with highlight offsets
+- [x] 0.2 Record the baseline responses (ordered results, not just status codes — the `/search` pool caps are load-bearing for quality) into a snapshot file outside the repo tree
+- [x] 0.3 Record a `data/` inventory: every file with size and mtime, plus per-bucket totals
+- [x] 0.4 Record baselines for `python -m pytest -q` and `cd frontend && npx vitest run`, noting any test already failing so a pre-existing failure is never mistaken for a regression
+- [x] 0.5 Confirm the backend is stopped before any step that touches `data/runtime/qdrant` (embedded Qdrant holds an exclusive file lock)
 
 ## 1. Remove what the app does not reach
 
