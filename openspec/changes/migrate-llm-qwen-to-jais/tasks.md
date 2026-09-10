@@ -74,7 +74,7 @@
 
 ## 6. Adopt (single commit, only if 5.3 is positive)
 
-- [ ] 6.1 Update `generation/llm_client.py:24` `DEFAULT_OLLAMA_MODEL` and the docstring at
+- [ ] 6.1 Update `llm_client/__init__.py:24` `DEFAULT_OLLAMA_MODEL` and the docstring at
       line 11.
 - [ ] 6.2 Update the launcher fallbacks: `scripts/run.sh:69`, `local-dev/start.sh:166`, and the
       comments at `local-dev/start.sh:7,256` including the "~4.7 GB" figure.

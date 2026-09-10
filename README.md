@@ -75,12 +75,13 @@ for prerequisites, the one-time build, and the one-command launcher
 ```
 quran-rag/
 ├── arabic_text/      # Shared: the Arabic text/root normalizers, folds, mark ranges
+├── llm_client/       # Shared: one interface over Ollama (local) and Anthropic
 ├── quran_data/       # Shared: every dataset — paths, lazy loaders, provenance manifest
 │
 ├── ingestion/        # Pipeline: parse → normalize → enrich → morphology (QAC)
 ├── indexing/         # Embeddings, Qdrant, BM25, hybrid (RRF) search
 ├── retrieval/        # Hybrid retrieval + quality layer (query proc, HyDE, rerank)
-├── generation/       # RAG orchestration + LLM client
+├── generation/       # RAG orchestration (chat engine, prompts)
 ├── api/              # FastAPI backend (HTTP layer)
 │
 ├── linguistics/      # The Arabic study engines
@@ -104,8 +105,8 @@ it — so "can I delete this?" is answered by the directory name. Every dataset
 also has an entry in `quran_data/manifest.py` recording where it came from, which
 step produces it, who reads it, and the exact command that rebuilds it.
 
-Dependencies point one way: `arabic_text` imports nothing from the project,
-`quran_data` imports only `arabic_text`, then the four decoupled pipeline layers
+Dependencies point one way: `arabic_text` and `llm_client` import nothing from the
+project, `quran_data` imports only `arabic_text`, then the four decoupled pipeline layers
 — ingestion → indexing → retrieval → generation — each replaceable without
 refactoring the others, wired together and exposed over HTTP by `api/` and
 consumed by the Next.js `frontend/`. The `linguistics/` engines are leaves that

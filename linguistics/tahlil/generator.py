@@ -119,7 +119,7 @@ def model_id_from_env() -> str:
     — so a review recorded during an outage would key differently from the analysis it
     attests, and silently never match.
     """
-    from generation.llm_client import (
+    from llm_client import (
         DEFAULT_ANTHROPIC_MODEL, DEFAULT_OLLAMA_MODEL, DEFAULT_PROVIDER,
     )
 
@@ -524,7 +524,7 @@ class TahlilGenerator:
         if not self._built:
             self._built = True
             try:
-                from generation.llm_client import LLMClient
+                from llm_client import LLMClient
 
                 self._llm = LLMClient()
             except Exception as exc:

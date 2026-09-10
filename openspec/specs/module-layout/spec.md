@@ -25,8 +25,11 @@ The repo SHALL distinguish three kinds of Python package at the top level:
   `linguistics/analysis/` (fassila, mizan, qac_labels, qlisan_data, word_analysis),
   `linguistics/lisan/`, `linguistics/madar/`, `linguistics/tahlil/`. Their internal module names are
   preserved; only the parent is added.
-- **Shared packages** — `quran_data/` (dataset paths, loaders, manifest) and `arabic_text/` (the text
-  and root normalization primitives), which any layer may import.
+- **Shared packages** — `quran_data/` (dataset paths, loaders, manifest), `arabic_text/` (the text
+  and root normalization primitives) and `llm_client/` (one interface over Ollama and Anthropic),
+  which any layer may import. A package belongs here when every layer may need it and it
+  orchestrates nothing: `llm_client/` earned the place by being the one import that ran against
+  the pipeline order while it sat in `generation/`.
 
 Ten sibling directories at the root give no clue that `tahlil/` is a feature engine while `indexing/`
 is a pipeline stage. The grouping SHALL make that legible without a doc.
@@ -45,8 +48,8 @@ is a pipeline stage. The grouping SHALL make that legible without a doc.
 
 ### Requirement: Imports flow one way, and no layer reaches upward
 
-Dependencies SHALL be directed. `arabic_text/` SHALL import from no project package at all — it is
-the bottom of the order. `quran_data/` SHALL import from `arabic_text/` and from nothing else:
+Dependencies SHALL be directed. `arabic_text/` and `llm_client/` SHALL import from no project
+package at all — they are the bottom of the order. `quran_data/` SHALL import from `arabic_text/` and from nothing else:
 the Basmala helper has to sit beside the chakl loader (so the choke point stays single) AND use
 the one diacritic table (so it is not duplicated a fourth time), and both cannot hold otherwise.
 The order stays acyclic and upward-free, which is what this requirement protects.
@@ -69,6 +72,10 @@ the *indexer* to get at data. That inversion disappears once the corpus loaders 
 - **WHEN** the test suite runs
 - **THEN** a test SHALL assert the allowed import directions over the project's own packages
 - **AND** an import that reverses the order SHALL fail that test
+- **AND** that test SHALL carry NO per-module exception: an import that crosses the order is a
+  signal to move the code, not to widen the rule. The one exception it ever held —
+  `generation/llm_client.py`, needed by `retrieval/` and `linguistics/`, both below `generation/`
+  in the order — was removed by moving the module to `llm_client/`.
 
 ### Requirement: No package imports another package's private names
 

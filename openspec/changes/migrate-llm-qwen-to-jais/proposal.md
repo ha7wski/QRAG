@@ -17,7 +17,7 @@ studying the Quran through itself, in Arabic.
 ## What Changes
 
 - **Swap the default local model** from `qwen2.5:7b` to a Jais 2 8B build served by Ollama.
-  The provider abstraction in `generation/llm_client.py` is unchanged — only which model it
+  The provider abstraction in `llm_client/__init__.py` is unchanged — only which model it
   names, plus the code defaults, launcher fallbacks and runbook that repeat that name.
 - **Pin the chat template explicitly** in the Ollama Modelfile. Ollama auto-detects
   `llama3-instruct` for this GGUF, which is wrong on two counts: Jais 2's generation role is
@@ -64,7 +64,7 @@ Qdrant rebuild, and no BM25 change follows from this swap.
 
 **Configuration and defaults** (the model name is repeated in six places):
 - `.env` / `.env.example` — `OLLAMA_MODEL`
-- `generation/llm_client.py:24` — `DEFAULT_OLLAMA_MODEL`, plus the docstring at line 11
+- `llm_client/__init__.py:24` — `DEFAULT_OLLAMA_MODEL`, plus the docstring at line 11
 - `scripts/run.sh:69`, `local-dev/start.sh:166` — shell fallbacks; `start.sh:7,256` comments
 - `api/models/madar.py:45` — `synthesis_source` field default, which reaches the frontend
 - `madar/madar_service.py:215` — runtime fallback for the same audit tag

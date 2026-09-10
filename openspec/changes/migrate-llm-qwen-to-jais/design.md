@@ -1,6 +1,6 @@
 ## Context
 
-`generation/llm_client.py` is a narrow, well-behaved seam: it exposes `chat()` and
+`llm_client/__init__.py` is a narrow, well-behaved seam: it exposes `chat()` and
 `stream_chat()` and switches between Ollama and Anthropic on `LLM_PROVIDER`. Everything
 upstream (retrieval, RRF, root resolution) hands it **text**, and the embedder and reranker
 tokenize independently of it. Swapping the local model is therefore a configuration change

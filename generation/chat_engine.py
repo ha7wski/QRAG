@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from generation.llm_client import LLMClient  # noqa: E402
+from llm_client import LLMClient  # noqa: E402
 from generation.prompts import (  # noqa: E402
     SYSTEM_PROMPT_CHAT,
     build_chat_user_message,

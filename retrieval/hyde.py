@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from generation.llm_client import LLMClient  # noqa: E402
+from llm_client import LLMClient  # noqa: E402
 
 HYDE_SYSTEM = "You are an expert on the Quran. Be concise."
 
