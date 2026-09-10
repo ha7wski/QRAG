@@ -37,14 +37,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from quran_data import loaders, paths, qac  # noqa: E402
 
-REFERENCE_TXT = ROOT / "data" / "raw" / "quran-morphology.txt"
-TREEBANK_CSV = ROOT / "data" / "raw" / "eqtb" / "quranic-treebank.csv"
-ARBITRATION = ROOT / "data" / "references" / "root_arbitration.json"
-OUT = ROOT / "data" / "processed" / "roots_resolved.json"
+TREEBANK_CSV = paths.TREEBANK_CSV
+ARBITRATION = paths.ROOT_ARBITRATION_JSON
+OUT = paths.ROOTS_RESOLVED_JSON
 
 NULL_TOKENS = {"_", "", "ـ", "-", "(*)"}
-_ROOT_RE = re.compile(r"ROOT:([^|\n\t]+)")
 
 # Cross-source fold: hamza-BLIND. The treebank ships every root with its hamza
 # stripped (0 hamzated roots out of 1642), so `لؤلؤ` arrives as `لالا`. Folding both
@@ -84,26 +83,17 @@ def same_root(a: str, b: str) -> bool:
 
 
 # ---------------------------------------------------------------- sources
-def load_reference(path: Path = REFERENCE_TXT) -> dict[str, list[str]]:
-    """Chain-A source: word ref -> ROOT: fields, in the file's own spelling."""
-    words: dict[str, list[str]] = {}
-    with path.open(encoding="utf-8") as fh:
-        for line in fh:
-            if line.startswith("#") or not line.strip():
-                continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 4:
-                continue
-            bits = parts[0].strip("()").split(":")
-            if len(bits) != 4 or not bits[0].isdigit():
-                continue
-            key = ":".join(bits[:3])
-            roots = words.setdefault(key, [])
-            for m in _ROOT_RE.finditer(parts[3]):
-                r = m.group(1).strip()
-                if r and r not in roots:
-                    roots.append(r)
-    return words
+def load_reference() -> dict[str, list[str]]:
+    """Chain-A source: word ref -> ROOT: fields, in the file's own spelling.
+
+    The morphology file's four-column layout is known in exactly one place —
+    `quran_data.qac` — so this stage and `qac_morphology.py` cannot drift apart
+    on how they read it. The result is cached there and shared with any other
+    caller in the process.
+
+    **Read-only**: the returned map is shared. Nothing here mutates it.
+    """
+    return qac.word_roots()
 
 
 def load_treebank(path: Path = TREEBANK_CSV) -> dict[str, dict]:
@@ -153,6 +143,10 @@ class Arbitration:
     def load(cls, path: Path | None = ARBITRATION) -> "Arbitration":
         if path is None or not Path(path).exists():
             return cls({})
+        # The registry's file goes through its shared loader; an explicit other
+        # path (a fixture, a candidate verdict set) is read as given.
+        if Path(path) == ARBITRATION:
+            return cls(loaders.root_arbitration())
         return cls(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def lookup(self, ref: str, key: tuple[str, str]) -> dict | None:
@@ -341,8 +335,16 @@ def audit(resolver: "RootResolver", stats: dict) -> dict:
 
 
 def load_resolved(path: Path = OUT, build_if_missing: bool = True) -> dict:
-    """The resolved artifact, for consumers. Builds it if it is not on disk yet."""
+    """The resolved artifact, for consumers. Builds it if it is not on disk yet.
+
+    The registry's file goes through its shared loader, so the two consumer
+    chains in one pipeline process (`qac_morphology`, `qac_treebank`) parse it
+    once between them instead of holding a copy each. **Read-only**: neither
+    chain mutates what it gets back.
+    """
     if Path(path).exists():
+        if Path(path) == OUT:
+            return loaders.roots_resolved()
         return json.loads(Path(path).read_text(encoding="utf-8"))
     if not build_if_missing:
         raise FileNotFoundError(f"{path} not found — run ingestion/root_resolver.py first")

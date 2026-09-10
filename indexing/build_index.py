@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from indexing.bm25_index import BM25Index  # noqa: E402
 from indexing.embedder import Embedder  # noqa: E402
 from indexing.qdrant_store import QuranQdrant  # noqa: E402
+from quran_data import paths  # noqa: E402
 
 try:
     from tqdm import tqdm
@@ -35,9 +36,8 @@ except Exception:  # pragma: no cover
     def tqdm(it, **kwargs):  # type: ignore
         return it
 
-ROOT = Path(__file__).resolve().parents[1]
-VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
-CHECKPOINT = ROOT / "data" / "processed" / ".checkpoint"
+VERSES_FINAL = paths.VERSES_FINAL_JSON
+CHECKPOINT = paths.BUILD_INDEX_CHECKPOINT
 
 CHUNK_SIZE = 200  # verses embedded + upserted per checkpointed chunk
 

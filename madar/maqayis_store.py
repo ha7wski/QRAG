@@ -1,7 +1,7 @@
 """
 maqayis_store.py — Offline reader for the Maqāyīs aṣl dataset.
 
-Loads `data/references/maqayis_asl.csv` (built once by
+Reads the Maqāyīs aṣl CSV through `quran_data` (built once by
 `scripts/build_maqayis_dataset.py` from the OpenITI edition of Ibn Fāris'
 *Muʿjam Maqāyīs al-Lugha*) and answers `lookup(root_normalized)`. Read-only,
 cached, NO network at runtime — the dataset is a fixed, verified reference.
@@ -22,8 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from quran_data import loaders, paths  # noqa: E402
 
-DEFAULT_CSV = ROOT / "data" / "references" / "maqayis_asl.csv"
+DEFAULT_CSV = paths.MAQAYIS_ASL_CSV
 
 # Sentinel joining several aṣl of one root inside the single `asl_text` cell
 # (must match `scripts/build_maqayis_dataset.py::ASL_DELIM`). Never occurs in
@@ -68,30 +69,43 @@ class MaqayisEntry:
         }
 
 
+def _rows(p: Path) -> list[dict]:
+    """The CSV's rows.
+
+    The shipped dataset goes through the registry's shared loader (one parse per
+    process). Any OTHER path is a caller's own CSV — `MaqayisStore(csv_path=…)` is a
+    supported constructor argument, so the registry is the default source here, not a
+    straitjacket — and is read directly. An absent file yields no rows, as before: this
+    store degrades to «no aṣl on record» rather than failing a request.
+    """
+    if not p.exists():
+        return []
+    if p == paths.MAQAYIS_ASL_CSV:
+        return loaders.maqayis_asl()
+    with p.open(encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
 @lru_cache(maxsize=4)
 def _load(path: str) -> dict[str, MaqayisEntry]:
     """Load the CSV once per path into a {root_normalized: MaqayisEntry} map."""
     data: dict[str, MaqayisEntry] = {}
-    p = Path(path)
-    if not p.exists():
-        return data
-    with p.open(encoding="utf-8", newline="") as f:
-        for row in csv.DictReader(f):
-            try:
-                count = int(row.get("asl_count") or 0)
-            except ValueError:
-                count = 0
-            data[row["root_normalized"]] = MaqayisEntry(
-                root_normalized=row["root_normalized"],
-                root_raw=row.get("root_raw", ""),
-                asl_text=row.get("asl_text", ""),
-                asl_count=count,
-                asl_status=row.get("asl_status", "parse_uncertain"),
-                source=row.get("source", ""),
-                edition=row.get("edition", ""),
-                confidence=row.get("confidence", ""),
-                asl_preamble=row.get("asl_preamble", ""),
-            )
+    for row in _rows(Path(path)):
+        try:
+            count = int(row.get("asl_count") or 0)
+        except ValueError:
+            count = 0
+        data[row["root_normalized"]] = MaqayisEntry(
+            root_normalized=row["root_normalized"],
+            root_raw=row.get("root_raw", ""),
+            asl_text=row.get("asl_text", ""),
+            asl_count=count,
+            asl_status=row.get("asl_status", "parse_uncertain"),
+            source=row.get("source", ""),
+            edition=row.get("edition", ""),
+            confidence=row.get("confidence", ""),
+            asl_preamble=row.get("asl_preamble", ""),
+        )
     return data
 
 

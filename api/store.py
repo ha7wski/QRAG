@@ -14,7 +14,11 @@ for the local/single-node deployment this project targets):
   - **Feedback:** thumbs up/down on an assistant answer (a KPI from
     project_summary.md), keyed by `(session_id, message_index)`.
 
-The DB lives at `data/runtime/app.db` by default (override with `APP_DB_PATH`).
+Where the DB lives is the registry's decision (`quran_data.paths.app_db_path`):
+`data/runtime/app.db` by default, overridden by `APP_DB_PATH`, which — like
+`QDRANT_PATH` — is resolved against the repo root when it is relative, so the
+backend and any CLI agree on one file whatever directory they were launched
+from. An explicit `Store(db_path=…)` still wins over both.
 A single connection is shared across threads (`check_same_thread=False`) and
 guarded by a lock, which is ample for this workload; WAL mode keeps reads from
 blocking the occasional write.
@@ -22,14 +26,17 @@ blocking the occasional write.
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
+import sys
 import threading
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DB = ROOT / "data" / "runtime" / "app.db"
+# Project convention: anchor on the repo root rather than the cwd, so the module
+# (and its `__main__` smoke test) runs from any directory.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from quran_data.paths import app_db_path  # noqa: E402
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS messages (
@@ -90,7 +97,10 @@ class Store:
     """Durable conversation history + feedback over a local SQLite file."""
 
     def __init__(self, db_path: str | Path | None = None):
-        self.db_path = Path(db_path or os.getenv("APP_DB_PATH", DEFAULT_DB))
+        # An explicit argument wins; otherwise the registry decides (env override
+        # included). `or`-style falsiness is preserved: `Store("")` means "no
+        # argument", exactly as before.
+        self.db_path = Path(db_path) if db_path else app_db_path()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._conn = sqlite3.connect(str(self.db_path), check_same_thread=False)

@@ -17,7 +17,13 @@ Outputs:
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+# Runnable as a script from any working directory (`python ingestion/morphology.py`).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from quran_data import paths  # noqa: E402
 
 try:
     from tqdm import tqdm
@@ -25,9 +31,8 @@ except Exception:  # pragma: no cover
     def tqdm(it, **kwargs):  # type: ignore
         return it
 
-ROOT = Path(__file__).resolve().parents[1]
-MORPHOLOGY_JSON = ROOT / "data" / "processed" / "morphology.json"
-VERSES_FINAL_JSON = ROOT / "data" / "processed" / "verses_final.json"
+MORPHOLOGY_JSON = paths.MORPHOLOGY_JSON
+VERSES_FINAL_JSON = paths.VERSES_FINAL_JSON
 
 # Arabic letters considered valid root consonants.
 _ARABIC_LETTERS = set("ابتثجحخدذرزسشصضطظعغفقكلمنهوي")

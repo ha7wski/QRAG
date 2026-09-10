@@ -36,14 +36,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingestion.root_normalize import normalize_root  # noqa: E402
+from quran_data import loaders  # noqa: E402
+from quran_data.paths import MAQAYIS_ASL_CSV, MAQAYIS_SOURCE_TXT  # noqa: E402
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/OpenITI/0400AH/master/data/"
     "0395IbnFarisQazwini/0395IbnFarisQazwini.MucjamMaqayis/"
     "0395IbnFarisQazwini.MucjamMaqayis.Shamela0021710-ara1"
 )
-SOURCE_PATH = ROOT / "data" / "raw" / "maqayis" / "maqayis_shamela.txt"
-OUT_CSV = ROOT / "data" / "references" / "maqayis_asl.csv"
 
 SOURCE_TAG = "maqayis_openiti"
 EDITION_TAG = "Harun_DarAlFikr"
@@ -266,34 +266,35 @@ def parse_source(text: str) -> list[dict]:
 
 def _load_qac_roots() -> set[str]:
     """Normalized set of QAC root keys (for the overlap report). Empty if the
-    morphology index is not built yet."""
-    import json
+    morphology index is not built yet.
 
-    path = ROOT / "data" / "processed" / "morphology.json"
-    if not path.exists():
+    Goes through the registry's cached loader — the same parse the retrieval
+    layer uses, so nothing re-reads the file just to count an overlap."""
+    try:
+        return {normalize_root(k) for k in loaders.morphology()}
+    except loaders.DatasetMissing:
         return set()
-    with path.open(encoding="utf-8") as f:
-        return {normalize_root(k) for k in json.load(f)}
 
 
 def _fetch_source() -> None:
-    SOURCE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    MAQAYIS_SOURCE_TXT.parent.mkdir(parents=True, exist_ok=True)
     print(f"Fetching source from {SOURCE_URL} ...")
-    urllib.request.urlretrieve(SOURCE_URL, SOURCE_PATH)  # noqa: S310 (whitelisted)
-    print(f"  saved → {SOURCE_PATH} ({SOURCE_PATH.stat().st_size} bytes)")
+    urllib.request.urlretrieve(SOURCE_URL, MAQAYIS_SOURCE_TXT)  # noqa: S310 (whitelisted)
+    print(f"  saved → {MAQAYIS_SOURCE_TXT} ({MAQAYIS_SOURCE_TXT.stat().st_size} bytes)")
 
 
 def build(fetch: bool = False) -> list[dict]:
-    if fetch or not SOURCE_PATH.exists():
-        if not SOURCE_PATH.exists() and not fetch:
-            print(f"Source not found at {SOURCE_PATH}; downloading (--fetch implied).")
+    if fetch or not MAQAYIS_SOURCE_TXT.exists():
+        if not MAQAYIS_SOURCE_TXT.exists() and not fetch:
+            print(f"Source not found at {MAQAYIS_SOURCE_TXT}; "
+                  "downloading (--fetch implied).")
         _fetch_source()
-    text = SOURCE_PATH.read_text(encoding="utf-8")
+    text = MAQAYIS_SOURCE_TXT.read_text(encoding="utf-8")
     rows = parse_source(text)
-    OUT_CSV.parent.mkdir(parents=True, exist_ok=True)
+    MAQAYIS_ASL_CSV.parent.mkdir(parents=True, exist_ok=True)
     fields = ["root_normalized", "root_raw", "asl_text", "asl_preamble",
               "asl_count", "asl_status", "source", "edition", "confidence"]
-    with OUT_CSV.open("w", encoding="utf-8", newline="") as f:
+    with MAQAYIS_ASL_CSV.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         w.writerows(sorted(rows, key=lambda r: r["root_normalized"]))
@@ -308,7 +309,7 @@ def report(rows: list[dict]) -> None:
     print("\n" + "=" * 64)
     print("BUILD REPORT — Maqāyīs aṣl dataset")
     print("=" * 64)
-    print(f"  output        : {OUT_CSV}")
+    print(f"  output        : {MAQAYIS_ASL_CSV}")
     print(f"  total entries : {total}   (Ibn Fāris reference ~3500 roots)")
     for st in ("has_asl", "no_asl", "parse_uncertain"):
         print(f"    {st:<16}: {by_status.get(st, 0)}")

@@ -16,10 +16,15 @@ from __future__ import annotations
 
 import bisect
 import json
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_JSON = ROOT / "data" / "processed" / "verses_enriched.json"
+# Runnable as a script from any working directory (`python ingestion/enricher.py`).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from quran_data.paths import VERSES_ENRICHED_JSON  # noqa: E402
+
+OUTPUT_JSON = VERSES_ENRICHED_JSON
 
 # Revelation period: "makkiyya" (Meccan) or "madani" (Medinan), per scholarly
 # consensus. Keyed by surah number (1–114).

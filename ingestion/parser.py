@@ -11,12 +11,17 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 
-# Project root (two levels above this file)
-ROOT = Path(__file__).resolve().parents[1]
-RAW_CSV = ROOT / "data" / "raw" / "quran.csv"
-OUTPUT_JSON = ROOT / "data" / "processed" / "verses_raw.json"
+# Runnable as a script from any working directory (`python ingestion/parser.py`).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from quran_data.paths import QURAN_CSV, VERSES_RAW_JSON  # noqa: E402
+
+# Where the data lives is the registry's answer, never this module's.
+RAW_CSV = QURAN_CSV
+OUTPUT_JSON = VERSES_RAW_JSON
 
 # Expected number of verses (sanity check)
 EXPECTED_VERSES = 6236

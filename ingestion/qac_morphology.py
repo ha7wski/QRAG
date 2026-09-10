@@ -8,12 +8,13 @@ replaces the tashaphyne light-stemmer builder in `ingestion/morphology.py`,
 which mis-roots words (e.g. كريم → ريم instead of كرم). The old builder is kept
 in place, unmodified, so the two can be validated side by side.
 
-Source format — one line per morphological SEGMENT (not per word):
-    LOCATION <TAB> FORM <TAB> TAG <TAB> FEATURES
-  - LOCATION = sura:aya:word:segment  (e.g. 1:2:1:2)
+Source format — one record per morphological SEGMENT (not per word). The file's
+layout is read by `quran_data.qac`, which is the ONLY module that knows it; this
+builder consumes `qac.records()` and reads the fields:
+  - surah / ayah / word / segment, already split out of the LOCATION column
   - FEATURES = pipe-separated tokens; the root, WHEN PRESENT, is a token
     "ROOT:<arabic>" that may appear at ANY position. The lemma is "LEM:<arabic>".
-  - Many lines have NO ROOT token (prefixes, DET, pronouns, particles,
+  - Many segments have NO ROOT token (prefixes, DET, pronouns, particles,
     disconnected-letter openers). Those are skipped silently.
 
 Design decisions (fixed):
@@ -49,6 +50,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from indexing.text_normalize import normalize_search  # noqa: E402
 from ingestion.root_normalize import normalize_root  # noqa: E402
 from ingestion.root_resolver import load_resolved, same_root  # noqa: E402
+from quran_data import paths, qac  # noqa: E402
+from quran_data.qac import Record  # noqa: E402
 
 try:
     from tqdm import tqdm
@@ -56,13 +59,15 @@ except Exception:  # pragma: no cover
     def tqdm(it, **kwargs):  # type: ignore
         return it
 
-ROOT = Path(__file__).resolve().parents[1]
-QAC_MORPHOLOGY_TXT = ROOT / "data" / "raw" / "quran-morphology.txt"
-MORPHOLOGY_JSON = ROOT / "data" / "processed" / "morphology.json"
-RESOLUTION_JSON = ROOT / "data" / "processed" / "qac_resolution.json"
-LEMMA_INDEX_JSON = ROOT / "data" / "processed" / "lemma_index.json"
-PROPER_NOUNS_JSON = ROOT / "data" / "processed" / "proper_nouns.json"
-VERSES_FINAL_JSON = ROOT / "data" / "processed" / "verses_final.json"
+# The source this builder consumes. Named here only so callers can ask whether it
+# is present; the file itself is read by `quran_data.qac`, never opened here.
+QAC_MORPHOLOGY_TXT = paths.QAC_MORPHOLOGY_TXT
+
+MORPHOLOGY_JSON = paths.MORPHOLOGY_JSON
+RESOLUTION_JSON = paths.QAC_RESOLUTION_JSON
+LEMMA_INDEX_JSON = paths.LEMMA_INDEX_JSON
+PROPER_NOUNS_JSON = paths.PROPER_NOUNS_JSON
+VERSES_FINAL_JSON = paths.VERSES_FINAL_JSON
 
 
 class Segment:
@@ -80,25 +85,35 @@ class Segment:
         self.lemma_raw = lemma_raw  # raw, diacritized LEM (for display; "" if absent)
 
 
-def parse_line(line: str) -> Segment | None:
-    """Parse one QAC line into a Segment, or None to skip it.
+def _as_record(item: Record | str) -> Record | None:
+    """A `Record` for either a real record or a single raw line.
 
-    Returns None for blank lines, malformed lines (< 4 tab fields), lines whose
-    LOCATION is not numeric, and — the common case — lines with no ROOT token.
-    The ROOT token is found by PREFIX SCAN over the pipe-split FEATURES, never
-    by column index (its position varies from line to line).
+    The corpus arrives as `quran_data.qac.Record`s and passes straight through.
+    A raw LINE is accepted only so the pure builder below can be driven by an
+    in-memory fixture (that is what the unit tests do) without a corpus on disk,
+    and it is handed to `qac.parse_line` — so the file's layout is known in
+    exactly one place, which is the whole point of collapsing the four readers.
     """
-    line = line.rstrip("\n")
-    if not line.strip():
-        return None
-    parts = line.split("\t")
-    if len(parts) < 4:
-        return None
-    location, form, _tag, features = parts[0], parts[1], parts[2], parts[3]
+    return item if isinstance(item, Record) else qac.parse_line(item)
 
+
+def parse_line(line: str) -> Segment | None:
+    """Line-taking form of `parse_segment`, for in-memory fixtures."""
+    rec = _as_record(line)
+    return parse_segment(rec) if rec is not None else None
+
+
+def parse_segment(rec: Record) -> Segment | None:
+    """Turn one QAC record into a Segment, or None to skip it.
+
+    Returns None for the common case: a segment with no ROOT token. Where the
+    location and the four columns come from is `quran_data.qac`'s business —
+    this reads FEATURES only. The ROOT token is found by PREFIX SCAN over the
+    pipe-split FEATURES, never by position (which varies from line to line).
+    """
     raw_root = ""
     raw_lemma = ""
-    for token in features.split("|"):
+    for token in rec.features.split("|"):
         if token.startswith("ROOT:"):
             raw_root = token[len("ROOT:"):]
         elif token.startswith("LEM:"):
@@ -106,18 +121,10 @@ def parse_line(line: str) -> Segment | None:
     if not raw_root:
         return None
 
-    loc_parts = location.strip("()").split(":")
-    if len(loc_parts) < 3:
-        return None
-    try:
-        sura, aya, word = int(loc_parts[0]), int(loc_parts[1]), int(loc_parts[2])
-    except ValueError:
-        return None
-
     return Segment(
-        verse_id=f"{sura}:{aya}",
-        word_ref=f"{sura}:{aya}:{word}",
-        form=form,
+        verse_id=f"{rec.surah}:{rec.ayah}",
+        word_ref=f"{rec.surah}:{rec.ayah}:{rec.word}",
+        form=rec.form,
         # NOT normalized: the fold is a lookup key, never a stored value. The
         # canonical spelling is decided per word by the resolver in build().
         root=raw_root.strip(),
@@ -126,25 +133,21 @@ def parse_line(line: str) -> Segment | None:
     )
 
 
-def parse_proper_noun(line: str) -> tuple[str, str, str, str] | None:
+def parse_proper_noun(item: Record | str) -> tuple[str, str, str, str] | None:
     """Parse a ROOTLESS proper-noun (PN) segment → (verse_id, form, lemma_key,
-    lemma_raw), or None to skip.
+    lemma_raw), or None to skip. Takes a record, or a raw line for fixtures.
 
     Quranic proper nouns of foreign origin (لوط, إبراهيم, موسى …) carry a LEM but
-    NO ROOT in QAC, so `parse_line` skips them and the root index never sees them.
-    This picks them up for a name index. Selection: has a LEM, is tagged PN, and
-    has NO ROOT (PN *with* a root — e.g. صالح — stays in the root index). The key
-    is `normalize_search`-folded (ى→ي, ة→ه) so name spelling variants match."""
-    line = line.rstrip("\n")
-    if not line.strip():
+    NO ROOT in QAC, so `parse_segment` skips them and the root index never sees
+    them. This picks them up for a name index. Selection: has a LEM, is tagged PN,
+    and has NO ROOT (PN *with* a root — e.g. صالح — stays in the root index). The
+    key is `normalize_search`-folded (ى→ي, ة→ه) so name spelling variants match."""
+    rec = _as_record(item)
+    if rec is None:
         return None
-    parts = line.split("\t")
-    if len(parts) < 4:
-        return None
-    location, form, _tag, features = parts[0], parts[1], parts[2], parts[3]
-    tokens = features.split("|")
+    tokens = rec.features.split("|")
     if any(t.startswith("ROOT:") for t in tokens):
-        return None                         # has a root → handled by parse_line
+        return None                         # has a root → handled by parse_segment
     if "PN" not in tokens:
         return None                         # only proper nouns (not particles)
     raw_lemma = ""
@@ -153,36 +156,17 @@ def parse_proper_noun(line: str) -> tuple[str, str, str, str] | None:
             raw_lemma = t[len("LEM:"):]
     if not raw_lemma:
         return None
-    loc_parts = location.split(":")
-    if len(loc_parts) < 2:
-        return None
-    try:
-        sura, aya = int(loc_parts[0]), int(loc_parts[1])
-    except ValueError:
-        return None
     key = normalize_search(raw_lemma)
     if not key:
         return None
-    return f"{sura}:{aya}", form, key, raw_lemma
+    return f"{rec.surah}:{rec.ayah}", rec.form, key, raw_lemma
 
 
-def _location_and_form(line: str) -> tuple[str, str, str] | None:
-    """(word_ref, verse_id, FORM) for any well-formed QAC line, rooted or not."""
-    parts = line.rstrip("\n").split("\t")
-    if len(parts) < 4:
-        return None
-    bits = parts[0].strip("()").split(":")
-    if len(bits) < 3:
-        return None
-    try:
-        s, a, w = int(bits[0]), int(bits[1]), int(bits[2])
-    except ValueError:
-        return None
-    return f"{s}:{a}:{w}", f"{s}:{a}", parts[1]
-
-
-def build(lines, resolved: dict | None = None) -> tuple[dict, dict, dict, dict, dict]:
+def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict, dict]:
     """Build the index + resolution maps + verse→roots map + lemma/PN indexes.
+
+    `records` is any iterable of `quran_data.qac.Record` — the corpus itself —
+    or, for tests, of raw lines in the same layout.
 
     Returns (index, resolution, verse_roots, lemma_index, proper_nouns):
       - index         : root → {root, forms_found, verses, count}
@@ -224,15 +208,16 @@ def build(lines, resolved: dict | None = None) -> tuple[dict, dict, dict, dict, 
     word_verse: dict[str, str] = {}
     seen_words: set[str] = set()
 
-    for line in lines:
-        loc_form = _location_and_form(line)
-        if loc_form:
-            wref, vid, form = loc_form
-            word_form[wref] += form
-            word_verse[wref] = vid
-        seg = parse_line(line)
+    for item in records:
+        rec = _as_record(item)
+        if rec is None:                       # unreadable fixture line
+            continue
+        wref = f"{rec.surah}:{rec.ayah}:{rec.word}"
+        word_form[wref] += rec.form
+        word_verse[wref] = f"{rec.surah}:{rec.ayah}"
+        seg = parse_segment(rec)
         if seg is None:
-            pn = parse_proper_noun(line)      # rootless proper noun?
+            pn = parse_proper_noun(rec)       # rootless proper noun?
             if pn is not None:
                 vid, form, key, raw_lemma = pn
                 s, a = (int(x) for x in vid.split(":"))
@@ -356,16 +341,12 @@ def run(verses: list[dict]) -> tuple[list[dict], dict]:
 
     Signature mirrors `ingestion.morphology.run` so `run_pipeline` is unchanged.
     """
-    if not QAC_MORPHOLOGY_TXT.exists():
-        raise FileNotFoundError(
-            f"{QAC_MORPHOLOGY_TXT} not found. The QAC morphology source is "
-            f"required to build the root index."
-        )
     resolved = load_resolved()          # the single root authority (see root_resolver)
-    with QAC_MORPHOLOGY_TXT.open(encoding="utf-8") as f:
-        index, resolution, verse_roots, lemma_index, proper_nouns = build(
-            tqdm(f, desc="  qac-morph  ", unit="seg"), resolved
-        )
+    # `qac.records()` streams the corpus and raises with the obtain-it-from advice
+    # when the source is absent; the file is never opened here.
+    index, resolution, verse_roots, lemma_index, proper_nouns = build(
+        tqdm(qac.records(), desc="  qac-morph  ", unit="seg"), resolved
+    )
 
     for v in verses:
         v["roots"] = verse_roots.get(v["id"], [])

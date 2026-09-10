@@ -6,8 +6,8 @@ the interpretive meaning, keywords, classical makhraj/sifat, and an Ibn Jinni
 sound-imitation note for a single Arabic letter. The Lisan feature is
 Arabic-only, so ONLY the `_ar` dataset fields are read.
 
-Data source (loaded in place, never moved/duplicated):
-    data/references/arabic_letters_dataset.csv
+Data source (read through `quran_data.loaders.arabic_letters()`, the registry's single
+parse of `data/references/arabic_letters_dataset.csv`):
 28 rows, one per base letter, columns:
     letter, name_ar, name_translit, translit, makhraj_en, makhraj_ar,
     sifat, sifat_ar, abbas_meaning, abbas_meaning_ar, abbas_keywords,
@@ -22,7 +22,6 @@ sequential reading of a root always has one entry per letter.
 """
 from __future__ import annotations
 
-import csv
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -30,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-DATASET_CSV = ROOT / "data" / "references" / "arabic_letters_dataset.csv"
+from quran_data import loaders  # noqa: E402
 
 # Hamza carriers → the base bare-hamza entry `ء`. Root keys are already
 # hamza-safe-normalized (seats folded to ا/و/ي, bare ء kept), so in practice a
@@ -46,13 +45,12 @@ def _split_list(value: str) -> list[str]:
 
 @lru_cache(maxsize=1)
 def _load() -> dict[str, dict]:
-    """Load the CSV once, keyed by the `letter` glyph. Cached for the process."""
+    """Key the registry's shared rows by the `letter` glyph. Cached for the process."""
     by_letter: dict[str, dict] = {}
-    with DATASET_CSV.open(encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            letter = (row.get("letter") or "").strip()
-            if letter:
-                by_letter[letter] = row
+    for row in loaders.arabic_letters():
+        letter = (row.get("letter") or "").strip()
+        if letter:
+            by_letter[letter] = row
     return by_letter
 
 

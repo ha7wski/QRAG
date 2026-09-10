@@ -45,7 +45,6 @@ altered — the mīzān is derived here at assembler time.
 from __future__ import annotations
 
 import functools
-import json
 import sys
 import unicodedata
 from pathlib import Path
@@ -57,6 +56,7 @@ if str(ROOT) not in sys.path:
 from analysis.qlisan_data import word_index
 from ingestion.root_normalize import normalize_root
 from indexing.corpus import chakl_by_ref
+from quran_data import loaders
 
 # Combining marks we copy verbatim onto the mīzān (ḥarakāt, tanwīn, shadda, sukūn,
 # dagger alif). Detection also falls back to the Unicode "Mn" (nonspacing mark)
@@ -445,7 +445,6 @@ def _strip_proclitics(groups: list[list], segments: list[str]) -> list[list]:
 
 RULE_PATTERN = "مطابقة وزن"      # a curated wazn pattern matched the stem
 
-_PATTERNS_PATH = ROOT / "analysis" / "data" / "mizan_patterns.json"
 _MADDA = "آ"
 _SLOT_LETTERS = ("ف", "ع", "ل")
 _SHORT_VOWELS = frozenset("َُِ")
@@ -453,10 +452,16 @@ _SHORT_VOWELS = frozenset("َُِ")
 
 @functools.lru_cache(maxsize=1)
 def _pattern_file() -> dict:
-    if not _PATTERNS_PATH.exists():
+    """The curated pattern table, or `{}` when it is not on disk.
+
+    Absence is tolerated on purpose — the mīzān degrades to letter-by-letter
+    projection rather than failing — so the registry's «missing dataset» error is
+    caught here instead of being allowed to reach a request path.
+    """
+    try:
+        return loaders.mizan_patterns()
+    except FileNotFoundError:
         return {}
-    with _PATTERNS_PATH.open(encoding="utf-8") as f:
-        return json.load(f)
 
 
 def patterns() -> tuple[dict, ...]:

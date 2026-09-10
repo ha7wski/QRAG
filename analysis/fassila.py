@@ -7,7 +7,9 @@ dagger alif `ٰ → ا` folded. Its distribution and its run-structure across a 
 the object of the `/fassila` page.
 
 Everything here is pure and offline — one linear pass over `quran_chakl.csv` (via the
-shared `indexing.corpus.chakl_by_ref()` loader) plus one over the QAC treebank. No ML,
+shared `indexing.corpus.chakl_by_ref()` loader) plus the two QAC projections this module
+needs, taken from `quran_data.qac` (which builds them from a SINGLE pass over
+`quran-morphology.txt`; this module used to open that 6 MB file twice by itself). No ML,
 no LLM, no network. Results are `@lru_cache`d per process, same pattern as
 `indexing/corpus.py`.
 
@@ -44,8 +46,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from indexing.corpus import chakl_by_ref  # noqa: E402
-
-QAC_MORPHOLOGY = ROOT / "data" / "raw" / "quran-morphology.txt"
+from quran_data import qac  # noqa: E402
 
 # Tashkīl + Qurʾānic annotation marks.
 #
@@ -111,7 +112,6 @@ def fasila_of(word: str) -> str:
     return last
 
 
-@functools.lru_cache(maxsize=1)
 def muqattaat_refs() -> frozenset[tuple[int, int]]:
     """`{(surah, ayah)}` for āyāt composed *only* of disconnected letters.
 
@@ -123,32 +123,11 @@ def muqattaat_refs() -> frozenset[tuple[int, int]]:
     with no special-casing.
 
     Yields exactly 20 āyāt across 19 sūras; `tests/test_fassila.py` freezes the list.
+
+    No cache of its own: `quran_data.qac` caches the projection, and it is shared with
+    `qac_ayah_words()` — the same single pass over the source produces both.
     """
-    if not QAC_MORPHOLOGY.exists():
-        raise FileNotFoundError(
-            f"{QAC_MORPHOLOGY} not found. The QAC treebank is required for "
-            f"muqaṭṭaʿāt detection."
-        )
-
-    # (surah, ayah) -> {word_index: is_initial}
-    seen: dict[tuple[int, int], dict[int, bool]] = {}
-    with QAC_MORPHOLOGY.open(encoding="utf-8") as f:
-        for line in f:
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 4:
-                continue
-            loc = parts[0].split(":")
-            if len(loc) != 4:
-                continue
-            try:
-                surah, ayah, word = int(loc[0]), int(loc[1]), int(loc[2])
-            except ValueError:
-                continue
-            words = seen.setdefault((surah, ayah), {})
-            # A word is "initial" if any of its segments carries INL.
-            words[word] = words.get(word, False) or ("INL" in parts[3])
-
-    return frozenset(ref for ref, words in seen.items() if all(words.values()))
+    return qac.initial_only_ayat()
 
 
 @functools.lru_cache(maxsize=1)
@@ -167,33 +146,15 @@ def qac_ayah_words() -> dict[tuple[int, int], list[str]]:
     Sourcing words here also makes word indices *definitionally* aligned with the
     `s:a:w` spine, and sidesteps the Basmala that `quran_chakl.csv` prepends to āya 1
     (QAC does not carry it).
+
+    The words come from `quran_data.qac.ayah_words()` exactly as the corpus writes
+    them; the alif-waṣla → plain-alif fold applied here is **this module's own display
+    decision**, not the corpus's, which is why the registry hands back the unfolded
+    form and the fold stays on this side.
     """
-    if not QAC_MORPHOLOGY.exists():
-        raise FileNotFoundError(
-            f"{QAC_MORPHOLOGY} not found. The QAC treebank is required for "
-            f"fāṣila derivation."
-        )
-
-    # (surah, ayah) -> {word_index: surface form}
-    built: dict[tuple[int, int], dict[int, str]] = {}
-    with QAC_MORPHOLOGY.open(encoding="utf-8") as f:
-        for line in f:
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 2:
-                continue
-            loc = parts[0].split(":")
-            if len(loc) != 4:
-                continue
-            try:
-                surah, ayah, word = int(loc[0]), int(loc[1]), int(loc[2])
-            except ValueError:
-                continue
-            words = built.setdefault((surah, ayah), {})
-            words[word] = words.get(word, "") + parts[1]
-
     return {
-        ref: [words[i].replace("ٱ", _ALIF) for i in sorted(words)]
-        for ref, words in built.items()
+        ref: [word.replace("ٱ", _ALIF) for word in words]
+        for ref, words in qac.ayah_words().items()
     }
 
 

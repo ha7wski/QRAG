@@ -16,11 +16,11 @@ import csv
 import functools
 import json
 import re
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-VERSES_FINAL = ROOT / "data" / "processed" / "verses_final.json"
-QURAN_CHAKL_CSV = ROOT / "data" / "raw" / "quran_chakl.csv"
+from quran_data import paths
+
+VERSES_FINAL = paths.VERSES_FINAL_JSON
+QURAN_CHAKL_CSV = paths.QURAN_CHAKL_CSV
 
 
 @functools.lru_cache(maxsize=1)

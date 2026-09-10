@@ -16,6 +16,8 @@ from pathlib import Path
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qm
 
+from quran_data import paths
+
 ROOT = Path(__file__).resolve().parents[1]
 
 DEFAULT_COLLECTION = "quran_verses"
@@ -44,6 +46,11 @@ class QuranQdrant:
         An explicit `url` wins over QDRANT_PATH: a caller asking for a server
         gets a server.
 
+        The env var itself is read by `quran_data.paths.qdrant_path()`, which
+        owns the rule that an EMPTY `QDRANT_PATH` means "unset" (server mode)
+        and that a relative value resolves against ROOT. An explicit `path`
+        argument still wins over both, and is anchored the same way.
+
         Caveat: embedded mode takes an exclusive file lock on the directory, so
         build_index.py and the API cannot hold it at the same time.
         """
@@ -52,13 +59,17 @@ class QuranQdrant:
         )
         self.vector_size = vector_size
 
-        raw_path = path or (None if url else os.getenv("QDRANT_PATH"))
-        if raw_path:
+        if path:
             # Project convention: resolve against ROOT, never the cwd, so the
             # backend and the indexer agree on the directory from anywhere.
-            self.path = Path(raw_path)
-            if not self.path.is_absolute():
-                self.path = ROOT / self.path
+            store_path = Path(path)
+            if not store_path.is_absolute():
+                store_path = ROOT / store_path
+        else:
+            store_path = None if url else paths.qdrant_path()
+
+        if store_path:
+            self.path = store_path
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self.url = None
             self.embedded = True

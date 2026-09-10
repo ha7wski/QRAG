@@ -3,55 +3,40 @@ qlisan_data.py — Cached loaders for the QLisan foundation artifacts.
 
 The four artifacts built by `ingestion/qac_treebank.py` are read-only, keyed by
 `"surah:ayah:word"` (or normalized root, for the root graph). Several QLisan
-services need them in the same process; these `@lru_cache` loaders parse each file
-once and hand back a shared object (same pattern as `indexing/corpus.py`).
+services need them in the same process; the shared `quran_data.loaders` registry
+parses each file once and hands back a shared object (same pattern as
+`indexing/corpus.py`). Reading them through the registry rather than through a
+second set of caches here is what keeps a backend serving both QLisan and Tahlīl
+to ONE resident copy of `qac_words.json` (29 MB) instead of two.
 
 **Read-only contract:** callers must not mutate the returned dicts in place.
 
-If an artifact is missing, a clear FileNotFoundError points at the build command.
+If an artifact is missing, the registry raises with the dataset's name, its
+expected path and the exact rebuild command.
 """
 from __future__ import annotations
 
 import functools
-import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-
-_QAC_WORDS = PROCESSED / "qac_words.json"
-_QAC_SYNTAX = PROCESSED / "qac_syntax.json"
-_ROOT_GRAPH = PROCESSED / "root_graph.json"
-_WORD_INDEX = PROCESSED / "word_index.json"
-
-_BUILD_HINT = "Run `python ingestion/qac_treebank.py` to build it."
+from quran_data import loaders  # noqa: E402
 
 
-def _load(path: Path) -> dict:
-    if not path.exists():
-        raise FileNotFoundError(f"{path} not found. {_BUILD_HINT}")
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
-@functools.lru_cache(maxsize=1)
 def qac_words() -> dict[str, dict]:
     """`"surah:ayah:word"` -> morphology record (root / lemma / pos / features / …)."""
-    return _load(_QAC_WORDS)
+    return loaders.qac_words()
 
 
-@functools.lru_cache(maxsize=1)
 def qac_syntax() -> dict[str, dict]:
     """`"surah:ayah:word"` -> dependency role. Words with no usable relation are absent."""
-    return _load(_QAC_SYNTAX)
+    return loaders.qac_syntax()
 
 
-@functools.lru_cache(maxsize=1)
 def root_graph() -> dict[str, list[str]]:
     """root -> ordered list of occurrence refs `"surah:ayah:word"` (nazair).
 
@@ -60,7 +45,7 @@ def root_graph() -> dict[str, list[str]]:
     any alternate reading, so reachability does not depend on which one is held.
     Callers holding a folded spelling must go through `canonical_root()`.
     """
-    return _load(_ROOT_GRAPH)
+    return loaders.root_graph()
 
 
 @functools.lru_cache(maxsize=1)
@@ -88,10 +73,9 @@ def canonical_root(query: str) -> str | None:
     return idx.get(fold_carrier(query)) or idx.get(fold_blind(query))
 
 
-@functools.lru_cache(maxsize=1)
 def word_index() -> dict[str, dict]:
     """`"surah:ayah:word"` -> {uthmani, imlaai, chakl_char_start, chakl_char_end, aligned}."""
-    return _load(_WORD_INDEX)
+    return loaders.word_index()
 
 
 if __name__ == "__main__":

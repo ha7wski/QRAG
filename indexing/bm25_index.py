@@ -25,9 +25,9 @@ from rank_bm25 import BM25Okapi
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from indexing.text_normalize import normalize_search  # noqa: E402
+from quran_data import paths  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[1]
-INDEX_PATH = ROOT / "data" / "processed" / "bm25_index.pkl"
+INDEX_PATH = paths.BM25_INDEX_PKL
 
 
 def _index_text(verse: dict) -> str:
@@ -91,9 +91,7 @@ class BM25Index:
 if __name__ == "__main__":
     import json
 
-    verses = json.load(
-        open(ROOT / "data" / "processed" / "verses_final.json", encoding="utf-8")
-    )
+    verses = json.load(open(paths.VERSES_FINAL_JSON, encoding="utf-8"))
     idx = BM25Index().build(verses)
     idx.save()
     print(f"BM25 index built over {len(verses)} verses → {INDEX_PATH}")

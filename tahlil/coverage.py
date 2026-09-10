@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-DEFAULT_LOG = ROOT / "data" / "runtime" / "tahlil_coverage.tsv"
+from quran_data.paths import tahlil_coverage_path  # noqa: E402
 
 COLUMNS = ("ref", "block", "reason", "outcome", "badge_before", "badge_after", "text", "cites")
 
@@ -47,8 +47,13 @@ _warned = False
 
 
 def log_path() -> Path:
-    """The active log path. Env override keeps tests off the real runtime file."""
-    return Path(os.getenv("TAHLIL_COVERAGE_LOG", str(DEFAULT_LOG)))
+    """The active log path. Env override keeps tests off the real runtime file.
+
+    The default location and the `TAHLIL_COVERAGE_LOG` override both live in the
+    dataset registry — the override is read on every call, not frozen at import,
+    so a test that exports it after this module loaded still redirects the log.
+    """
+    return tahlil_coverage_path()
 
 
 def _clean(value: object) -> str:

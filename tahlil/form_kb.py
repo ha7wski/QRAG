@@ -40,7 +40,6 @@ from __future__ import annotations
 
 import copy
 import functools
-import json
 import sys
 from pathlib import Path
 
@@ -49,10 +48,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from analysis.qac_labels import DERIVED_NOUNS_AR, VERB_ASPECT_AR
+from quran_data import loaders, paths
 
-REFERENCES = ROOT / "data" / "references"
-SIGHA_PATH = REFERENCES / "sigha_dalala.json"
-CONTRAST_PATH = REFERENCES / "bab_contrast.json"
+# Named here only so the validation errors below can say WHICH table refused to load;
+# the bytes come from the registry's shared loaders, never from a path built here.
+SIGHA_PATH = paths.SIGHA_DALALA_JSON
+CONTRAST_PATH = paths.BAB_CONTRAST_JSON
 
 # Presentation order of matched rows: «most specific first». باب and المشتقّ *name* the
 # word's صيغة outright; الوزن is a projection several صيغ can share (فَعِيل is صفة مشبهة
@@ -108,17 +109,10 @@ def validate_kb(data: dict, source: str = "<memory>") -> dict:
     return data
 
 
-def _read(path: Path) -> dict:
-    if not path.exists():
-        raise FileNotFoundError(f"{path} not found — the دلالة الصيغة KB ships with the repo.")
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
 @functools.lru_cache(maxsize=1)
 def load_sigha() -> dict:
     """The دلالة الصيغة KB, validated. Read-only: callers must not mutate it."""
-    data = validate_kb(_read(SIGHA_PATH), str(SIGHA_PATH))
+    data = validate_kb(loaders.sigha_dalala(), str(SIGHA_PATH))
     for row in data["rows"]:
         key_type = row.get("key_type")
         if key_type not in KEY_TYPES:
@@ -169,7 +163,7 @@ def validate_contrast(data: dict, source: str = "<memory>") -> dict:
 @functools.lru_cache(maxsize=1)
 def load_contrast() -> dict:
     """The باب contrast table, validated. Candidates only — attestation is not in here."""
-    return validate_contrast(_read(CONTRAST_PATH), str(CONTRAST_PATH))
+    return validate_contrast(loaders.bab_contrast(), str(CONTRAST_PATH))
 
 
 def sigha_version() -> str:

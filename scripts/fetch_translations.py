@@ -7,7 +7,7 @@ Source: alquran.cloud API (open Quran data).
 
 Each edition is normalized to a flat JSON map keyed by "surah:ayah":
     { "1:1": "In the name of Allah...", ... }
-and saved under data/translations/.
+and saved to the location the dataset registry names for it.
 
 Usage:
     python scripts/fetch_translations.py
@@ -20,11 +20,19 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "data" / "translations"
+sys.path.insert(0, str(ROOT))
 
+from quran_data.paths import (  # noqa: E402
+    TRANSLATION_EN_JSON,
+    TRANSLATION_FR_JSON,
+    TRANSLATIONS,
+)
+
+# Destination → alquran.cloud edition id. Keyed by the registry constant rather
+# than by a file stem, so the writer follows the dataset if it is ever relocated.
 EDITIONS = {
-    "fr_hamidullah": "fr.hamidullah",
-    "en_sahih": "en.sahih",
+    TRANSLATION_FR_JSON: "fr.hamidullah",
+    TRANSLATION_EN_JSON: "en.sahih",
 }
 API = "https://api.alquran.cloud/v1/quran/{edition}"
 EXPECTED_VERSES = 6236
@@ -51,15 +59,14 @@ def fetch_edition(edition: str) -> dict[str, str]:
 
 
 def run() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for name, edition in EDITIONS.items():
+    TRANSLATIONS.mkdir(parents=True, exist_ok=True)
+    for out, edition in EDITIONS.items():
         mapping = fetch_edition(edition)
         n = len(mapping)
-        out = OUT_DIR / f"{name}.json"
         with out.open("w", encoding="utf-8") as f:
             json.dump(mapping, f, ensure_ascii=False, indent=2)
         flag = "ok" if n == EXPECTED_VERSES else f"⚠️ expected {EXPECTED_VERSES}"
-        print(f"  {name}: {n} verses [{flag}] → {out.relative_to(ROOT)}")
+        print(f"  {out.stem}: {n} verses [{flag}] → {out.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

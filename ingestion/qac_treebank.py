@@ -66,18 +66,19 @@ sys.path.insert(0, str(ROOT))
 from ingestion.root_normalize import normalize_root  # noqa: E402
 from ingestion.root_resolver import load_resolved  # noqa: E402
 from indexing.text_normalize import normalize_search  # noqa: E402
+from quran_data import loaders, paths  # noqa: E402
 
-# --- Paths --------------------------------------------------------------------
-TREEBANK_CSV = ROOT / "data" / "raw" / "eqtb" / "quranic-treebank.csv"
-CHAKL_CSV = ROOT / "data" / "raw" / "quran_chakl.csv"
-PROCESSED = ROOT / "data" / "processed"
+# --- Paths ---------------------------------------------------------------------
+# Sources read and artifacts written, all named by the registry.
+TREEBANK_CSV = paths.TREEBANK_CSV
+CHAKL_CSV = paths.QURAN_CHAKL_CSV
 
-QAC_WORDS = PROCESSED / "qac_words.json"
-QAC_SYNTAX = PROCESSED / "qac_syntax.json"
-ROOT_GRAPH = PROCESSED / "root_graph.json"
-WORD_INDEX = PROCESSED / "word_index.json"
-OVERRIDES = PROCESSED / "overrides.json"
-AUDIT = PROCESSED / "qlisan_alignment_audit.json"
+QAC_WORDS = paths.QAC_WORDS_JSON
+QAC_SYNTAX = paths.QAC_SYNTAX_JSON
+ROOT_GRAPH = paths.ROOT_GRAPH_JSON
+WORD_INDEX = paths.WORD_INDEX_JSON
+OVERRIDES = paths.OVERRIDES_JSON
+AUDIT = paths.QLISAN_ALIGNMENT_AUDIT_JSON
 
 # --- Constants ----------------------------------------------------------------
 # Tokens the QAC uses for "empty" in root / lemma / feature columns.
@@ -409,8 +410,7 @@ def _load_overrides() -> dict:
     if not OVERRIDES.exists():
         OVERRIDES.write_text("{}\n", encoding="utf-8")
         return {}
-    with OVERRIDES.open(encoding="utf-8") as f:
-        raw = json.load(f)
+    raw = loaders.alignment_overrides()
     return {k: v for k, v in raw.items() if not k.startswith("_")}
 
 

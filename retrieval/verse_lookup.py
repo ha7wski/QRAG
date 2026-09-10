@@ -17,12 +17,13 @@ Design (isolated but reuses existing infrastructure):
   - word-highlight matching uses the hamza-safe `indexing.text_normalize.
     normalize_search` (keeps the alif; `normalize_text` deletes hamza and would
     over-match, e.g. أَرْض → رض matching every عرض/مرض token).
-  - the ONLY new data dependency is `data/raw/quran_chakl.csv`, the sole source
-    of fully diacritized text (the processed corpus `text_ar` has no harakat).
+  - the ONLY new data dependency is the vocalized corpus
+    (`quran_data.paths.QURAN_CHAKL_CSV`), the sole source of fully diacritized
+    text (the processed corpus `text_ar` has no harakat). It is reached through
+    `indexing.corpus.chakl_by_ref()`, never opened here.
 """
 from __future__ import annotations
 
-import json
 import logging
 import sys
 from pathlib import Path
@@ -31,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from indexing.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
 from indexing.text_normalize import normalize_search  # noqa: E402
+from quran_data import loaders, paths  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
     LexicalRetriever,
     _clitic_alif_candidates,
@@ -53,11 +55,6 @@ def _norm_match(text: str) -> str:
     return normalize_search(text.replace(_SUPERSCRIPT_ALEF, "ا"))
 
 
-ROOT = Path(__file__).resolve().parents[1]
-LEMMA_INDEX_JSON = ROOT / "data" / "processed" / "lemma_index.json"
-PROPER_NOUNS_JSON = ROOT / "data" / "processed" / "proper_nouns.json"
-
-
 class VerseLookup:
     """Resolve a word to its root(s) and list every verse, vocalized, grouped by
     lemma (the root's occurrences split per lemma / sense)."""
@@ -73,24 +70,24 @@ class VerseLookup:
         # Lemma index: root → [{lemma, lemma_display, forms_found, verses, count}].
         # Optional — if absent (built by an older pipeline), the lookup falls back
         # to a single synthetic group per root (see _lemma_groups_for_root).
-        self.lemma_index: dict[str, list[dict]] = {}
-        if LEMMA_INDEX_JSON.exists():
-            with LEMMA_INDEX_JSON.open(encoding="utf-8") as f:
-                self.lemma_index = json.load(f)
-        else:
+        # Shared and cached by the registry; READ-ONLY, like every loader result.
+        try:
+            self.lemma_index: dict[str, list[dict]] = loaders.lemma_index()
+        except loaders.DatasetMissing:
+            self.lemma_index = {}
             logger.warning(
                 "VerseLookup: %s not found — falling back to root-level grouping. "
                 "Run `python -m ingestion.qac_morphology` to build it.",
-                LEMMA_INDEX_JSON,
+                paths.LEMMA_INDEX_JSON,
             )
 
         # Proper-noun index: search-normalized lemma → {lemma_display, forms_found,
         # verses, count} for rootless names (لوط, إبراهيم …). Optional: absent →
         # proper nouns simply stay unresolvable (pre-rebuild behavior).
-        self.proper_nouns: dict[str, dict] = {}
-        if PROPER_NOUNS_JSON.exists():
-            with PROPER_NOUNS_JSON.open(encoding="utf-8") as f:
-                self.proper_nouns = json.load(f)
+        try:
+            self.proper_nouns: dict[str, dict] = loaders.proper_nouns()
+        except loaders.DatasetMissing:
+            self.proper_nouns = {}
 
     # ── root resolution ───────────────────────────────────────────────────
     def resolve_roots(self, word: str) -> list[str]:

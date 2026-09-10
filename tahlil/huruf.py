@@ -71,16 +71,26 @@ if str(ROOT) not in sys.path:
 
 from analysis.qlisan_data import canonical_root, root_graph
 from ingestion.root_normalize import normalize_root
+from quran_data import loaders, paths, qac
 
 # The single source of truth. The byte-identical `data/processed/` copy was deleted with
 # this change: two copies of a table are a future divergence, and the divergence would be
 # invisible (both parse, both look complete).
-LETTERS_PATH = ROOT / "data" / "references" / "arabic_letter_semantics_hasan_abbas.json"
+#
+# It stays a module-level name rather than a call into the registry at each use because it
+# is also this module's INJECTION POINT: a caller (the suite, exercising the validation)
+# rebinds it to a synthetic dataset. `_dataset()` honours that rebinding; when it still
+# names the shipped file, the bytes come from the registry's shared loader.
+LETTERS_PATH = paths.LETTER_SEMANTICS_JSON
 
 # The only artifact in the repo that still carries the hamza SEAT of a root. The processed
-# QAC artifacts do not (see docstring §2).
-QAC_MORPHOLOGY_PATH = ROOT / "data" / "raw" / "quran-morphology.txt"
+# QAC artifacts do not (see docstring §2). Parsed by `quran_data.qac`, which serves every
+# reader of the file from one pass; this module keeps the name for its error messages.
+QAC_MORPHOLOGY_PATH = paths.QAC_MORPHOLOGY_TXT
 
+# The shape of a `ROOT:` field in the QAC morphology. `quran_data.qac` now does the
+# reading, so nothing here parses with it — it stays because it is this module's stated
+# reading of the source, and the suite checks the registry's projection against it.
 _ROOT_FIELD_RE = re.compile(r"ROOT:([^|\t\r\n]+)")
 
 _TATWEEL = "ـ"  # U+0640 — decorative elongation; carries no phonetic identity.
@@ -225,16 +235,29 @@ def _validate_row(row: dict) -> None:
         )
 
 
-@functools.lru_cache(maxsize=1)
-def _dataset() -> dict:
-    """Parse the letters JSON once. Raises loudly on anything that would degrade quietly."""
+def _read_dataset() -> dict:
+    """The letters JSON, unvalidated.
+
+    The shipped dataset comes from the registry's shared loader (one parse per process,
+    one resident copy). A `LETTERS_PATH` pointing anywhere else is a caller's deliberate
+    injection and is read directly — the registry serves the datasets the repo ships, it
+    does not own an arbitrary file a caller hands this module.
+    """
+    if LETTERS_PATH == paths.LETTER_SEMANTICS_JSON:
+        return loaders.letter_semantics()
     if not LETTERS_PATH.exists():
         raise FileNotFoundError(
             f"{LETTERS_PATH} not found — the Tahlil الحروف block cannot be assembled "
             "without the letters dataset."
         )
     with LETTERS_PATH.open(encoding="utf-8") as f:
-        data = json.load(f)
+        return json.load(f)
+
+
+@functools.lru_cache(maxsize=1)
+def _dataset() -> dict:
+    """Parse the letters JSON once. Raises loudly on anything that would degrade quietly."""
+    data = _read_dataset()
 
     meta = data.get("meta") or {}
     # The version participates in the Tahlil cache key (design §7): an unversioned table
@@ -270,33 +293,30 @@ def _by_letter() -> dict[str, dict]:
 def _qac_root_map() -> dict[str, str]:
     """`normalize_root(raw) -> raw` over every `ROOT:` field of the raw QAC morphology.
 
-    The one place the hamza seat of a root survives. Built once; raises on an ambiguous
-    key rather than picking a winner — measured, the map is collision-free over all 1 651
-    raw roots, so an ambiguity means the source changed and the recovery stopped being
-    deterministic.
+    The one place the hamza seat of a root survives. The raw spellings come from
+    `quran_data.qac.root_spellings()`, which hands them back with the seat intact and
+    applies no fold of its own — folding is this module's decision, and so is what a
+    collision under that fold *means*. Built once; raises on an ambiguous key rather than
+    picking a winner — measured, the map is collision-free over all 1 651 raw roots, so an
+    ambiguity means the source changed and the recovery stopped being deterministic.
     """
     if not QAC_MORPHOLOGY_PATH.exists():
+        # The registry raises its own «obtain it upstream» error a moment later; this one
+        # is kept because it names the CONSEQUENCE, which is the part a reader needs.
         raise FileNotFoundError(
             f"{QAC_MORPHOLOGY_PATH} not found — without it a hamza radical is read as "
             "الألف اللينة with the wrong page for 19.6 % of rooted words, silently."
         )
     mapping: dict[str, str] = {}
-    with QAC_MORPHOLOGY_PATH.open(encoding="utf-8") as f:
-        for line in f:
-            match = _ROOT_FIELD_RE.search(line)
-            if not match:
-                continue
-            raw = match.group(1).strip()
-            if not raw:
-                continue
-            key = normalize_root(raw)
-            seen = mapping.setdefault(key, raw)
-            if seen != raw:
-                raise ValueError(
-                    f"{QAC_MORPHOLOGY_PATH.name}: root key {key!r} is ambiguous — both "
-                    f"{seen!r} and {raw!r} fold onto it, so the seat cannot be recovered "
-                    "deterministically."
-                )
+    for raw in qac.root_spellings():
+        key = normalize_root(raw)
+        seen = mapping.setdefault(key, raw)
+        if seen != raw:
+            raise ValueError(
+                f"{QAC_MORPHOLOGY_PATH.name}: root key {key!r} is ambiguous — both "
+                f"{seen!r} and {raw!r} fold onto it, so the seat cannot be recovered "
+                "deterministically."
+            )
     if not mapping:
         raise ValueError(f"{QAC_MORPHOLOGY_PATH}: no `ROOT:` field found.")
     return mapping

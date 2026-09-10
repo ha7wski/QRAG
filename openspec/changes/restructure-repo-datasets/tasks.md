@@ -20,6 +20,12 @@
     hold the *same* object, and `app.state.lexical_analyzer` is gone. The morphology file is
     still parsed twice here; step 2.9 fixes that half for free, because both instances then
     read it through the registry's process-cached loader.
+  - **Closed at checkpoint 2, measured.** Two `LexicalRetriever` objects still exist, but
+    `a.index is b.index` is now True: they share one parsed morphology index, so the second
+    construction costs neither a disk read nor a second copy. `morphology.json` is opened
+    once per process, and `quran-morphology.txt` once instead of three times. The spec's
+    substantive requirement — *the QAC morphology index behind it SHALL be parsed once* —
+    holds. What remains is object identity with no memory cost attached to it.
 - [x] 1.3 Unmount and delete `api/routers/lexical.py` (`POST /lexical`, `POST /lexical/stream`) and `api/models/lexical.py`; drop `LexicalAnalyzer` from the lifespan
 - [x] 1.4 Remove `POST /chat` (non-stream) from `api/routers/chat.py`, keeping `POST /chat/stream` and its per-turn persistence under `session_id`
 - [x] 1.5 Remove `POST /tahlil/verse` from `api/routers/tahlil.py`
@@ -36,17 +42,17 @@
 
 ## 2. Build the dataset registry against today's paths
 
-- [ ] 2.1 Create `quran_data/` with a path constant for every dataset, pointing at **current** locations (`data/raw/…`, `data/processed/…`, `data/references/…`, `data/runtime/…`, `data/translations/…`)
-- [ ] 2.2 Read `APP_DB_PATH` and `QDRANT_PATH` in the registry (resolved against `ROOT`, empty `QDRANT_PATH` still reading as unset) instead of at each call site
-- [ ] 2.3 Add one lazy, process-cached loader per dataset; assert importing `quran_data` opens no file
-- [ ] 2.4 Write the manifest: bucket, origin, producing step, consuming modules, regenerable — one entry per dataset
-- [ ] 2.5 Make loader errors actionable: name the dataset and path, give the rebuild command for a regenerable one, name the upstream source for a non-regenerable one
-- [ ] 2.6 Add the manifest-coverage test (every constant has an entry, every entry names a constant)
-- [ ] 2.7 Add the `ROOT`-depth test asserting every module's computed `ROOT` is the repo root — **before** any package moves, so step 5 has a net
-- [ ] 2.8 Collapse the four `quran-morphology.txt` parsers (`analysis/fassila.py`, `ingestion/qac_morphology.py`, `ingestion/root_resolver.py`, `tahlil/huruf.py`) into one loader, serving each consumer its projection from a single parse
-- [ ] 2.9 Sweep every consumer onto the registry: `indexing/{corpus,bm25_index,build_index}.py`, `retrieval/{lexical_retriever,verse_lookup}.py`, `ingestion/*`, `analysis/{qlisan_data,mizan,fassila}.py`, `tahlil/{huruf,form_kb,coverage}.py`, `lisan/letter_lexicon.py`, `madar/maqayis_store.py`, `api/store.py`, `scripts/*`
-- [ ] 2.10 Verify no production module builds a path into `data/` any more (remaining hits are prose only)
-- [ ] 2.11 Checkpoint: replay 0.2 — nothing has moved on disk, so any diff is a sweep bug and nothing else
+- [x] 2.1 Create `quran_data/` with a path constant for every dataset, pointing at **current** locations (`data/raw/…`, `data/processed/…`, `data/references/…`, `data/runtime/…`, `data/translations/…`)
+- [x] 2.2 Read `APP_DB_PATH` and `QDRANT_PATH` in the registry (resolved against `ROOT`, empty `QDRANT_PATH` still reading as unset) instead of at each call site
+- [x] 2.3 Add one lazy, process-cached loader per dataset; assert importing `quran_data` opens no file
+- [x] 2.4 Write the manifest: bucket, origin, producing step, consuming modules, regenerable — one entry per dataset
+- [x] 2.5 Make loader errors actionable: name the dataset and path, give the rebuild command for a regenerable one, name the upstream source for a non-regenerable one
+- [x] 2.6 Add the manifest-coverage test (every constant has an entry, every entry names a constant)
+- [x] 2.7 Add the `ROOT`-depth test asserting every module's computed `ROOT` is the repo root — **before** any package moves, so step 5 has a net
+- [x] 2.8 Collapse the four `quran-morphology.txt` parsers (`analysis/fassila.py`, `ingestion/qac_morphology.py`, `ingestion/root_resolver.py`, `tahlil/huruf.py`) into one loader, serving each consumer its projection from a single parse
+- [x] 2.9 Sweep every consumer onto the registry: `indexing/{corpus,bm25_index,build_index}.py`, `retrieval/{lexical_retriever,verse_lookup}.py`, `ingestion/*`, `analysis/{qlisan_data,mizan,fassila}.py`, `tahlil/{huruf,form_kb,coverage}.py`, `lisan/letter_lexicon.py`, `madar/maqayis_store.py`, `api/store.py`, `scripts/*`
+- [x] 2.10 Verify no production module builds a path into `data/` any more (remaining hits are prose only)
+- [x] 2.11 Checkpoint: replay 0.2 — nothing has moved on disk, so any diff is a sweep bug and nothing else
 
 ## 3. Move the data on disk
 

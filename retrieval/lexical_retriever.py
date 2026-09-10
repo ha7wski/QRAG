@@ -17,7 +17,6 @@ off, out-of-corpus words simply return no match.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
@@ -27,10 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from indexing.corpus import verses_by_id  # noqa: E402
 from ingestion.root_normalize import normalize_root  # noqa: E402
 from ingestion.root_resolver import fold_blind, fold_carrier  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[1]
-MORPHOLOGY_JSON = ROOT / "data" / "processed" / "morphology.json"
-RESOLUTION_JSON = ROOT / "data" / "processed" / "qac_resolution.json"
+from quran_data import loaders  # noqa: E402
 
 DEFAULT_SAMPLE = 30
 
@@ -97,16 +93,21 @@ def _clitic_alif_candidates(w: str) -> list[str]:
 
 class LexicalRetriever:
     def __init__(self):
-        with MORPHOLOGY_JSON.open(encoding="utf-8") as f:
-            self.index: dict[str, dict] = json.load(f)
-        # QAC resolution maps: normalized FORM/LEM → [root keys].
-        self.form_to_roots: dict[str, list[str]] = {}
-        self.lem_to_roots: dict[str, list[str]] = {}
-        if RESOLUTION_JSON.exists():
-            with RESOLUTION_JSON.open(encoding="utf-8") as f:
-                res = json.load(f)
-            self.form_to_roots = res.get("form_to_roots", {})
-            self.lem_to_roots = res.get("lem_to_roots", {})
+        # Both datasets come from the registry's cached loaders, so the root index
+        # is parsed ONCE per process and shared: a backend builds a LexicalRetriever
+        # for the lexical routes, another for the root RRF channel, and the Maqāyīs
+        # builder reads the same file again — one copy now serves all of them.
+        # READ-ONLY: everything below is shared state, never mutated.
+        self.index: dict[str, dict] = loaders.morphology()
+        # QAC resolution maps: normalized FORM/LEM → [root keys]. Optional — a
+        # corpus built before this stage existed has none, and resolution then
+        # simply falls back to the root-key and stemmer steps of the ladder.
+        try:
+            res = loaders.qac_resolution()
+        except loaders.DatasetMissing:
+            res = {}
+        self.form_to_roots: dict[str, list[str]] = res.get("form_to_roots", {})
+        self.lem_to_roots: dict[str, list[str]] = res.get("lem_to_roots", {})
         self.verses_by_id = verses_by_id()  # shared, cached {id: verse} lookup
         self._stemmer = None  # lazily loaded only if the fallback is enabled
         self._by_fold: dict[str, str] | None = None  # built on first use
