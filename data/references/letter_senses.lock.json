@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "name": "letter-senses-freeze",
+    "description": "Version tag and content lock for letter_senses.csv. The letter dataset is FROZEN while roots are being curated: a root that finds no match is a RESULT to record, never a reason to edit a letter.",
+    "policy": [
+      "The letter dataset does not move during a root-curation batch.",
+      "A root with no eligible sense is recorded as an unmatched result; no letter is retouched to make it fit.",
+      "A letter may change ONLY through a new version here, justified by a letter-level authority with a page — never by a root that did not work.",
+      "scripts/build_root_cores_seed.py must never read or write letter_senses.csv."
+    ],
+    "digest_note": "sha256 over the RAW BYTES of letter_senses.csv. Reformatting trips it too, and that is intended: a curated dataset does not get touched by accident."
+  },
+  "version": "1.0.0",
+  "frozen_on": "2026-09-22",
+  "target": "data/references/letter_senses.csv",
+  "sha256": "0a44bd3f08e71e163ad15ba5e1631397e98cbd80dc206bf3e415e353455191e9",
+  "rows": 59,
+  "letters": 28,
+  "history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-09-22",
+      "sha256": "0a44bd3f08e71e163ad15ba5e1631397e98cbd80dc206bf3e415e353455191e9",
+      "reason": "Initial freeze, taken at the end of the constrain-lisan-by-root-core change and before any further root curation. 59 senses over the 28 base letters.",
+      "source": "حسن عباس، خصائص الحروف العربية ومعانيها (1998) — every row page-cited; see the per-row `source` and `page` columns."
+    }
+  ]
+}

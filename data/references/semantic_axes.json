@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "name": "semantic_axes",
+    "version": "1.0.0",
+    "description": "Vocabulaire FERMÉ des axes sémantiques. `root_cores.json` et `letter_senses.csv` ne référencent des axes que par `id`. La sélection d'un sens de lettre est une intersection d'ensembles entre les axes du noyau attesté et ceux du sens : sans vocabulaire fermé, l'accord serait un accident de formulation. Le lien `antonym` est symétrique et sert à distinguer « aucun axe partagé » de « axe opposé ».",
+    "axis_count": 47,
+    "curation_note": "Étendre ce fichier est une décision de curation : un axe utilisé par un seul noyau ou un seul sens est un signal de granularité trop fine."
+  },
+  "axes": [
+    {
+      "id": "haraka",
+      "label_ar": "الحركة والاضطراب والاهتزاز",
+      "antonym": "thabat"
+    },
+    {
+      "id": "thabat",
+      "label_ar": "الثبات والاستقرار والإقامة",
+      "antonym": "haraka"
+    },
+    {
+      "id": "khubth",
+      "label_ar": "الخبث والرداءة والخسة والقذارة",
+      "antonym": "tib"
+    },
+    {
+      "id": "tib",
+      "label_ar": "الطيب والنقاء والصفاء",
+      "antonym": "khubth"
+    },
+    {
+      "id": "khushuna",
+      "label_ar": "الخشونة والاحتكاك والكشط",
+      "antonym": "nuuma"
+    },
+    {
+      "id": "nuuma",
+      "label_ar": "النعومة والملاسة والانزلاق",
+      "antonym": "khushuna"
+    },
+    {
+      "id": "khawa",
+      "label_ar": "الخواء والتجويف والفراغ",
+      "antonym": "imtila"
+    },
+    {
+      "id": "imtila",
+      "label_ar": "الامتلاء والاكتناز",
+      "antonym": "khawa"
+    },
+    {
+      "id": "satr",
+      "label_ar": "الستر والتغطية والإخفاء",
+      "antonym": "zuhur"
+    },
+    {
+      "id": "zuhur",
+      "label_ar": "الظهور والبروز والعيانية",
+      "antonym": "satr"
+    },
+    {
+      "id": "nur",
+      "label_ar": "الضياء والنور",
+      "antonym": "zulma"
+    },
+    {
+      "id": "zulma",
+      "label_ar": "الظلمة والسواد",
+      "antonym": "nur"
+    },
+    {
+      "id": "qat",
+      "label_ar": "القطع والفصل والشق والشدخ",
+      "antonym": "wasl"
+    },
+    {
+      "id": "wasl",
+      "label_ar": "الوصل والالتصاق والتماسك",
+      "antonym": "qat"
+    },
+    {
+      "id": "damm",
+      "label_ar": "الضمّ والجمع والإحاطة",
+      "antonym": "tabdid"
+    },
+    {
+      "id": "tabdid",
+      "label_ar": "البعثرة والتشتت والانتشار",
+      "antonym": "damm"
+    },
+    {
+      "id": "harara",
+      "label_ar": "الحرارة والدفء",
+      "antonym": "buruda"
+    },
+    {
+      "id": "buruda",
+      "label_ar": "البرودة",
+      "antonym": "harara"
+    },
+    {
+      "id": "quwwa",
+      "label_ar": "القوة والشدة والفعالية",
+      "antonym": "daf"
+    },
+    {
+      "id": "daf",
+      "label_ar": "الضعف والوهن والرقة الصوتية",
+      "antonym": "quwwa"
+    },
+    {
+      "id": "nuzul",
+      "label_ar": "الاتجاه إلى الأسفل والغور",
+      "antonym": "suud"
+    },
+    {
+      "id": "suud",
+      "label_ar": "الارتفاع والعلو والصعود",
+      "antonym": "nuzul"
+    },
+    {
+      "id": "tajawuz",
+      "label_ar": "التعدي ووضع الشيء في غير موضعه",
+      "antonym": "adl"
+    },
+    {
+      "id": "adl",
+      "label_ar": "العدل ووضع الشيء موضعه",
+      "antonym": "tajawuz"
+    },
+    {
+      "id": "sadd",
+      "label_ar": "السدّ والانغلاق",
+      "antonym": "infitah"
+    },
+    {
+      "id": "infitah",
+      "label_ar": "الانفراج والانبثاق والخروج",
+      "antonym": "sadd"
+    },
+    {
+      "id": "atf",
+      "label_ar": "العطف والرقة واللين والرأفة",
+      "antonym": "qaswa"
+    },
+    {
+      "id": "qaswa",
+      "label_ar": "القساوة والصلابة والغلظة",
+      "antonym": "atf"
+    },
+    {
+      "id": "sia",
+      "label_ar": "الاتساع والبسط والضخامة",
+      "antonym": "diq"
+    },
+    {
+      "id": "diq",
+      "label_ar": "الضيق والتقبّض",
+      "antonym": "sia"
+    },
+    {
+      "id": "mayl",
+      "label_ar": "الميل والانعطاف والتمايل"
+    },
+    {
+      "id": "takrar",
+      "label_ar": "التكرار والمعاودة والترجيع"
+    },
+    {
+      "id": "atifa",
+      "label_ar": "العاطفة والمشاعر وخلجات القلب"
+    },
+    {
+      "id": "nadara",
+      "label_ar": "النضارة والبهاء والأناقة"
+    },
+    {
+      "id": "fakhama",
+      "label_ar": "الفخامة والعظم والتفخيم"
+    },
+    {
+      "id": "hufra",
+      "label_ar": "الحفرة والوهدة والغور"
+    },
+    {
+      "id": "hafr",
+      "label_ar": "الحفر والخرق والقلع"
+    },
+    {
+      "id": "unutha",
+      "label_ar": "الأنوثة والبضاضة والطراوة"
+    },
+    {
+      "id": "dhukura",
+      "label_ar": "الذكورة والتوتر"
+    },
+    {
+      "id": "sawt",
+      "label_ar": "الأصوات والصفير والرنين"
+    },
+    {
+      "id": "dhawq",
+      "label_ar": "الذوق والمطاعم"
+    },
+    {
+      "id": "huzn",
+      "label_ar": "الحزن واليأس والبؤس"
+    },
+    {
+      "id": "uyub",
+      "label_ar": "العيوب النفسية والجسدية"
+    },
+    {
+      "id": "talab",
+      "label_ar": "الطلب والمسير والقصد"
+    },
+    {
+      "id": "iwaj",
+      "label_ar": "الالتواء والعوج والدوران"
+    },
+    {
+      "id": "ghumud",
+      "label_ar": "الغموض والخفاء والغؤور"
+    },
+    {
+      "id": "imtidad",
+      "label_ar": "الامتداد والاتجاه في المكان أو الزمان"
+    }
+  ]
+}

@@ -1,97 +1,146 @@
 """
 synthesis_template.py — Deterministic Arabic synthesis for the Lisan feature.
 
-This replaces the former LLM synthesis step. A local model (qwen2.5:7b) both
-corrupted tokens (a Latin fragment injected mid-word, e.g. `الدفGdańskية`) and
-generated ungrounded prose that contradicted the attested root sense. For a
-Quranic tool a fluent-but-false reading is worse than a plain one, so the
-paragraph is now composed deterministically from the per-letter data — no model,
-no network, no language branching.
+Composed from a root's ATTESTED CORE plus the letter senses that core selected —
+never from letter data alone. The former version chained one frozen gloss per
+letter in root order, which is how `خ-ي-ر` came to read
+«القذارة والخشونة والخواء … فساد» against Ibn Fāris' «أصله العطف والميل»: nothing
+in that path knew what the root meant, so nothing could prefer one sense of a
+letter over another. The paragraph now OPENS on the citation it is built on, so
+a reader can check the reading against the aṣl printed beside it.
 
-`render_synthesis` is a PURE function. It states only what the data says: it
-chains the supplied per-letter Arabic meanings in root order and presents the
-union of their keywords as an emergent image. It never asserts a "core meaning"
-that is not a concatenation of the letter meanings, and it always carries a
-caveat that this is an interpretive letter-reading, not a lexical definition.
+No model. The Lisan synthesis was an LLM step until a local model (qwen2.5:7b)
+both corrupted tokens (a Latin fragment injected mid-word, `الدفGdańskية`) and
+generated fluent prose contradicting the attested sense. For a Quranic tool a
+fluent-but-false reading is worse than a plain one.
 
-Arabic is the only output language; all user-facing strings are Arabic, all code
-and comments are English (project rule).
+`render_synthesis` is a PURE function and states only what the data says:
+
+  * it names ONLY the letters a core actually selected a sense for. An
+    `unmatched` letter is named as carrying no admitted sense and is given no
+    meaning — filling that gap is exactly the behaviour being removed;
+  * it never merges two cores. A root with two aṣl gets two calls and two
+    paragraphs, because which aṣl convinces the reader is a scholarly judgement
+    the tool presents, not one it makes;
+  * it returns "" when there is no core, so the uncovered path cannot
+    accidentally acquire a paragraph.
+
+Arabic is the only output language; all code and comments are English.
 """
 from __future__ import annotations
 
-# The whole paragraph, filled from the letters. Arabic punctuation throughout.
-_TEMPLATE = (
-    "يُقرأ الجذر «{root}» بتتابع حروفه: {seq}. "
-    "ويتحصّل من هذا التتابع صورةٌ عامة تجمع بين: {keywords}.\n"
+# Opening: the citation the whole reading rests on, in Ibn Fāris' own words.
+# Two forms, because `gloss` is a curated CONDENSATION of `verbatim` and on a
+# short aṣl the two are the same string — ظلم's «خلاف الضياء والنور» is both.
+# Printing them side by side then reads as a stutter, so the gloss is dropped
+# when it adds nothing. The citation is never the part dropped.
+_CORE_SENTENCE = "أصلُ الجذر «{root}» عند ابن فارس هو {gloss}: «{verbatim}»."
+_CORE_SENTENCE_BARE = "أصلُ الجذر «{root}» عند ابن فارس: «{verbatim}»."
+
+# The constrained chain — one clause per letter the core actually admitted.
+_READING_SENTENCE = "وعلى هذا الأصل تُقرأ حروفه: {clauses}."
+_CLAUSE = "{glyph} ({name}) على {gloss}"
+# A bare "؛ " and no conjunction: the clauses open on a LETTER GLYPH, and an
+# Arabic "و" prefixes the following word without a space — so "؛ و" + "م" renders
+# as «وم», which reads as a word rather than as the letter م being described.
+_CLAUSE_JOIN = "؛ "
+
+# Named, but deliberately given no meaning. `_NONE_MATCHED` is the whole-root
+# case (ظلم's first aṣl selects nothing), where the reading is the citation and
+# an admission — not an empty string, which would read as a missing feature.
+# Two forms: Arabic agreement is not optional, and «للحرف: ي، ر … عليه» reads as
+# a grammatical error to the reader this page is written for.
+_UNMATCHED_ONE = (
+    "ولم يوافق هذا الأصلَ معنًى مُثبَتٌ للحرف {letters}، فلا يُحمَّل عليه شيء."
+)
+_UNMATCHED_MANY = (
+    "ولم يوافق هذا الأصلَ معنًى مُثبَتٌ للحروف: {letters}، فلا يُحمَّل عليها شيء."
+)
+_NONE_MATCHED_SENTENCE = (
+    "ولم يوافق هذا الأصلَ معنًى مُثبَتٌ لأيٍّ من حروف الجذر، "
+    "فلا تُبنى عليه قراءةٌ حرفية."
+)
+_LETTERS_JOIN = "، "
+
+# The interpretive caveat. Travels in every paragraph, unchanged.
+CAVEAT = (
     "وهذه قراءةٌ تأويليةٌ لدلالات الحروف، لا تعريفًا معجميًّا، "
     "وقد تخالف المعنى المُثبَت في المعاجم."
 )
 
-# One clause per root letter, chained in order.
-_SEQ_JOIN = "؛ ثم "
-# The de-duplicated keyword union.
-_KEYWORDS_JOIN = "، "
 
+def render_synthesis(
+    root: str,
+    core: dict,
+    letter_readings: list[dict],
+    identities: list[dict] | None = None,
+) -> str:
+    """Compose ONE core's Arabic reading paragraph, deterministically.
 
-def _name_of(letter: dict) -> str:
-    """The letter's Arabic name. Reads the pipeline's describe() key `name`
-    (Arabic-only now) or the raw dataset field `name_ar` if passed directly."""
-    return (letter.get("name") or letter.get("name_ar") or "").strip()
+    `core` is one entry of `root_cores.json` (`gloss` / `verbatim` / …).
+    `letter_readings` is the selection result for that core, one entry per root
+    letter, each carrying `letter`, `selected` (a sense dict or None) and
+    `selection_rule`. `identities` optionally supplies the letters' Arabic names
+    (the `letter_lexicon.describe()` rows, same order) — the glyph is used alone
+    when a name is not available, so the paragraph never depends on the phonetic
+    sheet being present.
 
-
-def _meaning_of(letter: dict) -> str:
-    """The letter's interpretive Arabic meaning (describe() `meaning`, i.e. the
-    dataset's `abbas_meaning_ar`)."""
-    return (letter.get("meaning") or letter.get("abbas_meaning_ar") or "").strip()
-
-
-def _keywords_of(letter: dict) -> list[str]:
-    """The letter's Arabic keywords as a list. describe() already returns a list
-    under `keywords`; tolerate a raw ';'-separated `abbas_keywords_ar` string."""
-    kws = letter.get("keywords")
-    if kws is None:
-        kws = letter.get("abbas_keywords_ar", "")
-    if isinstance(kws, str):
-        kws = [part.strip() for part in kws.split(";")]
-    return [k.strip() for k in kws if k and k.strip()]
-
-
-def render_synthesis(word: str, root: str, letters: list[dict]) -> str:
-    """Compose the Lisan reading paragraph deterministically, in Arabic.
-
-    `letters` is the ordered per-letter data (the pipeline's describe() output),
-    one entry per root letter — so roots of any length (triliteral, quadriliteral)
-    render every letter, nothing is hardcoded to three.
-
-    Three parts:
-      1. التتابع     — one clause per root letter, in order: glyph, name, meaning.
-      2. الصورة المركّبة — the de-duplicated union of the letters' keywords.
-      3. التنبيه     — the interpretive-not-lexical caveat (in the template tail).
-
-    `word` is accepted for signature stability / future use; the reading is of
-    the root's letters, so it does not appear in the current template.
+    Returns "" when `core` is falsy: with no attested aṣl there is nothing to
+    constrain the letters against, and a paragraph composed anyway would be the
+    defect this module exists to remove.
     """
-    seq_clauses: list[str] = []
-    keywords: list[str] = []  # order-preserving; de-duplicated below
-    for letter in letters:
-        glyph = (letter.get("letter") or "").strip()
-        name = _name_of(letter)
-        meaning = _meaning_of(letter)
-        seq_clauses.append(f"{glyph} ({name}) يدلّ على {meaning}")
-        keywords.extend(_keywords_of(letter))
+    if not core:
+        return ""
 
-    # De-duplicate keywords while preserving first-seen order.
-    unique_keywords = list(dict.fromkeys(keywords))
+    names = {}
+    for row in identities or []:
+        glyph = (row.get("letter") or "").strip()
+        if glyph:
+            names.setdefault(glyph, (row.get("name") or "").strip())
 
-    return _TEMPLATE.format(
-        root=root,
-        seq=_SEQ_JOIN.join(seq_clauses),
-        keywords=_KEYWORDS_JOIN.join(unique_keywords),
-    )
+    clauses: list[str] = []
+    unmatched: list[str] = []
+    for reading in letter_readings:
+        glyph = (reading.get("letter") or "").strip()
+        selected = reading.get("selected")
+        if not selected:
+            unmatched.append(glyph)
+            continue
+        gloss = (selected.get("gloss_ar") or "").strip()
+        if not gloss:                      # a sense with no text asserts nothing
+            unmatched.append(glyph)
+            continue
+        name = names.get(glyph) or glyph
+        clauses.append(_CLAUSE.format(glyph=glyph, name=name, gloss=gloss))
+
+    gloss = (core.get("gloss") or "").strip()
+    verbatim = (core.get("verbatim") or "").strip()
+    if gloss and gloss != verbatim:
+        opening = _CORE_SENTENCE.format(root=root, gloss=gloss, verbatim=verbatim)
+    else:
+        opening = _CORE_SENTENCE_BARE.format(root=root, verbatim=verbatim)
+    parts = [opening]
+    if clauses:
+        parts.append(_READING_SENTENCE.format(clauses=_CLAUSE_JOIN.join(clauses)))
+        if unmatched:
+            template = _UNMATCHED_ONE if len(unmatched) == 1 else _UNMATCHED_MANY
+            parts.append(template.format(letters=_LETTERS_JOIN.join(unmatched)))
+    else:
+        parts.append(_NONE_MATCHED_SENTENCE)
+
+    return " ".join(parts) + "\n" + CAVEAT
 
 
 if __name__ == "__main__":
-    from linguistics.lisan import letter_lexicon
-
-    letters = [letter_lexicon.describe(ch) for ch in "رحم"]
-    print(render_synthesis("رحمة", "رحم", letters))
+    demo_core = {
+        "gloss": "العطف والميل",
+        "verbatim": "الخاء والياء والراء أصله العطف والميل، ثم يحمل عليه",
+    }
+    demo_readings = [
+        {"letter": "خ", "selection_rule": "axis-match",
+         "selected": {"gloss_ar": "الرقة والنضارة (الخاء المرققة بلا خنخنة)"}},
+        {"letter": "ي", "selection_rule": "unmatched", "selected": None},
+        {"letter": "ر", "selection_rule": "unmatched", "selected": None},
+    ]
+    print(render_synthesis("خير", demo_core, demo_readings,
+                           [{"letter": "خ", "name": "الخاء"}]))

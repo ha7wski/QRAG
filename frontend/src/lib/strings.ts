@@ -14,6 +14,14 @@
  * are Arabic.
  */
 
+import type {
+  Confidence,
+  DiscardReason,
+  MatchedRule,
+  Polarity,
+  SensePosition,
+} from "./lisanTypes";
+
 /**
  * Isolate a Latin or numeric token inside an Arabic sentence.
  *
@@ -117,10 +125,59 @@ export const NOUNS = {
     few: "آيات محلَّلة",
     many: "آية محلَّلة",
   },
+  /** A «وجه» of a letter: one member of its sense bundle. */
+  wajh: { one: "وجه", two: "وجهين", few: "وجوه", many: "وجهًا" },
   minute: { one: "دقيقة", two: "دقيقتين", few: "دقائق", many: "دقيقة" },
   hour: { one: "ساعة", two: "ساعتين", few: "ساعات", many: "ساعة" },
   day: { one: "يوم", two: "يومين", few: "أيام", many: "يومًا" },
 } as const satisfies Record<string, NounForms>;
+
+/**
+ * The Lisan enum dictionaries.
+ *
+ * They are declared apart from `S` only to carry an explicit `Record<Enum, string>`
+ * annotation: that is what turns a backend enum member added without a label here
+ * into a COMPILE error instead of a blank badge on the page. They are read through
+ * `S.lexical.*` like every other string — nothing imports them directly.
+ */
+
+/** Why a sense was dropped, in the reader's words. `outranked` is not a rejection:
+ *  the sense was eligible and lost the ranking, which is a different fact. */
+const DISCARD_REASONS: Record<DiscardReason, string> = {
+  "no-shared-axis": "لا يشترك مع أصل الجذر في محور",
+  "conflicting-axis": "يحمل محورًا مضادًّا لمحور الأصل",
+  outranked: "مؤهَّل لكنه دون المختار في الترتيب",
+};
+
+/** What selected the sense. Keyed on `MatchedRule`, not `SelectionRule`: the
+ *  `unmatched` case renders the stated gap («بلا وجهٍ مختار» + its sentence), so a
+ *  label for it would be a string no code path can reach. */
+const SELECTION_RULES: Record<MatchedRule, string> = {
+  "axis-match": "اشتراكٌ في المحور",
+  "axis-match+position": "اشتراكٌ في المحور وموافقةُ الموضع",
+};
+
+/** The charge of an aṣl or of a sense. `neutral` is a verdict, not a blank. */
+const POLARITIES: Record<Polarity, string> = {
+  positive: "إيجابي",
+  negative: "سلبي",
+  neutral: "محايد",
+};
+
+/** How well sourced a sense is (the backend ranks verified > high > summary). */
+const CONFIDENCES: Record<Confidence, string> = {
+  verified: "مُحقَّق",
+  high: "مُرجَّح",
+  summary: "مُلخَّص",
+};
+
+/** Where a letter sits, or where a sense applies. */
+const POSITIONS: Record<SensePosition, string> = {
+  initial: "أول",
+  medial: "وسط",
+  final: "آخر",
+  any: "أيّ موضع",
+};
 
 export const S = {
   /** The application's only name. The old Latin brand appears nowhere —
@@ -295,6 +352,10 @@ export const S = {
       "اكتب كلمةً عربيّةً لقراءة جذرها حرفًا حرفًا — قراءةٌ تأويليّةٌ لرمزيّة الحروف في اللسان.",
     analyze: "حلِّل",
     word: "الكلمة",
+    /** The input's example word. It was the last Arabic literal left in a
+     *  component — and an example word IS interface copy: it teaches what the
+     *  field takes (one bare word, not a phrase), so it is reviewed here. */
+    wordPlaceholder: "رحمة",
     loading: "جارٍ قراءة الجذر… (قد يستغرق التركيبُ لحظة)",
     /** Renamed from «تحليل نحوي» to end the D11 collision; SarfiRows renders صرف. */
     sarfiSection: "الصرف والإعراب",
@@ -303,6 +364,92 @@ export const S = {
      *  gate: nothing about them looks like a translation to be done. */
     noSarfi: "لا يوجد تحليل صرفي لهذه الكلمة.",
     noRoot: (word: string) => `لم يُعرف جذرٌ للكلمة ${iso(`«${word}»`)}.`,
+
+    /* ── The root header ─────────────────────────────────────────────── */
+    rootLabel: "الجذر",
+    fallbackBadge: "جذر تقديري",
+    fallbackBadgeTitle: `جذر تقديري من المُجذِّر الحدسي، لا من مدوّنة ${iso("QAC")} المُحقَّقة.`,
+    /** The «معطى محقّق» chip on the morphology section. */
+    verifiedDatum: "معطى محقّق",
+
+    /* ── The cited aṣl, above the letters: the reading is built ON it ── */
+    coresHeading: (n: number) =>
+      n > 1 ? "أصول الجذر المنصوصة" : "أصل الجذر المنصوص",
+    coreGlossLabel: "الأصل",
+    corePolarityTitle: "قطبُ الأصل كما نُصَّ عليه",
+    /** Provenance under the verbatim quotation. Both parts are backend data, and
+     *  the edition is a Latin key in the shipped dataset (`Harun_DarAlFikr`), so
+     *  it is isolated: without FSI…PDI the dash and the Latin run reorder around
+     *  each other inside the RTL paragraph (design D15). */
+    coreSource: (source: string, edition: string) =>
+      edition ? `${source} — ${iso(edition)}` : source,
+
+    /* ── The letters, as phonetics only. Meaning belongs to a reading. ── */
+    lettersHeading: "حروف الجذر — المخارج والصفات",
+    positionLabel: "الموضع",
+    position: POSITIONS,
+    /** «3 وجوه» — how many senses the letter's bundle holds. */
+    senseCount: (n: number) => count(n, NOUNS.wajh),
+
+    /* ── One reading per core, never a blend ─────────────────────────── */
+    readingOn: (gloss: string) => `قراءةٌ على أصل «${gloss}»`,
+    parallelNote:
+      "لكلِّ أصلٍ منصوصٍ قراءةٌ مستقلّة، لا تُمزج بغيرها ولا تُضمّ محاورُها إلى محاور سواها.",
+    selectedLabel: "الوجه المختار",
+    sensePolarityTitle: "قطبُ الوجه",
+    axesLabel: "المحاور المشتركة :",
+    selectionRule: SELECTION_RULES,
+    confidence: CONFIDENCES,
+    polarity: POLARITIES,
+    /** Source + page of a sense. The page is a Latin/numeric token (p110-113). */
+    senseSource: (source: string, page: string) =>
+      page ? `${source} — ${iso(page)}` : source,
+
+    /** A letter no sense of which the core admits. The gap is shown, not filled:
+     *  the sentence has to ASSERT that no meaning is carried, because saying
+     *  nothing would read as an omission rather than as the finding it is. */
+    unmatchedBadge: "بلا وجهٍ مختار",
+    unmatchedNote:
+      "لا يشترك أيُّ وجهٍ من وجوه هذا الحرف مع أصل الجذر في محور، فلا يُحمَّل الحرفُ هنا معنًى.",
+
+    /** The rejected members of the bundle, collapsed but never hidden: dropping
+     *  them would leave the reader with a single gloss again, only a different one. */
+    discardedSummary: "معانٍ أخرى للحرف لم تُعتمد هنا",
+    discardedReason: DISCARD_REASONS,
+
+    /* ── The composed reading ────────────────────────────────────────── */
+    synthesisHeading: "قراءة اللسان",
+    synthesisNote: "مُولَّد آليًّا من الوجوه المختارة",
+    /** The same paragraph when the core selected NOTHING — a real and frequent
+     *  shape (ظلم's first aṣl selects for none of ظ ل م). Saying it was composed
+     *  «من الوجوه المختارة» would assert a provenance the reading does not have;
+     *  the prose under it already says no letter was matched. */
+    synthesisNoteUnselected: "مُولَّد آليًّا — لم يُعتمد لأيِّ حرفٍ وجه",
+
+    /* ── The unconstrained state: no attested aṣl, so no reading ─────── */
+    noCoreHeading: "لا أصلَ منصوصًا لهذا الجذر",
+    /** Used only if the backend `warning` arrives empty — the sentence is the
+     *  backend's to write, this is the guarantee that the state is never silent. */
+    noCoreFallback:
+      "لم يُنَصَّ لهذا الجذر على أصلٍ في المعجم المعتمد، فلا تُركَّب له قراءة.",
+    inventoryHeading: "وجوه الحروف — جردٌ غير مقيَّد",
+    inventoryNote:
+      "وجوهٌ مسنَدةٌ لكلِّ حرف، معروضةٌ كما هي؛ لم يُختَر منها شيء، ولم تُركَّب منها قراءة.",
+
+    /* ── The guard: it reports, it never corrects ────────────────────── */
+    divergenceHeading: "القراءةُ تخالف قطبَ الأصل",
+    divergencePoles: (core: string, reading: string) =>
+      `قطب الأصل: ${core} · قطب القراءة: ${reading}`,
+    divergenceLettersLabel: "الحروف المعنيّة :",
+    divergenceNote: "كشفٌ لا تصحيح: لم يتغيّر شيءٌ من الاختيار.",
+
+    /* ── Ibn Jinnī ───────────────────────────────────────────────────── */
+    ishtiqaqHeading: "ابن جنّي — الاشتقاق الأكبر",
+    ishtiqaqNote: "(تقاليب · تأويلي)",
+    ishtiqaqFooter: "الصيغ المُظلَّلة جذورٌ مُثبَتة في المصحف.",
+
+    /** The disclaimer's hover tooltip. */
+    sourcesTooltip: "المصادر",
   },
 
   /** Shared verse chrome. */

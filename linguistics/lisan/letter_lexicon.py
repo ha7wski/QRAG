@@ -1,24 +1,37 @@
 """
-letter_lexicon.py — Per-letter interpretive meanings for the Lisan feature.
+letter_lexicon.py — a letter's phonetic identity joined to its BUNDLE of senses.
 
-Loads the curated letter dataset ONCE (cached) and exposes `describe(letter)`:
-the interpretive meaning, keywords, classical makhraj/sifat, and an Ibn Jinni
-sound-imitation note for a single Arabic letter. The Lisan feature is
-Arabic-only, so ONLY the `_ar` dataset fields are read.
+Reads the two letter sheets through `quran_data.loaders` and exposes
+`describe(letter)`: the classical makhraj/ṣifāt, an Ibn Jinnī sound-imitation
+note, and EVERY sense the framework attributes to that letter — as a list, in
+declaration order, unranked.
 
-Data source (read through `quran_data.loaders.arabic_letters()`, the registry's single
-parse of `data/references/arabic_letters_dataset.csv`):
-28 rows, one per base letter, columns:
-    letter, name_ar, name_translit, translit, makhraj_en, makhraj_ar,
-    sifat, sifat_ar, abbas_meaning, abbas_meaning_ar, abbas_keywords,
-    abbas_keywords_ar, ibn_jinni_note, ibn_jinni_note_ar, confidence
-The English source columns stay in the file for provenance/auditing; this module
-simply never reads them.
+**This module never picks a sense, and that is the whole point.** It used to
+return one frozen `abbas_meaning_ar` per letter, which the synthesis then
+concatenated in root order; on `خ-ي-ر` that produced «القذارة والخشونة
+والخواء … فساد» against Ibn Fāris' «أصله العطف والميل». There is no single
+correct gloss for `خ`: the negative one is right for `خ-ب-ث` and wrong for
+`خ-ي-ر`. Which member of the bundle applies depends on the ROOT's attested
+core — something a per-letter lexicon cannot know — so choosing, ranking or
+defaulting a sense here would only relocate the same defect. Selection is the
+caller's step (`sense_selection.select_for_letter`, constrained by a core from
+`root_core_store`); the lexicon's contract is to hand over the whole bundle
+with nothing marked selected or preferred.
 
-Hamza-seat aware: the seats أ إ ؤ ئ آ ٱ all map to the base `ء` entry. A letter
-absent from the dataset (e.g. the bare alif ا, which is not a base consonant in
-the framework) does NOT crash — `describe` returns a neutral placeholder so the
-sequential reading of a root always has one entry per letter.
+Datasets (both read through the registry, never opened here):
+  * ARABIC_LETTERS_CSV — 28 rows, identity and phonetics ONLY. The
+    `abbas_meaning*` / `abbas_keywords*` columns were dropped with the old
+    behaviour; there is no `meaning` and no `keywords` key any more.
+  * LETTER_SENSES_CSV  — one row per (letter, sense): sense_id, gloss_ar, pole,
+    axes (`;`-separated ids), position, gesture_ar, source, page, confidence.
+
+The Lisan feature is Arabic-only, so only the `_ar` columns of the phonetic
+sheet are read; the English ones stay on file for auditing.
+
+Hamza-seat aware: أ إ ؤ ئ آ ٱ all fold to the base `ء` entry. A letter absent
+from the dataset (e.g. the bare alif ا, not a base consonant in the framework)
+does NOT raise — `describe` returns a neutral placeholder so a root reading
+always has one entry per letter.
 """
 from __future__ import annotations
 
@@ -31,11 +44,24 @@ sys.path.insert(0, str(ROOT))
 
 from quran_data import loaders  # noqa: E402
 
-# Hamza carriers → the base bare-hamza entry `ء`. Root keys are already
-# hamza-safe-normalized (seats folded to ا/و/ي, bare ء kept), so in practice a
-# decomposed root rarely carries a seat; this keeps `describe` correct if one
-# is passed directly.
+# Hamza carriers → the base bare-hamza entry `ء`.
+#
+# This is the NORMAL path, not a defensive edge case, and the distinction
+# matters: QAC root keys are stored in their EXACT, hamza-bearing spelling, so
+# **138 of the 1 656 roots decompose into a letter that is a seat** (أبب، أبد،
+# أبو، أتي، …) against exactly ONE carrying a bare ء (هاء). Deleting this map —
+# which an earlier comment here invited, by claiming a decomposed root "rarely
+# carries a seat" — would silently drop all 138 to the zero-sense placeholder:
+# no exception, no warning, just 138 roots whose letters stop having senses.
 _HAMZA_SEATS = {"أ": "ء", "إ": "ء", "ؤ": "ء", "ئ": "ء", "آ": "ء", "ٱ": "ء"}
+
+# The sense keys, in the order `api.models.lisan.LetterSense` declares them.
+# Kept as one list so a column rename in the CSV fails here, loudly, instead of
+# reaching the API as a silently missing field.
+_SENSE_FIELDS = (
+    "sense_id", "gloss_ar", "pole", "axes",
+    "position", "gesture_ar", "source", "page", "confidence",
+)
 
 
 def _split_list(value: str) -> list[str]:
@@ -44,8 +70,8 @@ def _split_list(value: str) -> list[str]:
 
 
 @lru_cache(maxsize=1)
-def _load() -> dict[str, dict]:
-    """Key the registry's shared rows by the `letter` glyph. Cached for the process."""
+def _letters() -> dict[str, dict]:
+    """Key the registry's phonetic rows by the `letter` glyph. Cached per process."""
     by_letter: dict[str, dict] = {}
     for row in loaders.arabic_letters():
         letter = (row.get("letter") or "").strip()
@@ -54,28 +80,54 @@ def _load() -> dict[str, dict]:
     return by_letter
 
 
+@lru_cache(maxsize=1)
+def _senses() -> dict[str, list[dict]]:
+    """Group the sense rows by letter, PRESERVING CSV row order.
+
+    Declaration order is load-bearing: it is the last term of the selection
+    ranking, so ties fall to the curator's own ordering rather than to whatever
+    order a dict happened to iterate in.
+    """
+    by_letter: dict[str, list[dict]] = {}
+    for row in loaders.letter_senses():
+        letter = (row.get("letter") or "").strip()
+        if not letter:
+            continue
+        sense = {f: (row.get(f) or "").strip() for f in _SENSE_FIELDS}
+        sense["axes"] = _split_list(row.get("axes", ""))
+        by_letter.setdefault(letter, []).append(sense)
+    return by_letter
+
+
 def _placeholder(letter: str) -> dict:
-    """Neutral entry for a letter absent from the dataset — never raises."""
+    """Neutral entry for a letter absent from the dataset — never raises.
+
+    Carries an empty bundle rather than a fabricated sense: a letter the
+    framework does not treat as a base consonant asserts nothing, and the
+    reading shows the gap instead of filling it.
+    """
     return {
         "letter": letter,
         "name": letter,
         "makhraj": "",
         "sifat": [],
-        "meaning": "",
-        "keywords": [],
         "ibn_jinni_note": "",
         "confidence": "unknown",
+        "senses": [],
     }
 
 
 def describe(letter: str) -> dict:
-    """Return the interpretive Arabic description of a single Arabic `letter`.
+    """Return one Arabic `letter`'s phonetic identity plus its whole sense bundle.
 
-    Reads only the `_ar` dataset fields (the feature is Arabic-only). Hamza seats
-    fold to the base `ء` entry. Missing letters get a neutral placeholder.
+    `senses` is every sense on file for the letter, in CSV declaration order,
+    with none selected, ranked or marked preferred — see the module docstring:
+    picking one needs a root's attested core, which this module does not have.
+    Hamza seats fold to the base `ء` entry; a missing letter gets a neutral
+    placeholder with an empty bundle.
     """
     glyph = _HAMZA_SEATS.get(letter, letter)
-    row = _load().get(glyph)
+    row = _letters().get(glyph)
     if row is None:
         return _placeholder(letter)
 
@@ -84,22 +136,29 @@ def describe(letter: str) -> dict:
         "name": row.get("name_ar", ""),
         "makhraj": row.get("makhraj_ar", ""),
         "sifat": _split_list(row.get("sifat_ar", "")),
-        "meaning": row.get("abbas_meaning_ar", ""),
-        "keywords": _split_list(row.get("abbas_keywords_ar", "")),
         "ibn_jinni_note": row.get("ibn_jinni_note_ar", ""),
         "confidence": (row.get("confidence") or "unknown").strip(),
+        # Copied out of the process-wide cache on every call: a caller that
+        # annotated a sense in place (the selection step hands these dicts
+        # straight to the API layer) would otherwise poison every later request.
+        "senses": [dict(s, axes=list(s["axes"])) for s in _senses().get(glyph, ())],
     }
 
 
 def letter_count() -> int:
     """Number of base letters loaded (28 for the curated dataset)."""
-    return len(_load())
+    return len(_letters())
 
 
 if __name__ == "__main__":
-    for ch in "رحم":
+    for ch in "خير":
         d = describe(ch)
-        print(f"{ch} ({d['name']}): {d['meaning']}  [{d['confidence']}]")
-    print("hamza seat أ →", describe("أ")["letter"])
+        print(f"{ch} ({d['name']}, {d['makhraj']}) — {len(d['senses'])} sense(s):")
+        for s in d["senses"]:
+            print(f"    [{s['sense_id']}] {s['gloss_ar']}")
+            print(f"        pole={s['pole']} axes={','.join(s['axes'])} "
+                  f"position={s['position']} confidence={s['confidence']}")
+    print("hamza seat أ →", describe("أ")["letter"],
+          f"({len(describe('أ')['senses'])} senses)")
     print("missing ا →", describe("ا"))
     print("total letters:", letter_count())

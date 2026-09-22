@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "name": "root_cores",
+    "version": "1.0.0",
+    "description": "Noyaux sémantiques ATTESTÉS des racines, d'après Ibn Fāris, *Muʿjam Maqāyīs al-Lugha*. Clés : la graphie CANONIQUE de la racine QAC (celle que rend `LexicalRetriever._canon`), jamais la forme repliée sur laquelle `maqayis_asl.csv` est indexé. `verbatim` reproduit le segment de `maqayis_asl.csv` à l'octet près ; seuls `gloss`, `axes` et `polarity` relèvent de la curation humaine. `polarity` décrit l'aṣl TEL QUE CITÉ — `neutral` quand l'aṣl est descriptif — et jamais la charge que la racine acquiert dans l'usage coranique.",
+    "axis_vocabulary": "data/references/semantic_axes.json",
+    "ceiling_note": "Aucun compte n'est stocké ici : couverture curée, total des racines QAC et plafond Maqāyīs sont recalculés depuis les fichiers livrés par `python scripts/validate_lisan_datasets.py`, qui les imprime à chaque exécution. Un nombre figé dans ce bloc deviendrait faux au premier `build_root_cores_seed.py --write` et rien ne le relirait."
+  },
+  "roots": {
+    "خير": [
+      {
+        "gloss": "العطف والميل",
+        "verbatim": "الخاء والياء والراء أصله العطف والميل، ثم يحمل عليه",
+        "axes": [
+          "atf",
+          "mayl"
+        ],
+        "polarity": "neutral",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      }
+    ],
+    "خبث": [
+      {
+        "gloss": "خلاف الطيب",
+        "verbatim": "الخاء والباء والثاء أصل واحد يدل على خلاف الطيب",
+        "axes": [
+          "khubth"
+        ],
+        "polarity": "negative",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      }
+    ],
+    "كفر": [
+      {
+        "gloss": "الستر والتغطية",
+        "verbatim": "الكاف والفاء والراء أصل صحيح يدل على معنى واحد، وهو الستر والتغطية",
+        "axes": [
+          "satr"
+        ],
+        "polarity": "neutral",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      }
+    ],
+    "ظلم": [
+      {
+        "gloss": "خلاف الضياء والنور",
+        "verbatim": "خلاف الضياء والنور",
+        "axes": [
+          "zulma"
+        ],
+        "polarity": "neutral",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      },
+      {
+        "gloss": "وضع الشيء غير موضعه تعديا",
+        "verbatim": "وضع الشيء غير موضعه تعديا",
+        "axes": [
+          "tajawuz",
+          "qaswa"
+        ],
+        "polarity": "negative",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      }
+    ],
+    "رحم": [
+      {
+        "gloss": "الرقة والعطف والرأفة",
+        "verbatim": "الراء والحاء والميم أصل واحد يدل على الرقة والعطف والرأفة",
+        "axes": [
+          "atf"
+        ],
+        "polarity": "positive",
+        "source": "ابن فارس، معجم مقاييس اللغة",
+        "edition": "Harun_DarAlFikr"
+      }
+    ]
+  }
+}

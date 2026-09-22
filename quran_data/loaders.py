@@ -187,8 +187,55 @@ def letter_semantics() -> dict:
 
 @functools.lru_cache(maxsize=1)
 def arabic_letters() -> list[dict]:
-    """28 base letters: makhraj, ṣifāt, ʿAbbās meaning, Ibn Jinnī note."""
+    """28 base letters: identity and phonetics (makhraj, ṣifāt, Ibn Jinnī note).
+
+    Carries no meaning any more — a letter holds a bundle of senses, which lives
+    in `letter_senses()` one row per (letter, sense).
+    """
     return _csv_rows("ARABIC_LETTERS_CSV")
+
+
+@functools.lru_cache(maxsize=1)
+def letter_senses() -> list[dict]:
+    """One row per (letter, sense): gloss, pole, axes, position, source, page.
+
+    Returned raw and UNRANKED, in declaration order. Choosing among a letter's
+    senses needs a root's attested core, which no loader knows.
+    """
+    return _csv_rows("LETTER_SENSES_CSV")
+
+
+@functools.lru_cache(maxsize=1)
+def letter_senses_lock() -> dict:
+    """The freeze on `letter_senses.csv`: version, sha256 of its bytes, history.
+
+    Read as data, never enforced here — `scripts/validate_lisan_datasets.py`
+    recomputes the digest and fails when the sheet moved without the version
+    being bumped. A loader that raised on a stale digest would make every Lisan
+    request depend on a curation rule.
+    """
+    return _json("LETTER_SENSES_LOCK_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def root_cores() -> dict:
+    """Curated attested semantic cores per canonical QAC root key (Ibn Fāris).
+
+    `{"meta": {...}, "roots": {root: [core, ...]}}`. Returned raw; the caller
+    validates. A root may hold several cores and they are never merged.
+    """
+    return _json("ROOT_CORES_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def semantic_axes() -> dict:
+    """The CLOSED axis vocabulary both Lisan datasets tag against.
+
+    `{"meta": {...}, "axes": [{"id", "label_ar", "antonym"?}, ...]}`. Closed
+    because selection is a set intersection: with free-text axes, agreement
+    would be an accident of wording.
+    """
+    return _json("SEMANTIC_AXES_JSON")
 
 
 @functools.lru_cache(maxsize=1)

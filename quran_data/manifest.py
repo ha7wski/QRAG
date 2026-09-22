@@ -139,12 +139,79 @@ MANIFEST: dict[str, Entry] = {
     ),
     "ARABIC_LETTERS_CSV": Entry(
         bucket="references",
-        what="28 base letters: makhraj and ṣifāt (ar+en), Ḥasan ʿAbbās's "
-             "meaning, an Ibn Jinnī sound-imitation note (20 KB).",
+        what="28 base letters: identity and phonetics only — makhraj and ṣifāt "
+             "(ar+en), an Ibn Jinnī sound-imitation note. The `abbas_meaning*` "
+             "and `abbas_keywords*` columns were DROPPED: one frozen gloss per "
+             "letter is what made خ-ي-ر read «القذارة والخشونة والخواء». Sense "
+             "data now lives in LETTER_SENSES_CSV, joined on `letter`.",
         origin="Curated from Ḥasan ʿAbbās, *Khaṣāʾiṣ al-ḥurūf al-ʿarabiyya wa-"
                "maʿānīhā*, at `confidence='summary'` granularity.",
         producer=None,
         consumers=("linguistics/lisan/letter_lexicon.py",),
+        regenerable=False,
+    ),
+    "LETTER_SENSES_CSV": Entry(
+        bucket="references",
+        what="One row per (letter, sense): gloss_ar, pole, axes, position, "
+             "gesture_ar, source, page, confidence. 59 senses over the 28 base "
+             "letters — a letter holds a BUNDLE, and which member applies "
+             "depends on the root's attested core, so nothing here is ranked.",
+        origin="Transcribed from Ḥasan ʿAbbās, *Khaṣāʾiṣ al-ḥurūf al-ʿarabiyya "
+               "wa-maʿānīhā* (1998), page-cited per sense. Senses taken from a "
+               "letter's headline value are `verified`; those transcribed from "
+               "his position-dependent remarks are `high`. A sense with no "
+               "`source` AND `page` is refused by the validator.",
+        producer=None,
+        consumers=("linguistics/lisan/letter_lexicon.py",
+                   "scripts/validate_lisan_datasets.py"),
+        regenerable=False,
+    ),
+    "LETTER_SENSES_LOCK_JSON": Entry(
+        bucket="references",
+        what="The freeze on LETTER_SENSES_CSV: a semantic `version`, the sha256 "
+             "of that file's raw bytes, its row/letter counts, and a `history` "
+             "entry per version carrying the reason AND the letter-level "
+             "authority that justifies it (2 KB).",
+        origin="Written by hand at the end of the constrain-lisan-by-root-core "
+               "change. Root curation runs against a FIXED letter sheet: a root "
+               "that matches no sense is a result to record, never a reason to "
+               "retouch a letter. The digest is what enforces that — editing the "
+               "CSV without bumping the version here fails the validator.",
+        producer=None,
+        consumers=("scripts/validate_lisan_datasets.py",),
+        regenerable=False,
+    ),
+    "ROOT_CORES_JSON": Entry(
+        bucket="references",
+        what="Attested semantic core(s) per root, keyed on the CANONICAL QAC "
+             "root key (never the folded Maqāyīs key). Value is an ordered LIST "
+             "— Ibn Fāris states two aṣl for ظلم — each with gloss / verbatim / "
+             "axes / polarity / source. Cores are never merged and their axes "
+             "are never pooled.",
+        origin="Curated from MAQAYIS_ASL_CSV. `verbatim` is byte-identical to "
+               "its segment there; only `gloss`, `axes` and `polarity` are the "
+               "curator's. `polarity` describes the aṣl AS CITED — `neutral` "
+               "when it is descriptive — never the root's Quranic connotation.",
+        # Seeded by script, completed by a human: re-running the seed adds
+        # missing entries and never overwrites curated axes or polarity, so the
+        # file as a whole is NOT reproducible from the script.
+        producer="scripts/build_root_cores_seed.py",
+        consumers=("linguistics/lisan/root_core_store.py",
+                   "scripts/validate_lisan_datasets.py"),
+        regenerable=False,
+    ),
+    "SEMANTIC_AXES_JSON": Entry(
+        bucket="references",
+        what="The CLOSED axis vocabulary: 47 axes, each with an id, an Arabic "
+             "label and an optional symmetric `antonym` link.",
+        origin="Curated alongside the regression roots and the letters they "
+               "use. Closed on purpose: selection is a set intersection between "
+               "a core's axes and a sense's, so free-text axes would make "
+               "agreement an accident of wording. The `antonym` link is what "
+               "separates «no shared axis» from «an opposed axis».",
+        producer=None,
+        consumers=("linguistics/lisan/root_core_store.py",
+                   "scripts/validate_lisan_datasets.py"),
         regenerable=False,
     ),
     "LETTER_SEMANTICS_JSON": Entry(

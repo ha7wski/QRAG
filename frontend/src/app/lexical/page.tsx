@@ -16,8 +16,14 @@ import LisanResult from "@/components/LisanResult";
  * Lisan Analysis — a single Arabic word read letter-by-letter as an interpretive
  * letter-symbolism reading of the lisān (POST /lisan/analyze). Arabic-only.
  *
+ * The page fetches and caches the payload; every decision about it belongs to
+ * `LisanResult`. In particular the `constrained` fork — a reading per attested
+ * aṣl, or the unconstrained inventory with its warning — is rendered there, so
+ * this page reads no field of the response except `word` (to decide whether a
+ * `?word=` arrival is already on screen).
+ *
  * Two independent lanes per run: the letter reading (the page) and the
- * deterministic morphology behind the «تحليل نحوي» section (POST /qlisan/form).
+ * deterministic morphology behind the «الصرف والإعراب» section (POST /qlisan/form).
  * The morphology is supplementary — its failure costs the section, never the
  * reading — so it is fired alongside and its rejection swallowed.
  *
@@ -137,7 +143,7 @@ function LisanAnalysis() {
           onChange={(e) => setWord(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
           aria-label={S.lexical.word}
-          placeholder="رحمة"
+          placeholder={S.lexical.wordPlaceholder}
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button

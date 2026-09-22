@@ -1,4 +1,13 @@
-"""Pydantic models for the Lisan Analysis (letter-symbolism) endpoint."""
+"""Pydantic models for the Lisan Analysis (letter-symbolism) endpoint.
+
+The response publishes the CONSTRAINT, not just the conclusion. A letter holds a
+bundle of sourced senses; which member applies depends on the root's attested
+aṣl, so the reading has to show the core it was built from, the axes each
+selected sense shared with it, and every sense it dropped with the reason. A
+single gloss per letter — the old `letters[].meaning` — is what made خ-ي-ر read
+«القذارة والخشونة والخواء» against Ibn Fāris' «أصله العطف والميل», so it is gone,
+and so is the `sequential_reading` chain that concatenated those glosses.
+"""
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -10,21 +19,119 @@ class LisanRequest(BaseModel):
     # sent by an old client is silently ignored (Pydantic drops unknown fields).
 
 
-class LisanLetter(BaseModel):
+# ── the attested core ─────────────────────────────────────────────────────
+
+class RootCore(BaseModel):
+    """One aṣl of the root, as Ibn Fāris states it.
+
+    `verbatim` is his own words, byte-identical to the shipped Maqāyīs segment;
+    `gloss`, `axes` and `polarity` are curated beside it, never instead of it.
+    `polarity` describes the aṣl AS CITED — `neutral` when it is descriptive —
+    so it can be checked against the citation rather than against a sentiment
+    prior (ك-ف-ر's «الستر والتغطية» is neutral; its negative charge is usage).
+    """
+
+    gloss: str
+    verbatim: str
+    axes: list[str] = []
+    polarity: str                      # "positive" | "negative" | "neutral"
+    source: str
+    edition: str = ""
+
+
+# ── the letter side ───────────────────────────────────────────────────────
+
+class LetterSense(BaseModel):
+    """One member of a letter's sense bundle, with the citation that admits it."""
+
+    sense_id: str
+    gloss_ar: str
+    pole: str                          # "positive" | "negative" | "neutral"
+    axes: list[str] = []
+    position: str                      # "initial" | "medial" | "final" | "any"
+    gesture_ar: str = ""
+    source: str
+    page: str
+    confidence: str                    # "verified" | "high" | "summary"
+
+
+class LetterIdentity(BaseModel):
+    """A root letter's phonetics — stable across every core, so it is published
+    once at the top level rather than repeated inside each reading.
+
+    It carries NO gloss, deliberately. The dataset's Ibn Jinnī sound-imitation
+    note is one: for خ it reads «يوحي بالأشياء الخشنة الكريهة الجوفاء» — the same
+    reading, in inflected form, that this change exists to keep off خ-ي-ر. A
+    payload that ships it puts an unconstrained letter gloss one line away from
+    being rendered beside the root again, and a substring guard on
+    «خشونة»/«خواء» would not even see it. Meaning belongs to a reading, and a
+    reading belongs to a core.
+    """
+
+    index: int                         # 1-based position in the root
     letter: str
     name: str
     makhraj: str
-    sifat: list[str]
-    meaning: str
-    keywords: list[str]
-    ibn_jinni_note: str
-    confidence: str
+    sifat: list[str] = []
+    position: str                      # "initial" | "medial" | "final"
+    sense_count: int
 
 
-class SequentialItem(BaseModel):
+class DiscardedSense(BaseModel):
+    """A sense the core did not admit, kept visible with why it was dropped.
+
+    Hiding these would leave the reader with a single gloss again, only a
+    different one — and the bundle is the whole point of the change.
+    """
+
+    sense: LetterSense
+    reason: str                        # "no-shared-axis" | "conflicting-axis" | "outranked"
+
+
+class LetterReading(BaseModel):
+    """What one core made of one letter. `selected` is null when nothing was
+    eligible — the gap is shown, never filled with the letter's first or
+    most-confident sense."""
+
     index: int
     letter: str
-    meaning: str
+    selected: LetterSense | None = None
+    matched_axes: list[str] = []
+    selection_rule: str                # "axis-match" | "axis-match+position" | "unmatched"
+    discarded: list[DiscardedSense] = []
+
+
+# ── the guard ─────────────────────────────────────────────────────────────
+
+class Divergence(BaseModel):
+    """The reading's aggregate pole contradicts its own core's polarity.
+
+    A DETECTOR: it reports and changes nothing. A guard that re-ranked until the
+    poles agreed would make the tool incapable of ever disagreeing with the aṣl.
+    """
+
+    core_polarity: str
+    reading_polarity: str
+    letters: list[str] = []
+    message: str                       # Arabic, shown as its own banner
+
+
+class Reading(BaseModel):
+    """One complete reading, built from ONE core. Never a blend: a root with two
+    aṣl gets two readings, and their axes are never pooled."""
+
+    core: RootCore
+    letters: list[LetterReading] = []
+    synthesis: str = ""
+    divergence: Divergence | None = None
+
+
+class LetterInventory(BaseModel):
+    """The unconstrained path: a letter's whole bundle, nothing selected."""
+
+    index: int
+    letter: str
+    senses: list[LetterSense] = []
 
 
 class IshtiqaqItem(BaseModel):
@@ -33,13 +140,27 @@ class IshtiqaqItem(BaseModel):
 
 
 class LisanResponse(BaseModel):
+    """`constrained` is the fork.
+
+    True  → `readings` holds one entry per core, each with its own selections.
+    False → `readings` is empty, `warning` says why in Arabic, and `inventory`
+            lists the letters' senses with none selected. There is no synthesis
+            on that path and no setting that restores one.
+    """
+
     word: str
     root: str | None
     root_source: str | None = None      # "qac" | "fallback" | None
-    letters: list[LisanLetter] = []
-    sequential_reading: list[SequentialItem] = []
-    synthesis: str = ""
-    synthesis_source: str = "template"  # origin of `synthesis` (auditable)
+    constrained: bool = False
+    letters: list[LetterIdentity] = []
+    cores: list[RootCore] = []
+    readings: list[Reading] = []
+    inventory: list[LetterInventory] = []
+    # id → Arabic label for every axis named anywhere above, so the UI renders
+    # axis names without holding a copy of the vocabulary.
+    axis_labels: dict[str, str] = {}
+    warning: str | None = None          # set when `constrained` is false
+    synthesis_source: str = "template"  # origin of every `synthesis` (auditable)
     ishtiqaq_akbar: list[IshtiqaqItem] = []
     disclaimer: str
     sources: dict[str, str] = {}

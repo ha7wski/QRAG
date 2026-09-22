@@ -56,6 +56,16 @@ MAQAYIS_SOURCE_TXT = SOURCE / "maqayis" / "maqayis_shamela.txt"
 ROOT_ARBITRATION_JSON = REFERENCES / "root_arbitration.json"
 MAQAYIS_ASL_CSV = REFERENCES / "maqayis_asl.csv"
 ARABIC_LETTERS_CSV = REFERENCES / "arabic_letters_dataset.csv"
+# The Lisan constrained-reading triple. `letter_senses.csv` is the sense sheet
+# `arabic_letters_dataset.csv` no longer carries: a letter holds a BUNDLE of
+# senses, and the phonetic sheet stays one row per letter beside it.
+LETTER_SENSES_CSV = REFERENCES / "letter_senses.csv"
+# The freeze on the sheet above: a version tag plus the sha256 of its bytes.
+# Root curation runs against a FIXED letter dataset, so a root that matches
+# nothing is a result to record rather than a reason to retouch a letter.
+LETTER_SENSES_LOCK_JSON = REFERENCES / "letter_senses.lock.json"
+ROOT_CORES_JSON = REFERENCES / "root_cores.json"
+SEMANTIC_AXES_JSON = REFERENCES / "semantic_axes.json"
 LETTER_SEMANTICS_JSON = REFERENCES / "arabic_letter_semantics_hasan_abbas.json"
 BAB_CONTRAST_JSON = REFERENCES / "bab_contrast.json"
 SIGHA_DALALA_JSON = REFERENCES / "sigha_dalala.json"

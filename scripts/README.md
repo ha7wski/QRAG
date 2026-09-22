@@ -216,6 +216,8 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/fetch_translations.py` | Download FR (Hamidullah) + EN (Sahih) translations → `data/derived/translations/` |
 | `scripts/ingest.sh` | Run the ingestion pipeline (wrapper for `ingestion/run_pipeline.py`) |
 | `scripts/build_maqayis_dataset.py` | Build the curated Maqāyīs aṣl reference `data/references/maqayis_asl.csv` from the OpenITI source |
+| `scripts/build_root_cores_seed.py` | Seed `data/references/root_cores.json` from the Maqāyīs aṣl — the mechanical half of a root's semantic core. Dry run by default |
+| `scripts/validate_lisan_datasets.py` | Validate the three curated Lisan datasets (axes, root cores, letter senses), enforce the letter-sheet freeze, and report coverage + the method indicator |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference
@@ -235,6 +237,104 @@ file. To reconstitute it and rebuild the CSV from a fresh clone:
 python scripts/build_maqayis_dataset.py --fetch   # downloads the OpenITI source, then parses → CSV
 python scripts/build_maqayis_dataset.py           # re-parse a source already on disk
 ```
+
+### Seeding and validating the Lisan datasets
+
+Three committed files drive the constrained letter reading behind
+`POST /lisan/analyze`: `data/references/semantic_axes.json` (the **closed** axis
+vocabulary both other files tag against), `root_cores.json` (Ibn Fāris' attested
+aṣl per root, keyed on the **canonical** QAC root spelling) and
+`letter_senses.csv` (one row per letter + sense). None of them is regenerable —
+their citation half comes from `maqayis_asl.csv`, everything else is human
+judgement.
+
+**Validate after every edit to any of the three**, before committing:
+
+```bash
+python scripts/validate_lisan_datasets.py   # exit 0 = clean, 1 = every finding listed
+```
+
+It checks that axis ids are unique and every `antonym` is declared from **both**
+sides; that every core key is a real canonical QAC root key — never the
+hamza-folded form `maqayis_asl.csv` is indexed on, which matches ~0 hamzated
+roots and fails silently; that every `verbatim` is byte-identical to its Maqāyīs
+segment, one core per aṣl and in the same order; that the citation names the
+right work and the row's own `edition`; that `axes` is non-empty and `polarity`
+set; that no core exists for a `no_asl` or `parse_uncertain` root; and that every
+base letter carries at least one sense, with ids unique per letter and the enums
+respected.
+
+Two rules are worth knowing before curating:
+
+- **A citation is checked against the authority it names, not merely filled in.**
+  `page: "0"` and `source: "حدسي"` are both non-empty and both worthless, so a
+  sense's `page` must equal the locus its letter is registered at in
+  `data/references/arabic_letter_semantics_hasan_abbas.json`, and its `source`
+  must be one of the letter-level authorities the validator allows (today, only
+  Ḥasan ʿAbbās). Adding an authority — Ibn Jinnī, say — is a one-line, visible
+  edit to `LETTER_SENSE_SOURCES`, not something a row can smuggle in. This is the
+  gate `linguistics/tahlil/citations.py` applies to generated prose, applied to
+  curated scholarship, and it is the only mechanical defence against curating a
+  sense to fit the root in front of you.
+- **An entry may not name both poles of an antonym pair.** A core tagged
+  `["khubth", "tib"]` conflicts with every sense at once, so the root reads
+  entirely unmatched and nothing in the response points at the dataset.
+
+- **The letter sheet is FROZEN, and the validator enforces it.**
+  `letter_senses.lock.json` pins a semantic `version` plus the sha256 of
+  `letter_senses.csv`'s raw bytes. Roots are curated against a FIXED sheet,
+  because the failure this guards looks like a success: a root matches nothing,
+  a sense gets added to one of its letters, the root now "works" — and nothing
+  records that the evidence was written to fit the conclusion. So a root that
+  matches nothing is a RESULT (the report names it), and a letter changes only
+  through a new version whose `history` entry cites the letter-level authority
+  behind it. An entry with no `source` is a finding. The failure message names
+  the only two ways out — revert, or version it — and never "add the sense".
+  `build_root_cores_seed.py` may never reach the sheet; two tests pin that, one
+  reading its source and one checking the digest survives a `write()`.
+
+It prints curated-core coverage and the Maqāyīs ceiling on every run, clean or
+not, because that figure is where the next curation batch starts.
+`tests/test_lisan_datasets.py` drives the same functions, so the rules exist once.
+
+It also prints a **method indicator**, computed by running the real selection
+step over the curated set (a metric computed by a second copy of the algorithm
+measures the copy):
+
+- **unmatched rate** — letter slots no sense was eligible for. High while
+  coverage is thin, and that is healthy: it is the system declining to assert.
+- **divergence rate** — readings whose aggregate pole contradicts their own
+  core's polarity. This is the falsifiability probe, and the verdict line reads
+  it: below 50 curated roots it says «not yet testable»; at or past 50 with the
+  guard still never fired it says «**NOT FALSIFIABLE**», because a guard that
+  detects and never corrects, staying silent over a large set, is the shape that
+  curating letters to fit the cores would leave. The rates are only meaningful
+  as a trend, which is why every run leaves its figures behind.
+
+**Seed** the mechanical half of a batch of new roots — the canonical key,
+`verbatim`, `source`, `edition`. `gloss`, `axes` and `polarity` are readings of
+the citation and are left blank for a human:
+
+```bash
+python scripts/build_root_cores_seed.py           # DRY RUN — reports what it would add
+python scripts/build_root_cores_seed.py --write   # apply: add the missing entries
+```
+
+Dry run is the default because the target is a hand-curated reference. The report
+counts what it would add, what it preserves, what it skips and why, and names any
+**orphan** key already on file that is not a canonical QAC root — a folded
+spelling, typically, which the validator refuses downstream.
+
+**Re-running never overwrites curated axes or polarity:** a root already on file
+is preserved byte for byte and only absent roots are added — which is why
+`quran_data/manifest.py` records `root_cores.json` as **not regenerable** even
+though it names a producer. The script reproduces the seed, never the file. Note
+that a freshly seeded entry has an empty `axes` and a null `polarity`, which the
+validator refuses on purpose: `--write` output is a curation worklist, not a
+shippable dataset. An existing `meta` block is carried forward untouched and the
+script puts **no derivable count** in one — a stored count is a number that stops
+being true on the first `--write`, and the validator recomputes every such figure
+without ever reading that block.
 
 ## Gotchas
 
