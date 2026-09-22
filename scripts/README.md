@@ -297,7 +297,14 @@ Two rules are worth knowing before curating:
   records that the evidence was written to fit the conclusion. So a root that
   matches nothing is a RESULT (the report names it), and a letter changes only
   through a new version whose `history` entry cites the letter-level authority
-  behind it. An entry with no `source` is a finding. The failure message names
+  behind it — and that citation is CHECKED, not merely present: `source` is
+  `{authority, pages}`, the authority must be one the validator knows, and every
+  page range must be one `arabic_letter_semantics_hasan_abbas.json` actually
+  declares. It used to be prose, and a draft of the 1.1.0 entry carried nine
+  invented page ranges before a manual re-read caught them; a justification
+  nobody can follow back makes the whole freeze decorative, because it looks
+  like evidence and costs nothing to fabricate. The same authority index backs
+  this and the per-row `page` check, so the two cannot drift. The failure message names
   the only two ways out — revert, or version it — and never "add the sense".
   `build_root_cores_seed.py` may never reach the sheet; two tests pin that, one
   reading its source and one checking the digest survives a `write()`.

@@ -5,7 +5,7 @@
     "policy": [
       "The letter dataset does not move during a root-curation batch.",
       "A root with no eligible sense is recorded as an unmatched result; no letter is retouched to make it fit.",
-      "A letter may change ONLY through a new version here, justified by a letter-level authority with a page — never by a root that did not work.",
+      "A letter may change ONLY through a new version here, justified by a machine-checkable citation: {authority, pages}, whose every page range must exist in the letter-level authority file. Never by a root that did not work.",
       "scripts/build_root_cores_seed.py must never read or write letter_senses.csv."
     ],
     "digest_note": "sha256 over the RAW BYTES of letter_senses.csv. Reformatting trips it too, and that is intended: a curated dataset does not get touched by accident."
@@ -22,21 +22,76 @@
       "date": "2026-09-22",
       "sha256": "0a44bd3f08e71e163ad15ba5e1631397e98cbd80dc206bf3e415e353455191e9",
       "reason": "Initial freeze, taken at the end of the constrain-lisan-by-root-core change and before any further root curation. 59 senses over the 28 base letters.",
-      "source": "حسن عباس، خصائص الحروف العربية ومعانيها (1998) — every row page-cited; see the per-row `source` and `page` columns."
+      "source": {
+        "authority": "hasan_abbas",
+        "pages": [
+          "100-102",
+          "103-109",
+          "110-113",
+          "114-118",
+          "119-121",
+          "122-124",
+          "125-130",
+          "131-136",
+          "138-141",
+          "142-145",
+          "148-152",
+          "153-158",
+          "159-168",
+          "173-179",
+          "180-189",
+          "190-204",
+          "204-225",
+          "55-59",
+          "59-65",
+          "65-67",
+          "67-69",
+          "69-71",
+          "72-78",
+          "79-82",
+          "83-92",
+          "94-95",
+          "97",
+          "98-99"
+        ]
+      }
     },
     {
       "version": "1.0.1",
       "date": "2026-09-22",
       "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
       "reason": "Merged the sheet's only duplicate. `masha-medial` and `masha-final` carried an identical gloss and identical axes for ح, differing only in `position` — one statement of the author transcribed twice, not two uses. He states it once, over two positions at once: «في الآخر والوسط: تغلب المشاعر الإنسانية والأصوات والرقة والصفاء مع الحرارة والميل». The merged row `masha` therefore carries `position: medial;final`, which is also why `position` became a `;`-separated set: `any` would contradict the different «في الأول» he states separately, and two rows keep the duplicate. No other row changed.",
-      "source": "حسن عباس، خصائص الحروف العربية ومعانيها، ص 180-189 (position_notes de ح dans arabic_letter_semantics_hasan_abbas.json)"
+      "source": {
+        "authority": "hasan_abbas",
+        "pages": [
+          "180-189"
+        ]
+      }
     },
     {
       "version": "1.1.0",
       "date": "2026-09-22",
       "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
       "reason": "NO ROW CHANGED — the digest is identical to 1.0.1, and the minor bump records a change of MEANING, not of content. `position` became an eligibility gate in the engine, so `final` stopped saying «prefers the end» and started saying «only at the end». Every stored value was re-read under that stronger sense against the authority's `position_notes`: all 21 specific positions are explicitly stated by Ḥasan ʿAbbās and none was deduced, so nothing was demoted to `any`. THREE rows are flagged rather than changed, because their authority is comparative and not exclusive: ث/unutha-final («في آخر الألفاظ 78% أكثر منه في أولها 36%» — he attests the initial too), and م/riqqa-initial and م/damm-final («سبعة أضعاف» / «ضعفا» — ratios between the two ends, not a restriction to one). Under gate semantics those three overclaim. Deciding them is a curation call, not a refactor, and it is left open.",
-      "source": "حسن عباس، خصائص الحروف العربية ومعانيها — position_notes par lettre (ء 94-95، ب 100-102، ث 59-65، ح 180-189، ر 83-92، س 110-113، ظ 122-124، ع 204-225، غ 125-130، ف 131-136، م 72-78، ن 159-168، ه 190-204، ي 98-99)"
+      "source": {
+        "authority": "hasan_abbas",
+        "pages": [
+          "100-102",
+          "110-113",
+          "122-124",
+          "125-130",
+          "131-136",
+          "159-168",
+          "180-189",
+          "190-204",
+          "204-225",
+          "59-65",
+          "72-78",
+          "83-92",
+          "94-95",
+          "98-99"
+        ]
+      }
     }
   ]
 }

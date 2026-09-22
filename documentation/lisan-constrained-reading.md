@@ -436,8 +436,16 @@ Les quatre règles, dans l'ordre où elles mordent :
 2. **Une racine qui n'apparie rien est un RÉSULTAT.** On le consigne — le rapport le nomme
    (`ظلم#0` aujourd'hui) — on ne retouche pas une lettre pour le faire disparaître.
 3. **Une lettre ne change que par une nouvelle version**, justifiée par une autorité *au
-   niveau de la lettre* avec sa page. Jamais par une racine qui ne marchait pas. Le
-   validateur refuse une entrée d'historique sans `source`.
+   niveau de la lettre* avec sa page. Jamais par une racine qui ne marchait pas.
+
+   La citation est **vérifiée, pas seulement présente** : `source` vaut
+   `{"authority": "hasan_abbas", "pages": ["180-189", …]}`, l'autorité doit être connue du
+   validateur, et chaque plage doit exister dans `arabic_letter_semantics_hasan_abbas.json`.
+   C'était de la prose libre, et un brouillon de l'entrée 1.1.0 a porté **neuf plages de
+   pages inventées** avant qu'une relecture ne les attrape. Une justification que personne
+   ne peut remonter rend tout le gel décoratif : elle a l'air d'une preuve et ne coûte rien
+   à fabriquer. Le même index d'autorité sert ce contrôle et celui de la `page` de chaque
+   ligne de sens, donc les deux ne peuvent pas diverger.
 4. **Le semeur ne touche jamais au dataset des lettres.** `build_root_cores_seed.py`
    n'écrit que `root_cores.json` ; deux tests l'épinglent — l'un lit son source, l'autre
    vérifie que le digest du CSV survit à un `write()`.

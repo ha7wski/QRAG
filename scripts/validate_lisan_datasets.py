@@ -52,7 +52,7 @@ sys.path.insert(0, str(ROOT))
 from arabic_text import normalize_root  # noqa: E402
 from linguistics.lisan import letter_lexicon, sense_selection  # noqa: E402
 from quran_data import loaders  # noqa: E402
-from quran_data.paths import LETTER_SENSES_CSV  # noqa: E402
+from quran_data.paths import LETTER_SEMANTICS_JSON, LETTER_SENSES_CSV  # noqa: E402
 
 # ── the closed enumerations both datasets are checked against ────────────────
 POLARITIES = ("positive", "negative", "neutral")   # root_cores.json
@@ -84,7 +84,14 @@ TATWEEL = "ـ"
 # is non-empty. Ḥasan ʿAbbās is the only one the shipped dataset cites; adding
 # Ibn Jinnī (or any other) is a curation decision that must land HERE, visibly,
 # rather than appear one row at a time.
-LETTER_SENSE_SOURCES = ("حسن عباس، خصائص الحروف العربية ومعانيها",)
+# id → the authority's full name. The id is what a MACHINE-CHECKABLE citation
+# names (the lock's history), the name is what a row's `source` column spells
+# out. Two shapes, one registry, so adding an authority stays a single visible
+# edit rather than something a row or a version entry can smuggle in.
+LETTER_SENSE_AUTHORITIES = {
+    "hasan_abbas": "حسن عباس، خصائص الحروف العربية ومعانيها",
+}
+LETTER_SENSE_SOURCES = tuple(LETTER_SENSE_AUTHORITIES.values())
 
 # The only authority a semantic core may cite: cores come from one work, and
 # `verbatim` is checked byte-for-byte against that work's own CSV.
@@ -260,6 +267,54 @@ def _authority_pages(semantics_doc: dict) -> dict[str, str]:
         if letter and page:
             pages[letter] = page
     return pages
+
+
+def _check_citation(source, authority_pages: dict[str, str], where: str) -> list[str]:
+    """A lock history entry's `source`, checked the way a sense row's is.
+
+    Same authority file, same page ranges, deliberately: the per-row check asks
+    «is this the range Ḥasan ʿAbbās is cited at for THIS letter», this one asks
+    «is this a range he is cited at AT ALL» — a version entry may cover several
+    letters, but it may not invent a locus.
+
+    This field used to be prose. Nothing checked it, and a draft of the 1.1.0
+    entry carried nine invented page ranges before a manual re-read caught them.
+    The whole freeze rests on «a letter changes only through a version justified
+    by an authority»; a justification nobody can follow back makes that rule
+    decorative, because it looks like evidence and costs nothing to fabricate.
+    """
+    findings: list[str] = []
+    if not isinstance(source, dict):
+        return [
+            f"{where}: `source` must be an object "
+            f"{{authority, pages}} — prose cannot be checked against anything, "
+            f"and an unverifiable citation is not a citation"
+        ]
+
+    authority = _text(source.get("authority"))
+    if authority not in LETTER_SENSE_AUTHORITIES:
+        findings.append(
+            f"{where}: `source.authority` is «{authority}», expected one of "
+            f"{', '.join(sorted(LETTER_SENSE_AUTHORITIES))}"
+        )
+
+    pages = source.get("pages")
+    if not isinstance(pages, list) or not pages:
+        findings.append(f"{where}: `source.pages` is missing or empty")
+        return findings
+
+    declared = set(authority_pages.values())
+    for page in pages:
+        page = _text(page)
+        if not page:
+            findings.append(f"{where}: `source.pages` holds an empty range")
+        elif page not in declared:
+            findings.append(
+                f"{where}: `source.pages` cites «{page}», which is not a page "
+                f"range the authority declares — look it up in "
+                f"{LETTER_SEMANTICS_JSON.name}"
+            )
+    return findings
 
 
 def _self_conflicting(axis_ids: list[str], antonyms: dict[str, str]) -> list[tuple[str, str]]:
@@ -585,7 +640,8 @@ HISTORY_FIELDS = ("version", "date", "reason", "source")
 
 
 def check_letter_senses_lock(lock: dict, senses_bytes: bytes,
-                             rows: list[dict]) -> list[str]:
+                             rows: list[dict],
+                             authority_pages: dict[str, str]) -> list[str]:
     """The freeze on `letter_senses.csv`: the sheet did not move, or the version did.
 
     Root curation runs against a FIXED letter sheet. The failure this guards is
@@ -647,6 +703,12 @@ def check_letter_senses_lock(lock: dict, senses_bytes: bytes,
             findings.append(f"letter_senses.lock.json: history #{i} is not an object")
             continue
         for field in HISTORY_FIELDS:
+            if field == "source":
+                findings += _check_citation(
+                    entry.get("source"), authority_pages,
+                    f"letter_senses.lock.json: history #{i}",
+                )
+                continue
             if not _text(entry.get(field)):
                 findings.append(
                     f"letter_senses.lock.json: history #{i} has no `{field}`"
@@ -811,7 +873,8 @@ def validate(data: Datasets | None = None) -> list[str]:
         *check_semantic_axes(data.axes),
         *check_root_cores(data.cores, antonyms, data.root_keys, data.maqayis),
         *check_letter_senses(data.senses, antonyms, data.authority_pages),
-        *check_letter_senses_lock(data.lock, data.senses_bytes, data.senses),
+        *check_letter_senses_lock(data.lock, data.senses_bytes, data.senses,
+                                  data.authority_pages),
     ]
 
 
