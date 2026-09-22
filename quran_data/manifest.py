@@ -153,7 +153,8 @@ MANIFEST: dict[str, Entry] = {
     "LETTER_SENSES_CSV": Entry(
         bucket="references",
         what="One row per (letter, sense): gloss_ar, pole, axes, position, "
-             "gesture_ar, source, page, confidence. 59 senses over the 28 base "
+             "position_kind, gesture_ar, source, page, confidence. 58 senses "
+             "over the 28 base "
              "letters — a letter holds a BUNDLE, and which member applies "
              "depends on the root's attested core, so nothing here is ranked.",
         origin="Transcribed from Ḥasan ʿAbbās, *Khaṣāʾiṣ al-ḥurūf al-ʿarabiyya "

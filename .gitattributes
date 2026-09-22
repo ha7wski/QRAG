@@ -1,0 +1,13 @@
+# Line endings are CONTENT for the frozen letter sheet.
+#
+# `letter_senses.lock.json` pins the sha256 of `letter_senses.csv`'s RAW BYTES,
+# so a CRLF→LF translation is a content change: it trips the freeze without
+# altering a single field. It has happened once already — a Python
+# `read_text()` round-trip silently rewrote all 60 line endings and made the
+# whole file show as modified. Marking the sheet binary keeps git from
+# normalizing it on any platform, and keeps the diff readable by leaving the
+# real edits as the only ones.
+data/references/letter_senses.csv -text
+
+# The lock itself is ordinary text; only the file it measures must not move.
+data/references/letter_senses.lock.json text eol=lf

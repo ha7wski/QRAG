@@ -10,10 +10,10 @@
     ],
     "digest_note": "sha256 over the RAW BYTES of letter_senses.csv. Reformatting trips it too, and that is intended: a curated dataset does not get touched by accident."
   },
-  "version": "1.1.0",
+  "version": "1.2.0",
   "frozen_on": "2026-09-22",
   "target": "data/references/letter_senses.csv",
-  "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
+  "sha256": "a270217cc5e71b5e9835623990dae914033c27add7a9d1800e6838632e773e80",
   "rows": 58,
   "letters": 28,
   "history": [
@@ -73,6 +73,31 @@
       "date": "2026-09-22",
       "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
       "reason": "NO ROW CHANGED — the digest is identical to 1.0.1, and the minor bump records a change of MEANING, not of content. `position` became an eligibility gate in the engine, so `final` stopped saying «prefers the end» and started saying «only at the end». Every stored value was re-read under that stronger sense against the authority's `position_notes`: all 21 specific positions are explicitly stated by Ḥasan ʿAbbās and none was deduced, so nothing was demoted to `any`. THREE rows are flagged rather than changed, because their authority is comparative and not exclusive: ث/unutha-final («في آخر الألفاظ 78% أكثر منه في أولها 36%» — he attests the initial too), and م/riqqa-initial and م/damm-final («سبعة أضعاف» / «ضعفا» — ratios between the two ends, not a restriction to one). Under gate semantics those three overclaim. Deciding them is a curation call, not a refactor, and it is left open.",
+      "source": {
+        "authority": "hasan_abbas",
+        "pages": [
+          "100-102",
+          "110-113",
+          "122-124",
+          "125-130",
+          "131-136",
+          "159-168",
+          "180-189",
+          "190-204",
+          "204-225",
+          "59-65",
+          "72-78",
+          "83-92",
+          "94-95",
+          "98-99"
+        ]
+      }
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-09-22",
+      "sha256": "a270217cc5e71b5e9835623990dae914033c27add7a9d1800e6838632e773e80",
+      "reason": "Added `position_kind` and set it on all 21 stated positions. The gate introduced at 1.1.0 read every stated position as EXCLUSIVE, which shut slots the author never shut: he almost always gives proportions, not rules. Each of the 21 was re-read for an exclusion marker and none carries one — every one rests on a percentage (10, 20.5, 31, 32, 51, 58, 60, 62, 70, 78, 95), a comparison (أكثر، أضعاف، ضعفا، تغلب، يضعف، بعض، بنسبة ضعيفة) or a bare statement. All 21 are therefore `dominant`, and the gate is inert on the shipped sheet. Two apparent exclusions were checked and rejected: ف's «فقط» is «10% فقط», a proportion qualifier; and ء's «لا تأثير يُذكر في المعنى» is walked back in the same breath by «وإن بقيت توحي بالبروز». ء remains the nearest candidate for `exclusive` and is FLAGGED, not promoted — a door is never closed on an interpretation. No gloss, axis, pole or position value changed; the only edit is the new column.",
       "source": {
         "authority": "hasan_abbas",
         "pages": [

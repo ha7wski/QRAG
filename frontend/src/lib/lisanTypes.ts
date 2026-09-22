@@ -23,6 +23,13 @@ export type Polarity = "positive" | "negative" | "neutral";
 /** Where in a root a sense applies. `any` = position-independent. */
 export type SensePosition = "initial" | "medial" | "final" | "any";
 
+/**
+ * What a stated position claims. `exclusive` («only there») is the only one that
+ * makes a sense ineligible; `dominant` — a proportion or a comparison, which is
+ * what Ḥasan ʿAbbās almost always gives — ranks and never excludes.
+ */
+export type PositionKind = "exclusive" | "dominant";
+
 /** Where a letter actually sits in THIS root. Never `any` — a letter has a place. */
 export type LetterPosition = "initial" | "medial" | "final";
 
@@ -73,6 +80,8 @@ export interface LetterSense {
   axes: string[];
   /** A SET: «في الآخر والوسط» is one statement over two positions. */
   position: SensePosition[];
+  /** What that position claims. `""` when `position` is `["any"]`. */
+  position_kind: PositionKind | "";
   gesture_ar: string;
   source: string;
   page: string;

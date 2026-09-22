@@ -60,6 +60,10 @@ POLES = ("positive", "negative", "neutral")        # letter_senses.csv
 POSITION_ANY = "any"
 SPECIFIC_POSITIONS = ("initial", "medial", "final")
 POSITIONS = SPECIFIC_POSITIONS + (POSITION_ANY,)
+# What a stated position CLAIMS. `exclusive` («only there») closes the selection
+# gate; `dominant` («mostly there», a proportion or a comparison) only ranks.
+# Reading every stated position as exclusive shut slots Ḥasan ʿAbbās never shut.
+POSITION_KINDS = ("exclusive", "dominant")
 CONFIDENCES = ("verified", "high", "summary")
 
 # The 28 base consonants of the framework. Hamza seats (أ إ ؤ ئ آ ٱ) fold to ء
@@ -576,6 +580,24 @@ def check_letter_senses(rows: list[dict], antonyms: dict[str, str],
                 f"{where}: `position` names «{POSITION_ANY}» beside a specific "
                 "position — `any` already covers every one of them"
             )
+        # A stated position must declare WHAT it claims, and `any` must not:
+        # an unlabelled position would default to «dominant» silently, and a
+        # label on `any` claims a scope the authority never gave.
+        kind = _text(row.get("position_kind"))
+        specific = POSITION_ANY not in positions and positions
+        if specific and kind not in POSITION_KINDS:
+            findings.append(
+                f"{where}: `position` is stated but `position_kind` is «{kind}», "
+                f"expected one of {', '.join(POSITION_KINDS)} — a position that "
+                "does not say whether it excludes or merely dominates cannot be "
+                "applied without guessing"
+            )
+        if not specific and kind:
+            findings.append(
+                f"{where}: `position_kind` is «{kind}» on an `any` position — "
+                "there is no scope to qualify"
+            )
+
         if set(positions) == set(SPECIFIC_POSITIONS):
             findings.append(
                 f"{where}: `position` names all three specific positions; that is "

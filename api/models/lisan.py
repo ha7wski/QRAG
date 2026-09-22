@@ -53,6 +53,12 @@ class LetterSense(BaseModel):
     # duplicate gloss, and `any` would contradict the different «في الأول» he
     # states separately. `["any"]` means he states no position for the sense.
     position: list[str] = []           # of "initial" | "medial" | "final" | "any"
+    # What the stated position CLAIMS: "exclusive" (only there — closes the
+    # selection gate) or "dominant" (a proportion or comparison — ranks only).
+    # Empty when `position` is `["any"]`. Ḥasan ʿAbbās mostly gives proportions,
+    # so reading every stated position as exclusive shut slots he never shut:
+    # «في آخر الألفاظ (78%) أكثر منه في أولها (36%)» is mostly, not only.
+    position_kind: str = ""
     gesture_ar: str = ""
     source: str
     page: str

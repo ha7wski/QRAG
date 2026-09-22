@@ -342,6 +342,12 @@ class LisanService:
                 for sense in d.get("senses", ()):
                     bucket = applies if sense_selection.applies_at(sense, here) else elsewhere
                     bucket.append(sense)
+                # A DOMINANT position ranks, it does not exclude — so a sense the
+                # author merely puts «mostly at the end» stays on the list for a
+                # middle letter, below the ones that do fit. Sorting is stable, so
+                # curator order survives inside each group.
+                applies.sort(
+                    key=lambda s: not sense_selection.fits_position(s, here))
                 inventory.append({
                     "index": i + 1,
                     "letter": d.get("letter", ""),

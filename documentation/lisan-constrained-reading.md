@@ -224,20 +224,39 @@ est seconde. Ce qui est lu reste la **racine** ح-ر-ب, et la page le dit — m
 qui a tapé محراب voit « ح أول » et doit comprendre « première de la racine », pas « première
 du mot ».
 
-**Trois lignes signalées, non modifiées** (v1.1.0). Leur autorité est **comparative**, pas
-exclusive, et la porte du §4 les lit comme exclusives :
+#### `position_kind` — tendance ou interdiction
 
-| ligne | ce que dit l'auteur | pourquoi c'est douteux |
+Une position énoncée ne dit pas toujours la même chose. L'auteur donne le plus souvent une
+**proportion**, pas une règle : « في آخر الألفاظ (78%) **أكثر منه في أولها (36%)** » veut
+dire *surtout* en finale, pas *uniquement*. La première version de la porte (§4) lisait
+toute position énoncée comme exclusive, et fermait donc des créneaux que l'auteur n'avait
+pas fermés — sur une attestation à 36 %, c'est simplement faux.
+
+| `position_kind` | ce que l'auteur dit | effet |
 |---|---|---|
-| `ث/unutha-final` | « في آخر الألفاظ (78%) **أكثر منه في أولها (36%)** » | il atteste aussi l'initiale ; la porte l'y exclut |
-| `م/riqqa-initial` | « في المصادر التي تبدأ به **قرابة سبعة أضعاف** المنتهية به » | un rapport entre les deux bouts, pas une restriction |
-| `م/damm-final` | « في المنتهية به **ضعفا** التي تبدأ به » | idem, dans l'autre sens |
+| `exclusive` | la lettre ne porte ce sens **qu'**à cette place | **ferme** la porte |
+| `dominant` | une proportion, une comparaison, une fréquence | **classe** seulement, n'exclut jamais |
 
-Trancher demande un choix de curation — les passer à `initial;final` serait plus fidèle à la
-lettre, mais dissoudrait la tendance que l'auteur mesure. C'est une décision ouverte, pas une
-dette technique.
+**Les 21 positions de la feuille sont toutes `dominant`** (v1.2.0). Chacune a été relue en
+cherchant un marqueur d'exclusion ; aucune n'en porte. Elles reposent sur un pourcentage
+(10, 20.5, 31, 32, 51, 58, 60, 62, 70, 78, 95), une comparaison (أكثر، أضعاف، ضعفا، تغلب،
+يضعف، بعض، بنسبة ضعيفة) ou un énoncé nu. **La porte est donc inerte sur la feuille livrée**,
+et conservée pour le cas qu'elle ne contient pas encore.
 
-Notons aussi que `ظ/shidda` («الشدة والقساوة والامتلاء», `any`) mêle le `core_meaning` («وبشيء
+Deux exclusions apparentes ont été vérifiées et écartées :
+
+- **ف** — «فقط» apparaît dans « (10% **فقط** بموحياته الصوتية) » : un qualificatif de
+  proportion, pas une exclusion.
+- **ء** — « في الوسط أو الآخر: **لا تأثير يُذكر في المعنى** » serait une exclusion, mais la
+  phrase se reprend aussitôt : « **وإن بقيت توحي بالبروز** ». C'est le candidat le plus
+  proche d'`exclusive`, et il reste **signalé, non promu** : on ne ferme jamais une porte sur
+  une interprétation.
+
+Un `position_kind` absent ou inconnu se lit comme `dominant`. C'est la direction sûre : une
+exclusion non énoncée n'est pas une exclusion, et une porte ne doit pas pouvoir se fermer par
+accident.
+
+Notons aussi que `ظ/shidda`Notons aussi que `ظ/shidda` («الشدة والقساوة والامتلاء», `any`) mêle le `core_meaning` («وبشيء
 من الشدة والقساوة») et la note « في الوسط: الامتلاء والشدة والقسوة » d'où vient son «الامتلاء».
 La ligne est laissée `any` : la passer à `medial` rendrait la seconde lecture de `ظلم` stérile,
 et une modification de lettre ne se justifie jamais par son effet sur une racine — dans un sens

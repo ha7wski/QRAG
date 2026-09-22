@@ -60,7 +60,7 @@ _HAMZA_SEATS = {"أ": "ء", "إ": "ء", "ؤ": "ء", "ئ": "ء", "آ": "ء", "ٱ"
 # reaching the API as a silently missing field.
 _SENSE_FIELDS = (
     "sense_id", "gloss_ar", "pole", "axes",
-    "position", "gesture_ar", "source", "page", "confidence",
+    "position", "position_kind", "gesture_ar", "source", "page", "confidence",
 )
 
 

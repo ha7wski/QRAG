@@ -7,6 +7,7 @@ import type {
   LetterInventory,
   LetterReading,
   LetterSense,
+  PositionKind,
   LisanResponse,
   Polarity,
   Reading,
@@ -583,26 +584,26 @@ function DivergenceBanner({ divergence }: { divergence: Divergence }) {
 
 /* ── The unconstrained inventory ────────────────────────────────────────── */
 
-/** One inventory row. `positions` prints where its authority scopes it — shown
- *  only on the out-of-position list, where it is the reason the sense is there. */
-function InventorySense({
-  sense,
-  positions = false,
-}: {
-  sense: LetterSense;
-  positions?: boolean;
-}) {
+/**
+ * One inventory row. A sense that states a position shows it, with WHAT it
+ * claims: «غالباً» for a proportion, «حصراً» for a rule. The distinction is the
+ * point — Ḥasan ʿAbbās almost always gives proportions, and a page that prints
+ * «final» flat lets a 78 % tendency read as a law.
+ */
+function InventorySense({ sense }: { sense: LetterSense }) {
+  const scoped = sense.position_kind !== "" && !sense.position.includes("any");
   return (
     <li className="flex flex-wrap items-baseline gap-2">
       <span className="font-arabic text-base text-gray-700">
         {sense.gloss_ar}
       </span>
       <PoleBadge pole={sense.pole} title={S.lexical.sensePolarityTitle} />
-      {positions && (
+      {scoped && (
         <span
           dir="auto"
           className="rounded bg-gray-100 px-1.5 py-0.5 font-arabic text-[11px] text-gray-500"
         >
+          {S.lexical.positionKind[sense.position_kind as PositionKind]}{" "}
           {sense.position.map((p) => S.lexical.position[p]).join(" / ")}
         </span>
       )}
@@ -657,11 +658,7 @@ function Inventory({ inventory }: { inventory: LetterInventory[] }) {
                     </p>
                     <ul className="space-y-1.5 opacity-60">
                       {entry.out_of_position.map((sense) => (
-                        <InventorySense
-                          key={sense.sense_id}
-                          sense={sense}
-                          positions
-                        />
+                        <InventorySense key={sense.sense_id} sense={sense} />
                       ))}
                     </ul>
                   </div>

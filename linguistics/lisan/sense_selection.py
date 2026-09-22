@@ -55,6 +55,24 @@ POSITION_MEDIAL = "medial"
 POSITION_FINAL = "final"
 POSITION_ANY = "any"
 
+# WHAT the stated position claims, and only one of the two closes the gate.
+#
+# Ḥasan ʿAbbās mostly gives PROPORTIONS, not rules: «في آخر الألفاظ (78%) أكثر
+# منه في أولها (36%)» says mostly at the end, not only at the end. Reading every
+# stated position as exclusive — which the first version of this gate did —
+# shuts slots the author never shut, and on a 36 % attestation that is simply
+# wrong. A dominant position RANKS (it lifts the sense through the fit term) and
+# never excludes; only an exclusive one filters.
+#
+# All 21 stated positions in the shipped sheet are `dominant`: every one rests
+# on a percentage, a comparison («أضعاف»، «تغلب»، «يضعف»)، or a bare statement.
+# The gate is therefore inert today and kept for the case the sheet does not yet
+# contain — `ء` is the nearest candidate and is flagged, not promoted: its «لا
+# تأثير يُذكر في المعنى» is walked back in the same breath by «وإن بقيت توحي
+# بالبروز». A door is never closed on an interpretation.
+POSITION_EXCLUSIVE = "exclusive"
+POSITION_DOMINANT = "dominant"
+
 # Rejection reasons, as `api.models.lisan.DiscardedSense.reason` names them.
 REASON_NO_SHARED_AXIS = "no-shared-axis"
 REASON_CONFLICTING_AXIS = "conflicting-axis"
@@ -115,13 +133,35 @@ def _position_fit(sense_positions, letter_position_: str) -> int:
     return 1 if (letter_position_ in positions or POSITION_ANY in positions) else 0
 
 
-def applies_at(sense, letter_position_: str) -> bool:
-    """Does the authority scope this sense to where the letter actually sits?
+def fits_position(sense, letter_position_: str) -> bool:
+    """Does the authority put this sense WHERE the letter sits (or nowhere)?
 
-    Public because the inventory path needs the same answer as the constrained
-    one: a sense filtered out of a reading must not reappear, unfiltered, as an
-    «unconstrained» suggestion for the same letter in the same slot.
+    Distinct from `applies_at`, which asks about eligibility: a dominant sense
+    stated for the end is eligible in the middle — it simply does not fit there.
+    The inventory uses this to ORDER, the ranking tuple to score.
     """
+    return bool(_position_fit(_positions_of(sense), letter_position_))
+
+
+def _is_exclusive(sense) -> bool:
+    """Does the authority say the letter carries this sense ONLY there?
+
+    Anything but the explicit `exclusive` marker reads as dominant — an absent
+    or unknown value must not be able to close a door by accident.
+    """
+    kind = sense.get("position_kind") if isinstance(sense, dict) else None
+    return (kind or "").strip() == POSITION_EXCLUSIVE
+
+
+def applies_at(sense, letter_position_: str) -> bool:
+    """Is this sense eligible where the letter actually sits?
+
+    Only an EXCLUSIVE position can answer no. A dominant one is a tendency the
+    author measured, and a tendency excludes nothing — it ranks. Public because
+    the inventory path needs the same answer as the constrained one.
+    """
+    if not _is_exclusive(sense):
+        return True
     return bool(_position_fit(_positions_of(sense), letter_position_))
 
 
@@ -179,11 +219,13 @@ def select_for_letter(senses, core_axes, antonyms: dict[str, str],
             rejected[i] = REASON_CONFLICTING_AXIS
             continue
         positions = _positions_of(sense)
-        if not _position_fit(positions, position):
+        if not applies_at(sense, position):
             # Checked BEFORE the axis test, and the order is the message: a sense
-            # the authority scopes elsewhere is not a candidate here at all, so
-            # «it does not apply at this position» is the informative reason even
-            # when it would also have shared no axis with this particular core.
+            # the authority scopes EXCLUSIVELY elsewhere is not a candidate here
+            # at all, so «it does not apply at this position» is the informative
+            # reason even when it would also have shared no axis with this core.
+            # A merely dominant position never reaches this branch — it is a
+            # proportion, and a proportion excludes nothing.
             rejected[i] = REASON_WRONG_POSITION
             continue
         shared = axes & core

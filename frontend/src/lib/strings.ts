@@ -17,6 +17,7 @@
 import type {
   Confidence,
   CoreStatus,
+  PositionKind,
   DiscardReason,
   MatchedRule,
   Polarity,
@@ -188,6 +189,14 @@ const CORE_STATUSES: Record<CoreStatus, string> = {
   not_curated: "أصلٌ مذكورٌ عند ابن فارس، لم يُسجَّل بعدُ في هذا المشروع",
   not_recorded: "لا أصلَ مُسجَّلًا في هذا المشروع لهذا الجذر",
   no_asl_in_source: "لم يذكر ابن فارس أصلًا لهذا الجذر",
+};
+
+/** What a stated position claims. Shown beside the position itself, because
+ *  «mostly in final» and «only in final» are different claims and the page
+ *  should not let a proportion read as a rule. */
+const POSITION_KINDS: Record<PositionKind, string> = {
+  exclusive: "حصراً",
+  dominant: "غالباً",
 };
 
 const POSITIONS: Record<SensePosition, string> = {
@@ -406,6 +415,7 @@ export const S = {
     lettersHeading: "حروف الجذر — المخارج والصفات",
     positionLabel: "الموضع",
     position: POSITIONS,
+    positionKind: POSITION_KINDS,
     /** «3 وجوه» — how many senses the letter's bundle holds. */
     senseCount: (n: number) => count(n, NOUNS.wajh),
 
@@ -455,7 +465,7 @@ export const S = {
     inventoryHeading: "وجوه الحروف — جردٌ غير مقيَّد",
     /** The out-of-position half of the inventory. Shown, never dropped: the
      *  reader is told the sense exists and where its authority puts it. */
-    inventoryElsewhereHeading: "وجوهٌ نصَّ أصحابُها على موضعٍ آخر من اللفظة",
+    inventoryElsewhereHeading: "وجوهٌ نصَّ أصحابُها على موضعٍ آخر من اللفظة حصراً",
     inventoryNote:
       "وجوهٌ مسنَدةٌ لكلِّ حرف، معروضةٌ كما هي؛ لم يُختَر منها شيء، ولم تُركَّب منها قراءة.",
 
