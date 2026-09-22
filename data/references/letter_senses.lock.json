@@ -10,11 +10,11 @@
     ],
     "digest_note": "sha256 over the RAW BYTES of letter_senses.csv. Reformatting trips it too, and that is intended: a curated dataset does not get touched by accident."
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "frozen_on": "2026-09-22",
   "target": "data/references/letter_senses.csv",
-  "sha256": "0a44bd3f08e71e163ad15ba5e1631397e98cbd80dc206bf3e415e353455191e9",
-  "rows": 59,
+  "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
+  "rows": 58,
   "letters": 28,
   "history": [
     {
@@ -23,6 +23,13 @@
       "sha256": "0a44bd3f08e71e163ad15ba5e1631397e98cbd80dc206bf3e415e353455191e9",
       "reason": "Initial freeze, taken at the end of the constrain-lisan-by-root-core change and before any further root curation. 59 senses over the 28 base letters.",
       "source": "حسن عباس، خصائص الحروف العربية ومعانيها (1998) — every row page-cited; see the per-row `source` and `page` columns."
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-09-22",
+      "sha256": "d6cea0c4e1958766b3a58a0f557ae8e51e111505ec1983094942bb77dcc16636",
+      "reason": "Merged the sheet's only duplicate. `masha-medial` and `masha-final` carried an identical gloss and identical axes for ح, differing only in `position` — one statement of the author transcribed twice, not two uses. He states it once, over two positions at once: «في الآخر والوسط: تغلب المشاعر الإنسانية والأصوات والرقة والصفاء مع الحرارة والميل». The merged row `masha` therefore carries `position: medial;final`, which is also why `position` became a `;`-separated set: `any` would contradict the different «في الأول» he states separately, and two rows keep the duplicate. No other row changed.",
+      "source": "حسن عباس، خصائص الحروف العربية ومعانيها، ص 180-189 (position_notes de ح dans arabic_letter_semantics_hasan_abbas.json)"
     }
   ]
 }

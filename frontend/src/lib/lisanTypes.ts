@@ -66,7 +66,8 @@ export interface LetterSense {
   gloss_ar: string;
   pole: Polarity;
   axes: string[];
-  position: SensePosition;
+  /** A SET: «في الآخر والوسط» is one statement over two positions. */
+  position: SensePosition[];
   gesture_ar: string;
   source: string;
   page: string;

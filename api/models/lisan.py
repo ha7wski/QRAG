@@ -48,7 +48,11 @@ class LetterSense(BaseModel):
     gloss_ar: str
     pole: str                          # "positive" | "negative" | "neutral"
     axes: list[str] = []
-    position: str                      # "initial" | "medial" | "final" | "any"
+    # A SET of positions, not one. Ḥasan ʿAbbās states «في الآخر والوسط» as a
+    # single predicate over two positions; two rows for that was the sheet's only
+    # duplicate gloss, and `any` would contradict the different «في الأول» he
+    # states separately. `["any"]` means he states no position for the sense.
+    position: list[str] = []           # of "initial" | "medial" | "final" | "any"
     gesture_ar: str = ""
     source: str
     page: str

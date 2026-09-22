@@ -95,6 +95,9 @@ def _senses() -> dict[str, list[dict]]:
             continue
         sense = {f: (row.get(f) or "").strip() for f in _SENSE_FIELDS}
         sense["axes"] = _split_list(row.get("axes", ""))
+        # A SET of positions, not one: Ḥasan ʿAbbās states «في الآخر والوسط»
+        # as a single predicate over two positions. A blank cell means `any`.
+        sense["position"] = _split_list(row.get("position", "")) or ["any"]
         by_letter.setdefault(letter, []).append(sense)
     return by_letter
 
@@ -141,7 +144,10 @@ def describe(letter: str) -> dict:
         # Copied out of the process-wide cache on every call: a caller that
         # annotated a sense in place (the selection step hands these dicts
         # straight to the API layer) would otherwise poison every later request.
-        "senses": [dict(s, axes=list(s["axes"])) for s in _senses().get(glyph, ())],
+        "senses": [
+            dict(s, axes=list(s["axes"]), position=list(s["position"]))
+            for s in _senses().get(glyph, ())
+        ],
     }
 
 

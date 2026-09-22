@@ -57,7 +57,9 @@ from quran_data.paths import LETTER_SENSES_CSV  # noqa: E402
 # ── the closed enumerations both datasets are checked against ────────────────
 POLARITIES = ("positive", "negative", "neutral")   # root_cores.json
 POLES = ("positive", "negative", "neutral")        # letter_senses.csv
-POSITIONS = ("initial", "medial", "final", "any")
+POSITION_ANY = "any"
+SPECIFIC_POSITIONS = ("initial", "medial", "final")
+POSITIONS = SPECIFIC_POSITIONS + (POSITION_ANY,)
 CONFIDENCES = ("verified", "high", "summary")
 
 # The 28 base consonants of the framework. Hamza seats (أ إ ؤ ئ آ ٱ) fold to ء
@@ -214,6 +216,11 @@ def asl_segments(row: dict) -> list[str]:
     """The individual aṣl of a Maqāyīs row, in order (same split as the store)."""
     text = row.get("asl_text") or ""
     return [s for s in text.split(ASL_DELIM) if s.strip()]
+
+
+def _split_cell(value: str) -> list[str]:
+    """Split a ';'-separated dataset cell, trimmed, empties dropped."""
+    return [part.strip() for part in (value or "").split(";") if part.strip()]
 
 
 def _text(value) -> str:
@@ -473,7 +480,7 @@ def check_letter_senses(rows: list[dict], antonyms: dict[str, str],
         if not _text(row.get("gloss_ar")):
             findings.append(f"{where}: empty `gloss_ar`")
 
-        axes = [a.strip() for a in _text(row.get("axes")).split(";") if a.strip()]
+        axes = _split_cell(_text(row.get("axes")))
         if not axes:
             findings.append(
                 f"{where}: empty `axes` — an untagged sense can never share an axis "
@@ -490,13 +497,36 @@ def check_letter_senses(rows: list[dict], antonyms: dict[str, str],
                 "opposed to itself is rejected against every core that shares either"
             )
 
-        for field, allowed in (("pole", POLES), ("position", POSITIONS),
-                               ("confidence", CONFIDENCES)):
+        for field, allowed in (("pole", POLES), ("confidence", CONFIDENCES)):
             value = _text(row.get(field))
             if value not in allowed:
                 findings.append(
                     f"{where}: `{field}` is «{value}», expected one of {', '.join(allowed)}"
                 )
+
+        # `position` is a SET, `;`-separated like `axes`: Ḥasan ʿAbbās states
+        # «في الآخر والوسط» as ONE predicate over two positions, and splitting
+        # that into two rows is what produced the sheet's only duplicate gloss.
+        positions = _split_cell(_text(row.get("position")))
+        for value in positions:
+            if value not in POSITIONS:
+                findings.append(
+                    f"{where}: `position` names «{value}», expected one of "
+                    f"{', '.join(POSITIONS)}"
+                )
+        if len(positions) != len(set(positions)):
+            findings.append(f"{where}: `position` repeats a value")
+        if POSITION_ANY in positions and len(positions) > 1:
+            findings.append(
+                f"{where}: `position` names «{POSITION_ANY}» beside a specific "
+                "position — `any` already covers every one of them"
+            )
+        if set(positions) == set(SPECIFIC_POSITIONS):
+            findings.append(
+                f"{where}: `position` names all three specific positions; that is "
+                f"«{POSITION_ANY}» written the long way, and only `any` is read as "
+                "«the authority states no position»"
+            )
 
         # The citation gate. Refusing an uncited sense is what keeps the curation
         # from being authored to fit whichever root the curator was looking at —

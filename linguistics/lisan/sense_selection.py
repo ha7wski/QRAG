@@ -74,9 +74,29 @@ def letter_position(index: int, root_length: int) -> str:
     return POSITION_MEDIAL
 
 
-def _position_fit(sense_position: str, letter_position_: str) -> int:
+def _positions_of(sense) -> tuple[str, ...]:
+    """A sense's declared positions, as a tuple — a SET, never one value.
+
+    Ḥasan ʿAbbās does not always speak one position at a time: for ح he states
+    «في الأول: …» and then «**في الآخر والوسط**: …» — one predicate covering two
+    positions. Encoding that as two rows produced the only duplicate the sheet
+    ever held (identical gloss, identical axes, two `position` cells); encoding
+    it as `any` would contradict the «في الأول» he states separately. A list is
+    the only shape that says exactly what he says.
+
+    A blank cell means `any`: a sense that names no position is not restricted
+    to one.
+    """
+    raw = sense.get("position") if isinstance(sense, dict) else None
+    if isinstance(raw, str):
+        raw = [p.strip() for p in raw.split(";") if p.strip()]
+    return tuple(raw or (POSITION_ANY,))
+
+
+def _position_fit(sense_positions, letter_position_: str) -> int:
     """1 when the sense applies where the letter actually sits, else 0."""
-    return 1 if sense_position in (letter_position_, POSITION_ANY) else 0
+    positions = set(sense_positions)
+    return 1 if (letter_position_ in positions or POSITION_ANY in positions) else 0
 
 
 def _conflicting_axes(core_axes, antonyms: dict[str, str]) -> set[str]:
@@ -136,7 +156,7 @@ def select_for_letter(senses, core_axes, antonyms: dict[str, str],
         if not shared:
             rejected[i] = REASON_NO_SHARED_AXIS
             continue
-        fit = _position_fit(sense.get("position") or POSITION_ANY, position)
+        fit = _position_fit(_positions_of(sense), position)
         confidence = _CONFIDENCE_RANK.get(sense.get("confidence") or "", 0)
         eligible.append(((len(shared), fit, confidence, -i), i, sense, shared))
 
@@ -150,10 +170,10 @@ def select_for_letter(senses, core_axes, antonyms: dict[str, str],
         # `axis-match+position` only when the sense named the letter's ACTUAL
         # position. `any` fits everywhere, so reporting it as a positional match
         # would claim evidence the citation never gave.
-        sense_position = selected.get("position") or POSITION_ANY
+        sense_positions = _positions_of(selected)
         rule = (RULE_AXIS_MATCH_POSITION
-                if sense_position != POSITION_ANY
-                and _position_fit(sense_position, position)
+                if POSITION_ANY not in sense_positions
+                and _position_fit(sense_positions, position)
                 else RULE_AXIS_MATCH)
 
     discarded = [
