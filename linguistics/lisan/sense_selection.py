@@ -30,11 +30,26 @@ which is what keeps the same input reproducible across processes.
 """
 from __future__ import annotations
 
-# The three positions a sense may be scoped to, plus `any`. `any` is the default
-# in the dataset (Ḥasan ʿAbbās does not state a position for every sense), so it
-# must cost nothing: it scores a position fit of 1 — the sense does apply here —
-# while `selection_rule` still records that it did not match the letter's ACTUAL
-# position, so a reader can tell a real positional match from a default.
+# The three positions a sense may be scoped to, plus `any`.
+#
+# Position is an ELIGIBILITY GATE, not just a ranking term. It used to be only
+# the second term of the ranking tuple, so a sense scoped to the start of a word
+# stayed selectable in the middle of one — the page showed ر «في بدايات المصادر»
+# and «في أواخر المصادر» for the ر of م-ح-ر-ا-ب, which sits in the middle. A
+# position printed beside a sense that ignores it is worse than no position at
+# all: it looks like evidence.
+#
+# `any` is the dataset's default — Ḥasan ʿAbbās states no position for most
+# senses — and it must keep costing nothing: it passes the gate everywhere and
+# scores a fit of 1, while `selection_rule` still records that it did not match
+# the letter's ACTUAL position, so a reader can tell a real positional match from
+# a default.
+#
+# NOTE what this gate did to the meaning of the stored values: `final` used to
+# say «prefers the end», it now says «only at the end». Every value in the sheet
+# was re-read under that stronger reading before this landed; see
+# `documentation/lisan-constrained-reading.md` §3.3 for the three rows whose
+# authority is comparative rather than exclusive.
 POSITION_INITIAL = "initial"
 POSITION_MEDIAL = "medial"
 POSITION_FINAL = "final"
@@ -43,6 +58,7 @@ POSITION_ANY = "any"
 # Rejection reasons, as `api.models.lisan.DiscardedSense.reason` names them.
 REASON_NO_SHARED_AXIS = "no-shared-axis"
 REASON_CONFLICTING_AXIS = "conflicting-axis"
+REASON_WRONG_POSITION = "wrong-position"
 REASON_OUTRANKED = "outranked"
 
 # Selection rules, as `api.models.lisan.LetterReading.selection_rule` names them.
@@ -99,6 +115,16 @@ def _position_fit(sense_positions, letter_position_: str) -> int:
     return 1 if (letter_position_ in positions or POSITION_ANY in positions) else 0
 
 
+def applies_at(sense, letter_position_: str) -> bool:
+    """Does the authority scope this sense to where the letter actually sits?
+
+    Public because the inventory path needs the same answer as the constrained
+    one: a sense filtered out of a reading must not reappear, unfiltered, as an
+    «unconstrained» suggestion for the same letter in the same slot.
+    """
+    return bool(_position_fit(_positions_of(sense), letter_position_))
+
+
 def _conflicting_axes(core_axes, antonyms: dict[str, str]) -> set[str]:
     """The axes declared opposed to one of the core's.
 
@@ -152,11 +178,19 @@ def select_for_letter(senses, core_axes, antonyms: dict[str, str],
         if axes & conflicts:
             rejected[i] = REASON_CONFLICTING_AXIS
             continue
+        positions = _positions_of(sense)
+        if not _position_fit(positions, position):
+            # Checked BEFORE the axis test, and the order is the message: a sense
+            # the authority scopes elsewhere is not a candidate here at all, so
+            # «it does not apply at this position» is the informative reason even
+            # when it would also have shared no axis with this particular core.
+            rejected[i] = REASON_WRONG_POSITION
+            continue
         shared = axes & core
         if not shared:
             rejected[i] = REASON_NO_SHARED_AXIS
             continue
-        fit = _position_fit(_positions_of(sense), position)
+        fit = _position_fit(positions, position)
         confidence = _CONFIDENCE_RANK.get(sense.get("confidence") or "", 0)
         eligible.append(((len(shared), fit, confidence, -i), i, sense, shared))
 
@@ -170,7 +204,7 @@ def select_for_letter(senses, core_axes, antonyms: dict[str, str],
         # `axis-match+position` only when the sense named the letter's ACTUAL
         # position. `any` fits everywhere, so reporting it as a positional match
         # would claim evidence the citation never gave.
-        sense_positions = _positions_of(selected)
+        sense_positions = _positions_of(selected)  # passed the gate already
         rule = (RULE_AXIS_MATCH_POSITION
                 if POSITION_ANY not in sense_positions
                 and _position_fit(sense_positions, position)

@@ -6,6 +6,7 @@ import type {
   Divergence,
   LetterInventory,
   LetterReading,
+  LetterSense,
   LisanResponse,
   Polarity,
   Reading,
@@ -582,6 +583,37 @@ function DivergenceBanner({ divergence }: { divergence: Divergence }) {
 
 /* ── The unconstrained inventory ────────────────────────────────────────── */
 
+/** One inventory row. `positions` prints where its authority scopes it — shown
+ *  only on the out-of-position list, where it is the reason the sense is there. */
+function InventorySense({
+  sense,
+  positions = false,
+}: {
+  sense: LetterSense;
+  positions?: boolean;
+}) {
+  return (
+    <li className="flex flex-wrap items-baseline gap-2">
+      <span className="font-arabic text-base text-gray-700">
+        {sense.gloss_ar}
+      </span>
+      <PoleBadge pole={sense.pole} title={S.lexical.sensePolarityTitle} />
+      {positions && (
+        <span
+          dir="auto"
+          className="rounded bg-gray-100 px-1.5 py-0.5 font-arabic text-[11px] text-gray-500"
+        >
+          {sense.position.map((p) => S.lexical.position[p]).join(" / ")}
+        </span>
+      )}
+      <span dir="auto" className="font-arabic text-[11px] text-gray-400">
+        {S.lexical.senseSource(sense.source, sense.page)}
+      </span>
+    </li>
+  );
+}
+
+
 /**
  * Every sense of every letter, plainly listed and explicitly UNSELECTED. Listing
  * sourced senses is informative; composing them into an assertive paragraph is
@@ -608,28 +640,33 @@ function Inventory({ inventory }: { inventory: LetterInventory[] }) {
               <span className="font-arabic text-3xl leading-none text-brand">
                 {entry.letter}
               </span>
-              <ul className="min-w-0 flex-1 space-y-1.5">
-                {entry.senses.map((sense) => (
-                  <li
-                    key={sense.sense_id}
-                    className="flex flex-wrap items-baseline gap-2"
-                  >
-                    <span className="font-arabic text-base text-gray-700">
-                      {sense.gloss_ar}
-                    </span>
-                    <PoleBadge
-                      pole={sense.pole}
-                      title={S.lexical.sensePolarityTitle}
-                    />
-                    <span
-                      dir="auto"
-                      className="font-arabic text-[11px] text-gray-400"
-                    >
-                      {S.lexical.senseSource(sense.source, sense.page)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="min-w-0 flex-1">
+                <ul className="space-y-1.5">
+                  {entry.senses.map((sense) => (
+                    <InventorySense key={sense.sense_id} sense={sense} />
+                  ))}
+                </ul>
+                {/* Scoped elsewhere by their own authority. Dimmed and headed,
+                    never deleted: the reader is told the sense exists and where
+                    its source puts it, which is the same contract `discarded`
+                    keeps on the constrained path. */}
+                {entry.out_of_position.length > 0 && (
+                  <div className="mt-2 border-t border-gray-100 pt-2">
+                    <p className="mb-1 font-arabic text-[11px] text-gray-400">
+                      {S.lexical.inventoryElsewhereHeading}
+                    </p>
+                    <ul className="space-y-1.5 opacity-60">
+                      {entry.out_of_position.map((sense) => (
+                        <InventorySense
+                          key={sense.sense_id}
+                          sense={sense}
+                          positions
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </li>
         ))}

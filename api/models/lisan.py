@@ -89,7 +89,8 @@ class DiscardedSense(BaseModel):
     """
 
     sense: LetterSense
-    reason: str                        # "no-shared-axis" | "conflicting-axis" | "outranked"
+    # "no-shared-axis" | "conflicting-axis" | "wrong-position" | "outranked"
+    reason: str
 
 
 class LetterReading(BaseModel):
@@ -131,11 +132,19 @@ class Reading(BaseModel):
 
 
 class LetterInventory(BaseModel):
-    """The unconstrained path: a letter's whole bundle, nothing selected."""
+    """The unconstrained path: a letter's bundle, nothing selected.
+
+    `senses` holds those the authority scopes to where this letter actually
+    sits; `out_of_position` holds the rest — kept on the page rather than
+    dropped, the way `discarded` keeps a rejected sense on the constrained path.
+    Offering the ر of ح-ر-ب a sense its own source scopes to «بدايات المصادر»
+    prints a position beside a sense that ignores it, which reads as evidence.
+    """
 
     index: int
     letter: str
     senses: list[LetterSense] = []
+    out_of_position: list[LetterSense] = []
 
 
 class IshtiqaqItem(BaseModel):

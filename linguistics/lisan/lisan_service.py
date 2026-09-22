@@ -324,18 +324,35 @@ class LisanService:
         # ── no core: the inventory path, labelled, with no synthesis ──────
         if not cores:
             status = self.core_status(root)
-            inventory = [
-                {
+            # Position applies on THIS path too. The inventory is «the senses
+            # of this letter», and a letter sits somewhere: showing the ر of
+            # ح-ر-ب — a middle letter — «الثبات … في بدايات المصادر» and
+            # «انتهاء الأحداث بحركة في أواخر المصادر» offers the reader two
+            # senses their own authority scopes elsewhere.
+            #
+            # They are moved, not deleted. `out_of_position` keeps them on the
+            # page with their positions visible, the same way `discarded` keeps
+            # a rejected sense on the constrained path: this feature never
+            # improves a reading by hiding what it dropped.
+            total = len(letters)
+            inventory = []
+            for i, d in enumerate(letters):
+                here = sense_selection.letter_position(i, total)
+                applies, elsewhere = [], []
+                for sense in d.get("senses", ()):
+                    bucket = applies if sense_selection.applies_at(sense, here) else elsewhere
+                    bucket.append(sense)
+                inventory.append({
                     "index": i + 1,
                     "letter": d.get("letter", ""),
-                    "senses": list(d.get("senses", [])),
-                }
-                for i, d in enumerate(letters)
-            ]
+                    "senses": applies,
+                    "out_of_position": elsewhere,
+                })
             inventory_axes = {
                 axis
                 for entry in inventory
-                for sense in entry["senses"]
+                for key in ("senses", "out_of_position")
+                for sense in entry[key]
                 for axis in sense.get("axes", [])
             }
             return {

@@ -35,7 +35,12 @@ export type SelectionRule = "axis-match" | "axis-match+position" | "unmatched";
 export type MatchedRule = Exclude<SelectionRule, "unmatched">;
 
 /** Why a sense lost. `outranked` was eligible; the other two never were. */
-export type DiscardReason = "no-shared-axis" | "conflicting-axis" | "outranked";
+export type DiscardReason =
+  | "no-shared-axis"
+  | "conflicting-axis"
+  /** The authority scopes this sense to another place in the word. */
+  | "wrong-position"
+  | "outranked";
 
 /** How well sourced a sense is. Ranks verified > high > summary in the backend. */
 export type Confidence = "verified" | "high" | "summary";
@@ -133,6 +138,9 @@ export interface LetterInventory {
   index: number;
   letter: string;
   senses: LetterSense[];
+  /** Senses the authority scopes elsewhere in the word — kept visible, not
+   *  dropped, the way `discarded` is on the constrained path. */
+  out_of_position: LetterSense[];
 }
 
 export interface IshtiqaqItem {

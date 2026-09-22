@@ -280,6 +280,15 @@ Two rules are worth knowing before curating:
   `["khubth", "tib"]` conflicts with every sense at once, so the root reads
   entirely unmatched and nothing in the response points at the dataset.
 
+- **`position` is a gate, and it is `;`-separated.** A sense applies only where
+  its authority scopes it; `any` — the value of most rows — means the authority
+  states no position, so it applies everywhere. A sense may name two positions,
+  because Ḥasan ʿAbbās does («في الآخر والوسط» is one predicate). The gate made
+  `final` mean «only at the end» where it had meant «prefers the end», so every
+  value was re-read under that stronger sense at lock v1.1.0; three rows whose
+  authority is comparative are flagged in the lock's history, not changed.
+  Never fill a position the author does not state: `any` is the honest default.
+
 - **The letter sheet is FROZEN, and the validator enforces it.**
   `letter_senses.lock.json` pins a semantic `version` plus the sha256 of
   `letter_senses.csv`'s raw bytes. Roots are curated against a FIXED sheet,

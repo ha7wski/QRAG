@@ -199,7 +199,51 @@ plus d'étapes.
 **perdu** `abbas_meaning*` / `abbas_keywords*`. Un CSV dénormalisé unique répéterait
 `makhraj_ar` sur chaque ligne de sens et les laisserait diverger.
 
-**Ce fichier est gelé** (`letter_senses.lock.json`, v1.0.0) : les racines se curent contre
+#### La colonne `position`, et le pont مصدر ↔ racine
+
+`position` est une **liste** (`;`-séparée) de `initial` / `medial` / `final`, ou `any`.
+Elle n'est **jamais déduite** : elle n'est renseignée que là où Ḥasan ʿAbbās énonce
+explicitement un emplacement, et `any` — la valeur des 37 lignes restantes — signifie « il
+n'en énonce aucun », pas « partout par défaut ». La règle de curation, vérifiable ligne à
+ligne : le `core_meaning` de l'auteur (non situé) devient une ligne `any`, ses
+`position_notes` deviennent les lignes situées.
+
+Un sens peut nommer **deux** positions, parce que l'auteur le fait : pour ح, « في الآخر
+**و**الوسط » est un seul énoncé couvrant deux emplacements (§8.1, v1.0.1).
+
+**Le pont, et c'est une hypothèse, pas un fait.** L'auteur ne parle pas tous de la même
+unité : il situe dans le **مصدر** (ر، م), dans la **لفظة** (ء، ب، ث، ح، ظ، غ), dans les
+**أسماء** (ي en finale), ou sans préciser (س، ع، ف، ن، ه). L'outil, lui, lit une **racine**
+et calcule la position *dans la racine* — 1re, médiane, dernière.
+
+Le pont retenu : pour une racine trilitère saine, le maṣdar de base (فَعْل، فِعَال…)
+conserve les lettres de la racine dans l'ordre, la 1re ouvrant le mot et la 3e le fermant.
+Position dans la racine ≈ position dans le mot, **pour la forme nue**. Il casse dès qu'une
+forme augmentée préfixe ou infixe : dans **محراب** (مَفْعَال), ح n'ouvre pas le mot, elle
+est seconde. Ce qui est lu reste la **racine** ح-ر-ب, et la page le dit — mais un lecteur
+qui a tapé محراب voit « ح أول » et doit comprendre « première de la racine », pas « première
+du mot ».
+
+**Trois lignes signalées, non modifiées** (v1.1.0). Leur autorité est **comparative**, pas
+exclusive, et la porte du §4 les lit comme exclusives :
+
+| ligne | ce que dit l'auteur | pourquoi c'est douteux |
+|---|---|---|
+| `ث/unutha-final` | « في آخر الألفاظ (78%) **أكثر منه في أولها (36%)** » | il atteste aussi l'initiale ; la porte l'y exclut |
+| `م/riqqa-initial` | « في المصادر التي تبدأ به **قرابة سبعة أضعاف** المنتهية به » | un rapport entre les deux bouts, pas une restriction |
+| `م/damm-final` | « في المنتهية به **ضعفا** التي تبدأ به » | idem, dans l'autre sens |
+
+Trancher demande un choix de curation — les passer à `initial;final` serait plus fidèle à la
+lettre, mais dissoudrait la tendance que l'auteur mesure. C'est une décision ouverte, pas une
+dette technique.
+
+Notons aussi que `ظ/shidda` («الشدة والقساوة والامتلاء», `any`) mêle le `core_meaning` («وبشيء
+من الشدة والقساوة») et la note « في الوسط: الامتلاء والشدة والقسوة » d'où vient son «الامتلاء».
+La ligne est laissée `any` : la passer à `medial` rendrait la seconde lecture de `ظلم` stérile,
+et une modification de lettre ne se justifie jamais par son effet sur une racine — dans un sens
+comme dans l'autre.
+
+**Ce fichier est gelé** (`letter_senses.lock.json`, v1.1.0) : les racines se curent contre
 une feuille de lettres fixe, et une lettre ne change que par une nouvelle version sourcée.
 Le pourquoi et le comment sont au §8.1 — ils appartiennent à la procédure de curation, pas
 à la description du format.
@@ -210,10 +254,29 @@ Le pourquoi et le comment sont au §8.1 — ils appartiennent à la procédure d
 
 Pour chaque lettre de la racine, avec **un** noyau (`sense_selection.select_for_letter`) :
 
-1. **Éligibilité.** Garder les sens qui partagent ≥ 1 id d'axe avec le noyau **et** ne
-   portent **aucun** axe déclaré antonyme d'un axe du noyau. L'ordre compte : un sens
-   portant un axe en conflit est rejeté `conflicting-axis` **quels que soient** ses autres
-   recouvrements. Sans conflit et sans axe partagé → `no-shared-axis`.
+1. **Éligibilité**, en trois tests dans cet ordre exact — et l'ordre *est* le message,
+   puisqu'il décide du motif que lira le lecteur :
+   1. **Conflit** — un sens portant un axe déclaré antonyme d'un axe du noyau est rejeté
+      `conflicting-axis` **quels que soient** ses autres recouvrements.
+   2. **Position** — un sens que son autorité situe ailleurs qu'où la lettre se trouve est
+      rejeté `wrong-position`. Il n'est pas candidat *ici*, indépendamment du noyau : c'est
+      un fait plus fondamental que « il ne partage aucun axe avec ce noyau-ci », donc il
+      passe avant. `any` franchit toujours cette porte.
+   3. **Axe partagé** — sans axe commun avec le noyau → `no-shared-axis`.
+
+   > **La porte de position est arrivée après coup, et elle a changé le sens des données.**
+   > `position` n'était que le 2ᵉ terme du tri : un sens situé au début d'un mot restait
+   > sélectionnable au milieu. L'écran affichait, pour le ر de م-ح-ر-ا-ب — une lettre
+   > médiane — «الثبات … في بدايات المصادر» et «انتهاء الأحداث بحركة في أواخر المصادر».
+   > Une position imprimée à côté d'un sens qui l'ignore est pire qu'aucune position : elle
+   > a l'air d'une preuve. En devenant une porte, `final` a cessé de dire « préfère la
+   > finale » pour dire « **uniquement** en finale » — toutes les valeurs stockées ont donc
+   > été relues sous cette lecture plus forte (§3.3 : 21 sur 21 explicites, trois signalées
+   > comme comparatives).
+
+   La porte s'applique **aussi au chemin non contraint** : un sens écarté d'une lecture ne
+   doit pas réapparaître, non filtré, comme suggestion « libre » pour la même lettre au même
+   emplacement. L'inventaire le déplace vers `out_of_position` — visible, jamais supprimé.
 2. **Tri** des éligibles, du plus fort au plus faible, par le tuple fixe :
 
    ```
@@ -221,7 +284,9 @@ Pour chaque lettre de la racine, avec **un** noyau (`sense_selection.select_for_
    ```
 
    *ajustement de position* = 1 si la `position` du sens vaut celle de la lettre dans la
-   racine (`initial`/`medial`/`final`) **ou `any`**, sinon 0. `any` vaut donc 1, pas 0 : c'est
+   racine (`initial`/`medial`/`final`) **ou `any`**, sinon 0. Depuis la porte ci-dessus, tout
+   éligible vaut 1 : le terme ne départage plus rien et il est gardé parce qu'il documente le
+   classement, non parce qu'il l'influence encore. `any` vaut 1, pas 0 : c'est
    la valeur par défaut du dataset (Ḥasan ʿAbbās n'énonce pas de position pour chaque sens) et
    la pénaliser reviendrait à traiter « l'auteur n'a rien précisé » comme « ne s'applique pas
    ici ». En revanche `selection_rule` ne vaut `axis-match+position` que si le sens a nommé la

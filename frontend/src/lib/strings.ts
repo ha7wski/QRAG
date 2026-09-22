@@ -147,6 +147,7 @@ export const NOUNS = {
 const DISCARD_REASONS: Record<DiscardReason, string> = {
   "no-shared-axis": "لا يشترك مع أصل الجذر في محور",
   "conflicting-axis": "يحمل محورًا مضادًّا لمحور الأصل",
+  "wrong-position": "نصَّ صاحبُه على موضعٍ آخر من اللفظة",
   outranked: "مؤهَّل لكنه دون المختار في الترتيب",
 };
 
@@ -452,6 +453,9 @@ export const S = {
     noCoreFallback:
       "لم يُنَصَّ لهذا الجذر على أصلٍ في المعجم المعتمد، فلا تُركَّب له قراءة.",
     inventoryHeading: "وجوه الحروف — جردٌ غير مقيَّد",
+    /** The out-of-position half of the inventory. Shown, never dropped: the
+     *  reader is told the sense exists and where its authority puts it. */
+    inventoryElsewhereHeading: "وجوهٌ نصَّ أصحابُها على موضعٍ آخر من اللفظة",
     inventoryNote:
       "وجوهٌ مسنَدةٌ لكلِّ حرف، معروضةٌ كما هي؛ لم يُختَر منها شيء، ولم تُركَّب منها قراءة.",
 
