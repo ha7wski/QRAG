@@ -139,6 +139,17 @@ def word_function() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def word_prefixes() -> dict:
+    """`{"s:a:w": "وَبِ"}` — the proclitics QAC declares, joined, in reading order.
+
+    Only the 26 001 words that HAVE one are listed; absence means the word opens
+    on its stem. An extract of `qac_words()`'s `segments_detail`, so that reading
+    a word's proclitics costs 0.5 MB instead of that index's 248 MB resident.
+    """
+    return _json("WORD_PREFIXES_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def alignment_overrides() -> dict:
     """The 6 hand-resolved alignment cases the treebank build reads back."""
     return _json("OVERRIDES_JSON")

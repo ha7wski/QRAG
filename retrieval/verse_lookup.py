@@ -19,10 +19,18 @@ Design (isolated but reuses existing infrastructure):
     crossed with `word_index` (that word's character span in the chakl row, 77 429
     of 77 429 aligned). Substring matching survives only as the fallback for a
     root or a verse the spine cannot answer for — see `_match_indices`.
+  - results are grouped by **لفظ** — the WRITTEN form of each occurrence, read
+    off the very token the highlighter marks (`_written_form`). Not by lemma:
+    آيات، آياتنا، آياته are three ألفاظ of the one lemma آيَة, and «how is this
+    word written across the Quran» is the question this page asks. The lemma
+    index stays an internal input, for its `word_refs` and `forms_found`.
   - the ONLY new data dependency is the vocalized corpus
     (`quran_data.paths.QURAN_CHAKL_CSV`), the sole source of fully diacritized
     text (the processed corpus `text_ar` has no harakat). It is reached through
-    `quran_data.corpus.chakl_by_ref()`, never opened here.
+    `quran_data.corpus.chakl_by_ref()`, never opened here. `word_prefixes.json`
+    is read too, lazily: it says which proclitics come off a لفظ, and exists so
+    this path never loads `qac_words.json` (248 MB) to learn them — see
+    `_prefixes`.
 """
 from __future__ import annotations
 
@@ -34,7 +42,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from quran_data.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
-from arabic_text import normalize_search  # noqa: E402
+from arabic_text import bare, normalize_search  # noqa: E402
 from quran_data import loaders, paths  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
     LexicalRetriever,
@@ -54,6 +62,25 @@ _SUPERSCRIPT_ALEF = "ٰ"
 # and what the frontend renders — the waqf marks the chakl CSV writes standalone
 # (ۖ ۗ …) included, so a span index and a `split()` index cannot drift apart.
 _TOKEN_RE = re.compile(r"\S+")
+
+
+def _ref_key(ref: str) -> tuple[int, int, int]:
+    """A `s:a:w` word ref as a recitation-order sort key."""
+    s, a, w = ref.split(":")
+    return int(s), int(a), int(w)
+
+
+def _block_key(block: dict, refs: list[str]) -> tuple[int, int, int]:
+    """A لفظ block's first occurrence, as a recitation-order sort key.
+
+    Falls back to the block's first verse when it carries no refs — the
+    substring-highlighted block a corpus without positions still produces, whose
+    `refs` list is empty and would make `min()` raise.
+    """
+    if refs:
+        return min(_ref_key(r) for r in refs)
+    first = block["verses"][0]
+    return first["surah_number"], first["aya_number"], 0
 
 
 def _narrow(hits: list[int], text: str, spans: list[tuple[int, int]],
@@ -83,9 +110,54 @@ def _norm_match(text: str) -> str:
     return normalize_search(text.replace(_SUPERSCRIPT_ALEF, "ا"))
 
 
+# Wasla alef (U+0671). QAC writes the article both `ٱلْ` (1718 words) and `الْ`
+# (2633), so a declared prefix is compared with it folded to a plene alef. Only
+# the PREFIX side: the vocalized corpus contains `ٱ` in 0 of its 6236 rows, so
+# folding the display token too would be a rule nobody could ever check.
+_ALEF_WASLA = "ٱ"
+_PLENE_ALEF = "ا"
+
+
+def _written_form(token: str, prefix: str) -> str:
+    """The لفظ of one occurrence: the display token as the mushaf writes it,
+    minus the proclitics QAC declares for that word.
+
+    `arabic_text.bare()` and nothing else on the display side. It DELETES the
+    dagger alef, which is what a written form wants — `مُوسَىٰ` → `موسى`. Folding
+    it to a plene alef instead (what `_norm_match` above must do, for a different
+    question) yields `موسىا`, a spelling that occurs nowhere, splitting the name's
+    136 occurrences under a bogus label. The corpus writes a plene alef wherever
+    it means one (`آيَاتِ`), so here the dagger is always a mark.
+
+    No fourth normalizer is added to `arabic_text/`: this composes an existing
+    fold locally, the same move `_norm_match` makes one function up and for the
+    same reason — a shared fold must not widen to serve one caller. And yes, this
+    DISPLAYS what `bare()`'s docstring calls a comparison key: a لفظ is a grouping
+    key that is also its own label. Nothing stores it, least of all as a root,
+    which is the trap that warning is about.
+
+    `prefix` is the joined PREFIX segment string; stripping the join and stripping
+    the segments one at a time agree on all 50 045 displayed occurrences. It is
+    removed ONLY when the folded token actually starts with it, and the token is
+    left alone otherwise — which happens on 156 of those occurrences (171 counting
+    each declared segment separately), correctly every time: 126 are the vocative
+    `يٰ` QAC glues onto the noun it calls, a separate display token the caller's
+    last-token rule has already left behind, and the rest an interrogative hamza
+    or an article that has merged orthographically with the stem and cannot come
+    off without re-spelling the word (`أَأَتَّخِذُ`, `آللَّهُ`, `آلْـَٰٔنَ`).
+    """
+    word = bare(token)
+    key = bare(prefix).replace(_ALEF_WASLA, _PLENE_ALEF)
+    if key and word.startswith(key):
+        return word[len(key):]
+    return word
+
+
 class VerseLookup:
     """Resolve a word to its root(s) and list every verse, vocalized, grouped by
-    lemma (the root's occurrences split per lemma / sense)."""
+    لفظ — the WRITTEN form of each occurrence (آيات، آياتنا، آياته …), not the
+    lemma. The lemma index stays an internal input: it carries the `word_refs`
+    and `forms_found` the position highlighter needs, and reaches no response."""
 
     def __init__(self, retriever: LexicalRetriever | None = None):
         # Reuse the shared morphology index + QAC resolver.
@@ -126,6 +198,9 @@ class VerseLookup:
         # Optional and lazy like the spine; absent → nothing is set apart, which is
         # the behaviour a corpus built before Stage 5 emitted it already had.
         self._word_function_cache: dict[str, str] | None = None
+        # The proclitics QAC declares per word — what makes a لفظ the word minus
+        # its و/ف/ب/ل/ك/س/ٱل. Optional and lazy like the two above; see `_prefixes`.
+        self._prefix_cache: dict[str, str] | None = None
 
         # Per-root token maps and per-verse display spans, both built on demand:
         # a lookup touches a handful of roots, never all 1656.
@@ -177,6 +252,33 @@ class VerseLookup:
             self._spine_cache = sp
         return sp
 
+    def _prefixes(self) -> dict[str, str]:
+        """`s:a:w` → the proclitics QAC declares for that word, joined, in order.
+
+        Lazy and optional exactly like the spine, the lemma index and the tool
+        map: absent, no prefix is removed, so `بِـَٔايَٰتِنَا` reads as its own لفظ
+        instead of joining `آياتنا`. The page still answers.
+
+        This is deliberately NOT `qac_words.json`, which carries the same
+        segmentation inside `segments_detail`: that index costs **248 MB**
+        resident against `word_index.json`'s 64 MB, and this path holds neither.
+        `word_prefixes.json` is the 0.5 MB extract of it that exists for this
+        reader — written by the same build run, so it cannot drift from it.
+        """
+        px = getattr(self, "_prefix_cache", None)
+        if px is None:
+            try:
+                px = loaders.word_prefixes()
+            except loaders.DatasetMissing:
+                px = {}
+                logger.warning(
+                    "VerseLookup: %s not found — ألفاظ keep their proclitics. "
+                    "Run `python -m ingestion.qac_treebank`.",
+                    paths.WORD_PREFIXES_JSON,
+                )
+            self._prefix_cache = px
+        return px
+
     def _display(self, s: int, a: int) -> tuple[str, int, list[tuple[int, int]]] | None:
         """`(displayed text, chakl→display char shift, token spans)`, or None.
 
@@ -198,9 +300,9 @@ class VerseLookup:
             self._spans[(s, a)] = cached
         return cached
 
-    def _tokens_for_root(self, root: str) -> tuple[dict[tuple[int, int], list[int]],
-                                                   set[tuple[int, int]]] | None:
-        """Positions of every word of `root` — the ROOT-level fallback.
+    def _root_positions(self, root: str) -> tuple[dict[str, list[int]],
+                                                  set[tuple[int, int]]] | None:
+        """Per-ref positions of every word of `root` — the ROOT-level fallback.
 
         Used when a lemma group carries no `word_refs`, i.e. a corpus built before
         Chain A recorded them. It cannot separate two lemmas of one root inside a
@@ -212,26 +314,42 @@ class VerseLookup:
             return None
         return self._positions(f"root:{root}", refs)
 
+    def _tokens_for_root(self, root: str) -> tuple[dict[tuple[int, int], list[int]],
+                                                   set[tuple[int, int]]] | None:
+        """The same thing collapsed per verse — a spine `_indices` can consume."""
+        pos = self._root_positions(root)
+        return None if pos is None else (self._per_verse(pos[0]), pos[1])
+
     def _positions(self, key: str, refs: list[str],
                    forms: list[str] | None = None) -> tuple[
-            dict[tuple[int, int], list[int]], set[tuple[int, int]]] | None:
-        """`({(surah, ayah): [token index…]}, {verses these words appear in})`.
+            dict[str, list[int]], set[tuple[int, int]]] | None:
+        """`({word ref: [token index…]}, {verses these words appear in})`.
 
         `refs` are `s:a:w` word refs; `key` names the cache entry (a root, or a
         root+lemma pair). None when the spine cannot answer at all — the signal to
         fall back to substring matching rather than to conclude "no occurrence".
+
+        Indices are kept PER REF, not merged per verse. The لفظ of an occurrence
+        is read off the very token this loop resolves, so collapsing here would
+        throw away the only record of which word produced which index — and one
+        verse can hold two ألفاظ of one root, each belonging to a different block.
+        `_per_verse()` does the collapse where a caller still wants it, over the
+        subset of refs it is highlighting.
 
         The two halves answer different questions, and both are needed: a verse in
         `seen` but absent from the map is one whose words failed to align (fall
         back); a verse in neither is one the word simply is not in (highlight
         nothing). Collapsing them would silently turn one into the other.
         """
+        # Namespaced so an entry can never be read back under the per-VERSE shape
+        # this method used to return; the callers' own keys stay theirs to choose.
+        key = f"byref:{key}"
         cached = self._root_tokens.get(key)
         if cached is not None:
             return cached
         _root_graph, word_index = self._spine()
         norm_forms = [nf for nf in (_norm_match(f) for f in forms or ()) if nf]
-        found: dict[tuple[int, int], list[int]] = {}
+        found: dict[str, list[int]] = {}
         seen: set[tuple[int, int]] = set()
         for ref in refs:
             try:
@@ -259,13 +377,37 @@ class VerseLookup:
             hits = [i for i, (b, e) in enumerate(spans) if b < hi and lo < e]
             hits = _narrow(hits, text, spans, norm_forms)
             if hits:
-                bucket = found.setdefault((s, a), [])
+                # One ref appears once in `refs`, but a defensive merge costs
+                # nothing and keeps the map a function of the ref, not of order.
+                bucket = found.setdefault(ref, [])
                 bucket.extend(i for i in hits if i not in bucket)
         for idx in found.values():
             idx.sort()
         cached = (found, seen)
         self._root_tokens[key] = cached
         return cached
+
+    @staticmethod
+    def _per_verse(by_ref: dict[str, list[int]],
+                   refs: list[str] | None = None) -> dict[tuple[int, int], list[int]]:
+        """Collapse per-ref token indices into the per-verse lists a row marks.
+
+        `refs` restricts the collapse to ONE لفظ's occurrences, which is what makes
+        a verse holding two ألفاظ mark a different word in each block. Passing
+        None collapses everything, the whole-root behaviour `_tokens_for_root`
+        needs for its fallback spine.
+        """
+        out: dict[tuple[int, int], list[int]] = {}
+        for ref in (by_ref if refs is None else refs):
+            hits = by_ref.get(ref)
+            if not hits:
+                continue
+            s, a, _w = (int(x) for x in ref.split(":"))
+            bucket = out.setdefault((s, a), [])
+            bucket.extend(i for i in hits if i not in bucket)
+        for idx in out.values():
+            idx.sort()
+        return out
 
     def _indices(self, s: int, a: int, text: str, forms: list[tuple[str, str]],
                  spine: tuple[dict, set] | None) -> list[int]:
@@ -357,7 +499,7 @@ class VerseLookup:
     # ── occurrence counting ───────────────────────────────────────────────
     @staticmethod
     def _word_count(ref_groups: list[list[str]]) -> int:
-        """Distinct WORDS across the lemma groups actually returned.
+        """Distinct WORDS across the ألفاظ blocks actually returned.
 
         A different question from `total`, which counts ĀYĀT: 40:81 holds two
         words of أيي (`آيَاتِهِ` and `فَأَيَّ`), so it counts once there and twice here
@@ -376,7 +518,7 @@ class VerseLookup:
         """
         return len({ref for refs in ref_groups for ref in refs})
 
-    # ── lemma grouping ────────────────────────────────────────────────────
+    # ── lemma groups: an internal input, never a response shape ───────────
     def _lemma_groups_for_root(self, rk: str) -> list[dict]:
         """The lemma groups of a root (dominant lemma first). Falls back to one
         synthetic group covering the whole root when no lemma index is loaded."""
@@ -432,6 +574,127 @@ class VerseLookup:
                 rows.append(row)
         return rows
 
+    # ── لفظ grouping: one block per written form ──────────────────────────
+    def _form_blocks(self, rk: str, groups: list[dict],
+                     ns: str = "lemma") -> tuple[list[dict], list[list[str]]]:
+        """The ألفاظ of one root: `([block…], [that block's word refs…])`.
+
+        The lemma groups are pooled first and re-split by written form, because a
+        لفظ is a property of the WORD, not of the lemma it was filed under: `آيَاتِهِ`
+        is `آياته` whichever sense QAC assigned it. They are still read one at a
+        time, since `forms_found` is what narrows a multi-token span to the token
+        that actually carries the root (`يَا أَبَتِ` → `أَبَتِ`), and that list is
+        lemma-exact.
+
+        `ns` namespaces the position cache so a proper noun (root `""`) cannot
+        collide with a root's entry.
+        """
+        prefixes = self._prefixes()
+        hits_by_ref: dict[str, list[int]] = {}
+        buckets: dict[str, list[str]] = {}      # لفظ → its word refs
+        seen: set[tuple[int, int]] = set()
+        surfaces: list[str] = []                # every surface form of the root
+        # (group, its refs the spine could not answer for) — None = the whole group.
+        unreadable: list[tuple[dict, list[str] | None]] = []
+
+        for lg in groups:
+            surfaces.extend(lg.get("forms_found") or [])
+            refs = self._lexical_refs(lg)
+            if refs is None:
+                # No `word_refs` — a corpus built before Chain A recorded them.
+                # The root's own occurrences stand in, which cannot tell two
+                # lemmas of one root apart (40:81 = آيَاتِهِ + فَأَيَّ): the degradation
+                # the highlighter already took, now visible in the grouping too.
+                pos = self._root_positions(rk)
+                wf = self._word_function()
+                refs = [r for r in (pos[0] if pos else ()) if r not in wf]
+            elif not refs:
+                # EMPTY is not the same as None: every occurrence of this lemma
+                # serves as a grammatical tool (أَيّ is 215 of أيي's 597 words, all
+                # of them), so the lemma contributes nothing. Reading it as "no
+                # refs recorded" would re-admit the whole root through the
+                # fallback above, tools included.
+                continue
+            else:
+                pos = self._positions(f"{ns}:{rk}|{lg['lemma']}", refs,
+                                      lg.get("forms_found"))
+            if pos is None or not refs:
+                # Nothing positional to read at all: keep the group as ONE block
+                # labelled with its bare lemma and highlighted by substring, which
+                # is what this feature did before positions existed. A لفظ cannot
+                # be derived without knowing which token was marked, and dropping
+                # the occurrences instead would hide verses that do contain the root.
+                unreadable.append((lg, None))
+                continue
+            by_ref, group_seen = pos
+            seen |= group_seen
+            missed: list[str] = []
+            for ref in refs:
+                marks = by_ref.get(ref)
+                lafz = self._lafz(ref, marks, prefixes) if marks else None
+                if lafz is None:
+                    missed.append(ref)       # unaligned word, or no display row
+                    continue
+                hits_by_ref[ref] = marks
+                buckets.setdefault(lafz, []).append(ref)
+            if missed:
+                unreadable.append((lg, missed))
+
+        blocks: list[tuple[tuple[int, int, int], dict, list[str]]] = []
+        for form, block_refs in buckets.items():
+            # `_per_verse` is restricted to THIS لفظ's refs, so a verse holding two
+            # ألفاظ marks a different word in each block it appears in.
+            found = self._per_verse(hits_by_ref, block_refs)
+            verses = self._rows_for(self._verses_of(block_refs), surfaces,
+                                    (found, seen))
+            if not verses:
+                continue
+            blocks.append((
+                min(_ref_key(r) for r in block_refs),
+                {"root": rk, "form": form, "count": len(verses),
+                 "occurrences": len(set(block_refs)), "verses": verses},
+                block_refs,
+            ))
+        for lg, missed in unreadable:
+            listed = self._verses_of(missed) if missed else lg.get("verses", [])
+            verses = self._rows_for(listed, lg.get("forms_found", []), None)
+            if not verses:
+                continue
+            blocks.append((
+                (verses[0]["surah_number"], verses[0]["aya_number"], 0),
+                {"root": rk, "form": bare(lg.get("lemma_display") or lg["lemma"]),
+                 "count": len(verses), "occurrences": len(missed or ()),
+                 "verses": verses},
+                list(missed or ()),
+            ))
+
+        # Recitation position of each لفظ's FIRST occurrence. A canonical order,
+        # not the displayed one: the ordering control is a client concern, exactly
+        # as it already is for the sūra cards.
+        blocks.sort(key=lambda b: b[0])
+        return [b[1] for b in blocks], [b[2] for b in blocks]
+
+    def _lafz(self, ref: str, marks: list[int],
+              prefixes: dict[str, str]) -> str | None:
+        """The written form of the occurrence `ref` marks, or None if unreadable.
+
+        The LAST marked token is the one that carries it: QAC merges a proclitic
+        particle into the word it governs (`يحسرتى` for the two display tokens
+        `يَا حَسْرَتَا`), and Arabic writes the particle first, so the lexical head
+        comes last. Only one occurrence of 50 045 still marks two tokens after
+        `_narrow`, and it is exactly that shape.
+        """
+        try:
+            s, a, _w = (int(x) for x in ref.split(":"))
+        except ValueError:                      # already logged by `_positions`
+            return None
+        disp = self._display(s, a)
+        if disp is None:
+            return None
+        text, _shift, spans = disp
+        start, end = spans[marks[-1]]
+        return _written_form(text[start:end], prefixes.get(ref, "")) or None
+
     # ── proper-noun fallback (rootless names) ─────────────────────────────
     def _resolve_proper_noun(self, word: str) -> dict | None:
         """Resolve a rootless proper noun (لوط, إبراهيم …). Tries the search-
@@ -453,16 +716,17 @@ class VerseLookup:
 
     # ── main entry ────────────────────────────────────────────────────────
     def lookup(self, word: str) -> dict:
-        """Return the full Verse Lookup result for `word`, grouped by lemma.
+        """Return the full Verse Lookup result for `word`, grouped by لفظ.
 
-        The word resolves to root(s); each root's occurrences are split into its
-        lemmas (e.g. سمو → سماء "heaven" / اسم "name"), so the UI can show the
-        root and the distinct lemmas found under it. Highlighting is per lemma
-        (only that lemma's surface forms are marked in each verse).
+        The word resolves to root(s); each root's occurrences are split by the
+        WRITTEN form they take (أيي → آيات، آياتنا، آيته …), one block per form,
+        and each block marks only its own occurrences — a verse holding two
+        ألفاظ of the root appears in both, marking a different word each time.
 
         When the word has no QAC root it may still be a proper noun (لوط, موسى …),
-        which QAC leaves rootless; those resolve via the proper-noun index and
-        come back as a single group with an empty root and `is_proper_noun`."""
+        which QAC leaves rootless; those resolve via the proper-noun index, are
+        grouped by لفظ the same way, and carry the vocalized name out separately
+        in `proper_noun_display` — the root bar's only source for it."""
         # Resolution order: strict root → proper noun → lenient root. Proper nouns
         # come BEFORE the lenient (clitic-stripping) pass so a name like "لوطًا"
         # resolves to the prophet لوط, not to a spurious root found by peeling its
@@ -473,62 +737,48 @@ class VerseLookup:
             if pn is not None:
                 # A rootless name is absent from the root graph, but Chain A
                 # records its word refs all the same — so it highlights by
-                # position like everything else, and can be counted.
-                refs = pn.get("word_refs") or []
-                spine = (self._positions(f"pn:{pn['lemma']}", refs,
-                                         pn.get("forms_found")) if refs else None)
-                verses = self._rows_for(pn.get("verses", []),
-                                        pn.get("forms_found", []), spine)
+                # position like everything else, and can be counted. It is passed
+                # as a single group with an empty root: its ألفاظ (لوط / لوطا) are
+                # derived exactly as a root's are.
+                forms, refs = self._form_blocks("", [pn], ns="pn")
                 return {
                     "word": word,
                     "root": "",
                     "roots": [],
                     "root_found": True,
                     "is_proper_noun": True,
-                    "occurrences": self._word_count([refs]),
-                    "total": len(verses),
-                    "lemmas": [{
-                        "root": "",
-                        "lemma": pn["lemma"],
-                        "lemma_display": pn.get("lemma_display") or pn["lemma"],
-                        "count": len(verses),
-                        "verses": verses,
-                    }],
+                    "proper_noun_display": pn.get("lemma_display") or pn["lemma"],
+                    "occurrences": self._word_count(refs),
+                    "total": self._distinct_verses(forms),
+                    "forms": forms,
                 }
             roots = self.lex.resolve_roots_lenient(word)  # clitic/alif retries
 
         if not roots:
             return {"word": word, "root": "", "roots": [], "root_found": False,
-                    "is_proper_noun": False, "occurrences": 0, "total": 0,
-                    "lemmas": []}
+                    "is_proper_noun": False, "proper_noun_display": "",
+                    "occurrences": 0, "total": 0, "forms": []}
 
-        lemma_groups: list[dict] = []
-        seen_verses: set[str] = set()
+        forms: list[dict] = []
         emitted_refs: list[list[str]] = []
         for rk in roots:
-            for lg in self._lemma_groups_for_root(rk):
-                refs = self._lexical_refs(lg)
-                # Lemma-exact positions when Chain A recorded them; the
-                # root-level spine otherwise (older corpus), substring last.
-                spine = (self._positions(f"{rk}|{lg['lemma']}", refs,
-                                         lg.get("forms_found"))
-                         if refs else self._tokens_for_root(rk))
-                verses = self._rows_for(
-                    self._verses_of(refs) if refs is not None else lg.get("verses", []),
-                    lg.get("forms_found", []), spine)
-                if not verses:
-                    continue
-                seen_verses.update(
-                    f"{r['surah_number']}:{r['aya_number']}" for r in verses
-                )
-                emitted_refs.append(refs or [])
-                lemma_groups.append({
-                    "root": rk,
-                    "lemma": lg["lemma"],
-                    "lemma_display": lg.get("lemma_display") or lg["lemma"],
-                    "count": len(verses),
-                    "verses": verses,
-                })
+            blocks, refs = self._form_blocks(rk, self._lemma_groups_for_root(rk))
+            forms.extend(blocks)
+            emitted_refs.extend(refs)
+
+        # `_form_blocks` orders by first occurrence WITHIN one root; a homograph
+        # query concatenates several, and the concatenation is not recitation
+        # order — كل reaches أكل / كلل / كيل and put مأكول (105:5) ahead of كلما
+        # (2:20). The order has to be right ON THE WIRE, not merely intended:
+        # the client breaks its count ties by the order it receives, so a wrong
+        # one here does not surface as a wrong order, it surfaces as an arbitrary
+        # one. Only ever reorders a multi-root result; within one root the list
+        # is already sorted and this would be a no-op.
+        if len(roots) > 1:
+            order = sorted(range(len(forms)),
+                           key=lambda i: _block_key(forms[i], emitted_refs[i]))
+            forms = [forms[i] for i in order]
+            emitted_refs = [emitted_refs[i] for i in order]
 
         return {
             "word": word,
@@ -536,10 +786,21 @@ class VerseLookup:
             "roots": roots,
             "root_found": True,
             "is_proper_noun": False,
+            "proper_noun_display": "",
+            # Both are DISTINCT counts over the blocks actually emitted, unchanged
+            # in meaning: مواضع counts words, آيات counts āyāt. They are not the
+            # sums of the blocks — 19 of أيي's 353 āyāt hold two ألفاظ, so the
+            # blocks list 373 rows for 353 āyāt, and a sum would count those twice.
             "occurrences": self._word_count(emitted_refs),
-            "total": len(seen_verses),
-            "lemmas": lemma_groups,
+            "total": self._distinct_verses(forms),
+            "forms": forms,
         }
+
+    @staticmethod
+    def _distinct_verses(blocks: list[dict]) -> int:
+        """Distinct āyāt across the emitted blocks (a verse may sit in several)."""
+        return len({(r["surah_number"], r["aya_number"])
+                    for b in blocks for r in b["verses"]})
 
 
 if __name__ == "__main__":
@@ -547,8 +808,8 @@ if __name__ == "__main__":
     for w in ["السماوات", "صبر", "زقزقة"]:
         r = vl.lookup(w)
         print(f"{w} → root={r['root']!r} found={r['root_found']} total={r['total']} "
-              f"lemmas={len(r['lemmas'])}")
-        for g in r["lemmas"][:3]:
-            print(f"    lemma {g['lemma_display']!r} ({g['root']}): {g['count']} verses"
-                  f" — e.g. {g['verses'][0]['surah_number']}:{g['verses'][0]['aya_number']}"
-                  if g["verses"] else "")
+              f"forms={len(r['forms'])}")
+        for g in r["forms"][:3]:
+            print(f"    لفظ {g['form']!r} ({g['root']}): {g['count']} verses, "
+                  f"{g['occurrences']} occurrences — e.g. "
+                  f"{g['verses'][0]['surah_number']}:{g['verses'][0]['aya_number']}")

@@ -16,6 +16,13 @@ four keyed artifacts every downstream QLisan level (صرفي / نحوي / دلا
                          Maps QAC's canonical word segmentation onto the displayed
                          vocalized rasm (`quran_chakl.csv`), merge-only.
 
+Plus two EXTRACTS of the same parse, so the request path never has to hold
+`qac_words.json` (248 MB resident) to read a few hundred KB of it:
+`word_function.json` (the 297 words that serve as a grammatical tool) and
+`word_prefixes.json` ("surah:ayah:word" -> the joined PREFIX segments of the
+26 001 of 77 429 words that open with one, 0.5 MB). Written by the same run as
+what they are extracted from, so neither can drift from it.
+
 Design notes (verified against the real data):
   * A QAC "word" spans several rows (PREFIX / STEM / SUFFIX segments) sharing
     (chapter_id, verse_id, word_id). Whole-word forms concatenate uthmani_token /
@@ -78,6 +85,7 @@ QAC_SYNTAX = paths.QAC_SYNTAX_JSON
 ROOT_GRAPH = paths.ROOT_GRAPH_JSON
 WORD_INDEX = paths.WORD_INDEX_JSON
 WORD_FUNCTION = paths.WORD_FUNCTION_JSON
+WORD_PREFIXES = paths.WORD_PREFIXES_JSON
 OVERRIDES = paths.OVERRIDES_JSON
 AUDIT = paths.QLISAN_ALIGNMENT_AUDIT_JSON
 
@@ -176,6 +184,37 @@ def _build_word_functions(qac_syntax: dict) -> dict[str, str]:
         if label:
             out[ref] = label
     return dict(sorted(out.items(), key=_ref_sort_key_item))
+
+
+def _build_word_prefixes(qac_words: dict) -> dict[str, str]:
+    """`s:a:w` → the proclitics QAC declares for that word, joined, in order.
+
+    The لفظ shown by «الكلمة في الآيات» is the written word MINUS its proclitics:
+    `بِـَٔايَٰتِنَا` and `ءَايَٰتِنَا` are one لفظ (آياتنا), while the pronoun suffix stays
+    part of it (آياتنا ≠ آيات). The consumer cannot infer the proclitics from the
+    leading letters — that rule would take the first radical off every root
+    beginning with one (`وَلَد` → `لد`, `كِتَاب` → `تاب`) — so it needs the
+    segmentation, which only this build reads.
+
+    Only the segments BEFORE the first non-PREFIX one count: what follows a STEM
+    is not a proclitic of the word (and 2622 words carry two leading PREFIX
+    segments, e.g. `وَ` + `بِ`). They are joined into one string because stripping
+    them one at a time and stripping the join give the identical result on all
+    50 045 displayed occurrences — measured, not assumed.
+
+    26 001 of 77 429 words have one; the others are absent rather than stored
+    empty, which is what keeps this 0.5 MB against `qac_words.json`'s 29 MB.
+    """
+    out: dict[str, str] = {}
+    for ref, rec in qac_words.items():
+        prefix = ""
+        for seg in rec.get("segments_detail") or ():
+            if seg.get("type") != "PREFIX":
+                break
+            prefix += seg.get("uthmani") or ""
+        if prefix:
+            out[ref] = prefix
+    return out
 
 
 def _ref_sort_key_item(item: tuple[str, str]) -> tuple[int, int, int]:
@@ -591,6 +630,8 @@ def run() -> dict:
     _write_json(ROOT_GRAPH, root_graph)
     _write_json(WORD_INDEX, word_index)
     _write_json(WORD_FUNCTION, _build_word_functions(qac_syntax))
+    word_prefixes = _build_word_prefixes(qac_words)
+    _write_json(WORD_PREFIXES, word_prefixes)
     _write_json(AUDIT, audit)
     # Ensure overrides.json exists (seed if absent) so the artifact set is complete.
     if not OVERRIDES.exists():
@@ -603,6 +644,7 @@ def run() -> dict:
     print(f"  word_index.json : {len(word_index):>6} words   -> {WORD_INDEX}")
     print(f"  word_function   : {len(json.loads(WORD_FUNCTION.read_text())):>6} tools"
           f"   -> {WORD_FUNCTION}")
+    print(f"  word_prefixes   : {len(word_prefixes):>6} words   -> {WORD_PREFIXES}")
     print(
         f"  alignment       : {audit['verses_fully_aligned']}/{audit['total_verses']} "
         f"verses ({audit['pct_aligned']}%) "

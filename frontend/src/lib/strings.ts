@@ -239,34 +239,38 @@ export const S = {
     loadingContext: "جارٍ تحميل السياق…",
     root: "الجذر",
     properNoun: "اسم علم",
-    lemmaJump: "اذهب إلى مواضع هذا اللفظ",
+    formJump: "اذهب إلى مواضع هذا اللفظ",
     openInContext: "افتح الآية في سياقها",
     noneFound: "لم يُعثر على آيات قريبة",
     /**
      * Label fragments, not whole sentences. The counted-noun rule of `count()`
      * does not apply here: «عدد الآيات» is a definite plural in an annexation, so
      * one form is correct for every value. They are fragments rather than
-     * functions because the sentence they belong to embeds clickable lemma
-     * buttons, so it has to be composed in JSX (design D5).
+     * functions because the sentence they belong to embeds one clickable button
+     * per لفظ, so it has to be composed in JSX (design D5).
      */
     ayahCountLabel: "عدد الآيات :",
     surahCountLabel: "عدد السور :",
     lafzCountLabel: "عدد الألفاظ :",
     /**
-     * The surah-card ordering control of "Word in Verses". It sorts on «عدد
-     * الآيات» — the count each card already prints — not on مواضع: two of the
-     * three header totals count words, and a control that silently ranked on a
-     * different number than the one on the card would be unreadable.
-     * «حسب المصحف» is the backend's own order and stays the default; the two
-     * others name what is being counted rather than saying تصاعدي/تنازلي, which
-     * would leave "more of what?" unanswered. آياتٍ is a tamyīz — منصوب, and a
-     * sound feminine plural takes kasra there.
+     * The ordering control of "Word in Verses". It sorts on «عدد الآيات» — the
+     * count each row already prints, on the لفظ block header as on the surah
+     * card — not on مواضع: the header also counts words, and a control that
+     * silently ranked on a different number than the one on screen would be
+     * unreadable. «حسب المصحف» is the backend's own order and stays the default;
+     * the two others name what is being counted rather than saying
+     * تصاعدي/تنازلي, which would leave "more of what?" unanswered. آياتٍ is a
+     * tamyīz — منصوب, and a sound feminine plural takes kasra there.
+     *
+     * The label is «الترتيب», not «ترتيب السور» as it read when the control
+     * moved only the surah cards: one selection now orders the لفظ blocks AND
+     * the cards inside them, so naming a single level would be false on screen.
      */
-    sortLabel: "ترتيب السور :",
+    sortLabel: "الترتيب :",
     sortMushaf: "حسب المصحف",
     sortDesc: "الأكثر آياتٍ",
     sortAsc: "الأقلّ آياتٍ",
-    sortGroupLabel: "ترتيب السور",
+    sortGroupLabel: "الترتيب",
   },
 
   qlisan: {

@@ -31,6 +31,7 @@ import type {
   SurahMeta,
   Verse,
   VerseDetail,
+  VerseLookupForm,
   VerseLookupResponse,
   VerseLookupVerse,
 } from "@/lib/types";
@@ -173,7 +174,7 @@ function VerseStudy() {
   );
 }
 
-/** Group a lemma's verses by surah, preserving canonical order (backend sorted). */
+/** Group a لفظ's verses by surah, preserving canonical order (backend sorted). */
 function groupBySurah(verses: VerseLookupVerse[]) {
   const out: { number: number; name: string; verses: VerseLookupVerse[] }[] = [];
   const byNum = new Map<number, number>(); // surah number -> index in out
@@ -187,11 +188,13 @@ function groupBySurah(verses: VerseLookupVerse[]) {
   return out;
 }
 
-/** How the surah cards are ordered. `mushaf` is the backend's own order. */
-type SurahOrder = "mushaf" | "desc" | "asc";
+/** How the results are ordered — BOTH levels, under one selection: the لفظ
+ *  blocks and the surah cards inside them. `mushaf` is the backend's own order
+ *  at each level (blocks by first occurrence, verses in recitation order). */
+type ResultOrder = "mushaf" | "desc" | "asc";
 
 /**
- * Reorder a lemma's surah cards by how many āyāt of that surah hold the root —
+ * Reorder a لفظ's surah cards by how many āyāt of that surah hold the root —
  * the very number each card prints, so the ranking is checkable on screen.
  *
  * Ties are broken by the HIGHER surah number, in both directions (owner's call):
@@ -206,7 +209,7 @@ type SurahOrder = "mushaf" | "desc" | "asc";
  */
 function sortSurahs<T extends { number: number; verses: unknown[] }>(
   groups: T[],
-  order: SurahOrder,
+  order: ResultOrder,
 ): T[] {
   if (order === "mushaf") return groups;
   const sign = order === "desc" ? -1 : 1;
@@ -215,17 +218,55 @@ function sortSurahs<T extends { number: number; verses: unknown[] }>(
   );
 }
 
+/**
+ * Reorder the لفظ blocks by `count` — the block's DISTINCT-āya figure, which is
+ * the number its own header prints, exactly as `sortSurahs` ranks on the number
+ * the card prints.
+ *
+ * Ties go to the EARLIER first occurrence, in both directions. The backend emits
+ * the blocks in first-occurrence order, so a block's index in `forms` IS that
+ * position and there is nothing to recompute from the verses.
+ *
+ * Note the tie-break differs from `sortSurahs`, which prefers the HIGHER surah
+ * number: there the explicit key REVERSES what a stable sort would have done,
+ * here it AGREES with it. It is still written out rather than left to stability,
+ * for the same reason: a tie-break that depends on the backend's emission order
+ * surviving `sort()` is one that changes silently the day either of them moves.
+ *
+ * The copy is deliberate — sorting `forms` in place would mutate the response
+ * object a later render reuses, and with it the header's chip order.
+ */
+function sortForms(
+  forms: VerseLookupForm[],
+  order: ResultOrder,
+): VerseLookupForm[] {
+  if (order === "mushaf") return forms;
+  const sign = order === "desc" ? -1 : 1;
+  // Keyed on object identity: `forms` holds the response's own block objects,
+  // and the rank has to be read BEFORE the copy is reordered.
+  const firstOccurrence = new Map(forms.map((f, i) => [f, i] as const));
+  return [...forms].sort(
+    (a, b) =>
+      sign * (a.count - b.count) ||
+      firstOccurrence.get(a)! - firstOccurrence.get(b)!,
+  );
+}
+
 /** The three-way ordering control shown above the results. A radio group, not
  *  three loose buttons: the options are exclusive, and `aria-checked` is what
- *  tells a screen reader which one is in force. */
-function SurahOrderPicker({
+ *  tells a screen reader which one is in force.
+ *
+ *  ONE control for both levels, deliberately: a second picker for the blocks
+ *  would let the page show ألفاظ ranked by frequency above surah cards still in
+ *  mushaf order, two answers to the same question on one screen. */
+function ResultOrderPicker({
   value,
   onChange,
 }: {
-  value: SurahOrder;
-  onChange: (order: SurahOrder) => void;
+  value: ResultOrder;
+  onChange: (order: ResultOrder) => void;
 }) {
-  const options: [SurahOrder, string][] = [
+  const options: [ResultOrder, string][] = [
     ["mushaf", S.verseStudy.sortMushaf],
     ["desc", S.verseStudy.sortDesc],
     ["asc", S.verseStudy.sortAsc],
@@ -328,8 +369,10 @@ function SurahCard({
   );
 }
 
-/** Tab 1 — one Arabic word → its root's verses, by surah (each surah collapsible),
- *  split per lemma when the root carries several. */
+/** Tab 1 — one Arabic word → its root's verses, split into one collapsible block
+ *  per لفظ (the WRITTEN form: آيات، آياتنا، آياته …), each block holding its surah
+ *  cards, each card holding its verses. The lemma this used to group by does not
+ *  reach the screen in any form — `/qlisan` is where per-word morphology lives. */
 function WordInVerses({
   openInContext,
 }: {
@@ -348,20 +391,23 @@ function WordInVerses({
     "verse-study.word.error",
     null,
   );
-  // Collapsed sets; empty = all open (as before). Surah key = `${root}:${lemma}:${surah}`.
+  // Collapsed sets; empty = all open (as before). A block is keyed
+  // `${root}:${form}` and a surah card `${root}:${form}:${surah}` — the root is
+  // part of the key because homographs can spell one لفظ under two roots, which
+  // is also why the backend keys its blocks on the pair.
   const [collapsedSurahs, setCollapsedSurahs] = useCachedState<Set<string>>(
     "verse-study.word.collapsedSurahs",
     new Set(),
   );
-  const [collapsedLemmas, setCollapsedLemmas] = useCachedState<Set<string>>(
-    "verse-study.word.collapsedLemmas",
+  const [collapsedForms, setCollapsedForms] = useCachedState<Set<string>>(
+    "verse-study.word.collapsedForms",
     new Set(),
   );
   // A reading preference, not per-result state: unlike the collapsed sets below,
   // `run()` deliberately does NOT reset it — a reader who ranked one root by
   // frequency wants the next one ranked the same way.
-  const [surahOrder, setSurahOrder] = useCachedState<SurahOrder>(
-    "verse-study.word.surahOrder",
+  const [order, setOrder] = useCachedState<ResultOrder>(
+    "verse-study.word.order",
     "mushaf",
   );
 
@@ -371,7 +417,7 @@ function WordInVerses({
     setLoading(true);
     setError(null);
     setCollapsedSurahs(new Set());
-    setCollapsedLemmas(new Set());
+    setCollapsedForms(new Set());
     try {
       setData(await verseLookup(w));
     } catch (e) {
@@ -393,40 +439,52 @@ function WordInVerses({
     });
   }
 
-  // Jump from a lemma chip (root bar) to that lemma's result block: expand it if
-  // collapsed, then smooth-scroll it into view.
-  function goToLemma(idx: number, lkey: string) {
-    setCollapsedLemmas((prev) => {
-      if (!prev.has(lkey)) return prev;
+  // Jump from a لفظ chip (root bar) to that لفظ's block: expand it if collapsed,
+  // then smooth-scroll it into view. The index is the position in the ORDERED
+  // list, which is what the block ids are built from — so the chips keep landing
+  // on the right block after the ordering control is used.
+  function goToForm(idx: number, fkey: string) {
+    setCollapsedForms((prev) => {
+      if (!prev.has(fkey)) return prev;
       const next = new Set(prev);
-      next.delete(lkey);
+      next.delete(fkey);
       return next;
     });
     document
-      .getElementById(`lemma-block-${idx}`)
+      .getElementById(`form-block-${idx}`)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // The three header totals answer deliberately different questions.
+  // The blocks, in the order the reader asked for. The header's chip list and
+  // the blocks below it walk this SAME array, so chip order == block order and
+  // `form-block-${idx}` addresses the same block on both sides.
+  const forms = data?.forms ?? [];
+  const orderedForms = sortForms(forms, order);
+
+  // All four header totals are DISTINCT counts over the same filtered set — the
+  // occurrences the blocks below actually display.
   //   مواضع — WORDS, not verses: 7:22 holds الشَّجَرَةَ twice, so شجر is 27 مواضع in
   //           26 آيات. 0 for a rootless proper noun, and then omitted rather than
   //           printed as a zero.
   //   آيات  — DISTINCT over the whole root (the backend's own `total`), so an āya
-  //           holding two lemmas counts once.
-  //   سور   — the SUM of the cards, so the header adds up against what is on
-  //           screen: شجر shows 13 + 7 = 20 even though sūra 56 hosts both lemmas
-  //           (56:72 شَجَرَتَهَا and 56:52 شَجَرٍ) and only 19 sūras hold the root.
-  // The asymmetry is the owner's call. Its cost is real: قوم has 18 lemmas and
-  // announces 225, more than the 114 sūras there are. To go back to a distinct
-  // count, take the size of one Set over every card's verses.
+  //           holding two ألفاظ counts once even though it is listed in two blocks.
+  //   سور   — DISTINCT too: one Set over every block's verses. This reverses the
+  //           old rule, which summed the cards so the header would "add up"
+  //           against what was on screen. Summing survived a handful of lemma
+  //           sections; with one block per لفظ it announces 154 sūras for أيي and
+  //           330 for قوم, past the 114 that exist — a figure that reads as a bug
+  //           whatever it is adding up. The cost of the reversal is that the
+  //           header no longer equals the sum of the block headers, which is
+  //           correct: an āya's sūra is counted once however many ألفاظ it holds.
+  //   ألفاظ — the number of blocks, every one of them listed after the figure.
   const occCount = data?.occurrences ?? 0;
   const ayaCount = data?.total ?? 0;
-  const surahCount = data
-    ? data.lemmas.reduce(
-        (sum, l) => sum + new Set(l.verses.map((v) => v.surah_number)).size,
-        0,
-      )
-    : 0;
+  const surahCount = new Set(
+    forms.flatMap((f) => f.verses.map((v) => v.surah_number)),
+  ).size;
+  // Nothing to order when there is a single block holding a single card; either
+  // axis having more than one member brings the control back.
+  const canOrder = forms.length > 1 || surahCount > 1;
 
   return (
     <div className="space-y-6">
@@ -496,11 +554,13 @@ function WordInVerses({
           ) : (
             <>
               {/* Root bar — sits ABOVE the madār aṣl card. Enlarged root on the
-                  right; totals on the left with the found lemmas listed and
-                  highlighted after the لفظ count. When the root carries many
-                  lemmas (>2), the long lemma list would wrap awkwardly beside the
-                  root, so the bar stacks vertically instead: root on top, the
-                  results below it.
+                  right; totals on the left with every لفظ found listed and
+                  highlighted after the لفظ count. Past 2 ألفاظ the list would
+                  wrap awkwardly beside the root, so the bar stacks vertically
+                  instead: root on top, the results below it. With a median root
+                  at 3 ألفاظ — and أتي at 150 — that is now the normal shape
+                  rather than the exception, which is intended: the list is
+                  complete by decision, never truncated behind a "show more".
 
                   Source order is logical — root first, totals second — and the
                   document's RTL direction is what puts the root on the right.
@@ -510,7 +570,7 @@ function WordInVerses({
                   block axis being direction-independent. */}
               <div
                 className={`gap-2 rounded-lg bg-gray-100 px-4 py-3 ${
-                  !data.is_proper_noun && data.lemmas.length > 2
+                  forms.length > 2
                     ? "flex flex-col items-start"
                     : "flex flex-wrap items-center justify-between"
                 }`}
@@ -529,8 +589,11 @@ function WordInVerses({
                       data.is_proper_noun ? "" : "tracking-widest"
                     }`}
                   >
+                    {/* A name has no root to print, so the response carries its
+                        vocalized spelling as its own field — it used to be read
+                        off the first lemma group, which no longer exists. */}
                     {data.is_proper_noun
-                      ? data.lemmas[0]?.lemma_display
+                      ? data.proper_noun_display
                       : data.root}
                   </span>
                 </span>
@@ -538,33 +601,30 @@ function WordInVerses({
                   lang="ar"
                   className="font-arabic text-lg text-gray-800"
                 >
-                  {/* مواضع leads both shapes; a rootless name has no ألفاظ list. */}
+                  {/* مواضع leads, and is omitted rather than printed as a zero.
+                      The ألفاظ list is shown for a name too: لوط is written both
+                      لوط and لوطا, and hiding that was never a property of names,
+                      only of the lemma grouping this replaced. */}
                   {occCount > 0 ? `عدد المواضع : ${occCount} · ` : ""}
-                  {data.is_proper_noun ? (
-                    `عدد الآيات : ${ayaCount} · عدد السور : ${surahCount}`
-                  ) : (
-                    <>
-                      عدد الآيات : {ayaCount} · عدد السور : {surahCount} · عدد
-                      الألفاظ : {data.lemmas.length} (
-                      {data.lemmas.map((lg, i) => {
-                        const lkey = `${lg.root}:${lg.lemma}`;
-                        return (
-                          <span key={lkey}>
-                            <button
-                              type="button"
-                              onClick={() => goToLemma(i, lkey)}
-                              title={S.verseStudy.lemmaJump}
-                              className="cursor-pointer rounded bg-brand/15 px-1 font-semibold text-brand-dark hover:bg-brand/25"
-                            >
-                              {lg.lemma_display}
-                            </button>
-                            {i < data.lemmas.length - 1 ? "، " : ""}
-                          </span>
-                        );
-                      })}
-                      )
-                    </>
-                  )}
+                  عدد الآيات : {ayaCount} · عدد السور : {surahCount} · عدد
+                  الألفاظ : {forms.length} (
+                  {orderedForms.map((fg, i) => {
+                    const fkey = `${fg.root}:${fg.form}`;
+                    return (
+                      <span key={fkey}>
+                        <button
+                          type="button"
+                          onClick={() => goToForm(i, fkey)}
+                          title={S.verseStudy.formJump}
+                          className="cursor-pointer rounded bg-brand/15 px-1 font-semibold text-brand-dark hover:bg-brand/25"
+                        >
+                          {fg.form}
+                        </button>
+                        {i < orderedForms.length - 1 ? "، " : ""}
+                      </span>
+                    );
+                  })}
+                  )
                 </span>
               </div>
 
@@ -574,7 +634,7 @@ function WordInVerses({
                   the Lisan Analysis link is pushed to the far end — the left.
 
                   `ms-auto` on the link, not `justify-between` on the row: with
-                  the picker hidden (a single-surah root) `justify-between`
+                  the picker hidden (one لفظ in one sūra) `justify-between`
                   would drop its one remaining child back at the start, i.e. the
                   right. An auto inline-start margin pins the link to the end
                   whether or not the picker is there. Source order stays
@@ -584,11 +644,8 @@ function WordInVerses({
                   The link hands Lisan Analysis the SEARCHED word, never the
                   live input, which the reader may already be retyping. */}
               <div className="flex flex-wrap items-center gap-3">
-                {surahCount > 1 && (
-                  <SurahOrderPicker
-                    value={surahOrder}
-                    onChange={setSurahOrder}
-                  />
+                {canOrder && (
+                  <ResultOrderPicker value={order} onChange={setOrder} />
                 )}
                 <Link
                   href={`/lexical?word=${encodeURIComponent(data.word)}`}
@@ -599,67 +656,70 @@ function WordInVerses({
                 </Link>
               </div>
 
-              {/* Verses by surah — each surah independently collapsible (open by
-                  default), in order of appearance. A word with several lemmas
-                  nests its surah groups under a collapsible section per lemma. */}
-              {data.lemmas.map((lg, idx) => {
-                const lkey = `${lg.root}:${lg.lemma}`;
-                const blockId = `lemma-block-${idx}`;
-                const surahs = sortSurahs(groupBySurah(lg.verses), surahOrder);
-                const surahCards = (
-                  <div className="space-y-3">
-                    {surahs.map((g) => {
-                      const skey = `${lkey}:${g.number}`;
-                      return (
-                        <SurahCard
-                          key={skey}
-                          group={g}
-                          open={!collapsedSurahs.has(skey)}
-                          onToggle={() => toggleIn(setCollapsedSurahs, skey)}
-                          openInContext={openInContext}
-                        />
-                      );
-                    })}
-                  </div>
-                );
+              {/* One collapsible block per لفظ (open by default), each holding
+                  its surah cards, each card holding its verses — the two levels
+                  below the block are unchanged.
 
-                // Single lemma (incl. proper nouns): surah list directly, no wrapper.
-                if (data.lemmas.length === 1) {
-                  return (
-                    <div key={lkey} id={blockId} className="scroll-mt-4">
-                      {surahCards}
-                    </div>
-                  );
-                }
-
-                // Several lemmas: collapsible section per lemma (open by default).
-                const lopen = !collapsedLemmas.has(lkey);
+                  The wrapper is rendered even for a SINGLE لفظ, where the lemma
+                  sections it replaces used to drop it and show the surah list
+                  bare. Three reasons: the لفظ is the identity of the group and
+                  the only place the derived spelling is shown as a title (a
+                  reader who typed «الآيات» learns the لفظ is «آيات»); the header
+                  chip has to land on something labelled; and the structure the
+                  spec states has no n=1 case, so a DOM that grows a level at 2
+                  is a special case nothing asked for. The cost, accepted: a
+                  one-لفظ result prints its سور/آيات figures twice — «موسى، عدد
+                  السور : 34، عدد الآيات : 136» a line under the root bar that
+                  just said the same. */}
+              {orderedForms.map((fg, idx) => {
+                const fkey = `${fg.root}:${fg.form}`;
+                const surahs = sortSurahs(groupBySurah(fg.verses), order);
+                const fopen = !collapsedForms.has(fkey);
                 return (
                   <div
-                    key={lkey}
-                    id={blockId}
+                    key={fkey}
+                    id={`form-block-${idx}`}
                     className="scroll-mt-4 overflow-hidden rounded-lg border border-gray-300"
                   >
                     <button
-                      onClick={() => toggleIn(setCollapsedLemmas, lkey)}
+                      onClick={() => toggleIn(setCollapsedForms, fkey)}
                       className="flex w-full items-center justify-between bg-brand-light px-4 py-2.5 text-start hover:brightness-95"
                     >
-                      {/* Format: «اللفظ، عدد السور : M، عدد الآيات : N» */}
+                      {/* Format: «اللفظ، عدد السور : M، عدد الآيات : N» — the
+                          shape the lemma sections used, on the form instead.
+                          Both figures are local to the block: M is its own card
+                          count and N its distinct āyāt, so neither has to agree
+                          with the header's distinct totals above. */}
                       <span className="font-arabic">
                         <span className="text-xl font-bold text-brand-dark">
-                          {lg.lemma_display}
+                          {fg.form}
                         </span>
                         <span className="text-sm text-gray-500">
-                          ، عدد السور : {surahs.length}، عدد الآيات : {lg.count}
+                          ، عدد السور : {surahs.length}، عدد الآيات : {fg.count}
                         </span>
                       </span>
-                      {lopen ? (
+                      {fopen ? (
                         <ChevronDown className="h-4 w-4 text-gray-400" />
                       ) : (
                         <ChevronLeft className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
-                    {lopen && <div className="space-y-3 p-3">{surahCards}</div>}
+                    {fopen && (
+                      <div className="space-y-3 p-3">
+                        {surahs.map((g) => {
+                          const skey = `${fkey}:${g.number}`;
+                          return (
+                            <SurahCard
+                              key={skey}
+                              group={g}
+                              open={!collapsedSurahs.has(skey)}
+                              onToggle={() => toggleIn(setCollapsedSurahs, skey)}
+                              openInContext={openInContext}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -30,11 +30,19 @@ export interface VerseLookupVerse {
   match_indices: number[]; // token indices in `text` to highlight
 }
 
-export interface VerseLookupLemma {
-  root: string; // the root this lemma belongs to
-  lemma: string; // normalized lemma key
-  lemma_display: string; // diacritized lemma label for display
-  count: number; // number of verses under this lemma
+/**
+ * One لفظ — a WRITTEN FORM, not a lemma: the word as the mushaf spells it, marks
+ * removed and proclitics (و/ف/ب/ل/ك/س/ٱل) stripped from the QAC segmentation,
+ * pronoun suffixes kept. So `بِآيَاتِنَا` and `آيَاتِنَا` are one form, `آياتنا`,
+ * while `آيات` and `آياته` are two. The lemma level this replaced is gone from
+ * the response entirely — it survives only as an internal input to the
+ * backend's position-based highlighter.
+ */
+export interface VerseLookupForm {
+  root: string; // the root this form belongs to; "" for a proper noun
+  form: string; // the لفظ itself — undiacritized, already deprefixed
+  count: number; // distinct āyāt in this block
+  occurrences: number; // words carrying this form
   verses: VerseLookupVerse[];
 }
 export interface VerseLookupResponse {
@@ -42,10 +50,15 @@ export interface VerseLookupResponse {
   root: string; // " / "-joined root(s)
   roots: string[]; // every matched root (homographs → several)
   root_found: boolean; // true also for a resolved proper noun
-  is_proper_noun?: boolean; // rootless name (لوط …): lemmas has one group
+  is_proper_noun?: boolean; // rootless name (لوط …)
+  // The vocalized name of a proper noun. Top-level rather than read off the
+  // first group, so that dropping the lemma grouping does not drop the name the
+  // header displays. Optional for the same reason `is_proper_noun` is: it is
+  // meaningless for a rooted word and the backend need not send it.
+  proper_noun_display?: string;
   occurrences?: number; // WORDS carrying the root; 0 for a rootless proper noun
-  total: number; // distinct verses across all lemma groups
-  lemmas: VerseLookupLemma[];
+  total: number; // distinct āyāt across all form blocks
+  forms: VerseLookupForm[]; // one block per written form, first-occurrence order
 }
 
 export interface SearchResponse {

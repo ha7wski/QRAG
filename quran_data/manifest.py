@@ -281,6 +281,23 @@ MANIFEST: dict[str, Entry] = {
         regenerable=True,
         rebuild=PIPELINE,
     ),
+    "WORD_PREFIXES_JSON": Entry(
+        bucket="derived",
+        what="`s:a:w` → the joined PREFIX segments of the 26 001 of 77 429 words "
+             "that open with one, 108 distinct strings (0.5 MB). What makes a "
+             "لفظ in «الكلمة في الآيات» the written word MINUS its proclitics "
+             "(`بِـَٔايَٰتِنَا` and `ءَايَٰتِنَا` are both آياتنا) without inferring them "
+             "from the leading letters — a rule that would turn `وَلَد` into `لد`.",
+        origin="Chain B: an EXTRACT of QAC_WORDS_JSON's `segments_detail`, "
+               "written by the same run so the two cannot drift. Extracted "
+               "rather than read in place because `qac_words.json` costs 248 MB "
+               "resident against `word_index.json`'s 64 MB, and the lookup path "
+               "holds neither today.",
+        producer="ingestion/qac_treebank.py",
+        consumers=("retrieval/verse_lookup.py",),
+        regenerable=True,
+        rebuild=PIPELINE,
+    ),
     "ROOT_GRAPH_JSON": Entry(
         bucket="derived",
         what="1642 roots → 49 967 `s:a:w` refs at WORD granularity (565 KB). "

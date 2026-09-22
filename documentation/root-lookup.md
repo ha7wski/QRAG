@@ -42,19 +42,62 @@ api/routers/verse_lookup.py   →   retrieval/verse_lookup.py (VerseLookup)
      alif plène.
    Les homographes renvoient **plusieurs** racines.
 
-2. **Récupération** — pour chaque racine, on lit ses occurrences dans l'index, **groupées
-   par lemme** (ex. `سمو` → `سماء` « ciel » / `اسم` « nom »).
+2. **Récupération** — pour chaque racine, on lit ses occurrences dans l'index. Le lemme
+   (`lemma_index.json`) reste l'**entrée interne** : il fournit les `word_refs` et les
+   `forms_found` dont le surligneur a besoin. Mais il ne sort plus : le regroupement
+   affiché se fait par **لفظ**, la forme écrite (§ 2 bis).
 
-3. **Affichage vocalisé** — le texte vocalisé (chakl) vient de `data/source/quran_chakl.csv`
+3. **Découpage par لفظ** — chaque occurrence est rangée sous la graphie de son mot.
+   `سمو` ne répond plus « 2 lemmes » mais 17 ألفاظ (`سماء`, `سماوات`, `أسماء`, `اسمه`…).
+   La dérivation est décrite en § 2 bis.
+
+4. **Affichage vocalisé** — le texte vocalisé (chakl) vient de `data/source/quran_chakl.csv`
    via `quran_data.corpus.chakl_by_ref()` (le corpus dérivé `text_ar` n'a **pas** de
-   harakat). Regroupé par sourate, avec le mot **surligné** — par sa **position**, lue
-   dans `root_graph.json` × `word_index.json` (voir
+   harakat). Regroupé par لفظ puis par sourate, avec le mot **surligné** — par sa
+   **position**, lue dans `root_graph.json` × `word_index.json` (voir
    [`root-highlight-alignment-issue.md`](root-highlight-alignment-issue.md)), et non plus
-   par matching de texte. `_match_indices` ne sert plus que de repli.
+   par matching de texte. `_match_indices` ne sert plus que de repli. Le surlignage est
+   **limité au لفظ du bloc** : en 40:81, `آيَاتِ` est marqué dans le bloc `آيات` et
+   `آيَاتِهِ` dans le bloc `آياته`. Une آية portant deux ألفاظ est donc listée deux fois —
+   19 des 353 آيات de `أيي`, soit 373 lignes pour 353 آيات distinctes.
 
-4. **Cas nom propre** — `لوط`, `موسى`, `إبراهيم`… sont **sans racine dans QAC** → résolus
-   via `proper_nouns.json` et renvoyés comme un seul groupe avec racine vide et
-   `is_proper_noun: true`.
+5. **Cas nom propre** — `لوط`, `موسى`, `إبراهيم`… sont **sans racine dans QAC** → résolus
+   via `proper_nouns.json`, découpés par لفظ comme le reste (`لوط` → 2 ألفاظ : `لوط`,
+   `لوطا`), avec racine vide, `is_proper_noun: true`, et le nom vocalisé porté par le
+   champ de tête `proper_noun_display`.
+
+### 2 bis. Le لفظ : comment une forme écrite est dérivée
+
+Un **لفظ** est le mot *tel que le muṣḥaf l'écrit*, pas une entrée de dictionnaire.
+`آيات`, `آياتنا` et `آياته` sont trois ألفاظ du seul lemme `آيَة`. Pour une occurrence :
+
+1. **le dernier token affiché** que le surligneur marque. QAC soude une particule
+   proclitique au mot qu'elle régit (`يحسرتى` pour les deux tokens `يَا حَسْرَتَا`) et
+   l'arabe écrit la particule d'abord : la tête lexicale est donc la dernière. Une seule
+   occurrence sur 50 045 marque encore deux tokens après `_narrow` — c'est exactement
+   celle-là.
+2. **`arabic_text.bare()` et rien d'autre.** Ce repli **supprime** l'alef suscrit U+0670,
+   ce que veut une forme écrite : `مُوسَىٰ` → `موسى`. Le replier en alef plein donnerait
+   `موسىا`, une graphie qui n'existe nulle part, et scinderait les 136 occurrences du nom.
+3. **retrait des proclitiques que QAC déclare**, lus dans `word_prefixes.json`. Jamais
+   déduits des lettres initiales : une regex qui pèle un `و`/`ب`/`ك` initial transformerait
+   `وَلَد` en `لد` et `كِتَاب` en `تاب`. Le préfixe n'est retiré que si le token commence
+   réellement par lui ; ce garde-fou se déclenche sur 156 occurrences sur 50 045 et a
+   raison à chaque fois (le `يٰ` vocatif est un token d'affichage séparé ; une hamza
+   interrogative fondue dans `آللَّهُ` ne peut pas sortir sans réécrire le mot).
+
+Les suffixes pronominaux **font partie** du لفظ (`آياتنا` ≠ `آيات`) ; les proclitiques non
+(`بِآيَاتِنَا` et `آيَاتِنَا` sont un seul لفظ).
+
+**Pourquoi un fichier dédié plutôt que `qac_words.json`** — qui porte pourtant la même
+segmentation : parce qu'il coûte **248 Mo résidents** contre 64 Mo pour `word_index.json`,
+et que le chemin de la requête ne payait ni l'un ni l'autre. `word_prefixes.json` en extrait
+les 0,5 Mo utiles : 26 001 refs, 108 chaînes de préfixe distinctes.
+
+Les blocs sont émis dans l'ordre de **première occurrence, globalement, toutes racines
+confondues**. Le tri par racine seul plaçait `مأكول` (105:5) avant `كلما` (2:20) sur la
+requête homographe `كل` ; le client départage ses égalités sur l'ordre reçu, donc un mauvais
+ordre ne se voit pas comme un ordre faux mais comme un ordre arbitraire.
 
 ### Normalisation : le bon normaliseur au bon endroit
 
@@ -145,13 +188,27 @@ Le module lit le fichier brut ligne par ligne et, pour chaque segment porteur d'
 | **`data/derived/proper_nouns.json`** | lemme normalisé → `{lemma_display, forms_found, verses, count}` | trouve les noms propres sans racine |
 | `data/derived/verses_final.json` | corpus + champ `roots` rempli par verset | (mis à jour au passage) |
 
+Le Stage 5 (`ingestion/qac_treebank.py`) en produit deux autres que ce chemin lit :
+
+| Fichier | Contenu | Rôle |
+|---|---|---|
+| **`data/derived/word_function.json`** | `s:a:w` → أداة نداء / استفهام / شرط | les 297 mots qui servent d'**outil grammatical** : filtrés, jamais listés ni comptés |
+| **`data/derived/word_prefixes.json`** | `s:a:w` → chaîne des segments PREFIX | les proclitiques à retirer pour obtenir le لفظ (26 001 refs, 0,5 Mo, 108 chaînes distinctes) |
+
+Ces deux-là sont des **extraits** de `qac_words.json`, écrits par l'étape qui le produit
+déjà. Ils existent pour une raison mesurée et pas par goût de la découpe :
+`qac_words.json` coûte **248 Mo résidents** contre 64 Mo pour `word_index.json`, et le
+chemin de la requête n'en a besoin que de quelques kilo-octets.
+
 Ces chemins ne sont jamais écrits à la main dans le code : ils viennent des constantes de
 `quran_data/paths.py`, et se lisent via les loaders paresseux de `quran_data/loaders.py`.
 
 ### Reconstruire les index
 
 ```bash
-python -m ingestion.qac_morphology     # rebuild autonome sur le corpus existant
+python -m ingestion.qac_morphology     # Stage 4 : morphology / lemma_index / proper_nouns
+python -m ingestion.qac_treebank       # Stage 5 : word_index / root_graph / word_function /
+                                       #           word_prefixes  (autonome lui aussi)
 # ou, dans le pipeline complet :
 python ingestion/run_pipeline.py
 ```
@@ -204,6 +261,13 @@ annoncées ici ; la première est réglée, la seconde reste ouverte.
   SON lemme et non ceux de ses voisins de racine (40:81 = `آيَاتِهِ` pour آيَة, `فَأَيَّ` pour
   أَيّ). `proper_nouns.json` en porte aussi, ce qui retire les noms propres du repli
   sous-chaîne. Reconstruction : `python -m ingestion.qac_morphology`.
+- **Et un troisième usage, non prévu ici** — la même donnée a rendu possible le
+  regroupement par **لفظ** (§ 2 bis). Savoir *quel token* d'un verset est marqué, c'est
+  aussi savoir *comment il est écrit* ; il ne manquait que les proclitiques, que
+  `word_prefixes.json` fournit. Aucune information nouvelle n'a dû être produite. À noter
+  pour la suite : ce que cette section appelle « stocker la racine par occurrence » s'est
+  révélé plus rentable que son intitulé ne le laissait croire.
+
 ### 5.1 bis. La fonction grammaticale, et pas seulement la racine
 
 Porter une racine ne suffit pas à être une occurrence du **sens** de cette racine. Dans

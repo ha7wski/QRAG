@@ -65,8 +65,17 @@ def strip_harakat(text: str) -> str:
 def bare(text: str) -> str:
     """`text` without any mark at all — harakat, waqf marks and tatweel.
 
-    A COMPARISON KEY, never a value to store or display. This is the widest of
-    the three sets: it is what makes two spellings of the same words comparable
-    regardless of how either was annotated.
+    A COMPARISON KEY, and the widest of the three sets: it is what makes two
+    spellings of the same word comparable regardless of how either was annotated.
+    Never store one where the exact spelling carries meaning — a root stored bare
+    is the trap that silently disabled the curated root lists.
+
+    ONE deliberate exception, and it is a display: a **لفظ** — the written form
+    «الكلمة في الآيات» groups by (`retrieval/verse_lookup.py`) — is this fold of
+    the token the mushaf writes, and it is shown as its own block label. That is
+    not a violation of the rule above; it is a grouping key that happens to be
+    legible, and the thing it keys is spellings, not roots. Note WHY this fold and
+    no other: it deletes the dagger alef U+0670, which a written form wants
+    (`مُوسَىٰ` → `موسى`) where folding it to a plene alef would invent `موسىا`.
     """
     return text.translate(BARE_TABLE)
