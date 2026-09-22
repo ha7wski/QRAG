@@ -159,6 +159,12 @@ class LisanResponse(BaseModel):
     # id → Arabic label for every axis named anywhere above, so the UI renders
     # axis names without holding a copy of the vocabulary.
     axis_labels: dict[str, str] = {}
+    # Why there is no core — set with `warning`, null on every other path.
+    # «no core» has three causes and conflating them made the page state that
+    # Maqāyīs holds no aṣl for حرب, where Ibn Fāris gives three. The project's
+    # own gap (`not_curated`, `not_recorded`) is freely reported; his silence
+    # (`no_asl_in_source`) only where the dataset positively records it.
+    core_status: str | None = None      # "not_curated" | "not_recorded" | "no_asl_in_source"
     warning: str | None = None          # set when `constrained` is false
     synthesis_source: str = "template"  # origin of every `synthesis` (auditable)
     ishtiqaq_akbar: list[IshtiqaqItem] = []

@@ -16,6 +16,7 @@
 
 import type {
   Confidence,
+  CoreStatus,
   DiscardReason,
   MatchedRule,
   Polarity,
@@ -172,6 +173,22 @@ const CONFIDENCES: Record<Confidence, string> = {
 };
 
 /** Where a letter sits, or where a sense applies. */
+/**
+ * Why there is no core — and the headings are asymmetric ON PURPOSE.
+ *
+ * Two of them report OUR gap; only `no_asl_in_source` speaks for Ibn Fāris, and
+ * it is used only where the dataset positively records that his entry states no
+ * aṣl. The page used to head every one of them «لا أصلَ منصوصًا لهذا الجذر»,
+ * which for حرب is false — he gives three aṣl there, and محراب belongs to the
+ * third. A heading that lends an authority a silence he never kept is a factual
+ * error, not a wording preference.
+ */
+const CORE_STATUSES: Record<CoreStatus, string> = {
+  not_curated: "أصلٌ مذكورٌ عند ابن فارس، لم يُسجَّل بعدُ في هذا المشروع",
+  not_recorded: "لا أصلَ مُسجَّلًا في هذا المشروع لهذا الجذر",
+  no_asl_in_source: "لم يذكر ابن فارس أصلًا لهذا الجذر",
+};
+
 const POSITIONS: Record<SensePosition, string> = {
   initial: "أول",
   medial: "وسط",
@@ -427,7 +444,9 @@ export const S = {
     synthesisNoteUnselected: "مُولَّد آليًّا — لم يُعتمد لأيِّ حرفٍ وجه",
 
     /* ── The unconstrained state: no attested aṣl, so no reading ─────── */
-    noCoreHeading: "لا أصلَ منصوصًا لهذا الجذر",
+    /** Keyed on `core_status`; the fallback is used when it arrives null. */
+    noCoreHeading: CORE_STATUSES,
+    noCoreHeadingFallback: "لا أصلَ مُسجَّلًا في هذا المشروع لهذا الجذر",
     /** Used only if the backend `warning` arrives empty — the sentence is the
      *  backend's to write, this is the guarantee that the state is never silent. */
     noCoreFallback:

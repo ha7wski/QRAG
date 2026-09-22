@@ -40,6 +40,14 @@ export type DiscardReason = "no-shared-axis" | "conflicting-axis" | "outranked";
 /** How well sourced a sense is. Ranks verified > high > summary in the backend. */
 export type Confidence = "verified" | "high" | "summary";
 
+/**
+ * Why a root has no core. Two of the three are OUR gap; only `no_asl_in_source`
+ * reports Ibn Fāris' own silence, and the backend sets it only where the dataset
+ * positively records that his entry formulates no aṣl. Absence of a row is
+ * absence of evidence, so it maps to `not_recorded`, never to his silence.
+ */
+export type CoreStatus = "not_curated" | "not_recorded" | "no_asl_in_source";
+
 /** One aṣl of the root, as Ibn Fāris states it. `verbatim` is his own words,
  *  byte-identical to the shipped Maqāyīs segment; `gloss`, `axes` and `polarity`
  *  are curated beside it, never instead of it. */
@@ -155,6 +163,7 @@ export interface LisanResponse {
   /** axis id → Arabic label, for every axis named anywhere in the response. The UI
    *  renders axis NAMES from this map and holds no copy of the vocabulary. */
   axis_labels: Record<string, string>;
+  core_status: CoreStatus | null; // set with `warning`, null on every other path
   warning: string | null; // set when `constrained` is false
   synthesis_source: string; // "template" — every synthesis is deterministic, not LLM
   ishtiqaq_akbar: IshtiqaqItem[];

@@ -2,6 +2,7 @@ import { ChevronDown, Info, Quote, Scale, TriangleAlert } from "lucide-react";
 import SarfiRows from "@/components/SarfiRows";
 import type {
   Confidence,
+  CoreStatus,
   Divergence,
   LetterInventory,
   LetterReading,
@@ -112,7 +113,7 @@ export default function LisanResult({
       {data.constrained ? (
         <CoresCitation cores={data.cores} axisLabels={data.axis_labels} />
       ) : (
-        <UnconstrainedBanner warning={data.warning} />
+        <UnconstrainedBanner warning={data.warning} status={data.core_status} />
       )}
 
       {/* 3 — The letters' phonetic identity. Stable across cores, so it is
@@ -509,12 +510,23 @@ function LetterReadingRow({
  * land here — it is a normal outcome, not an edge case — and the honest empty
  * hand is preferred over the reading that produced the خ-ي-ر bug.
  */
-function UnconstrainedBanner({ warning }: { warning: string | null }) {
+function UnconstrainedBanner({
+  warning,
+  status,
+}: {
+  warning: string | null;
+  status: CoreStatus | null;
+}) {
+  // The heading names WHOSE silence this is. Defaulting a null status to the
+  // project's own gap is the safe direction: an unknown reason must never be
+  // published as «Ibn Fāris states no aṣl».
+  const heading =
+    (status && S.lexical.noCoreHeading[status]) || S.lexical.noCoreHeadingFallback;
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
       <h2 className="flex items-center gap-2 font-arabic font-semibold text-amber-900">
         <TriangleAlert aria-hidden className="h-4 w-4 shrink-0" />
-        {S.lexical.noCoreHeading}
+        {heading}
       </h2>
       <p className="mt-1 font-arabic leading-relaxed text-amber-800">
         {warning || S.lexical.noCoreFallback}

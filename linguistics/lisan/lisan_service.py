@@ -46,18 +46,48 @@ from retrieval.lexical_retriever import clitic_alif_candidates  # noqa: E402
 from linguistics.lisan import letter_lexicon, sense_selection  # noqa: E402
 from linguistics.lisan.root_core_store import RootCoreStore  # noqa: E402
 from linguistics.lisan.synthesis_template import render_synthesis  # noqa: E402
+from linguistics.madar.maqayis_store import MaqayisStore  # noqa: E402
 
 # Interpretive disclaimer (Arabic — the feature is Arabic-only).
 DISCLAIMER = "قراءة رمزية تأويلية لدلالات الحروف، وليست تعريفًا معجميًّا ثابتًا."
 
-# Said out loud, never papered over. At most 1 149 of the 1 656 QAC roots can
-# ever have a Maqāyīs core and the curated set starts far smaller, so this is a
-# normal outcome for a large minority of roots — not an edge case.
-NO_CORE_WARNING = (
-    "لم يُسجَّل لهذا الجذر أصلٌ مُثبَتٌ في «مقاييس اللغة»، "
+# ── why there is no core, and whose silence it is ────────────────────────
+#
+# «No core» has THREE causes and they are not interchangeable. The page used to
+# state one sentence for all of them — «لم يُسجَّل لهذا الجذر أصلٌ مُثبَتٌ في
+# مقاييس اللغة» — which reads as «Ibn Fāris gives no aṣl for this root». For
+# حرب that is simply false: he gives THREE («أحدها السلب، والآخر دويبة، والثالث
+# بعض المجالس»), and محراب belongs to the third. The sentence was lending him a
+# silence that is ours.
+#
+# The rule, and it is asymmetric on purpose: the project may report its OWN
+# gap freely, and may report Ibn Fāris' silence only where the dataset
+# positively records it (`asl_status == "no_asl"`, 14 roots). Absence of a row
+# is absence of evidence — our extraction has gaps — so it falls to the
+# project's side. When in doubt, the silence is ours.
+CORE_STATUS_NOT_CURATED = "not_curated"        # he states an aṣl; we have not transcribed it
+CORE_STATUS_NOT_RECORDED = "not_recorded"      # nothing on record here, and we claim nothing about him
+CORE_STATUS_NO_ASL_IN_SOURCE = "no_asl_in_source"  # his entry itself formulates no aṣl
+
+_INVENTORY_TAIL = (
     "فلا تُبنى عليه قراءةٌ مقيَّدة لحروفه. "
     "وما يلي جردٌ لمعاني حروفه كما وردت عند أصحابها، غيرُ مقيَّدٍ بأصلٍ ولا مختارٍ منه شيء."
 )
+
+NO_CORE_WARNINGS = {
+    CORE_STATUS_NOT_CURATED: (
+        "لهذا الجذر أصلٌ مذكورٌ في «مقاييس اللغة»، غير أنه لم يُسجَّل بعدُ في هذا المشروع، "
+        + _INVENTORY_TAIL
+    ),
+    CORE_STATUS_NOT_RECORDED: (
+        "لم يُسجَّل في هذا المشروع أصلٌ لهذا الجذر، وليس في ذلك نفيٌ لِما ذكره ابن فارس، "
+        + _INVENTORY_TAIL
+    ),
+    CORE_STATUS_NO_ASL_IN_SOURCE: (
+        "لم يذكر ابن فارس لهذا الجذر أصلًا في «مقاييس اللغة»، "
+        + _INVENTORY_TAIL
+    ),
+}
 
 # Source attributions surfaced in the response (framework, not our claim).
 SOURCES = {
@@ -88,9 +118,15 @@ class LisanService:
     hand-built core set and never read `data/`.
     """
 
-    def __init__(self, resolver, core_store=None):
+    def __init__(self, resolver, core_store=None, maqayis=None):
         self.lex = resolver
         self.cores = core_store or RootCoreStore(resolver=resolver)
+        # Read-only, and ONLY to tell «Ibn Fāris says nothing» apart from «we
+        # have not transcribed him yet» — never to build a core. A core is
+        # curated (gloss, axes, polarity are readings of the citation); an aṣl
+        # lifted straight out of the CSV would be an uncurated core wearing a
+        # curated one's clothes, which is exactly what `_is_curated` refuses.
+        self.maqayis = maqayis if maqayis is not None else MaqayisStore()
 
     # ── normalization ─────────────────────────────────────────────────────
     @staticmethod
@@ -98,6 +134,29 @@ class LisanService:
         """Strip diacritics/tatweel and fold hamza SEATS only. Never deletes a
         hamza — reuses the project's root-safe `normalize_root` (bare `ء` kept)."""
         return normalize_root(word)
+
+    # ── whose silence is it? ──────────────────────────────────────────────
+    def core_status(self, root: str) -> str:
+        """Why this root has no curated core — the project's gap, or Ibn Fāris'.
+
+        Only `no_asl` lets us speak for him: that status means the entry was
+        found, read, and formulates no aṣl. Everything else — a `has_asl` row we
+        have not transcribed, a row our parser could not read, or no row at all
+        — is the project's own silence and is reported as such.
+
+        `parse_uncertain` deliberately falls to `not_recorded` rather than
+        `not_curated`: we know his entry exists but not that it yields an aṣl,
+        so claiming «he states one» would be as much of an invention as claiming
+        he states none.
+        """
+        entry = self.maqayis.lookup(root)          # re-normalizes the key itself
+        if entry is None:
+            return CORE_STATUS_NOT_RECORDED
+        if entry.asl_status == "has_asl":
+            return CORE_STATUS_NOT_CURATED
+        if entry.asl_status == "no_asl":
+            return CORE_STATUS_NO_ASL_IN_SOURCE
+        return CORE_STATUS_NOT_RECORDED
 
     # ── root resolution (QAC primary, gated fallback flagged) ─────────────
     def resolve_root(self, word: str) -> dict:
@@ -264,6 +323,7 @@ class LisanService:
 
         # ── no core: the inventory path, labelled, with no synthesis ──────
         if not cores:
+            status = self.core_status(root)
             inventory = [
                 {
                     "index": i + 1,
@@ -285,7 +345,8 @@ class LisanService:
                 "readings": [],
                 "inventory": inventory,
                 "axis_labels": self._axis_labels(inventory_axes),
-                "warning": NO_CORE_WARNING,
+                "core_status": status,
+                "warning": NO_CORE_WARNINGS[status],
             }
 
         # ── constrained: one complete reading per core, never a blend ─────
@@ -318,6 +379,7 @@ class LisanService:
             "readings": readings,
             "inventory": [],
             "axis_labels": self._axis_labels(touched),
+            "core_status": None,
             "warning": None,
         }
 
@@ -334,6 +396,7 @@ class LisanService:
             "readings": [],
             "inventory": [],
             "axis_labels": {},
+            "core_status": None,
             "warning": None,
             "synthesis_source": "template",
             "ishtiqaq_akbar": [],
