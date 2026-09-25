@@ -182,6 +182,78 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_lisan_datasets.py",),
         regenerable=False,
     ),
+    "PHYSICAL_PRIMITIVES_CSV": Entry(
+        bucket="references",
+        what="16 rows, one per (ṣifa feature, primitive), over a CLOSED "
+             "vocabulary of 15 primitives — the whole input of the "
+             "physics-first concept engine (2 KB). Keyed on the feature "
+             "vocabulary alone: it holds no root, no root key and no per-root "
+             "exception. Every row carries a `status` (`attested` | "
+             "`hypothesis`), a `physical_basis` and the lemma set a phrasing "
+             "pass may realise it with.",
+        origin="Written by hand against the ṣifāt vocabulary — before the first "
+               "root was composed and before the collision probe ran. Every row "
+               "ships as `hypothesis`: no known source tabulates the ṣifāt into "
+               "a general quality-to-notion mapping, so the table is this "
+               "project's own construction and says so. That is the condition "
+               "under which k/40 can falsify it.",
+        producer=None,
+        # The engine module that reads it arrives with the engine, in the next
+        # commit. This entry names only what exists in this tree.
+        consumers=("scripts/validate_concept_datasets.py",),
+        regenerable=False,
+    ),
+    "PHYSICAL_PRIMITIVES_LOCK_JSON": Entry(
+        bucket="references",
+        what="The freeze on PHYSICAL_PRIMITIVES_CSV: `version`, `frozen_on`, "
+             "the sha256 of that file's raw bytes, its row/feature/primitive "
+             "counts, and a `history` entry per version carrying its reason and "
+             "a machine-checkable `source` (2 KB).",
+        origin="Written by hand at the moment the table was frozen. The table "
+               "changes only through a new version here justified by a "
+               "FEATURE-level authority — never by a root that read badly, "
+               "which is back-fitting. history[0] records that the table is the "
+               "project's construction and borrows no authority.",
+        producer=None,
+        consumers=("scripts/validate_concept_datasets.py",),
+        regenerable=False,
+    ),
+    "CONCEPT_COLLISION_PROBE_JSON": Entry(
+        bucket="references",
+        what="The §D13 collision-probe record: the fixed comparison criterion, "
+             "the probe's size in ROOTS (7 over 3 classes), the qualification "
+             "table with every probe root's whole aṣl set read from "
+             "MAQAYIS_ASL_CSV and a qualifying/non-qualifying verdict per "
+             "comparison, and — appended later — the probe's realised "
+             "primitives, per-pair outcome and verdict (14 KB).",
+        origin="The qualification half was written by hand and committed BEFORE "
+               "any concept was composed, so the test's denominator is fixed "
+               "before its result is known. The probe half is appended by "
+               "`scripts/run_collision_probe.py`, which refuses to run without "
+               "the qualification and records its digest.",
+        producer=None,
+        # Nothing reads it yet: the runner that appends the probe half arrives
+        # with the engine, in the next commit. An empty tuple is the truthful
+        # entry for a file whose only consumer does not exist in this tree.
+        consumers=(),
+        regenerable=False,
+    ),
+    "CONCEPT_WITNESS_SET_JSON": Entry(
+        bucket="references",
+        what="The 40-root frozen holdout for k/40, with the frame (280 roots), "
+             "the two strata (205 / 75), the seed (20260925), the draw date, "
+             "the exclusions and the replayable procedure (6 KB).",
+        origin="Drawn once with `random.Random(20260925)` before the primitive "
+               "table was written, from triliteral QAC roots that carry a "
+               "Maqāyīs `has_asl` row and ≥20 occurrences, minus the 5 roots "
+               "already curated in root_cores.json and the development case "
+               "ضرب. Committed to data/references/ rather than tests/ — which "
+               "is git-ignored — because a metric nobody cloning the repo can "
+               "re-derive is not a published metric.",
+        producer=None,
+        consumers=("scripts/validate_concept_datasets.py",),
+        regenerable=False,
+    ),
     "ROOT_CORES_JSON": Entry(
         bucket="references",
         what="Attested semantic core(s) per root, keyed on the CANONICAL QAC "

@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "name": "physical-primitives-freeze",
+    "description": "Version tag and content lock for physical_primitives.csv. The quality-to-primitive table is written against the FEATURE vocabulary and frozen BEFORE the first witness root is curated: a root that reads badly is a RESULT to record, never a reason to edit a row.",
+    "policy": [
+      "The table does not move during a root-curation batch.",
+      "A root whose concept misses its attested aṣl is recorded as a miss; no row is added, reglossed or reordered to make it fit.",
+      "A row may change ONLY through a new version here, justified by a FEATURE-level authority — never by a root that did not work.",
+      "scripts/build_physical_primitives_seed.py must never read or write physical_primitives.csv.",
+      "The table borrows no authority it does not have: a row is `attested` only when a named authority states the quality-to-notion mapping at a real page, otherwise it is `hypothesis` and owns the claim."
+    ],
+    "digest_note": "sha256 over the RAW BYTES of physical_primitives.csv. Reformatting trips it too, and that is intended: a frozen table does not get touched by accident."
+  },
+  "version": "1.0.0",
+  "frozen_on": "2026-09-25",
+  "target": "data/references/physical_primitives.csv",
+  "sha256": "a9fa94d162f6e560f139e18615ae711e1b8579a68a064f87f2531fea894d38d6",
+  "rows": 21,
+  "features": 21,
+  "primitives": 20,
+  "history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-09-25",
+      "sha256": "a9fa94d162f6e560f139e18615ae711e1b8579a68a064f87f2531fea894d38d6",
+      "supersedes_draft_sha256": "daccb0b2b3d4af2897592dfe628f4f3a5e9c45bdf4b539c859d6c5372d4ceebc",
+      "reason": "v1.0.0 as shipped: 21 features — the 16 ṣifāt features plus the five classical مخرج zones — mapping onto 20 primitives. The single merge is musta'liya + mutbaqa -> ضخامة.\n\nTHIS IS NOT A BUMP OVER AN EARLIER v1.0.0; it REPLACES a draft that never left the gate. A ṣifāt-only draft (sha256 daccb0b2…, 16 features / 15 primitives) was written first and put through §D13's collision probe BEFORE any witness root was curated. The probe returned `identical` on 5 of 5 qualifying comparisons — حرب=حرج=حرد, تبر=كبر, كود=كيد — because that draft mapped 28 letters onto 18 profiles. §D3 had declared the consequence IN ADVANCE: if the probe confirmed the collision, mapping the five zones becomes v1.0.0 rather than a later lock version. That is what happened, and it is why the digest moved without the version moving. The superseded draft's digest is recorded above and its probe verdict is committed in concept_collision_probe.json, so the replacement can be audited rather than taken on trust.\n\nThe zone rows assert ONE graded series on the inner→outer articulation axis — غَوْر · أَصْل · وَسَط · طَرَف · بُرُوز — and nothing more. Each row's physical_basis is the uncontested locus; the notion asserted is position on that axis, not a meaning read off the place. Grouping حافة اللسان (ض، ل) with طرف اللسان is a stated curation decision, the front-of-tongue region taken whole; it merges no profile, since both letters already carry a ṣifa no other letter has.\n\nEVERY ROW REMAINS THE PROJECT'S OWN CONSTRUCTION and ships as `hypothesis`. No known source tabulates the ṣifāt — or the مخارج — into a general quality-to-notion mapping: Ibn Jinnī states the principle and illustrates it on particular cases, Ḥasan ʿAbbās gives senses per LETTER rather than per صفة. Declaring that per row is the condition under which k/40 can falsify the table. No page range was invented to dress a row, and `takrir` — the one candidate whose tajwīd definition is nearly the notion itself — ships as `hypothesis` like the rest because no page was found that actually states it.\n\nCOST RECORDED, NOT PATCHED: ح and ه remain indistinguishable to this table (same حلق zone, same رخاوة/همس). Five zones cannot separate them, and splitting الحلق into its three classical sub-positions to force it would be choosing the granularity by its result.",
+      "source": {
+        "authority": "project",
+        "pages": [],
+        "basis": "The physical_basis column of every row is the uncontested tajwīd definition of the feature — a ṣifa's articulatory definition, or a zone's locus. The mapping from that fact to a notion is asserted by this project and by nothing else."
+      }
+    }
+  ]
+}

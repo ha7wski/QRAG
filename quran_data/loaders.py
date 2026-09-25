@@ -218,6 +218,57 @@ def letter_senses_lock() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def physical_primitives() -> list[dict]:
+    """One row per (physical feature, primitive) for the physics-first engine.
+
+    Keyed on the ṣifāt feature vocabulary ALONE — no root, no root key, and no
+    per-root exception, by construction. Every row carries a `status`:
+    `attested` names an authority and real pages, `hypothesis` owns the claim
+    and carries the uncontested tajwīd definition as its `physical_basis`.
+
+    Returned raw and in declaration order: that order is the documented
+    tie-break when two primitives of a letter share a letter-coverage count.
+    """
+    return _csv_rows("PHYSICAL_PRIMITIVES_CSV")
+
+
+@functools.lru_cache(maxsize=1)
+def physical_primitives_lock() -> dict:
+    """The freeze on `physical_primitives.csv`: version, sha256, history.
+
+    Read as data, never enforced here — the same rule `letter_senses_lock()`
+    follows. `scripts/validate_concept_datasets.py` recomputes the digest; a
+    loader that raised on a stale one would make every concept request depend
+    on a curation rule.
+    """
+    return _json("PHYSICAL_PRIMITIVES_LOCK_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def concept_collision_probe() -> dict:
+    """The §D13 gate record: the qualification table, then the probe verdict.
+
+    Two blocks written at two different moments on purpose. `qualification`
+    fixes which comparisons the probe is entitled to make, and is committed
+    before any concept exists; `probe` is appended after. Reading them back in
+    one document is convenient — writing them in one sitting would destroy the
+    only property the file has.
+    """
+    return _json("CONCEPT_COLLISION_PROBE_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def concept_witness_set() -> dict:
+    """The 40-root frozen holdout, its frame, strata, seed and draw procedure.
+
+    The identity of the roots is public — a holdout can only be held out if it
+    is known. What the file exists to make impossible is a set quietly re-rolled
+    after the fact: `tests/test_concept_witness_set.py` replays the draw.
+    """
+    return _json("CONCEPT_WITNESS_SET_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def root_cores() -> dict:
     """Curated attested semantic cores per canonical QAC root key (Ibn Fāris).
 

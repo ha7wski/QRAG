@@ -1,0 +1,293 @@
+{
+  "meta": {
+    "name": "concept-witness-set",
+    "description": "The frozen holdout for the physics-first concept engine: 40 triliteral roots against which k/40 is measured. Drawn once, before the primitive table was written, and never curated against.",
+    "holdout_discipline": [
+      "The IDENTITY of these roots is public — a set can only be held out if it is known.",
+      "What never happens before the table is locked: reading their asl, generating their concepts, or checking any table decision against them.",
+      "The set is never re-rolled. A draw repeated until it looks convenient is not a holdout."
+    ]
+  },
+  "seed": 20260925,
+  "seed_rationale": "Today's date at the time of the draw, chosen before drawing rather than after seeing a sample.",
+  "drawn_on": "2026-09-25",
+  "procedure": [
+    "frame = sorted(root for root, rec in morphology().items() if len(root) == 3 and normalize_root(root) in has_asl and rec['count'] >= 20 and root not in curated and root != 'ضرب')",
+    "lower = [r for r in frame if count(r) < 100]; upper = [r for r in frame if count(r) >= 100]",
+    "rng = random.Random(20260925); drawn_lower = sorted(rng.sample(lower, 29)); drawn_upper = sorted(rng.sample(upper, 11))",
+    "The two sample() calls run on the SAME generator, lower stratum first. Replaying them in the other order yields a different set."
+  ],
+  "frame": {
+    "size": 280,
+    "criteria": [
+      "a triliteral QAC root key (1613 of 1656)",
+      "joined through arabic_text.normalize_root to a maqayis_asl.csv row whose asl_status is has_asl",
+      "at least 20 Quranic occurrences (morphology.json `count`)"
+    ],
+    "exclusions": {
+      "already_curated_in_root_cores": [
+        "خبث",
+        "خير",
+        "رحم",
+        "ظلم",
+        "كفر"
+      ],
+      "declared_development_case": [
+        "ضرب"
+      ]
+    }
+  },
+  "strata": [
+    {
+      "name": "20-99 occurrences",
+      "frame": 205,
+      "drawn": 29
+    },
+    {
+      "name": "100+ occurrences",
+      "frame": 75,
+      "drawn": 11
+    }
+  ],
+  "structure_of_the_draw": {
+    "weak_radical_waw_or_ya": [
+      "أبو",
+      "بني",
+      "توب",
+      "ثني",
+      "خشي",
+      "خوف",
+      "ذوق",
+      "رود",
+      "زيد",
+      "سوع",
+      "طير",
+      "قول",
+      "قوم",
+      "نجو",
+      "وثق",
+      "وجه"
+    ],
+    "hamza_carrier": [
+      "أبو",
+      "أثم"
+    ],
+    "quadriliteral": [],
+    "bare_alef": [],
+    "note": "The weak-radical share was not adjusted. D7's 'no exception' rule for و/ي is therefore measured on that fraction of the set rather than assumed."
+  },
+  "probe_roots_excluded_by_construction": {
+    "roots": [
+      "حرب",
+      "حرج",
+      "حرد",
+      "تبر",
+      "كبر",
+      "كود",
+      "كيد"
+    ],
+    "why": "The D13 collision-probe roots are not witness roots and are never added to this set. None of the seven is in the draw; this field records the check rather than the intention."
+  },
+  "roots": [
+    {
+      "root": "أثم",
+      "occurrences": 42,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "بعث",
+      "occurrences": 64,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "توب",
+      "occurrences": 69,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "ثني",
+      "occurrences": 24,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "خشي",
+      "occurrences": 40,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "خلص",
+      "occurrences": 30,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "ذوق",
+      "occurrences": 61,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "زيد",
+      "occurrences": 59,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "سرف",
+      "occurrences": 21,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "سوع",
+      "occurrences": 44,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "صدر",
+      "occurrences": 43,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "طير",
+      "occurrences": 24,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "عرب",
+      "occurrences": 22,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "عقل",
+      "occurrences": 49,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "غرق",
+      "occurrences": 23,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "غفل",
+      "occurrences": 35,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "فقه",
+      "occurrences": 20,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "فلح",
+      "occurrences": 40,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "قرب",
+      "occurrences": 91,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "قسط",
+      "occurrences": 22,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "قعد",
+      "occurrences": 26,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "قمر",
+      "occurrences": 26,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "لسن",
+      "occurrences": 24,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "مسك",
+      "occurrences": 24,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "نجو",
+      "occurrences": 75,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "نكر",
+      "occurrences": 37,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "هجر",
+      "occurrences": 27,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "وثق",
+      "occurrences": 29,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "وجه",
+      "occurrences": 71,
+      "stratum": "20-99 occurrences"
+    },
+    {
+      "root": "أبو",
+      "occurrences": 104,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "بني",
+      "occurrences": 150,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "خوف",
+      "occurrences": 112,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "دخل",
+      "occurrences": 111,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "رجع",
+      "occurrences": 103,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "رود",
+      "occurrences": 120,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "عبد",
+      "occurrences": 251,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "قول",
+      "occurrences": 1383,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "قوم",
+      "occurrences": 597,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "نذر",
+      "occurrences": 115,
+      "stratum": "100+ occurrences"
+    },
+    {
+      "root": "نصر",
+      "occurrences": 137,
+      "stratum": "100+ occurrences"
+    }
+  ]
+}

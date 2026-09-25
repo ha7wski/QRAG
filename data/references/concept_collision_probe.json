@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "name": "concept-collision-probe",
+    "description": "The §D13 gate. The primitive table maps 28 letters onto 18 profiles, so ten letters have no profile of their own. This file fixes the test's denominator BEFORE its numerator: the qualification block is committed before a single concept is composed, and the probe block is written only afterwards.",
+    "ordering_is_the_protocol": [
+      "`qualification` is committed first, alone, with `probe` absent.",
+      "`probe` is written by scripts/run_collision_probe.py, which refuses to run unless `qualification` is already present, and records the sha256 of the qualification block it ran against.",
+      "Discovering afterwards that a class held one usable comparison, or none, would make the real size of the test unstatable in good faith."
+    ],
+    "sample_is_not_revised": "The probe roots are not changed once this table is published. Cleaner single-aṣl alternates exist — بدل/جدل for ب/ج/د, ستر/سكر for ت/ك — and are REJECTED: swapping a sample because the aṣl turned out awkward is choosing roots by looking at the data, the one move the whole protocol exists to prevent."
+  },
+  "criterion": {
+    "compared_on": "realised primitives — never sentences",
+    "outcomes": {
+      "identical": "the same multiset of realised primitives, at the same positions, in the same order",
+      "order-distinct": "the same primitives, at different positions or in a different order",
+      "distinct": "different realised primitives"
+    },
+    "order_distinct_is_a_partial_collision": "It is counted and reported as one, never grouped with `distinct` and never filed as a pass: two concepts built from one set of primitives shuffled are separated by the composition rule alone, not by anything the table knows about their letters.",
+    "asl_divergence_rule": "A pair counts as aṣl-divergent only when NO aṣl of one root matches ANY aṣl of the other. Comparing whole sets rather than a chosen primary makes divergence harder to establish, so the rule cannot inflate a collision verdict."
+  },
+  "size": {
+    "roots": 7,
+    "classes": 3,
+    "per_class_roots": {
+      "ب/ج/د": 3,
+      "ت/ك": 2,
+      "و/ي": 2
+    },
+    "stated_as": "7 roots over 3 classes (3 + 2 + 2)",
+    "never_stated_as": "5 pairs — the three ب/ج/د comparisons share their roots and are correlated; counting them as independent tests would inflate the probe's own n by counting the same evidence more than once.",
+    "fragility": "Two of the three classes rest on a single comparison each, so a non-qualifying verdict empties them immediately. Stated here rather than discovered at the table."
+  },
+  "decision_rules_fixed_in_advance": {
+    "one_identical_ends_it": "A single `identical` on an aṣl-divergent pair confirms the collision: stop, do not widen, and mapping the five classical مخرج zones becomes v1.0.0 of the table rather than a later lock bump. Tasks 1–3 are redone before anything else proceeds.",
+    "emptied_secondary_class": "ت/ك or و/ي empty ⇒ run on what qualifies and report the reduced size. No root is added to compensate.",
+    "emptied_carrying_class": "ب/ج/د empty ⇒ the probe cannot decide: stop and report. Alternates are examined only after that report, and the report must say the substitution followed an EMPTY SAMPLE — not the same thing as choosing after seeing a result, and the reader is owed the distinction rather than asked to trust it.",
+    "widening": "Only a clean sweep — all three classes `distinct` on aṣl-divergent pairs — licenses extending to ط/ق, ث/ح/ف/ه and م/ن.",
+    "excluded_in_every_case": {
+      "class": "ظ/غ",
+      "why": "Its only real minimal pair is ظلم/غلم, and ظلم is one of the five roots already curated in root_cores.json — contaminated, and therefore useless as evidence in either direction."
+    },
+    "withdrawn": {
+      "pair": [
+        "روح",
+        "ريح"
+      ],
+      "why": "ريح is not a QAC root key — it is a derivative of ر-و-ح — so the pair had nothing to compare."
+    }
+  },
+  "qualification": {
+    "committed_on": "2026-09-25",
+    "classes": [
+      {
+        "class": "ب/ج/د",
+        "letters": [
+          "ب",
+          "ج",
+          "د"
+        ],
+        "carrying": true,
+        "why_these_letters": "The three share one profile: قَطْع · ظُهور · ارتِداد. Nothing in the table separates them.",
+        "roots": [
+          {
+            "root": "حرب",
+            "occurrences": 11,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 3,
+            "asl_segments_verbatim": [
+              "الحاء والراء والباء أصول ثلاثة: أحدها السلب، والآخر دويبة، والثالث بعض المجالس"
+            ],
+            "asl_senses": [
+              "السلب",
+              "دويبة",
+              "بعض المجالس"
+            ]
+          },
+          {
+            "root": "حرج",
+            "occurrences": 11,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 1,
+            "asl_segments_verbatim": [
+              "الحاء والراء والجيم أصل واحد، وهو معظم الباب وإليه مرجع فروعه، وذلك تجمع الشيء وضيقه"
+            ],
+            "asl_senses": [
+              "تجمع الشيء وضيقه"
+            ]
+          },
+          {
+            "root": "حرد",
+            "occurrences": 1,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 3,
+            "asl_segments_verbatim": [
+              "القصد",
+              "الغضب ; يقال حرد الرجل غضب حردا، بسكون الراء",
+              "التنحي والعدول"
+            ],
+            "asl_senses": [
+              "القصد",
+              "الغضب",
+              "التنحي والعدول"
+            ]
+          }
+        ],
+        "comparisons": [
+          {
+            "pair": [
+              "حرب",
+              "حرج"
+            ],
+            "qualifying": true,
+            "reason": "No aṣl of حرب (السلب · دويبة · بعض المجالس) matches any aṣl of حرج (تجمع الشيء وضيقه). Divergent under the set rule."
+          },
+          {
+            "pair": [
+              "حرب",
+              "حرد"
+            ],
+            "qualifying": true,
+            "reason": "No aṣl of حرب matches any of حرد (القصد · الغضب · التنحي والعدول). Divergent under the set rule."
+          },
+          {
+            "pair": [
+              "حرج",
+              "حرد"
+            ],
+            "qualifying": true,
+            "reason": "حرج's single aṣl (تجمع وضيق) matches none of حرد's three. Recorded caveat: ضيق and غضب are affectively adjacent in usage, but Ibn Fāris states them as aṣl of two different roots and the rule compares stated aṣl, not resemblances. A reader who counts them as matching should read this comparison as non-qualifying and the class as holding 2 of 3."
+          }
+        ]
+      },
+      {
+        "class": "ت/ك",
+        "letters": [
+          "ت",
+          "ك"
+        ],
+        "carrying": false,
+        "why_these_letters": "Both profile as قَطْع · خَفاء. Nothing in the table separates them.",
+        "roots": [
+          {
+            "root": "تبر",
+            "occurrences": 4,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 2,
+            "asl_segments_verbatim": [
+              "الهلاك",
+              "[جوهر] من جواهر الأرض"
+            ],
+            "asl_senses": [
+              "الهلاك",
+              "جوهر من جواهر الأرض"
+            ]
+          },
+          {
+            "root": "كبر",
+            "occurrences": 153,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 1,
+            "asl_segments_verbatim": [
+              "الكاف والباء والراء أصل صحيح يدل على خلاف الصغر"
+            ],
+            "asl_senses": [
+              "خلاف الصغر"
+            ]
+          }
+        ],
+        "comparisons": [
+          {
+            "pair": [
+              "تبر",
+              "كبر"
+            ],
+            "qualifying": true,
+            "reason": "تبر's two aṣl (الهلاك · جوهر من جواهر الأرض) match neither كبر's single aṣl (خلاف الصغر) nor each other's field. Divergent under the set rule."
+          }
+        ]
+      },
+      {
+        "class": "و/ي",
+        "letters": [
+          "و",
+          "ي"
+        ],
+        "carrying": false,
+        "why_these_letters": "Both profile as جَرَيان · مَدّ · ظُهور · لِين. Nothing in the table separates them.",
+        "roots": [
+          {
+            "root": "كود",
+            "occurrences": 24,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 1,
+            "asl_segments_verbatim": [
+              "الكاف والواو والدال كلمة كأنها تدل على التماس شيء ببعض العناء"
+            ],
+            "asl_senses": [
+              "التماس شيء ببعض العناء"
+            ]
+          },
+          {
+            "root": "كيد",
+            "occurrences": 29,
+            "asl_status": "has_asl",
+            "asl_count_recorded": 1,
+            "asl_segments_verbatim": [
+              "الكاف والياء والدال أصل صحيح يدل على معالجة لشيء بشدة، ثم يتسع الباب، وكله راجع إلى هذا الأصل"
+            ],
+            "asl_senses": [
+              "معالجة لشيء بشدة"
+            ]
+          }
+        ],
+        "comparisons": [
+          {
+            "pair": [
+              "كود",
+              "كيد"
+            ],
+            "qualifying": true,
+            "reason": "كود «التماس شيء ببعض العناء» against كيد «معالجة لشيء بشدة». Divergent: seeking-with-toil and handling-with-force are distinct aṣl, stated separately, on distinct objects. Recorded caveat, because this is the closest call in the table: both aṣl involve exertion applied to a thing, and a reader who treats عناء and شدة as one field should read this comparison as non-qualifying, which empties the و/ي class. Under §D13's emptied-class rule that does not stop the probe — ب/ج/د is the carrying class — and the reduced size would be reported."
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "qualifying_comparisons": 5,
+      "non_qualifying_comparisons": 0,
+      "classes_with_at_least_one_qualifying_comparison": 3,
+      "carrying_class_qualifies": true,
+      "verdict": "All three classes qualify. The probe runs at full declared size: 7 roots over 3 classes.",
+      "caveats_recorded": [
+        "حرج∼حرد (ضيق vs غضب)",
+        "كود∼كيد (عناء vs شدة)"
+      ],
+      "caveat_note": "Both caveats are recorded so a reader can disagree without re-reading the source. If BOTH were counted as matching, ب/ج/د would still hold 2 qualifying comparisons and the probe would still run — the carrying class does not depend on either call."
+    },
+    "written_before_any_composition": true,
+    "ordering_evidence": "This block was authored and written to disk before `linguistics/lisan/concept/compose.py` existed, so no concept could have been composed when the denominator was fixed. Two things carry that claim rather than asking for trust: the probe block pins this block's sha256, so a qualification rewritten after the run stops matching its own record; and the whole change is still uncommitted, so the git history has NOT yet been split. It SHOULD be — this block and the frozen datasets in one commit, the engine and the probe record in the next — and until that split exists the ordering rests on the digest alone. Recorded here rather than claimed away."
+  }
+}

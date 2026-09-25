@@ -1,0 +1,22 @@
+feature,primitive,gloss_ar,gloss_en,status,authority,pages,physical_basis,support,lemmas
+shadida,قَطْع,انقطاعٌ حادٌّ بعد حبس,clean break after a full stop,hypothesis,,,انحباس الصوت عند النطق بالحرف انحباسًا تامًّا ثم انطلاقه,,قطع;قَطْع;ينقطع;انقطاع;منقطع;قاطع
+mutawassita (bayniyya),تَمَهُّل,جريانٌ ممسوكٌ لا مقطوعٌ ولا مُرسَل,held flow: neither cut nor free,hypothesis,,,عدم كمال انحباس الصوت وعدم كمال جريانه,,تمهل;مُتمهِّل;مَهْل;متمهلا
+rikhwa,جَرَيان,جريانٌ متَّصل,continuous running,hypothesis,,,جريان الصوت مع الحرف لضعف الاعتماد على المخرج,,جريان;يجري;جارٍ;جرى
+majhura,ظُهور,ظهورٌ مسموع,audible presence,hypothesis,,,انحباس جري النفس عند النطق بالحرف لقوة الاعتماد على المخرج,,ظهور;يظهر;ظاهر
+mahmusa,خَفاء,خفاءٌ وخِفَّة,muted and light,hypothesis,,,جري النفس مع الحرف لضعف الاعتماد على المخرج,,خفاء;يخفى;خفيّ;خافٍ
+musta'liya,ضَخامة,ضخامةٌ وثِقَل,bulk and weight,hypothesis,,,ارتفاع أقصى اللسان إلى الحنك الأعلى عند النطق بالحرف,,ضخامة;ضَخْم;غِلَظ;ثِقَل
+mutbaqa,ضَخامة,ضخامةٌ وثِقَل,bulk and weight,hypothesis,,,انطباق ما يحاذي اللسان من الحنك الأعلى على اللسان,,ضخامة;ضَخْم;غِلَظ;ثِقَل
+qalqala,ارتِداد,ارتدادٌ بعد السكون,rebound,hypothesis,,,اضطراب المخرج عند سكون الحرف حتى تُسمع له نبرة,,ارتداد;يرتدّ;مرتدّ;ردّ
+safir,حِدّة,حِدَّةٌ نافذةٌ رفيعة,thin piercing sharpness,hypothesis,,,صوت زائد يشبه صفير الطائر يخرج من بين الشفتين مع طرف اللسان,,حِدّة;حادّ;يحدّ
+takrir,تَكرار,تَكرارٌ مُعاد,repetition,hypothesis,,,ارتعاد طرف اللسان عند النطق بالحرف,,تكرار;يتكرّر;متكرّر;كرّة
+tafashshi,انتِشار,انتشارٌ وتفرُّق,spreading and diffusion,hypothesis,,,انتشار الريح في الفم عند النطق بالحرف,,انتشار;ينتشر;منتشر
+istitala,امتِداد,امتدادٌ في الحيِّز,extension in space,hypothesis,,,امتداد الصوت من أول حافة اللسان إلى آخرها,,امتداد;يمتدّ;ممتدّ
+inhiraf,مَيْل,مَيْلٌ وانحراف,swerve and deviation,hypothesis,,,ميل الحرف عن مخرجه إلى مخرج غيره,,مَيْل;يميل;مائل;انحراف
+lin,لِين,لِينٌ بلا صدمة,softness without shock,hypothesis,,,خروج الحرف في لين وعدم كلفة,,لِين;ليّن;يلين
+madd,مَدّ,مَدٌّ وإطالة,prolongation,hypothesis,,,امتداد الصوت بحرف المد,,مدّ;يمدّ;ممدود
+ghunna,رَنين,رَنينٌ محتبَس,contained resonance,hypothesis,,,صوت يخرج من الخيشوم لا عمل للسان فيه,,رنين;يرنّ;رنّان
+makhraj:halq,غَوْر,مَصدرٌ من الغَوْر قبل الفم,inwardness: sounded before the mouth,hypothesis,,,مخرجه الحلق بأقسامه الثلاثة، قبل أن يبلغ الصوت الفم,,غَوْر;غائر;عُمْق;عميق
+makhraj:aqsa_al_lisan,أَصْل,ارتكازٌ في الأصل,rootedness: at the tongue's base,hypothesis,,,مخرجه أقصى اللسان مع ما يحاذيه من الحنك,,أَصْل;أصيل;مُرتكَز
+makhraj:wasat_al_lisan,وَسَط,مركزٌ بين طرفين,centrality: between two ends,hypothesis,,,مخرجه وسط اللسان مع وسط الحنك,,وَسَط;أوسط;مركز
+makhraj:taraf_al_lisan,طَرَف,حدٌّ ومُلامسة,edge: the point of contact,hypothesis,,,مخرجه طرف اللسان أو حافته مع اللثة والثنايا,,طَرَف;طرفي;حدّ;مُلامسة
+makhraj:shafatan,بُرُوز,بروزٌ عند العتبة,protrusion: at the mouth's threshold,hypothesis,,,مخرجه الشفتان، وهما أقصى ما يبلغه الصوت من الفم,,بُرُوز;بارز;يبرز;عتبة

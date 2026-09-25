@@ -64,6 +64,21 @@ LETTER_SENSES_CSV = REFERENCES / "letter_senses.csv"
 # Root curation runs against a FIXED letter dataset, so a root that matches
 # nothing is a result to record rather than a reason to retouch a letter.
 LETTER_SENSES_LOCK_JSON = REFERENCES / "letter_senses.lock.json"
+# The physics-first concept engine's frozen input layer. The table maps the
+# CLOSED ṣifāt feature vocabulary onto at most 15 primitives; the lock is its
+# sha256, taken BEFORE the first root was composed. A root that reads badly is
+# never a reason to edit the table — that is what the freeze is for.
+PHYSICAL_PRIMITIVES_CSV = REFERENCES / "physical_primitives.csv"
+PHYSICAL_PRIMITIVES_LOCK_JSON = REFERENCES / "physical_primitives.lock.json"
+# The 40-root holdout k/40 is measured on, drawn with seed 20260925 before the
+# table existed. Committed rather than left under `tests/`, which is git-ignored:
+# a metric nobody cloning the repo can re-derive is not a published metric.
+CONCEPT_WITNESS_SET_JSON = REFERENCES / "concept_witness_set.json"
+# The §D13 collision-probe record. Its `qualification` block is committed BEFORE
+# a single concept is composed — that is what fixes the test's denominator before
+# its numerator — and the `probe` block is appended only afterwards, carrying the
+# digest of the qualification it ran against so a retro-edit is detectable.
+CONCEPT_COLLISION_PROBE_JSON = REFERENCES / "concept_collision_probe.json"
 ROOT_CORES_JSON = REFERENCES / "root_cores.json"
 SEMANTIC_AXES_JSON = REFERENCES / "semantic_axes.json"
 LETTER_SEMANTICS_JSON = REFERENCES / "arabic_letter_semantics_hasan_abbas.json"
