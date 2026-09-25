@@ -152,38 +152,50 @@
 > exists to exclude. The tasks were deferred, never skipped, and the freeze commit
 > (`6b2a6be`) sits between them in the history. `witness_guard` now makes the same
 > ordering hold mechanically rather than by care: task 5.6.
+>
+> **Where they actually landed, stated exactly rather than implied.** The commit mounting the
+> route and the panel (`9719347`) sits AFTER the measurement (`a64518d`), not merely after the
+> freeze. Nothing about the measurement depends on it: `k / 40` was computed, judged and committed
+> before a single byte of the route existed, so the display could not have shaped it even in
+> principle. The ordering that matters is readable straight off `git log`: freeze → criterion →
+> measurement, with the UI work falling where it did not matter.
 
 ## 8. API
 
-- [ ] 8.1 Concept models in `api/models/lisan.py`, carrying each realised primitive's `status`
-- [ ] 8.2 `POST /lisan/concept` in `api/routers/lisan.py`, mounted in `api/main.py`
-- [ ] 8.3 Update `tests/test_served_surface.py` for the added route and its caller
-- [ ] 8.4 Assert `POST /lisan/analyze` responds identically for `خير`, `خبث`, `كفر` and that
+- [x] 8.1 Concept models in `api/models/lisan.py`, carrying each realised primitive's `status`
+- [x] 8.2 `POST /lisan/concept` in `api/routers/lisan.py`, mounted in `api/main.py`
+- [x] 8.3 Update `tests/test_served_surface.py` for the added route and its caller
+- [x] 8.4 Assert `POST /lisan/analyze` responds identically for `خير`, `خبث`, `كفر` and that
       `tests/test_lisan_regression.py` passes unmodified
 
 ## 9. Frontend
 
-- [ ] 9.1 `lib/lisanTypes.ts` + `lib/api.ts` — the concept call
-- [ ] 9.2 `/lexical` concept panel: the مفهوم shown as **three positional groups** (يفتَح /
+- [x] 9.1 `lib/lisanTypes.ts` + `lib/api.ts` — the concept call
+- [x] 9.2 `/lexical` concept panel: the مفهوم shown as **three positional groups** (يفتَح /
       جسَد / يختِم), not as one nine-noun sentence — §D6's amendment; the recorded deterministic
       chain still shown verbatim beside them as what was measured. Per-letter profile, realised
       vs. carried primitives, partial/refused states
-- [ ] 9.3 Attested mappings visually distinguished from project hypotheses
-- [ ] 9.4 The مفهوم / معنى statement, owned by the page, present without interaction
-- [ ] 9.5 Comparison panel: physics-first مفهوم beside the core-first reading, aṣl `verbatim`,
+- [x] 9.3 Attested mappings visually distinguished from project hypotheses
+- [x] 9.4 The مفهوم / معنى statement, owned by the page, present without interaction
+- [x] 9.5 Comparison panel: physics-first مفهوم beside the core-first reading, aṣl `verbatim`,
       occurrences, recorded verdict — neither engine labelled correct
-- [ ] 9.6 Vitest files + `npx tsc --noEmit -p tsconfig.test.json`
+- [x] 9.6 Vitest files + `npx tsc --noEmit -p tsconfig.test.json`
 
 ## 10. Curation and the measurement
 
 - [x] 10.1 For each of the 40 witness roots: freeze `uses[]` and commit it **before** generating that
       root's concept — **DONE 2026-09-25: 40 roots, 183 uses, every verse checked against that
       root's own occurrence list, every verdict `not_judged`, `concept_recorded_at` empty on all 40**
-- [ ] 10.2 Generate the 40 concepts; record per-use verdicts and reasons
-- [ ] 10.3 Confront `ضرب` on its five brief-named uses and publish the result, expected partial,
-      excluded from `k`
-- [ ] 10.4 Publish `k / 40` with the signature-letter split and the per-root table — and change no
-      dataset in that commit
+- [x] 10.2 Generate the 40 concepts; record per-use verdicts and reasons — **DONE: 183 uses
+      judged, 7 covered. Miss classes: `imported` 162, `direction` 8, `inert` 6.** The coverage
+      criterion was committed first, alone, with no verdict in the tree (`ec3a807`)
+- [x] 10.3 Confront `ضرب` on its five brief-named uses and publish the result, expected partial,
+      excluded from `k` — **DONE: 1 / 5, partial, as §D9 predicted.** Its record carries an explicit
+      `ordering_exemption` rather than borrowing the blindness the 40 claim
+- [x] 10.4 Publish `k / 40` with the signature-letter split and the per-root table — and change no
+      dataset in that commit — **DONE: `k / 40 = 0`, split `0 / 25` signature and `0 / 15` plain.**
+      1 of 40 failing roots is a collision, so §D3's reopening condition (strictly more than half)
+      is not met and the `ح`/`ه` residual costs this measurement nothing
 
 > **FREEZE COMMITTED — 2026-09-25, before any witness concept exists.**
 > All 40 witness roots carry their `uses[]`: **183 uses**, each a distinct Quranic sense with one
@@ -199,16 +211,50 @@
 > the freeze printed «k / 40 : 0 / 40» — a number over nothing that reads as «the method covers no
 > root» rather than «nothing has been measured yet».
 >
-> **Still open before the measurement: tasks 8 (API) and 9 (frontend).** They were deliberately
-> deferred past the freeze rather than done first: building the route and the panel means composing
-> and looking at concepts, and doing that before the uses were frozen is the one ordering the
-> protocol forbids.
+> **Tasks 8 (API) and 9 (frontend) were deferred past the freeze rather than done first**:
+> building the route and the panel means composing and LOOKING at concepts, and doing that before
+> the uses were frozen is the one ordering the protocol forbids. See the note above §8.
 
 ## 11. Documentation
 
-- [ ] 11.1 `documentation/lisan-concept-from-physics.md` (French) — the table and its `status`
+- [x] 11.1 `documentation/lisan-concept-from-physics.md` (French) — the table and its `status`
       regime, the rules, the probe outcome (both runs + the widening), the protocol, `k / 40` with
-      its split **and the §D11 window reservation stated where the number is stated**, the accepted
-      `ح`/`ه` residual with its reopening condition, and what it does not cover
-- [ ] 11.2 `CLAUDE.md`: `linguistics/lisan/` gains the coexistence note and the two-engine route pair
-- [ ] 11.3 Record what would end the comparison — this change does not pre-judge which engine survives
+      its split **and the §D11 window reservation stated where the number is stated** (§0, in the
+      same block as the number), the accepted `ح`/`ه` residual with its reopening condition
+      **evaluated against the measurement**, and what it does not cover
+- [x] 11.2 `CLAUDE.md`: `linguistics/lisan/` gains the coexistence note and the two-engine route pair
+- [x] 11.3 Record what would end the comparison — this change does not pre-judge which engine
+      survives (documentation §10: `k / 40 = 0` is a result about the physics-first engine and is
+      **not** a measurement of the core-first one, which has no comparable metric and whose known
+      defect is the opposite)
+
+## The measurement, as published
+
+> **k / 40 = 0.** No witness root's concept covers every use frozen for it. `0 / 25` on roots
+> carrying a signature letter, `0 / 15` on roots carrying none — the split declared before the
+> measurement separates nothing, because there is nothing to separate.
+>
+> Of 183 frozen uses, **7 are covered**. The misses classify as **`imported` 162 · `direction` 8 ·
+> `inert` 6**, and that distribution is the finding rather than the zero. The engine does not miss
+> by saying the wrong thing or saying it in the wrong order — it misses because the notion is not
+> in the feature vocabulary. `عقل` needs إدراك; `خوف` needs an affect; `نصر` needs two parties;
+> `قول` needs speech, which a vocabulary describing how sounds are made cannot assert without
+> circularity. The five roots with any covered use — `قعد` `مسك` `دخل` `رجع` `رود` — all name a
+> movement or a hold with **no external domain**.
+>
+> **RESERVATION, published with the number and not elsewhere:** the composition rule is not
+> entirely pre-registered. The realised window was declared at two and widened to three after a
+> measurement came back negative on `ضرب`, the declared development case. The holdout was never
+> read when the window changed and `ضرب` is excluded from `k`; that contains the exposure and does
+> not erase it. A reader who discounts `k / 40` on that ground is reading correctly.
+>
+> **§D3's reopening condition is NOT met, and the measurement is what says so.** 1 of 40 failing
+> roots is a collision (`هجر` ~ `حجر`, divergent aṣl), against a threshold of strictly more than
+> half. The accepted `ح`/`ه` residual costs this measurement nothing, and splitting the حلق would
+> change `k / 40` by zero. The condition was written before the number existed; it is now answered
+> by evidence rather than by preference.
+>
+> **What this does not authorise.** The result says `imported` 162 times, so the missing notion is
+> not a granularity question. Widening the feature vocabulary to reach `إدراك` or `عون` would be
+> adding a trait *because* the measurement failed — exactly the move the table's freeze forbids.
+> The table moves only through a lock version justified by a feature-level authority.
