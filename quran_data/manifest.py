@@ -198,9 +198,10 @@ MANIFEST: dict[str, Entry] = {
                "project's own construction and says so. That is the condition "
                "under which k/40 can falsify it.",
         producer=None,
-        # The engine module that reads it arrives with the engine, in the next
-        # commit. This entry names only what exists in this tree.
-        consumers=("scripts/validate_concept_datasets.py",),
+        consumers=(
+            "linguistics/lisan/concept/primitives.py",
+            "scripts/validate_concept_datasets.py",
+        ),
         regenerable=False,
     ),
     "PHYSICAL_PRIMITIVES_LOCK_JSON": Entry(
@@ -215,7 +216,10 @@ MANIFEST: dict[str, Entry] = {
                "which is back-fitting. history[0] records that the table is the "
                "project's construction and borrows no authority.",
         producer=None,
-        consumers=("scripts/validate_concept_datasets.py",),
+        consumers=(
+            "linguistics/lisan/concept/primitives.py",
+            "scripts/validate_concept_datasets.py",
+        ),
         regenerable=False,
     ),
     "CONCEPT_COLLISION_PROBE_JSON": Entry(
@@ -232,10 +236,7 @@ MANIFEST: dict[str, Entry] = {
                "`scripts/run_collision_probe.py`, which refuses to run without "
                "the qualification and records its digest.",
         producer=None,
-        # Nothing reads it yet: the runner that appends the probe half arrives
-        # with the engine, in the next commit. An empty tuple is the truthful
-        # entry for a file whose only consumer does not exist in this tree.
-        consumers=(),
+        consumers=("scripts/run_collision_probe.py",),
         regenerable=False,
     ),
     "CONCEPT_WITNESS_SET_JSON": Entry(

@@ -238,5 +238,1372 @@
     },
     "written_before_any_composition": true,
     "ordering_evidence": "This block was authored and written to disk before `linguistics/lisan/concept/compose.py` existed, so no concept could have been composed when the denominator was fixed. Two things carry that claim rather than asking for trust: the probe block pins this block's sha256, so a qualification rewritten after the run stops matching its own record; and the whole change is still uncommitted, so the git history has NOT yet been split. It SHOULD be — this block and the frozen datasets in one commit, the engine and the probe record in the next — and until that split exists the ordering rests on the digest alone. Recorded here rather than claimed away."
-  }
+  },
+  "probes": [
+    {
+      "ran_on": "2026-09-25",
+      "qualification_sha256": "af27016894425bb078c1439d82ac658811b2e85856888c368deb4a87d466359d",
+      "table_lock_version": "1.0.0",
+      "compared_on": "realised primitives",
+      "size": {
+        "roots": 7,
+        "classes": 3,
+        "qualifying_comparisons": 5,
+        "stated_as": "7 roots over 3 classes"
+      },
+      "readings": [
+        {
+          "root": "حرب",
+          "occurrences": 11,
+          "realised_by_position": [
+            [
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "السلب",
+            "دويبة",
+            "بعض المجالس"
+          ]
+        },
+        {
+          "root": "حرج",
+          "occurrences": 11,
+          "realised_by_position": [
+            [
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "تجمع الشيء وضيقه"
+          ]
+        },
+        {
+          "root": "حرد",
+          "occurrences": 1,
+          "realised_by_position": [
+            [
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "القصد",
+            "الغضب",
+            "التنحي والعدول"
+          ]
+        },
+        {
+          "root": "تبر",
+          "occurrences": 4,
+          "realised_by_position": [
+            [
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل"
+            ]
+          ],
+          "asl_senses": [
+            "الهلاك",
+            "جوهر من جواهر الأرض"
+          ]
+        },
+        {
+          "root": "كبر",
+          "occurrences": 153,
+          "realised_by_position": [
+            [
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل"
+            ]
+          ],
+          "asl_senses": [
+            "خلاف الصغر"
+          ]
+        },
+        {
+          "root": "كود",
+          "occurrences": 24,
+          "realised_by_position": [
+            [
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "لِين",
+              "مَدّ"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "التماس شيء ببعض العناء"
+          ]
+        },
+        {
+          "root": "كيد",
+          "occurrences": 29,
+          "realised_by_position": [
+            [
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "لِين",
+              "مَدّ"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "معالجة لشيء بشدة"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرب",
+            "حرج"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "identical",
+          "partial_collision": false,
+          "collision_confirmed": true
+        },
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرب",
+            "حرد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "identical",
+          "partial_collision": false,
+          "collision_confirmed": true
+        },
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرج",
+            "حرد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "identical",
+          "partial_collision": false,
+          "collision_confirmed": true
+        },
+        {
+          "class": "ت/ك",
+          "pair": [
+            "تبر",
+            "كبر"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "identical",
+          "partial_collision": false,
+          "collision_confirmed": true
+        },
+        {
+          "class": "و/ي",
+          "pair": [
+            "كود",
+            "كيد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "identical",
+          "partial_collision": false,
+          "collision_confirmed": true
+        }
+      ],
+      "tally": {
+        "identical": 5,
+        "order-distinct": 0,
+        "distinct": 0
+      },
+      "verdict": "collision-confirmed",
+      "consequence": "One `identical` on an aṣl-divergent pair ends the probe. Do NOT widen. Mapping the five classical مخرج zones becomes v1.0.0 of the table rather than a later lock bump, and tasks 1–3 are redone before anything else proceeds.",
+      "widened": false,
+      "run": 1,
+      "table_sha256": "daccb0b2b3d4af2897592dfe628f4f3a5e9c45bdf4b539c859d6c5372d4ceebc",
+      "realised_per_position": 2,
+      "table_note": "Run on the SUPERSEDED ṣifāt-only draft — 16 features / 15 primitives, realised window 2. Its verdict is what replaced that table with v1.0.0 under §D3's pre-declared fallback, so it is kept rather than overwritten."
+    },
+    {
+      "ran_on": "2026-09-25",
+      "qualification_sha256": "af27016894425bb078c1439d82ac658811b2e85856888c368deb4a87d466359d",
+      "table_lock_version": "1.0.0",
+      "table_sha256": "a9fa94d162f6e560f139e18615ae711e1b8579a68a064f87f2531fea894d38d6",
+      "realised_per_position": 3,
+      "compared_on": "realised primitives (top 3 per position)",
+      "size": {
+        "roots": 7,
+        "classes": 3,
+        "qualifying_comparisons": 5,
+        "stated_as": "7 roots over 3 classes"
+      },
+      "readings": [
+        {
+          "root": "حرب",
+          "occurrences": 11,
+          "realised_by_position": [
+            [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "السلب",
+            "دويبة",
+            "بعض المجالس"
+          ]
+        },
+        {
+          "root": "حرج",
+          "occurrences": 11,
+          "realised_by_position": [
+            [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            [
+              "وَسَط",
+              "ارتِداد",
+              "قَطْع"
+            ]
+          ],
+          "asl_senses": [
+            "تجمع الشيء وضيقه"
+          ]
+        },
+        {
+          "root": "حرد",
+          "occurrences": 1,
+          "realised_by_position": [
+            [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ]
+          ],
+          "asl_senses": [
+            "القصد",
+            "الغضب",
+            "التنحي والعدول"
+          ]
+        },
+        {
+          "root": "تبر",
+          "occurrences": 4,
+          "realised_by_position": [
+            [
+              "قَطْع",
+              "خَفاء",
+              "طَرَف"
+            ],
+            [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ]
+          ],
+          "asl_senses": [
+            "الهلاك",
+            "جوهر من جواهر الأرض"
+          ]
+        },
+        {
+          "root": "كبر",
+          "occurrences": 153,
+          "realised_by_position": [
+            [
+              "أَصْل",
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ]
+          ],
+          "asl_senses": [
+            "خلاف الصغر"
+          ]
+        },
+        {
+          "root": "كود",
+          "occurrences": 24,
+          "realised_by_position": [
+            [
+              "أَصْل",
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ]
+          ],
+          "asl_senses": [
+            "التماس شيء ببعض العناء"
+          ]
+        },
+        {
+          "root": "كيد",
+          "occurrences": 29,
+          "realised_by_position": [
+            [
+              "أَصْل",
+              "قَطْع",
+              "خَفاء"
+            ],
+            [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ]
+          ],
+          "asl_senses": [
+            "معالجة لشيء بشدة"
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرب",
+            "حرج"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "distinct",
+          "partial_collision": false,
+          "collision_confirmed": false
+        },
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرب",
+            "حرد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "distinct",
+          "partial_collision": false,
+          "collision_confirmed": false
+        },
+        {
+          "class": "ب/ج/د",
+          "pair": [
+            "حرج",
+            "حرد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "distinct",
+          "partial_collision": false,
+          "collision_confirmed": false
+        },
+        {
+          "class": "ت/ك",
+          "pair": [
+            "تبر",
+            "كبر"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "distinct",
+          "partial_collision": false,
+          "collision_confirmed": false
+        },
+        {
+          "class": "و/ي",
+          "pair": [
+            "كود",
+            "كيد"
+          ],
+          "qualifying": true,
+          "asl_divergent": true,
+          "outcome": "distinct",
+          "partial_collision": false,
+          "collision_confirmed": false
+        }
+      ],
+      "tally": {
+        "identical": 0,
+        "order-distinct": 0,
+        "distinct": 5
+      },
+      "verdict": "all-classes-discriminate",
+      "consequence": "A clean sweep. Only this licenses extending the probe to ط/ق, ث/ح/ف/ه and م/ن before any conclusion is drawn. ظ/غ stays excluded in every case.",
+      "widened": true,
+      "widening": {
+        "sample_rule": "every minimal pair in the class whose two roots are triliteral QAC keys carrying a has_asl Maqāyīs row, minus the 13 roots already spent. No sampling, no ranking, no truncation.",
+        "evidential_status": "ONE NOTCH WEAKER than the three mandated classes: the sample is fixed by an enumeration rule rather than by a committed qualification table, so the aṣl-divergence verdicts on the `identical` pairs were read after their outcome. Every aṣl is published verbatim above so the judgement can be redone.",
+        "excluded": {
+          "class": "ظ/غ",
+          "why": "its only minimal pair runs through the curated ظلم"
+        },
+        "classes": [
+          {
+            "class": "ط/ق",
+            "pairs": 24,
+            "roots": 48,
+            "tally": {
+              "distinct": 24
+            },
+            "non_distinct": []
+          },
+          {
+            "class": "ث/ح/ف/ه",
+            "pairs": 81,
+            "roots": 125,
+            "tally": {
+              "distinct": 68,
+              "identical": 13
+            },
+            "non_distinct": [
+              {
+                "pair": [
+                  "جحد",
+                  "جهد"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  12,
+                  36
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "وَسَط",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "وَسَط",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "جحد": [
+                    "الجيم والحاء والدال أصل يدل على قلة الخير"
+                  ],
+                  "جهد": [
+                    "الجيم والهاء والدال أصله المشقة، ثم يحمل عليه ما يقاربه"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "قلة الخير against المشقة — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "حبط",
+                  "هبط"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  16,
+                  8
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "بُرُوز",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "ارتِداد",
+                      "ضَخامة",
+                      "قَطْع"
+                    ]
+                  ],
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "بُرُوز",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "ارتِداد",
+                      "ضَخامة",
+                      "قَطْع"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "حبط": [
+                    "الحاء والباء والطاء أصل واحد يدل على بطلان أو ألم"
+                  ],
+                  "هبط": [
+                    "الهاء والباء والطاء: كلمة تدل على انحدار"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "بطلان أو ألم against انحدار — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "حجر",
+                  "هجر"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  18,
+                  27
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "وَسَط",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "وَسَط",
+                      "ارتِداد",
+                      "قَطْع"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "حجر": [
+                    "الحاء والجيم والراء أصل واحد مطرد، وهو المنع والإحاطة على الشيء"
+                  ],
+                  "هجر": [
+                    "على قطيعة وقطع",
+                    "على شد شيء وربطه"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "المنع والإحاطة against قطيعة/شد وربط — no aṣl of one matches any of the other.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "حمد",
+                  "همد"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  66,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "حمد": [
+                    "الحاء والميم والدال كلمة واحدة وأصل واحد يدل على خلاف الذم"
+                  ],
+                  "همد": [
+                    "الهاء والميم والدال: أصل يدل على خمود شيء"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "خلاف الذم against خمود — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "حمر",
+                  "همر"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  6,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "حمر": [
+                    "الحاء والميم والراء أصل واحد عندي، وهو من الذي يعرف بالحمرة"
+                  ],
+                  "همر": [
+                    "الهاء والميم والراء: أصل يدل على صب وانصباب"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "الحمرة against صب وانصباب — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "حور",
+                  "هور"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  12,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "لِين",
+                      "مَدّ",
+                      "بُرُوز"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "لِين",
+                      "مَدّ",
+                      "بُرُوز"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "حور": [
+                    "الحاء والواو والراء ثلاثة أصول: أحدها لون، والآخر الرجوع، والثالث أن يدور الشيء دورا"
+                  ],
+                  "هور": [
+                    "الهاء والواو والراء: أصل يدل على تساقط شيء"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "لون/رجوع/دوران (three aṣl) against تساقط — none matches.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "دحر",
+                  "دهر"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  4,
+                  2
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "ارتِداد",
+                      "قَطْع",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "دحر": [
+                    "الدال والحاء والراء أصل واحد، وهو الطرد والإبعاد"
+                  ],
+                  "دهر": [
+                    "الدال والهاء والراء أصل واحد، وهو الغلبة والقهر"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "الطرد والإبعاد against الغلبة والقهر — adjacent in force, distinct as stated aṣl.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "رحب",
+                  "رهب"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  4,
+                  12
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "بُرُوز",
+                      "ارتِداد",
+                      "قَطْع"
+                    ]
+                  ],
+                  [
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "بُرُوز",
+                      "ارتِداد",
+                      "قَطْع"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "رحب": [
+                    "الراء والحاء والباء أصل واحد مطرد، يدل على السعة"
+                  ],
+                  "رهب": [
+                    "يدل على خوف",
+                    "على دقة وخفة"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "السعة against خوف/دقة وخفة — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "سحل",
+                  "سهل"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  1,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "حِدّة",
+                      "خَفاء",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "حِدّة",
+                      "خَفاء",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "سحل": [
+                    "قولهم: سحلت الرياح الأرض، إذا كشطت عنها أدمتها",
+                    "السحيل: نهاق الحمار، وكذلك السحال",
+                    "قولهم سحله مائة، إذا عجل له نقدها"
+                  ],
+                  "سهل": [
+                    "السين والهاء واللام أصل واحد يدل على لين وخلاف حزونة"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "كشط/نهاق/تعجيل النقد (three aṣl) against لين وخلاف حزونة — none matches.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "سفح",
+                  "سفه"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  4,
+                  10
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "حِدّة",
+                      "خَفاء",
+                      "طَرَف"
+                    ],
+                    [
+                      "بُرُوز",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ]
+                  ],
+                  [
+                    [
+                      "حِدّة",
+                      "خَفاء",
+                      "طَرَف"
+                    ],
+                    [
+                      "بُرُوز",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "سفح": [
+                    "السين والفاء والحاء أصل واحد يدل على إراقة شيء"
+                  ],
+                  "سفه": [
+                    "السين والفاء والهاء أصل واحد، يدل على خفة وسخافة"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "إراقة against خفة وسخافة — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "فرح",
+                  "فره"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  21,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "بُرُوز",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ]
+                  ],
+                  [
+                    [
+                      "بُرُوز",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "تَكرار",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "فرح": [
+                    "على خلاف الحزن",
+                    "الإثقال"
+                  ],
+                  "فره": [
+                    "الفاء والراء والهاء كلمة تدل على أشر وحذق"
+                  ]
+                },
+                "asl_divergent": false,
+                "divergence_reason": "CAVEAT, filed as NON-QUALIFYING. فرح «خلاف الحزن» and فره «أشر وحذق» are adjacent: أشر is exultation, which is not cleanly separable from joy. The set rule errs toward declaring a pair non-divergent, so this one does not count as a confirmed collision. A reader who reads them as distinct should count 13.",
+                "collision_confirmed": false
+              },
+              {
+                "pair": [
+                  "لحم",
+                  "لهم"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  12,
+                  1
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ]
+                  ],
+                  [
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "لحم": [
+                    "اللام والحاء والميم أصل صحيح يدل على تداخل، كاللحم الذي هو متداخل بعضه في بعض"
+                  ],
+                  "لهم": [
+                    "اللام والهاء والميم أصل صحيح يدل على ابتلاع شيء، ثم يقاس عليه"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "تداخل against ابتلاع — no overlap.",
+                "collision_confirmed": true
+              },
+              {
+                "pair": [
+                  "محل",
+                  "مهل"
+                ],
+                "differing_letters": [
+                  "ح",
+                  "ه"
+                ],
+                "occurrences": [
+                  1,
+                  5
+                ],
+                "outcome": "identical",
+                "realised": [
+                  [
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ],
+                  [
+                    [
+                      "رَنين",
+                      "بُرُوز",
+                      "تَمَهُّل"
+                    ],
+                    [
+                      "غَوْر",
+                      "خَفاء",
+                      "جَرَيان"
+                    ],
+                    [
+                      "مَيْل",
+                      "تَمَهُّل",
+                      "طَرَف"
+                    ]
+                  ]
+                ],
+                "asl_verbatim": {
+                  "محل": [
+                    "الميم والحاء واللام أصل صحيح له معنيان: أحدهما قلة الخير، والآخر الوشاية والسعاية"
+                  ],
+                  "مهل": [
+                    "على تؤدة",
+                    "جنس من الذائبات"
+                  ]
+                },
+                "asl_divergent": true,
+                "divergence_reason": "قلة الخير/الوشاية against تؤدة/جنس من الذائبات — none matches.",
+                "collision_confirmed": true
+              }
+            ]
+          },
+          {
+            "class": "م/ن",
+            "pairs": 25,
+            "roots": 50,
+            "tally": {
+              "distinct": 25
+            },
+            "non_distinct": []
+          }
+        ],
+        "summary": {
+          "pairs_swept": 130,
+          "tally": {
+            "distinct": 117,
+            "order-distinct": 0,
+            "identical": 13
+          },
+          "confirmed_collisions": 12,
+          "all_confined_to": "ح/ه",
+          "verdict": "117 of 130 minimal pairs are `distinct`, none is `order-distinct`, and all 13 `identical` outcomes fall on the SINGLE letter pair ح/ه — the residual §D3 declared as an accepted cost of the five-zone cut before this sweep ran. 12 of the 13 carry divergent aṣl and are confirmed collisions; فرح~فره is filed non-qualifying under the conservative set rule.",
+          "what_it_does_and_does_not_license": "It QUANTIFIES the declared residual: the table's coarseness costs exactly one letter pair, and that pair costs 12 confirmed root collisions across the Quranic root vocabulary. It does NOT trigger §D13's stop-and-rebuild rule, whose remedy — mapping the five مخرج zones — is already v1.0.0 and is what reduced seven collision classes to one. Adding a sixth zone, or splitting الحلق into its three classical sub-positions to separate ح from ه, would be choosing the granularity by its result and is refused here as it was refused in §D3.",
+          "ط/ق and م/ن": "Both swept clean, 49 pairs, zero collisions. Worth stating plainly: under v1.0.0 these two classes are separated by the zone mapping BY CONSTRUCTION (ط طرف against ق أقصى; م شفتان against ن طرف), so their result was determined before a single aṣl was read. They are reported because the pre-declared rule said to sweep them, not because they were ever in doubt."
+        }
+      },
+      "run": 2
+    }
+  ],
+  "runs_note": "Two runs on file, and both are kept: run 1 is the reason run 2 exists. A re-run over an unchanged table and window records nothing new and is not appended."
 }
