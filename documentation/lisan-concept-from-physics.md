@@ -8,6 +8,18 @@ Il coexiste avec le moteur *core-first* décrit dans
 [`lisan-constrained-reading.md`](lisan-constrained-reading.md). Aucun des deux n'est déclaré
 correct ici. Le présent document publie ce que la mesure a donné, et elle est négative.
 
+> ## ⛔ EXPÉRIENCE CLOSE
+>
+> **`k / 40 = 0`.** Le chantier est clos, la spec archivée, et **rien n'est réparé** : pas
+> d'élargissement du vocabulaire de traits, pas de découpage du حلق, pas de fenêtre retouchée.
+> L'échec n'est **pas paramétrique** — 162 des 176 manques sont `imported`, donc la notion
+> manquante n'est pas une affaire de granularité. La route `POST /lisan/concept` reste montée et
+> le مفهوم reste affiché, étiqueté comme une expérience close, avec son nombre et sa réserve à
+> côté : un résultat négatif retiré de l'écran devient un résultat invérifiable.
+>
+> La décision et sa justification complète : **§10.6**. La portée exacte de ce qui est conclu —
+> et de ce qui ne l'est **pas** : **§10.1–10.5**.
+
 ---
 
 ## 0. Le résultat, d'abord
@@ -352,12 +364,110 @@ python scripts/record_concept_verdicts.py worksheet # les 40 lectures en regard 
 
 ---
 
-## 10. Ce que ce document ne couvre pas
+## 10. Conclusion — et la portée exacte de ce qui est conclu
 
-- **Il ne tranche pas entre les deux moteurs.** Les deux sont montés, côte à côte, sur
-  `/lexical`. `k / 40 = 0` est un résultat sur le moteur physique ; ce n'est pas une mesure du
-  moteur *core-first*, qui n'a pas de métrique comparable et dont le défaut connu est l'inverse
-  (il ne peut pas être en désaccord avec son entrée).
+### 10.1 Ce qui est établi
+
+> **Le sens d'une racine n'est pas récupérable depuis les propriétés articulatoires de ses
+> lettres** — sous **ce** vocabulaire (20 أصول dérivés des مخارج et صفات), **cette** règle de
+> composition (trois positions, ordre de rareté, fenêtre de trois), **ce** critère de couverture
+> (§8), sur **40 racines témoins tirées d'avance** et jamais lues pendant la construction.
+
+Quatre qualificatifs, et ils sont tous portants. Retirez-en un et l'énoncé devient plus large que
+ce qui a été mesuré.
+
+### 10.2 Ce qui n'est **pas** établi
+
+**La tradition des معاني الحروف n'est pas réfutée.** Ce document ne l'atteint pas, et ne prétend
+pas l'atteindre.
+
+Ce qui a échoué est **une formalisation**, parmi beaucoup de formalisations possibles : une table
+de 20 أصول écrite par ce projet, appliquée mécaniquement, sans exception par racine, sous un
+critère de couverture strict. Ibn Jinnī n'a jamais proposé une table ; il illustre un principe sur
+des cas particuliers. Ḥasan ʿAbbās ne dérive pas un sens de racine ; il donne des faisceaux de sens
+par lettre. Ni l'un ni l'autre n'a affirmé ce que `k / 40` a testé.
+
+Un lecteur qui tirerait d'ici « les lettres n'ont pas de sens » lirait plus large que la mesure.
+Ce qui est mesuré, c'est qu'**une** correspondance physique → notion, fixée d'avance et appliquée
+sans exception, ne reconstitue pas les emplois coraniques des 40 racines témoins.
+
+### 10.3 Le meilleur constat du run
+
+> **Puisque toute صفة décrit *comment* un son est produit, « la parole » — la notion même que porte
+> `قول` — est une chose que ce vocabulaire ne peut jamais affirmer sans circularité.**
+
+Les أصول sont `جَرَيان`, `قَطْع`, `خَفاء`, `ظُهور` : des descriptions du passage de l'air et de la
+position des organes. Décrire la production d'un son avec ces termes, puis en conclure « ceci parle »,
+c'est se servir du fait que l'on est en train de parler comme prémisse. Ce n'est pas une limite de
+*cette* table : c'est une limite de toute table construite sur ce vocabulaire, et elle est visible
+sur une racine, `قول`, qui fait partie du lot tiré d'avance.
+
+### 10.4 Les réserves qui restent attachées au nombre
+
+Elles ne s'annulent pas parce que le résultat est négatif — un résultat négatif obtenu par une
+procédure faible reste faible.
+
+1. **La fenêtre a été fixée après coup sur `ضرب`** (§6). Une partie de la règle de composition n'est
+   pas pré-enregistrée. Et `ضرب` **plafonne elle-même à 1 / 5** : le cas sur lequel la fenêtre a été
+   réglée n'atteint pas non plus ses propres attestations, donc l'ajustement n'a même pas acheté ce
+   pour quoi il a été fait.
+2. **Juge unique.** Les 188 verdicts sont ceux du curateur. Aucune relecture indépendante n'a eu
+   lieu, et aucun texte de ce dépôt n'affirme le contraire.
+3. **L'audit est possible, pas effectué.** Les attestations gelées, le concept engendré, le verdict
+   et sa raison sont commités pour les 41 racines : c'est de quoi refaire le jugement et être en
+   désaccord. Ce n'est pas la même chose qu'un désaccord ayant eu lieu.
+4. **Les verdicts d'أصل de l'élargissement ont été lus après les résultats** (§5). Cette partie-là
+   de la preuve est d'un cran plus faible que la sonde mandatée, et le dossier le dit à l'endroit
+   où il la publie.
+
+### 10.5 La conclusion croisée sur les deux moteurs
+
+Les deux moteurs ont été construits, montés, et mesurés autant que chacun pouvait l'être.
+
+- Le moteur **core-first** produit une lecture — mais uniquement parce qu'il **emprunte l'أصل**. Le
+  noyau attesté sélectionne le sens de chaque lettre, donc la sortie ne peut porter aucune
+  information que le noyau ne portait pas déjà. Sur les racines où il produit un paragraphe, ce
+  paragraphe est une reformulation de l'أصل.
+- Le moteur **physics-first** n'emprunte rien — et **ne produit rien** : `k / 40 = 0`.
+
+> **Pris ensemble : la couche « sens des lettres » n'apporte aucune information mesurable sur le
+> sens d'une racine.** Quand elle est alimentée par l'أصل, elle restitue l'أصل. Quand on la coupe de
+> l'أصل, elle ne restitue rien.
+
+**Ce que cet énoncé n'est pas.** Ce n'est **pas une mesure du moteur core-first.** Celui-ci n'a pas
+de métrique comparable — il n'y a pas de `k / 40` pour lui — et son défaut connu est l'inverse de
+celui-ci : il ne peut pas être en désaccord avec son entrée, donc il ne peut pas non plus être
+falsifié par elle. Ce qui est dit ci-dessus est une conclusion **par recoupement**, pas un second
+résultat chiffré, et elle hérite de toutes les réserves de §10.4.
+
+### 10.6 La décision : l'expérience est close
+
+- La route `POST /lisan/concept` **reste montée** et la page continue d'afficher le مفهوم, étiqueté
+  **EXPÉRIENCE CLOSE**, avec son nombre et sa réserve affichés à côté. Un résultat négatif retiré de
+  l'écran devient un résultat que personne ne peut vérifier.
+- **Aucune tentative de sauvetage.** Pas d'élargissement du vocabulaire de traits, pas de découpage
+  du حلق, pas de fenêtre retouchée. Ce n'est pas de la discipline gratuite : **162 des 176 manques
+  sont `imported`**, donc l'échec n'est **pas paramétrique** — la notion manquante n'est pas une
+  affaire de granularité, et aucun réglage des paramètres existants ne l'atteint. La condition de
+  réouverture de §5 a déjà répondu par l'évidence : **1 collision sur 40 racines en échec**, contre
+  un seuil de strictement plus de la moitié.
+- Ajouter un trait pour atteindre `إدراك` ou `عون` serait l'ajouter **parce que** la mesure a
+  échoué. C'est exactement le geste que le gel de la table existe pour interdire, et le faire ici
+  effacerait la seule chose que ce chantier a produite : un résultat.
+- `/lexical` est **recentré sur l'attesté** — racine (QAC), أصل d'Ibn Fāris cité, occurrences,
+  morphologie et syntaxe. La lecture par lettres reste affichée et sourcée, présentée comme un
+  **مذهب** — ce que Ḥasan ʿAbbās et Ibn Jinnī disent d'une lettre — et jamais comme une définition
+  dérivée.
+
+---
+
+## 11. Ce que ce document ne couvre pas
+
+
+- **Il ne mesure pas le moteur core-first.** §10.5 tire une conclusion par recoupement sur les
+  deux ; ce n'est pas un second nombre. Le moteur core-first n'a pas de métrique comparable, et son
+  défaut connu est l'inverse de celui-ci — il ne peut pas être en désaccord avec son entrée, donc
+  il ne peut pas non plus être falsifié par elle.
 - **Il ne propose pas de correctif à la table.** Le résultat dit `imported` 162 fois : la
   notion manquante n'est pas une question de granularité de مخرج, et §5 le chiffre. Élargir le
   vocabulaire de traits pour atteindre `إدراك` ou `عون` serait l'ajouter *parce que* la mesure

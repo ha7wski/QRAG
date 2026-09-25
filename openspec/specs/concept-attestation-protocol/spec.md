@@ -1,4 +1,16 @@
-## ADDED Requirements
+# concept-attestation-protocol Specification
+
+## Purpose
+
+Define how the physics-first engine is evaluated: the blind-then-confront ordering, the frozen
+witness set, the coverage criterion, the single strict metric and its declared split, the
+collision probe that gates the curation, and the rule that a recorded disagreement is never
+resolved by editing the table.
+
+**The measurement returned `k / 40 = 0` and the experiment is closed, not repaired** — see the
+requirement of that name. Full record: `documentation/lisan-concept-from-physics.md`.
+
+## Requirements
 
 ### Requirement: The witness set is drawn once, published, and never curated against
 
@@ -233,6 +245,46 @@ that an independent review took place.
 - **WHEN** the result is published
 - **THEN** each of the 40 roots SHALL appear with its concept, its frozen uses, its per-use verdict
   and its reason
+
+### Requirement: The experiment is closed at its measured result, and is not repaired
+
+The measurement returned **`k / 40 = 0`** — no witness root's concept covers every use frozen for it
+— with the declared split at `0 / 25` and `0 / 15`, 7 of 183 uses covered, and misses classing
+`imported` 162, `direction` 8, `inert` 6. The engine SHALL be recorded as a **closed experiment**.
+
+The route `POST /lisan/concept` SHALL stay mounted and the concept SHALL stay on screen, labelled as
+a closed experiment and carrying its number and its window reservation. A negative result removed
+from the product is a result nobody can check.
+
+**No change SHALL be made to recover the number.** Specifically: the feature vocabulary SHALL NOT be
+widened, the مخرج zones SHALL NOT be subdivided, and the realised window SHALL NOT be altered. The
+reason is in the distribution and not in a preference: 162 of the 176 misses are `imported`, so the
+missing notion is absent from the vocabulary rather than mis-ranked by it — the failure is **not
+parametric**, and no setting of the existing parameters reaches it. Adding a trait to reach `إدراك`
+or `عون` would be adding it *because* the measurement failed, which is the move the table's freeze
+exists to forbid.
+
+The pre-registered reopening condition SHALL be treated as answered: collision failures are **1 of
+40** failing roots against a threshold of strictly more than half.
+
+The conclusion SHALL be stated at its measured scope and no wider: a root's meaning is not
+recoverable from its letters' articulatory properties **under this vocabulary, this composition
+rule, this coverage criterion, on these 40 pre-drawn roots**. It SHALL NOT be stated as a refutation
+of the معاني الحروف tradition, which proposed no such table.
+
+#### Scenario: The closed engine stays reachable and labelled
+
+- **WHEN** a reader opens «تحليل اللسان»
+- **THEN** the concept panel SHALL be shown, labelled a closed experiment
+- **AND** it SHALL carry `k / 40 = 0` and the window reservation
+- **AND** it SHALL NOT be presented as an alternative reading, nor either engine as correct
+
+#### Scenario: A rescue attempt is refused
+
+- **WHEN** a change proposes to widen the feature vocabulary, subdivide the حلق, or move the window
+  in order to improve `k / 40`
+- **THEN** it SHALL be refused on the committed distribution
+- **AND** the refusal SHALL cite `imported` 162 of 176 and the 1-of-40 collision count
 
 ### Requirement: The confrontation view shows both engines on the same root
 

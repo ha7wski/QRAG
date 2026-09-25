@@ -32,12 +32,18 @@ The surface after this change is exactly what the nine frontend pages call:
 | `GET /verse/{surah}/{ayah}` | Verse Study, `/verse/[surah]/[ayah]` |
 | `GET /surah/{number}`, `GET /surahs` | `SurahReader`, Fassila, QLisan, Tahlīl, Verse Study |
 | `GET /fassila/{surah}`, `GET /fassila/overview` | Fassila tabs |
-| `POST /lisan/analyze` | «تحليل اللسان» page |
+| `POST /lisan/analyze` | «تحليل اللسان» page — core-first reading |
+| `POST /lisan/concept` | «تحليل اللسان» page — physics-first مفهوم |
 | `POST /qlisan/word`, `POST /qlisan/form`, `GET /qlisan/verse/{s}/{a}` | QLisan page, Tahlīl page, «تحليل اللسان» page |
 | `POST /tahlil/word`, `POST /tahlil/review` | Tahlīl page |
 
 `GET /health` is mounted on operational grounds — the frontend banner reads it, and it is the
 documented readiness probe.
+
+`POST /lisan/analyze` and `POST /lisan/concept` are two engines answering the same question by
+opposite routes, and both are called by the same page for the duration of the comparison. Two routes
+on one page is deliberate here and is **not** a precedent for mounting a route whose consumer is a
+future intention: the comparison panel ships in the same change as the route.
 
 #### Scenario: The mounted surface matches the consumed surface
 
@@ -49,7 +55,15 @@ documented readiness probe.
 
 - **WHEN** each of the nine pages is exercised after the change
 - **THEN** every request it makes SHALL succeed
-- **AND** its rendered output SHALL be identical to before
+- **AND** its rendered output SHALL be identical to before, apart from `/lexical`'s added concept
+  and comparison panels
+
+#### Scenario: Both lisan routes have a live caller
+
+- **WHEN** `test_served_surface.py` resolves the callers of `POST /lisan/analyze` and
+  `POST /lisan/concept`
+- **THEN** each SHALL be called by the «تحليل اللسان» page
+- **AND** removing either panel from the frontend SHALL fail the test until its route is unmounted
 
 ### Requirement: Routes no page calls are removed
 
