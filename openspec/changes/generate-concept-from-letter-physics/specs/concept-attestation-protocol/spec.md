@@ -53,6 +53,45 @@ elastic: the list shapes itself around the sentence. The ordering is the protoco
 - **WHEN** a `uses[]` entry is validated
 - **THEN** it SHALL carry a gloss and a verse reference that exists in the corpus
 
+### Requirement: A test may not compose a witness root
+
+The test suite SHALL NOT be able to compose any root in the holdout. Calling the composer — directly
+or through the confrontation module — on a witness root while running under a test runner SHALL
+raise. There SHALL be no warning mode, no `strict=False` and no environment variable that relaxes
+it.
+
+Two callers are exempt and both are named. The **shipped route** composes whatever root a reader
+asks for; a reader does not know the holdout exists and the guard SHALL be inert outside a test
+runner. The **recording path** composes all 40 by definition — that is the generation step — and
+SHALL take an explicit, named sanction rather than a silent exemption.
+
+The reason the rule is scoped to tests rather than to everything: a test PINS what it composes. An
+assertion over a witness root's realised primitives is an expectation derived from that root's
+concept, living in the repository, and after it exists nobody can extend or re-freeze that root's
+`uses[]` without having read what the engine says about it. A prose note in the record file does not
+prevent this — one was written, and thirteen tests were composing holdout roots when the guard was
+first installed, none of them deliberately.
+
+#### Scenario: A test composing a witness root fails hard
+
+- **WHEN** a test composes any of the 40 witness roots
+- **THEN** the call SHALL raise
+- **AND** the message SHALL name the root and the sanctioned path
+- **AND** no configuration SHALL downgrade it to a warning
+
+#### Scenario: The recording path is let through, and only inside its own block
+
+- **WHEN** the generation step composes the holdout inside the declared sanction
+- **THEN** the composition SHALL proceed
+- **AND** the sanction SHALL close on exit, including when the block raises
+
+#### Scenario: An unreadable holdout refuses rather than disarms
+
+- **WHEN** the witness set reads back empty under a test runner
+- **THEN** the guard SHALL raise rather than let every root through
+- **AND** this SHALL be the opposite failure direction from the metric reader, which fails open
+  because there an empty set can only shrink what is claimed
+
 ### Requirement: Disagreement is recorded, never repaired
 
 A root whose generated concept fails to cover an attested use SHALL be recorded as a miss, with one

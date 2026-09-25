@@ -96,7 +96,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
-from linguistics.lisan.concept import features, template  # noqa: E402
+from linguistics.lisan.concept import features, template, witness_guard  # noqa: E402
 from linguistics.lisan.concept.primitives import primitive_table  # noqa: E402
 
 # The three slots, in the only order they are ever filled. First radical opens,
@@ -188,6 +188,44 @@ POSITIONS = ("opens", "body", "concludes")
 # window doing its job and not a signal.
 # ─────────────────────────────────────────────────────────────────────────────
 REALISED_PER_POSITION = 3
+
+# The reservation that travels WITH any number produced under that window.
+#
+# It lives here, against the constant it describes, and is imported by everything
+# that prints a coverage verdict — `scripts/validate_concept_datasets.py`'s
+# `k / 40` printer and `api/routers/lisan.py`'s concept response. §D11 and the
+# `concept-attestation-protocol` spec require it to be published WITH the number
+# and not by reference, which makes a second copy the one real failure mode: two
+# statements of one fact drift, and the drift would be invisible precisely
+# because each surface looks complete on its own.
+#
+# Two languages, adjacent, for one fact. The validator's report is English like
+# the rest of the repo's code surface; `/lexical` is an Arabic-only page and an
+# English paragraph under an Arabic verdict is a paragraph nobody reads. They are
+# written side by side here so that editing one without the other is a visible
+# omission rather than a discovery made months later.
+WINDOW_RESERVATION = (
+    "RESERVATION, carried with the number: the composition rule is NOT entirely "
+    "pre-registered. The realised window — how many primitives per position reach "
+    "the sentence — was declared at two and widened to three after a measurement "
+    "came back negative on ضرب, the declared development case. The positions, the "
+    "rarity ordering and the tie-break were fixed before they were checked; the "
+    "window was not. What contains this: the holdout was never read when the "
+    "window changed, and ضرب is excluded from k. What it does not do: erase it. "
+    "One free parameter of the rule was set by looking at an outcome, and a "
+    "reader who discounts k / 40 on that ground is reading correctly."
+)
+
+WINDOW_RESERVATION_AR = (
+    "تحفُّظٌ يُنشَرُ مع الرقم: قاعدةُ التركيب ليست مُسجَّلةً سلفًا بتمامها. "
+    "فعددُ الأصولِ التي تبلغُ العبارةَ في كلِّ موضعٍ حُدِّدَ باثنين، ثمَّ وُسِّعَ "
+    "إلى ثلاثةٍ بعد قياسٍ جاء سلبيًّا على «ضرب»، وهي حالةُ التطويرِ المُعلَنة. "
+    "أمَّا المواضعُ وترتيبُ النُّدرةِ وفضُّ التعادُلِ فقد ثبتَت قبل أن تُختبَر؛ "
+    "وأمَّا سَعةُ النافذةِ فلا. والذي يَحُدُّ من أثرِ ذلك: أنَّ الأربعين المحجوزةَ "
+    "لم تُقرَأ حين تغيَّرت النافذة، وأنَّ «ضرب» مُستثناةٌ من العدد. والذي لا يفعلُه: "
+    "أنَّه لا يمحوه. فقد ضُبِطَ وسيطٌ حُرٌّ واحدٌ من القاعدةِ بالنظرِ إلى نتيجة، "
+    "ومَن حسَمَ من قيمةِ «ك / ٤٠» لهذا السبب فقد قرأ قراءةً صحيحة."
+)
 
 # Where `Concept.sentence` came from. Declared here, beside the field they
 # describe, and imported by `phrasing.py` rather than re-spelled there: two
@@ -405,6 +443,13 @@ def compose(root: str) -> Concept:
     anyway, `partial`, with that position silent and named.
     """
     root = (root or "").strip()
+    # A TEST may not compose a holdout root. Placed first, before the length
+    # check and before the table is read, so the refusal cannot depend on
+    # anything about the root but its membership. Inert outside a test runner:
+    # the shipped route composes whatever a reader types, and the recording path
+    # takes the sanction. Read `witness_guard`'s docstring — it carries the
+    # incident this exists because of.
+    witness_guard.check(root)
     version = primitive_table().version
 
     if len(root) != 3:

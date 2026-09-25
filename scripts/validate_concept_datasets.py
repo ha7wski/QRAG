@@ -102,17 +102,11 @@ AUDIT_CLAIM = (
 # excluded from `k`, and both are said — but one free parameter of the rule was
 # still set by looking at an outcome, and the last sentence is what keeps that
 # visible instead of letting the mitigations read as an acquittal.
-WINDOW_RESERVATION = (
-    "RESERVATION, carried with the number: the composition rule is NOT entirely "
-    "pre-registered. The realised window — how many primitives per position reach "
-    "the sentence — was declared at two and widened to three after a measurement "
-    "came back negative on ضرب, the declared development case. The positions, the "
-    "rarity ordering and the tie-break were fixed before they were checked; the "
-    "window was not. What contains this: the holdout was never read when the "
-    "window changed, and ضرب is excluded from k. What it does not do: erase it. "
-    "One free parameter of the rule was set by looking at an outcome, and a "
-    "reader who discounts k / 40 on that ground is reading correctly."
-)
+# §D11's reservation is IMPORTED, never restated. It is declared beside
+# `REALISED_PER_POSITION` — the constant it is about — so that the number and the
+# statement about the number cannot drift apart. A local copy here would look
+# complete and be stale.
+from linguistics.lisan.concept.compose import WINDOW_RESERVATION  # noqa: E402
 
 # ── the closed enumerations every rule is checked against ────────────────────
 # A row either names an authority that states the mapping, or owns the claim.
@@ -933,13 +927,21 @@ class Metric:
     blocked: tuple[str, ...]
     printable: bool
     note: str
+    # Roots the record file carries that are NOT on the holdout. They are
+    # published beside the number and counted in neither half — `ضرب` above all,
+    # which §D9 step 3 REQUIRES to be confronted and published.
+    published_off_set: tuple[str, ...] = ()
 
     @property
     def off_set(self) -> str:
         """Why `ضرب` never contributes, stated wherever the number is."""
-        return (f"«{DEVELOPMENT_CASE}» is confronted and published like any other "
+        line = (f"«{DEVELOPMENT_CASE}» is confronted and published like any other "
                 f"root and contributes to neither half: it verified the "
                 f"composition rule, so it cannot also test it.")
+        if self.published_off_set:
+            line += (" Published and uncounted in this run: "
+                     + "، ".join(self.published_off_set) + ".")
+        return line
 
 
 def _records(attestation: dict) -> dict[str, dict]:
@@ -1192,16 +1194,67 @@ def check_attestation(attestation: dict | None,
             )
         return replace(empty, recorded=recorded, note=note), findings
 
-    if off_set:
-        findings.append(
-            "concept_attestation.json: record(s) for non-witness root(s) "
-            f"{'، '.join(off_set)} — published like any other root, and counted "
-            "in neither half of k / " + str(total)
-        )
+    # Off-set records get the SHAPE rules and not the ordering gate, and the
+    # asymmetry is the honest one. A published record must still be readable — a
+    # gloss, a verse, a verdict from the closed vocabulary, a reason on every
+    # miss — because a reader cannot tell from the page that this root is
+    # uncounted. But the freeze-before-generate ORDER cannot be claimed for
+    # `ضرب`: its concept has been read since §D5 was written, which is exactly
+    # why §D9 excludes it from `k`. Asserting the ordering here would be the
+    # record claiming a blindness it never had.
+    for root in off_set:
+        record = records.get(root)
+        if not isinstance(record, dict):
+            continue
+        where = f"concept_attestation.json: «{root}» (published, uncounted)"
+        uses = record.get("uses")
+        if not isinstance(uses, list) or not uses:
+            findings.append(f"{where}: `uses[]` is missing or empty")
+            continue
+        generated = bool(_text(record.get("concept_recorded_at")))
+        for j, use in enumerate(uses):
+            if not isinstance(use, dict):
+                findings.append(f"{where}: uses[{j}] is not an object")
+                continue
+            if not _text(use.get("gloss")):
+                findings.append(f"{where}: uses[{j}] has no `gloss`")
+            if not _text(use.get("verse")):
+                findings.append(f"{where}: uses[{j}] has no verse reference")
+            verdict = _text(use.get("verdict"))
+            if not generated:
+                if verdict and verdict != VERDICT_NOT_JUDGED:
+                    findings.append(
+                        f"{where}: uses[{j}] carries «{verdict}» while no concept "
+                        f"is recorded — judged against nothing."
+                    )
+            elif verdict not in USE_VERDICTS:
+                findings.append(
+                    f"{where}: uses[{j}] `verdict` is «{verdict}», expected one of "
+                    f"{', '.join(USE_VERDICTS)}"
+                )
+            elif verdict == "not_covered" and not _text(use.get("reason")):
+                findings.append(
+                    f"{where}: uses[{j}] is a miss with no `reason` — an uncounted "
+                    f"root's miss is still a published result"
+                )
+
+    # A RECORD FOR A NON-WITNESS ROOT IS NOT A FINDING, and treating it as one
+    # made the gate contradict two documents it is supposed to enforce. §D9 step 3
+    # requires `ضرب` to be confronted and published; `concept_attestation.json`'s
+    # own meta says records may exist for roots off the holdout and are published
+    # like any other. A finding fails the run (`main` returns 1 on any), so the
+    # mandated step could not be taken without breaking the validator.
+    #
+    # It is safe to publish and not to count because `k` is computed by iterating
+    # `witness_roots`, not `records`: an off-set record has no path into either
+    # half of the number, whatever it says. What it CAN do is mislead a reader, so
+    # it is shape-checked above like every other record and named beside the
+    # number here rather than left to be discovered in the file.
 
     return Metric(total=total, recorded=recorded, k=k,
                   signature=(sig_k, sig_n), plain=(plain_k, plain_n),
-                  blocked=(), printable=True, note=""), findings
+                  blocked=(), printable=True, note="",
+                  published_off_set=tuple(off_set)), findings
 
 
 # ── the summary the report prints on a clean run ─────────────────────────────

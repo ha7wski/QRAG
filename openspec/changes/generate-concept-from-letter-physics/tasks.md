@@ -116,6 +116,13 @@
 - [x] 5.5 `tests/test_concept_composition.py` — the `ضرب` pairs of §D5, determinism across processes,
       the confirmed collision behaviour, partial and refused cases, no compensation for the
       signature bias
+- [x] 5.6 `linguistics/lisan/concept/witness_guard.py` — **a test may not compose a holdout root.**
+      Hard failure from the first line of `compose()`, no warning mode and no flag; the shipped
+      route and the recording path are unaffected (the latter takes an explicit, greppable
+      sanction). Thirteen existing tests were composing witness roots incidentally and were moved
+      off the holdout — including the `ح`/`ه` collision pair, `حجر`~`هجر` → `حبط`~`هبط`. The `قوم`
+      note in `concept_attestation.json` is KEPT: it documents the incident, it just is no longer
+      the only thing standing between the holdout and the next test somebody writes
 
 ## 6. Optional phrasing, with a veto over it
 
@@ -135,6 +142,17 @@
       AND the §D11 window reservation — printed WITH the number, never by reference
 - [x] 7.5 Wording check: the records are described as making an audit possible, never as audited
 
+> **WHY 8 AND 9 RAN AFTER THE FREEZE, AND WHY THAT IS NOT A DEVIATION.**
+> The numbering puts the API and the page before the curation, and they were done after it. The
+> reason is the protocol's own ordering, not convenience: building `POST /lisan/concept` and the
+> `/lexical` panel means composing roots and LOOKING at what comes back — that is what building a
+> display is — and §D9 step 1 requires every witness root's `uses[]` to be frozen while no concept
+> of theirs exists. Doing 8 and 9 first would have put the curator in front of witness readings
+> before writing the uses they are measured against, which is the exact contamination `k / 40`
+> exists to exclude. The tasks were deferred, never skipped, and the freeze commit
+> (`6b2a6be`) sits between them in the history. `witness_guard` now makes the same
+> ordering hold mechanically rather than by care: task 5.6.
+
 ## 8. API
 
 - [ ] 8.1 Concept models in `api/models/lisan.py`, carrying each realised primitive's `status`
@@ -146,8 +164,10 @@
 ## 9. Frontend
 
 - [ ] 9.1 `lib/lisanTypes.ts` + `lib/api.ts` — the concept call
-- [ ] 9.2 `/lexical` concept panel: مفهوم, per-letter profile, realised vs. carried primitives,
-      partial/refused states
+- [ ] 9.2 `/lexical` concept panel: the مفهوم shown as **three positional groups** (يفتَح /
+      جسَد / يختِم), not as one nine-noun sentence — §D6's amendment; the recorded deterministic
+      chain still shown verbatim beside them as what was measured. Per-letter profile, realised
+      vs. carried primitives, partial/refused states
 - [ ] 9.3 Attested mappings visually distinguished from project hypotheses
 - [ ] 9.4 The مفهوم / معنى statement, owned by the page, present without interaction
 - [ ] 9.5 Comparison panel: physics-first مفهوم beside the core-first reading, aṣl `verbatim`,

@@ -145,6 +145,33 @@ is precisely what this design forbids. A four-position rule is a future change, 
 - **AND** it SHALL state that the composition rule covers three positions only
 - **AND** the page SHALL show that statement rather than an empty panel
 
+### Requirement: The page presents the مفهوم as three positional groups
+
+Widening the realised window to three bought discrimination with readability: nine مصادر joined by
+و is grammatical Arabic that enumerates rather than states. The window SHALL NOT be narrowed back to
+recover the reading — it moved once after a measurement, and moving it a second time against the
+*appearance* of the output is how a pre-registered rule becomes a tuned one.
+
+The presentation SHALL change instead, and only the presentation. The `/lexical` page SHALL render
+the realised primitives as **three positional groups** — opens / body / concludes — each legible as
+one letter's reading. The deterministic chain SHALL remain the ground truth: it is what the composer
+returns, what the confrontation judges, what the record stores and what `k / 40` is measured on, and
+the page SHALL also show it verbatim as the thing that was recorded. No primitive SHALL be dropped,
+reordered or re-worded for display.
+
+#### Scenario: The nine primitives arrive grouped, and the chain is still shown
+
+- **WHEN** a triliteral concept is displayed
+- **THEN** the page SHALL show three groups, each naming its radical and its position
+- **AND** the recorded sentence SHALL be shown verbatim alongside them
+- **AND** the union of the groups SHALL be exactly the realised primitives, in composition order
+
+#### Scenario: Presentation never reaches the record
+
+- **WHEN** the page groups a concept
+- **THEN** the stored `sentence` and `realised_primitives` SHALL be byte-identical to the composer's
+- **AND** no grouping SHALL exist in the API response that the composer did not produce
+
 ### Requirement: The `/lexical` page distinguishes مفهوم from معنى
 
 The page SHALL state, in Arabic and in its own words rather than in a value returned by the API,

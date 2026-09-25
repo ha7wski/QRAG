@@ -383,6 +383,39 @@ the ground truth:
 > most of them. The containment rule below is unchanged and is what stops the extra length being
 > filled with anything the primitives did not license.
 
+> **AMENDED AGAIN 2026-09-25 — name the cost properly: the window bought COVERAGE with
+> READABILITY, and the مفهوم of `ضرب` is now a list of nine nouns rather than a sentence.**
+>
+> This is the same notch §D5's reservation records, seen from the other end. §D5 is written from
+> the METHOD's side — a composition rule that is no longer entirely pre-registered — and states the
+> length as a consequence in one clause. Read from the OUTPUT's side it is the headline result:
+>
+>     «امتِدادٌ وضَخامةٌ وطَرَفٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى بُرُوزٌ وارتِدادٌ وقَطْعٌ»
+>
+> Nine مصادر joined by و and two adverbs of sequence. It is grammatical Arabic and it is not a
+> sentence anybody would call a مفهوم: it enumerates. §D5's exchange is therefore literal — every
+> zone that reaches the reader was bought by a notion the reader has to hold, and the pair `و`/`ي`
+> was separated at the cost of the output reading as an inventory.
+>
+> **The و is not the problem and is not up for removal.** Bare juxtaposition —
+> «امتِدادٌ ضَخامةٌ» — is not an Arabic list; it reads as نعت, which would ASSERT that the ضخامة is
+> the امتداد. The composition licenses no such claim: the two are co-ordinate primitives of one
+> letter. The و costs a syllable and forbids an assertion, which is the right trade.
+>
+> **The window does NOT go back to two.** It moved once, after a measurement, and that exposure is
+> recorded on the metric (§D11). Moving it back because the output reads poorly would be a second
+> adjustment — this time made against the *appearance* of the result — and two adjustments, each
+> individually defensible, is how a pre-registered rule becomes a tuned one. The number stays at
+> three and the reservation stays attached to it.
+>
+> **What changes instead is the PRESENTATION, and only on screen.** §D6's deterministic chain
+> remains the ground truth: it is what `compose()` returns, what `confront()` judges, what the
+> record stores and what `k / 40` is measured on. The `/lexical` page (task 9.2) renders the same
+> nine primitives as **three positional groups** — يفتَح / جسَد / يختِم — legible as three readings
+> of three letters rather than as one long sentence. Nothing is dropped, reordered or re-worded;
+> the screen stops presenting an enumeration as though it were a scholar's sentence. The single
+> chain is still shown, verbatim, as what was recorded.
+
 Compare the brief's target sentence, «إيقاعُ شيءٍ على شيءٍ إيقاعًا يُحدِثُ أثرًا». It is better
 Arabic and it is **richer than the composition licenses**: neither *شيء على شيء* (two participants)
 nor *أثر* (a trace left behind) is derivable from `امتداد · ضخامة · طرف · تكرار · تمهل · طرف · بروز · ارتداد · قطع`.
