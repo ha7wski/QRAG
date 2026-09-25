@@ -68,21 +68,35 @@ could not be chosen afterwards for being flattering.
 byte-identically. Nothing here reads a clock, a random source or an environment
 variable.
 
-**No sentence here.** The Arabic template is a later step and `Concept` carries no
-sentence field: the collision probe that gates this work compares realised
-primitives, not prose, so shipping a template first would only put words on an
-answer that had not yet been checked.
+**The sentence arrives here, and it is the TEMPLATE'S sentence only.** For the
+length of the collision probe this module carried no sentence field at all — the
+probe compares realised primitives, not prose, and putting words on an answer
+that had not yet been checked would have been backwards. The probe has now run
+twice and been reported, so `Concept` carries the مفهوم, assembled by the pure
+deterministic `template.build_sentence` and by nothing else.
+
+**`compose()` does NOT run the optional LLM phrasing pass, and that is a
+decision rather than an omission.** `phrasing.phrase()` reads an environment
+variable and, when it is on, calls a model: a `compose()` that ran it would be
+deterministic only while a toggle happened to be off, and the determinism
+promised two paragraphs above — the property a fresh process reproduces a root
+byte-identically — would quietly become conditional on configuration. So the
+composer always publishes the template's sentence, with `sentence_source` set to
+`SENTENCE_SOURCE_TEMPLATE`, and a caller that wants a re-wording runs the pass
+itself and folds the `PhrasingResult` back in with `dataclasses.replace`. The
+template is the ground truth in the design's words; here it is also the only
+thing this function can produce.
 """
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
-from linguistics.lisan.concept import features  # noqa: E402
+from linguistics.lisan.concept import features, template  # noqa: E402
 from linguistics.lisan.concept.primitives import primitive_table  # noqa: E402
 
 # The three slots, in the only order they are ever filled. First radical opens,
@@ -175,6 +189,18 @@ POSITIONS = ("opens", "body", "concludes")
 # ─────────────────────────────────────────────────────────────────────────────
 REALISED_PER_POSITION = 3
 
+# Where `Concept.sentence` came from. Declared here, beside the field they
+# describe, and imported by `phrasing.py` rather than re-spelled there: two
+# copies of a status string is how a comparison starts quietly failing.
+#
+# `template` — the deterministic assembler, which is what `compose()` always
+# publishes and what a rejected phrasing falls back to. `phrasing` — an LLM
+# re-wording that passed the containment veto. There is no third value: an LLM
+# sentence that was produced and refused is NOT a source, it is a rejection
+# recorded next to the template's own output.
+SENTENCE_SOURCE_TEMPLATE = "template"
+SENTENCE_SOURCE_PHRASING = "phrasing"
+
 # Why a root gets no concept at all, as `Concept.refusal_code` names it.
 REFUSAL_NOT_TRILITERAL = "not-triliteral"
 
@@ -248,6 +274,20 @@ class Concept:
 
     `lock_version` is the table version the reading was produced under. A reading
     published without it cannot be re-derived once the table bumps.
+
+    `sentence` is the مفهوم and `sentence_source` says who wrote it. Straight out
+    of `compose()` the source is always `SENTENCE_SOURCE_TEMPLATE`: this function
+    runs no model (see the module docstring). A caller that enables the optional
+    phrasing pass replaces all three fields at once with
+    `dataclasses.replace(concept, sentence=…, sentence_source=…,
+    phrasing_rejection=…)` from a `phrasing.PhrasingResult`.
+
+    `phrasing_rejection` is non-empty in exactly one situation: a phrasing was
+    produced and the containment veto refused it. It is NOT set when the pass is
+    off, nor when the model was unreachable, timed out or returned nothing —
+    those are failures, and a failure that recorded itself as a rejection would
+    make «the model invented something» and «the model was not running» look the
+    same in the response.
     """
 
     root: str
@@ -256,6 +296,9 @@ class Concept:
     refusal_reason: str
     positions: tuple[PositionReading, ...]
     realised_primitives: tuple[str, ...]
+    sentence: str
+    sentence_source: str
+    phrasing_rejection: str
     partial: bool
     silent_letters: tuple[str, ...]
     lock_version: str
@@ -372,6 +415,13 @@ def compose(root: str) -> Concept:
             refusal_reason=_REFUSAL_NOT_TRILITERAL_AR,
             positions=(),
             realised_primitives=(),
+            # No مفهوم, and no near-miss standing in for one. The refusal's own
+            # Arabic is in `refusal_reason`, where a reader looking for a reason
+            # will find one; an apologetic half-sentence here would be a concept
+            # for a root the rule does not cover.
+            sentence="",
+            sentence_source=SENTENCE_SOURCE_TEMPLATE,
+            phrasing_rejection="",
             partial=False,
             silent_letters=(),
             lock_version=version,
@@ -390,17 +440,28 @@ def compose(root: str) -> Concept:
         hit.primitive for reading in positions for hit in reading.realised
     )
     silent = tuple(reading.letter for reading in positions if reading.silent)
-    return Concept(
+    draft = Concept(
         root=root,
         refused=False,
         refusal_code="",
         refusal_reason="",
         positions=positions,
         realised_primitives=realised,
+        sentence="",
+        sentence_source=SENTENCE_SOURCE_TEMPLATE,
+        phrasing_rejection="",
         partial=bool(silent),
         silent_letters=silent,
         lock_version=version,
     )
+    # Built in two steps rather than one, so `build_sentence` takes the WHOLE
+    # concept and can be called again on any concept from anywhere — by a test,
+    # by the phrasing pass's fallback, by a caller re-rendering a stored reading.
+    # The alternative — assembling the sentence from a bare list of primitives
+    # before the concept exists — would give the template a second input shape
+    # that nothing else in the repo holds, and the partial and refused cases are
+    # precisely the ones that shape would lose.
+    return replace(draft, sentence=template.build_sentence(draft))
 
 
 if __name__ == "__main__":
@@ -423,3 +484,4 @@ if __name__ == "__main__":
                   f"[{reading.sheet_letter}] {reading.makhraj_ar}")
             print(f"              {order}   ->   {realised}")
         print(f"    realised: {' · '.join(concept.realised_primitives)}")
+        print(f"    مفهوم [{concept.sentence_source}]: {concept.sentence or '—'}")

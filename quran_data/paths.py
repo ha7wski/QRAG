@@ -79,6 +79,13 @@ CONCEPT_WITNESS_SET_JSON = REFERENCES / "concept_witness_set.json"
 # its numerator — and the `probe` block is appended only afterwards, carrying the
 # digest of the qualification it ran against so a retro-edit is detectable.
 CONCEPT_COLLISION_PROBE_JSON = REFERENCES / "concept_collision_probe.json"
+# The confrontation record: per witness root, the Quranic uses frozen BEFORE its
+# concept was generated, each with a gloss, a verse and a per-use verdict. The
+# ORDER is the whole dataset — uses written after the sentence has been read
+# shape themselves around it — so every record carries `uses_frozen_at` and
+# `concept_recorded_at`, and the validator refuses to print k/40 when one root
+# has them the wrong way round.
+CONCEPT_ATTESTATION_JSON = REFERENCES / "concept_attestation.json"
 ROOT_CORES_JSON = REFERENCES / "root_cores.json"
 SEMANTIC_AXES_JSON = REFERENCES / "semantic_axes.json"
 LETTER_SEMANTICS_JSON = REFERENCES / "arabic_letter_semantics_hasan_abbas.json"

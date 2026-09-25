@@ -36,6 +36,16 @@ The modules, bottom to top:
                    primitive's letter-coverage, derived and never stored.
     compose.py     three fixed positions (opens · body · concludes), rarity
                    ordering within each, top THREE realised and the rest carried.
+    template.py    the deterministic Arabic مفهوم — one nominal sentence, and
+                   nothing the realised primitives did not license. It is the
+                   GROUND TRUTH; the sentence is never richer than the table.
+    phrasing.py    the optional LLM re-wording, off by default and containment
+                   checked: every content word must map to a declared lemma of a
+                   realised primitive, or the sentence is rejected and not shown.
+                   A renderer with a veto over it, never an author.
+    confront.py    the ONLY module here allowed to read the aṣl. It imports the
+                   concept result; nothing above imports it back, which is what
+                   keeps the generation blind.
 
 The مخرج zones and the three-primitive window are both §D13's doing. The engine
 first shipped a ṣifāt-only draft with a two-primitive window; the collision probe

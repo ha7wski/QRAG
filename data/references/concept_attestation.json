@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "name": "concept-attestation",
+    "description": "The frozen expectation k/40 is judged against. For each witness root: its distinct Quranic uses, each with a gloss and one verse reference, recorded and committed BEFORE that root's concept was generated — then a per-use verdict once the concept exists.",
+    "the_ordering_is_the_protocol": [
+      "A root's `uses[]` is written and committed FIRST, from morphology.json's occurrence list and the aṣl's verbatim, with the concept not yet generated.",
+      "The concept is generated afterwards, blind: nothing under linguistics/lisan/concept/ may read the aṣl, and an import boundary enforces it rather than a promise.",
+      "Only then is each use judged `covered` or `not_covered`, and `concept_recorded_at` stamped.",
+      "Written the other way round, «does the concept cover its uses» has no answer: the list quietly shapes itself around what the sentence happens to say, silently and in good faith. Nothing downstream can detect that, so scripts/validate_concept_datasets.py detects it here by refusing to print the metric and naming the roots."
+    ],
+    "no_partial_credit": "A use is `covered` or it is not, and a root counts toward k only when EVERY one of its uses is covered. There is no weighting, no «mostly», and no grade between the two. A root with no `uses[]` on file is `not_recorded` — never `covers_all`: an empty list must never read as full coverage.",
+    "a_miss_is_a_result": "A root whose concept fails to cover an attested use is recorded as a miss with one line of reason, and that record is NEVER a reason to add a table row, reglossed a primitive, re-order the rarity rule or add an exception. The primitive table moves only through a lock version justified by a feature-level authority. Agreement with Ibn Fāris is attestation, not calibration.",
+    "audit": "Audit is POSSIBLE, not performed. There is no second judge: the curator writes the verdicts. What is committed here — the frozen uses, the verdict and its reason, beside the generated concept and its lock version — is everything a reader who clones the repository needs to redo the judgement and disagree. No claim of independent review is made anywhere.",
+    "counts_toward_k": "Records may exist for roots outside the 40-root holdout in `concept_witness_set.json`; they are published like any other and counted in neither half of k/40. «ضرب» is the declared development case: §D5's composition rule was verified against it, so coverage measured on it proves nothing, and it is confronted and published without contributing to the number.",
+    "record_shape": {
+      "<qac root key>": {
+        "uses_frozen_at": "<ISO-8601 timestamp — when uses[] was committed>",
+        "concept_recorded_at": "<ISO-8601 timestamp — when the concept was generated, and it must be LATER>",
+        "commit": "<optional: the commit uses[] was frozen in; the timestamps are what the validator orders>",
+        "uses": [
+          {
+            "gloss": "<one Quranic sense of the root, in Arabic>",
+            "verse": "<s:a — a verse of this root that carries that sense>",
+            "verdict": "covered | not_covered",
+            "reason": "<one line; required on not_covered, and the thing that makes the judgement redoable>"
+          }
+        ]
+      },
+      "_note": "This block documents the shape and is NOT a record. Records live under `roots`, which is empty."
+    },
+    "readers": [
+      "linguistics/lisan/concept/confront.py — reads it, compares, and reports; it has no path that re-ranks, re-selects or re-phrases a concept.",
+      "scripts/validate_concept_datasets.py — the ordering gate and the k/40 printer."
+    ]
+  },
+  "roots": {}
+}

@@ -269,6 +269,23 @@ def concept_witness_set() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def concept_attestation() -> dict:
+    """The frozen expectation k/40 is judged against, root by root.
+
+    `{"meta": {...}, "roots": {root: {uses_frozen_at, concept_recorded_at,
+    uses: [{gloss, verse, verdict, reason}]}}}`. Returned raw; the caller
+    validates. A root whose `uses[]` is absent is NOT a root that passed — it is
+    a root nobody has judged, and `confront.verdict_for` reads it as
+    `not_recorded` rather than letting an empty list read as full coverage.
+
+    The file ships as a skeleton with `roots` empty: the records are written one
+    at a time, each committed before that root's concept is generated, which is
+    the only property the dataset has.
+    """
+    return _json("CONCEPT_ATTESTATION_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def root_cores() -> dict:
     """Curated attested semantic cores per canonical QAC root key (Ibn Fāris).
 

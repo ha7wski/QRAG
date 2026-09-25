@@ -229,6 +229,21 @@ CONCEPT_ATTESTATION_JSON = getattr(
 # protocol, at the use level or at the root level.
 USE_VERDICTS = ("covered", "not_covered")
 
+# The verdict a use carries between the two moments the protocol separates: its
+# `uses[]` are frozen and committed, and its concept does not exist yet.
+#
+# This state had no representation here, and its absence was a real hole rather
+# than an oversight to tidy: §D9's ordering REQUIRES a commit in which the uses
+# are on file and the concept is not, so a gate that rejects that state makes the
+# protocol it enforces impossible to follow. The only way to satisfy the old rules
+# was to write `uses[]` and the verdicts together — which is precisely the
+# after-the-fact record the gate exists to catch.
+#
+# A root in this state is not counted as `recorded`, contributes nothing to `k`,
+# and produces no finding. What is still refused: a concept recorded while a use
+# is unjudged (below), and a `concept_recorded_at` earlier than `uses_frozen_at`.
+VERDICT_NOT_JUDGED = "not_judged"
+
 
 # ── inputs ───────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
@@ -987,10 +1002,34 @@ def check_attestation(attestation: dict | None,
     findings: list[str] = []
     records = _records(attestation)
     if not records:
+        # AN EMPTY `roots` CONTAINER IS THE SKELETON, NOT A BROKEN FILE, and the
+        # two must not be conflated. This gate was written before the record file
+        # existed, and it assumed «the file exists» meant «curation has begun».
+        # It does not: the skeleton is committed first, carrying the protocol and
+        # the record shape and no root at all, precisely so that the first root's
+        # `uses[]` lands in a file whose rules are already published. Reporting
+        # that as a finding would make the ordering the protocol is about
+        # impossible to commit — the skeleton could only ever arrive with a
+        # record already in it.
+        #
+        # The finding stays for everything else that produces no records: a
+        # missing `roots` key, a `roots` of the wrong type (which is what a file
+        # that failed to parse reads as, `_read_attestation` returning `{}`), or
+        # a container holding entries none of which is a usable record. Those are
+        # a file saying nothing when it meant to say something.
+        container = attestation.get("roots")
+        if isinstance(container, (dict, list)) and not container:
+            return replace(empty, note=(
+                "the record file is on disk as a SKELETON and records no root "
+                "yet; the metric is not printable. Each root's `uses[]` is "
+                "committed BEFORE its concept is generated — that ordering is "
+                "the only property the file has."
+            )), []
         findings.append(
             "concept_attestation.json: exists but records no root — `roots` must "
             "be an object keyed by root (or a list of objects each carrying "
-            "`root`)"
+            "`root`). An EMPTY `roots` object is the skeleton and is accepted; "
+            "an absent or malformed one is a file that failed to say anything."
         )
         return replace(empty, note="the record file carries no root."), findings
 
@@ -1009,6 +1048,41 @@ def check_attestation(attestation: dict | None,
         where = f"concept_attestation.json: «{root}»"
         frozen_at = _moment(record.get("uses_frozen_at"))
         recorded_at = _moment(record.get("concept_recorded_at"))
+
+        # FROZEN, AWAITING GENERATION — the mandated intermediate state.
+        # An absent `concept_recorded_at` is not a missing field; it is the
+        # record saying the concept has not been generated, which is what the
+        # commit that freezes `uses[]` is FOR.
+        awaiting = not _text(record.get("concept_recorded_at"))
+        if awaiting:
+            if frozen_at is None:
+                findings.append(
+                    f"{where}: `uses_frozen_at` is missing or not an orderable "
+                    "ISO-8601 timestamp. A record awaiting its concept still has "
+                    "to state WHEN it was frozen — that stamp is the whole claim."
+                )
+            uses = record.get("uses")
+            if not isinstance(uses, list) or not uses:
+                findings.append(f"{where}: `uses[]` is missing or empty")
+                continue
+            for j, use in enumerate(uses):
+                if not isinstance(use, dict):
+                    findings.append(f"{where}: uses[{j}] is not an object")
+                    continue
+                if not _text(use.get("gloss")):
+                    findings.append(f"{where}: uses[{j}] has no `gloss`")
+                if not _text(use.get("verse")):
+                    findings.append(f"{where}: uses[{j}] has no verse reference")
+                verdict = _text(use.get("verdict"))
+                if verdict and verdict != VERDICT_NOT_JUDGED:
+                    findings.append(
+                        f"{where}: uses[{j}] carries the verdict «{verdict}» while "
+                        f"no concept is recorded. A use judged before the concept "
+                        f"exists was judged against nothing — leave it "
+                        f"«{VERDICT_NOT_JUDGED}» until the concept is generated."
+                    )
+            continue
+
         if frozen_at is None or recorded_at is None:
             blocked.append(root)
             findings.append(
@@ -1039,7 +1113,14 @@ def check_attestation(attestation: dict | None,
             if not _text(use.get("verse")):
                 findings.append(f"{where}: uses[{j}] has no verse reference")
             verdict = _text(use.get("verdict"))
-            if verdict not in USE_VERDICTS:
+            if verdict == VERDICT_NOT_JUDGED:
+                findings.append(
+                    f"{where}: uses[{j}] is still «{VERDICT_NOT_JUDGED}» although a "
+                    "concept IS recorded. Generation without judgement leaves a "
+                    "root that can never reach `covers_all` and never appear as a "
+                    "miss either — it would silently drop out of the denominator."
+                )
+            elif verdict not in USE_VERDICTS:
                 findings.append(
                     f"{where}: uses[{j}] `verdict` is «{verdict}», expected one of "
                     f"{', '.join(USE_VERDICTS)} — there is no partial credit at "
@@ -1063,7 +1144,24 @@ def check_attestation(attestation: dict | None,
             plain_n += 1
             plain_k += 1 if covers_all else 0
 
-    recorded = sum(1 for root in witness_roots if root in records)
+    # RECORDED means «this root's concept has been generated and judged», never
+    # «this root has a record». The two were the same expression until the file
+    # first held its mandated intermediate state, and then they were not: with
+    # all 40 frozen and none generated, counting records made `recorded == total`
+    # and printed «k / 40 : 0 / 40» — a number over nothing, which reads as «the
+    # method covers no root» rather than «nothing has been measured yet». The
+    # most dangerous number this script can print is the one that looks like a
+    # result and is an artefact of its own bookkeeping.
+    recorded = sum(
+        1 for root in witness_roots
+        if isinstance(records.get(root), dict)
+        and _text(records[root].get("concept_recorded_at"))
+    )
+    awaiting_roots = tuple(sorted(
+        root for root in witness_roots
+        if isinstance(records.get(root), dict)
+        and not _text(records[root].get("concept_recorded_at"))
+    ))
 
     if blocked:
         note = (
@@ -1075,12 +1173,23 @@ def check_attestation(attestation: dict | None,
                        note=note), findings
 
     if recorded < total:
-        note = (
-            f"{recorded} of {total} witness roots recorded; the metric is not "
-            "printable yet. A `k` over a subset is not a smaller version of this "
-            "measurement — it is a different one, and the design forbids "
-            "reporting it as the result."
-        )
+        if awaiting_roots and recorded == 0:
+            note = (
+                f"{len(awaiting_roots)} of {total} witness roots have their "
+                "`uses[]` FROZEN and not one concept has been generated, so "
+                "the metric is not printable — and that is the protocol "
+                "working, not a gap. The freeze is committed as its own step "
+                "so that it exists in the history before any concept does."
+            )
+        else:
+            note = (
+                f"{recorded} of {total} witness roots have a concept recorded"
+                + (f" ({len(awaiting_roots)} frozen and awaiting generation)"
+                   if awaiting_roots else "")
+                + "; the metric is not printable yet. A `k` over a subset is not a "
+                "smaller version of this measurement — it is a different one, and "
+                "the design forbids reporting it as the result."
+            )
         return replace(empty, recorded=recorded, note=note), findings
 
     if off_set:

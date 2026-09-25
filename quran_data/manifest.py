@@ -255,6 +255,30 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_concept_datasets.py",),
         regenerable=False,
     ),
+    "CONCEPT_ATTESTATION_JSON": Entry(
+        bucket="references",
+        what="The confrontation record k/40 is computed from: per witness root, "
+             "the Quranic uses frozen before its concept existed (`uses[]`, each "
+             "a gloss, a verse and a `covered`/`not_covered` verdict carrying "
+             "its one-line reason on a miss), plus `uses_frozen_at` and "
+             "`concept_recorded_at`. Ships as a SKELETON — `roots` empty — "
+             "because a record written ahead of its curation would be the one "
+             "thing the file exists to prevent.",
+        origin="Curated by hand, one root at a time, and the ORDER is the "
+               "dataset: each root's `uses[]` is committed BEFORE that root's "
+               "concept is generated. Written afterwards, the list shapes itself "
+               "around the sentence — silently and in good faith — and coverage "
+               "stops measuring anything. `scripts/validate_concept_datasets.py` "
+               "refuses to print the metric for any root whose stamps are the "
+               "wrong way round, and a root whose concept misses a use stays "
+               "recorded as a miss: never a reason to edit the primitive table.",
+        producer=None,
+        consumers=(
+            "linguistics/lisan/concept/confront.py",
+            "scripts/validate_concept_datasets.py",
+        ),
+        regenerable=False,
+    ),
     "ROOT_CORES_JSON": Entry(
         bucket="references",
         what="Attested semantic core(s) per root, keyed on the CANONICAL QAC "

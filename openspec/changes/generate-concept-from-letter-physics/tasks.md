@@ -107,33 +107,33 @@
 
 ## 5. Composition, completed
 
-- [ ] 5.1 The deterministic Arabic template and the مفهوم assembly
-- [ ] 5.2 Partial concepts: silent letters named, position omitted, no filler, no fallback flag
-- [ ] 5.3 Hamza carriers resolved to `ء` via an explicit carrier→hamza map — **NOT**
+- [x] 5.1 The deterministic Arabic template and the مفهوم assembly
+- [x] 5.2 Partial concepts: silent letters named, position omitted, no filler, no fallback flag
+- [x] 5.3 Hamza carriers resolved to `ء` via an explicit carrier→hamza map — **NOT**
       `arabic_text.fold_carrier`, which folds toward the carrier and deletes the hamza; bare `ا`
       reported silent
-- [ ] 5.4 Quadriliteral roots return no concept with a stated reason
-- [ ] 5.5 `tests/test_concept_composition.py` — the `ضرب` pairs of §D5, determinism across processes,
+- [x] 5.4 Quadriliteral roots return no concept with a stated reason
+- [x] 5.5 `tests/test_concept_composition.py` — the `ضرب` pairs of §D5, determinism across processes,
       the confirmed collision behaviour, partial and refused cases, no compensation for the
       signature bias
 
 ## 6. Optional phrasing, with a veto over it
 
-- [ ] 6.1 `linguistics/lisan/concept/phrasing.py` behind `CONCEPT_LLM_PHRASING=0` (off)
-- [ ] 6.2 Containment check: every content word maps to a realised primitive's declared lemma set
-- [ ] 6.3 Rejection returns the template sentence and records the rejection in the response
-- [ ] 6.4 Test that an injected out-of-vocabulary phrasing is rejected, not shown
+- [x] 6.1 `linguistics/lisan/concept/phrasing.py` behind `CONCEPT_LLM_PHRASING=0` (off)
+- [x] 6.2 Containment check: every content word maps to a realised primitive's declared lemma set
+- [x] 6.3 Rejection returns the template sentence and records the rejection in the response
+- [x] 6.4 Test that an injected out-of-vocabulary phrasing is rejected, not shown
 
 ## 7. Confrontation
 
-- [ ] 7.1 `linguistics/lisan/concept/confront.py` — the only module that may read the aṣl; imports the
+- [x] 7.1 `linguistics/lisan/concept/confront.py` — the only module that may read the aṣl; imports the
       concept result, never the reverse
-- [ ] 7.2 `data/references/concept_attestation.json`: `uses[]`, per-use verdict, frozen-at and
+- [x] 7.2 `data/references/concept_attestation.json`: `uses[]`, per-use verdict, frozen-at and
       recorded-at stamps; path constant, loader, manifest entry
-- [ ] 7.3 Validator refuses to print the metric when any `uses[]` was frozen after its concept
-- [ ] 7.4 Metric printer: `k / 40`, strict, with the signature-letter split, the per-root verdicts
+- [x] 7.3 Validator refuses to print the metric when any `uses[]` was frozen after its concept
+- [x] 7.4 Metric printer: `k / 40`, strict, with the signature-letter split, the per-root verdicts
       AND the §D11 window reservation — printed WITH the number, never by reference
-- [ ] 7.5 Wording check: the records are described as making an audit possible, never as audited
+- [x] 7.5 Wording check: the records are described as making an audit possible, never as audited
 
 ## 8. API
 
@@ -156,13 +156,33 @@
 
 ## 10. Curation and the measurement
 
-- [ ] 10.1 For each of the 40 witness roots: freeze `uses[]` and commit it **before** generating that
-      root's concept
+- [x] 10.1 For each of the 40 witness roots: freeze `uses[]` and commit it **before** generating that
+      root's concept — **DONE 2026-09-25: 40 roots, 183 uses, every verse checked against that
+      root's own occurrence list, every verdict `not_judged`, `concept_recorded_at` empty on all 40**
 - [ ] 10.2 Generate the 40 concepts; record per-use verdicts and reasons
 - [ ] 10.3 Confront `ضرب` on its five brief-named uses and publish the result, expected partial,
       excluded from `k`
 - [ ] 10.4 Publish `k / 40` with the signature-letter split and the per-root table — and change no
       dataset in that commit
+
+> **FREEZE COMMITTED — 2026-09-25, before any witness concept exists.**
+> All 40 witness roots carry their `uses[]`: **183 uses**, each a distinct Quranic sense with one
+> verse reference drawn from that root's OWN occurrence list (checked mechanically, 0 violations).
+> Every verdict is `not_judged` and `concept_recorded_at` is empty on all 40 — the state §D9 step 1
+> requires, committed as its own step so it exists in the history as a fact rather than a claim.
+>
+> **Two gate defects were found and fixed by getting here**, both of which would have corrupted the
+> metric silently. (1) The validator had NO representation of the mandated intermediate state —
+> uses frozen, concept not yet generated — so the only shape it accepted was uses and verdicts
+> written together, which is exactly the after-the-fact record the gate exists to catch. (2)
+> `recorded` counted a root as recorded because it had a FICHE, not because its concept existed, so
+> the freeze printed «k / 40 : 0 / 40» — a number over nothing that reads as «the method covers no
+> root» rather than «nothing has been measured yet».
+>
+> **Still open before the measurement: tasks 8 (API) and 9 (frontend).** They were deliberately
+> deferred past the freeze rather than done first: building the route and the panel means composing
+> and looking at concepts, and doing that before the uses were frozen is the one ordering the
+> protocol forbids.
 
 ## 11. Documentation
 
