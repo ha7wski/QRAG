@@ -2,6 +2,7 @@
   "meta": {
     "name": "concept-attestation",
     "description": "The frozen expectation k/40 is judged against. For each witness root: its distinct Quranic uses, each with a gloss and one verse reference, recorded and committed BEFORE that root's concept was generated — then a per-use verdict once the concept exists.",
+    "state": "FROZEN, AWAITING GENERATION. All 40 witness roots have their uses[] on file and not one concept has been generated for any of them. That is the state §D9 step 1 requires, and it is committed as its own step precisely so it exists in the history as a fact rather than as a claim made afterwards.",
     "the_ordering_is_the_protocol": [
       "A root's `uses[]` is written and committed FIRST, from morphology.json's occurrence list and the aṣl's verbatim, with the concept not yet generated.",
       "The concept is generated afterwards, blind: nothing under linguistics/lisan/concept/ may read the aṣl, and an import boundary enforces it rather than a promise.",
@@ -31,7 +32,1397 @@
     "readers": [
       "linguistics/lisan/concept/confront.py — reads it, compares, and reports; it has no path that re-ranks, re-selects or re-phrases a concept.",
       "scripts/validate_concept_datasets.py — the ordering gate and the k/40 printer."
-    ]
+    ],
+    "how_these_uses_were_written": [
+      "Source: morphology.json's occurrence list for the root, and Ibn Fāris' aṣl verbatim from maqayis_asl.csv — the two §D9 step 1 names, and nothing else.",
+      "The generated concept was NOT consulted. Stated exactly, because the exact version is what the metric rests on: the curator read no witness root's concept before writing these uses. One witness root — قوم — WAS composed before the freeze, inside a test run of confront.py; its concept was never recorded in this file, never displayed, and never read by the person writing these uses. The claim this file makes is about the curator's knowledge and about the stamped ordering, not about whether the composer function was ever called in a test.",
+      "Every `verse` is one of that root's OWN occurrence verses, checked mechanically. A use evidenced by a verse where the root does not occur is not an attested use of it.",
+      "Senses are the distinct Quranic uses the curator can defend, not an exhaustive lexicon. A coarser list is easier to cover and would flatter k/40; a finer one is harder. Neither was tuned, because the concepts did not exist to tune against."
+    ],
+    "verdict_vocabulary": {
+      "not_judged": "the use is frozen and its concept does not exist yet — the mandated intermediate state, and the only verdict legal before generation",
+      "covered": "the generated concept reaches this use",
+      "not_covered": "it does not; a miss carries its one-line reason and is a RESULT, never a reason to edit the table"
+    }
   },
-  "roots": {}
+  "roots": {
+    "أثم": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 42,
+      "uses": [
+        {
+          "gloss": "الذنب والمعصية",
+          "verse": "2:181",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأثيم: المُوغِل في الإثم",
+          "verse": "2:276",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأثام: جزاء الإثم",
+          "verse": "25:68",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التأثيم: نسبة الإثم أو الوقوع فيه",
+          "verse": "52:23",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "بعث": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 64,
+      "uses": [
+        {
+          "gloss": "البعث بعد الموت",
+          "verse": "2:56",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "بعث الرسل وإرسالهم",
+          "verse": "2:129",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "بعث رجل لمهمة",
+          "verse": "4:35",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الانبعاث: النهوض والاندفاع",
+          "verse": "9:46",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "توب": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 69,
+      "uses": [
+        {
+          "gloss": "توبة العبد: الرجوع عن الذنب",
+          "verse": "2:160",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "توبة الله على عبده: قبول رجوعه",
+          "verse": "2:37",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التوّاب اسمًا من أسماء الله",
+          "verse": "2:54",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المتاب: المرجع بالتوبة",
+          "verse": "25:71",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "ثني": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 24,
+      "uses": [
+        {
+          "gloss": "الاثنان: العدد",
+          "verse": "4:11",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المثاني: ما يُثنّى ويُكرَّر",
+          "verse": "15:87",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ثني الصدور: طيّها على ما فيها",
+          "verse": "11:5",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الاستثناء: إخراج بعض من كل",
+          "verse": "68:18",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "خشي": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 40,
+      "uses": [
+        {
+          "gloss": "خشية الله: خوف مقرون بالتعظيم",
+          "verse": "2:150",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "خشية الفقر والإملاق",
+          "verse": "17:31",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الخشية بمعنى التوقّع والحذر",
+          "verse": "18:80",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "خشية الجماد لله",
+          "verse": "2:74",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "خلص": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 30,
+      "uses": [
+        {
+          "gloss": "الإخلاص في الدين",
+          "verse": "7:29",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الخالص: الصافي غير المشوب",
+          "verse": "16:66",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الخلوص: الانفراد والاعتزال",
+          "verse": "12:80",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المُخلَص: المصطفى المجتبى",
+          "verse": "19:51",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الاستخلاص: الاصطفاء للنفس",
+          "verse": "12:54",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "ذوق": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 61,
+      "uses": [
+        {
+          "gloss": "ذوق الطعام حقيقةً",
+          "verse": "7:22",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ذوق العذاب",
+          "verse": "3:106",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ذوق الموت",
+          "verse": "3:185",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إذاقة الرحمة والنعمة",
+          "verse": "11:9",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ذوق وبال الأمر",
+          "verse": "5:95",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "زيد": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 59,
+      "uses": [
+        {
+          "gloss": "الزيادة في المقدار",
+          "verse": "9:124",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الزيادة عقوبةً",
+          "verse": "2:10",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المزيد والزيادة تفضّلًا",
+          "verse": "10:26",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الازدياد: طلب الزيادة",
+          "verse": "3:90",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "سرف": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 21,
+      "uses": [
+        {
+          "gloss": "الإسراف في الإنفاق",
+          "verse": "25:67",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإسراف في الأكل والشرب",
+          "verse": "7:31",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإسراف على النفس بالذنوب",
+          "verse": "39:53",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإسراف في القتل",
+          "verse": "17:33",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المسرف وصفًا للمتجاوز المكذّب",
+          "verse": "40:28",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "سوع": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 44,
+      "uses": [
+        {
+          "gloss": "الساعة: القيامة",
+          "verse": "7:187",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الساعة: المدة اليسيرة من الزمن",
+          "verse": "10:45",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ساعة العسرة",
+          "verse": "9:117",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "سُواع: صنم",
+          "verse": "71:23",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "صدر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 43,
+      "uses": [
+        {
+          "gloss": "الصدر: موضع القلب من الإنسان",
+          "verse": "7:2",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الصدور ظرفًا لما يُخفى",
+          "verse": "3:119",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "شرح الصدر: سعته للهدى",
+          "verse": "6:125",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإصدار: ردّ الماشية عن الماء",
+          "verse": "28:23",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "صدور الناس عن الموقف",
+          "verse": "99:6",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "طير": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 24,
+      "uses": [
+        {
+          "gloss": "الطير: الجنس الطائر",
+          "verse": "2:260",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الطيران بالجناح",
+          "verse": "6:38",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التطيّر: التشاؤم",
+          "verse": "7:131",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الطائر: عمل الإنسان اللازم له",
+          "verse": "17:13",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المستطير: المنتشر",
+          "verse": "76:7",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "عرب": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 22,
+      "uses": [
+        {
+          "gloss": "العربي وصفًا للّسان والقرآن",
+          "verse": "12:2",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأعراب: أهل البادية",
+          "verse": "9:97",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "العُرُب: المتحبّبات إلى أزواجهن",
+          "verse": "56:37",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "عقل": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 49,
+      "uses": [
+        {
+          "gloss": "العقل: الإدراك والفهم",
+          "verse": "2:44",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "عقل الخطاب بعد سماعه",
+          "verse": "2:75",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "العقل شرطًا للاعتبار بالآيات",
+          "verse": "2:164",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "غرق": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 23,
+      "uses": [
+        {
+          "gloss": "الإغراق في الماء",
+          "verse": "2:50",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الغرق عقوبةً",
+          "verse": "71:25",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النزع غرقًا: الإيغال في الشيء",
+          "verse": "79:1",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "غفل": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 35,
+      "uses": [
+        {
+          "gloss": "الغفلة عن الآيات",
+          "verse": "7:146",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "نفي الغفلة عن الله",
+          "verse": "2:74",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "غفلة القلب عن الشيء",
+          "verse": "12:13",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إغفال القلب عن الذكر",
+          "verse": "18:28",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "فقه": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 20,
+      "uses": [
+        {
+          "gloss": "الفقه: الفهم والإدراك",
+          "verse": "4:78",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التفقه في الدين",
+          "verse": "9:122",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "نفي الفقه عن القلوب المطبوعة",
+          "verse": "7:179",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "عدم فقه الكلام واللسان",
+          "verse": "18:93",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "فلح": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 40,
+      "uses": [
+        {
+          "gloss": "الفلاح: الفوز والنجاة",
+          "verse": "2:5",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "نفي الفلاح عن الظالمين",
+          "verse": "6:21",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "أفلح بمعنى ظفر وعلا",
+          "verse": "20:64",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الفلاح غايةً يُرجى",
+          "verse": "3:200",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قرب": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 91,
+      "uses": [
+        {
+          "gloss": "القرب المكاني والنهي عن القربان",
+          "verse": "2:35",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "قرب الله من عبده",
+          "verse": "2:186",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "ذو القربى: القرابة",
+          "verse": "2:83",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القربان: ما يُتقرَّب به",
+          "verse": "3:183",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المقرَّبون: المصطفون منزلةً",
+          "verse": "3:45",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "قربان الفاحشة: مقاربتها",
+          "verse": "4:43",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قسط": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 22,
+      "uses": [
+        {
+          "gloss": "القسط: العدل",
+          "verse": "3:18",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإقساط: العدل بين الناس",
+          "verse": "49:9",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القاسطون: الجائرون",
+          "verse": "72:14",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القسط في الكيل والميزان",
+          "verse": "6:152",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قعد": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 26,
+      "uses": [
+        {
+          "gloss": "القعود ضدّ القيام",
+          "verse": "3:191",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القعود تخلّفًا عن الجهاد",
+          "verse": "4:95",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القواعد: أسس البناء",
+          "verse": "2:127",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القواعد من النساء",
+          "verse": "24:60",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المقاعد: مواضع القعود",
+          "verse": "3:121",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القعيد: الملازم",
+          "verse": "50:17",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قمر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 26,
+      "uses": [
+        {
+          "gloss": "القمر: الجرم السماوي",
+          "verse": "6:77",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القمر مسخَّرًا آيةً",
+          "verse": "7:54",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "انشقاق القمر",
+          "verse": "54:1",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "تقدير القمر منازل للحساب",
+          "verse": "10:5",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "لسن": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 24,
+      "uses": [
+        {
+          "gloss": "اللسان: العضو",
+          "verse": "75:16",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "اللسان: اللغة",
+          "verse": "14:4",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "لسان صدق: الذكر الحسن",
+          "verse": "19:50",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الألسنة في الطعن والأذى",
+          "verse": "33:19",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "شهادة الألسنة",
+          "verse": "24:24",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "مسك": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 24,
+      "uses": [
+        {
+          "gloss": "الإمساك: الحبس",
+          "verse": "35:41",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إمساك الزوجة خلاف التسريح",
+          "verse": "2:229",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الاستمساك: التعلّق الوثيق",
+          "verse": "2:256",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المسك: الطيب",
+          "verse": "83:26",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإمساك بخلًا",
+          "verse": "17:100",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "نجو": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 75,
+      "uses": [
+        {
+          "gloss": "النجاة من الهلاك",
+          "verse": "2:49",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإنجاء فعلًا إلهيًّا",
+          "verse": "10:23",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النجوى: المسارّة",
+          "verse": "4:114",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النجيّ: المتناجي المنفرد",
+          "verse": "12:80",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "نكر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 37,
+      "uses": [
+        {
+          "gloss": "المنكر: ما ينكره الشرع",
+          "verse": "3:104",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإنكار: الجحود",
+          "verse": "16:83",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "نَكِرَ: لم يعرف فاستغرب",
+          "verse": "11:70",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النكير: الإنكار والعقوبة",
+          "verse": "22:44",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النُّكر: الفظيع المستبشَع",
+          "verse": "18:74",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التنكير: تغيير الشيء ليُجهل",
+          "verse": "27:41",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "هجر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 27,
+      "uses": [
+        {
+          "gloss": "الهجرة: مفارقة الديار",
+          "verse": "2:218",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الهجر: المفارقة والترك",
+          "verse": "4:34",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المهجور: المتروك",
+          "verse": "25:30",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الهُجْر: القول الفاحش",
+          "verse": "23:67",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "وثق": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 29,
+      "uses": [
+        {
+          "gloss": "الميثاق: العهد المؤكَّد",
+          "verse": "2:27",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الموثق: العهد المأخوذ",
+          "verse": "12:66",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الوثاق: القيد والشدّ",
+          "verse": "47:4",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "العروة الوثقى: المُحكَمة",
+          "verse": "2:256",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "وجه": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 71,
+      "uses": [
+        {
+          "gloss": "الوجه: العضو",
+          "verse": "3:106",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "وجه الله: جهته ورضاه",
+          "verse": "2:272",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إسلام الوجه: انقياد الذات",
+          "verse": "2:112",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الوجهة: الجهة المقصودة",
+          "verse": "2:148",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الوجيه: ذو الجاه والمنزلة",
+          "verse": "3:45",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "توجيه الوجه: قصد الجهة",
+          "verse": "6:79",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "أبو": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 104,
+      "uses": [
+        {
+          "gloss": "الأب: الوالد",
+          "verse": "12:4",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الآباء: الأسلاف",
+          "verse": "2:170",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأبوان",
+          "verse": "4:11",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأب إطلاقًا على الجدّ والعمّ",
+          "verse": "2:133",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "بني": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 150,
+      "uses": [
+        {
+          "gloss": "البناء: الرفع والتشييد",
+          "verse": "2:22",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "البنيان: المبنى",
+          "verse": "16:26",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الابن: الولد",
+          "verse": "3:61",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "بنو فلان: الانتساب",
+          "verse": "2:40",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "البنات",
+          "verse": "4:23",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "خوف": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 112,
+      "uses": [
+        {
+          "gloss": "الخوف من الله",
+          "verse": "5:23",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الخوف من المخلوق",
+          "verse": "2:182",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "نفي الخوف عن أولياء الله",
+          "verse": "2:38",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "حال الخوف في الصلاة",
+          "verse": "2:239",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الخِيفة: الخوف المستكنّ",
+          "verse": "20:67",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التخويف: بثّ الخوف",
+          "verse": "17:59",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "دخل": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 111,
+      "uses": [
+        {
+          "gloss": "الدخول المكاني",
+          "verse": "2:58",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "دخول الجنة",
+          "verse": "4:124",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الإدخال",
+          "verse": "4:13",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الدخول بالمرأة كنايةً",
+          "verse": "4:23",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الدَّخَل: الدَّغَل والفساد",
+          "verse": "16:92",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المُدَّخَل: الملجأ",
+          "verse": "9:57",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "رجع": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 103,
+      "uses": [
+        {
+          "gloss": "الرجوع إلى الله بعد الموت",
+          "verse": "2:28",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الرجوع المكاني",
+          "verse": "9:83",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المرجع: موضع الرجوع",
+          "verse": "5:48",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التراجع بين الزوجين",
+          "verse": "2:230",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الرجع: الإعادة البعيدة",
+          "verse": "50:3",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "رود": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 120,
+      "uses": [
+        {
+          "gloss": "الإرادة: مشيئة الله",
+          "verse": "2:185",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إرادة العبد وقصده",
+          "verse": "4:20",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المراودة: المخادعة في الطلب",
+          "verse": "12:23",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "رويدًا: التمهّل",
+          "verse": "86:17",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "عبد": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 251,
+      "uses": [
+        {
+          "gloss": "العبادة لله",
+          "verse": "1:5",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "العبد: المملوك",
+          "verse": "2:178",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "العباد: الخلق مضافين إليه",
+          "verse": "3:15",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "عبادة الطاغوت وغير الله",
+          "verse": "5:60",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التعبيد: الاستعباد",
+          "verse": "26:22",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قول": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 1383,
+      "uses": [
+        {
+          "gloss": "القول: الكلام المنطوق",
+          "verse": "2:8",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "قيل: القول مبنيًّا للمجهول",
+          "verse": "2:11",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القول اسمًا موصوفًا",
+          "verse": "4:9",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "التقوّل: اختلاق القول",
+          "verse": "69:44",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "قوم": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 597,
+      "uses": [
+        {
+          "gloss": "القوم: الجماعة",
+          "verse": "2:54",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القيام: الانتصاب",
+          "verse": "2:238",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "إقامة الصلاة",
+          "verse": "2:3",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الاستقامة: لزوم الجادة",
+          "verse": "1:6",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القيّوم: القائم على كل شيء",
+          "verse": "2:255",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "القيامة",
+          "verse": "2:85",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "المقام: موضع القيام",
+          "verse": "2:125",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "نذر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 115,
+      "uses": [
+        {
+          "gloss": "الإنذار: التحذير",
+          "verse": "2:6",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النذير: المحذِّر",
+          "verse": "2:119",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النذر: ما يوجبه المرء على نفسه",
+          "verse": "2:270",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النُّذُر: الإنذارات أو النُّذُر",
+          "verse": "10:101",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    },
+    "نصر": {
+      "uses_frozen_at": "2026-09-25T18:29:15",
+      "concept_recorded_at": "",
+      "occurrences": 137,
+      "uses": [
+        {
+          "gloss": "النصر: العون والتأييد",
+          "verse": "2:214",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النصير: الناصر",
+          "verse": "2:107",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الأنصار",
+          "verse": "3:52",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "الانتصار: أخذ الحق والانتقام",
+          "verse": "42:41",
+          "verdict": "not_judged",
+          "reason": ""
+        },
+        {
+          "gloss": "النصارى",
+          "verse": "2:62",
+          "verdict": "not_judged",
+          "reason": ""
+        }
+      ]
+    }
+  }
 }
