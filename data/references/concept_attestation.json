@@ -43,6 +43,24 @@
       "not_judged": "the use is frozen and its concept does not exist yet — the mandated intermediate state, and the only verdict legal before generation",
       "covered": "the generated concept reaches this use",
       "not_covered": "it does not; a miss carries its one-line reason and is a RESULT, never a reason to edit the table"
+    },
+    "coverage_criterion": {
+      "declared": "2026-09-25, in its own commit, BEFORE any witness root's concept was generated — the same ordering discipline as uses[] themselves, one layer in. §D9 said «judge coverage» without saying what coverage is; a judge with no written criterion applies one anyway and discovers it while judging.",
+      "rule": "A use is `covered` when a reader given ONLY the realised primitives, in their positional order, and told nothing about the root, would recognise that use's notion as something the reading says.",
+      "tests_all_necessary": [
+        "nothing imported — every content notion of the gloss traces to at least one realised primitive; if the step from primitives to gloss needs a notion the nine do not carry, it is not covered",
+        "not merely inert — the primitives must do more than fail to contradict the gloss; at least one realised primitive must carry the gloss's CENTRAL notion. Nine notions are compatible with almost anything, so «does not contradict» is the failure mode this reading is most prone to",
+        "the direction holds — opens → body → concludes is part of the claim; a gloss needing the root to end in an opening-out is not covered by a reading whose third position is قَطْع"
+      ],
+      "the_prohibition": "The judge may not use what they know the root means to build the bridge. Knowing that قوم is standing makes «أَصْل · ظُهور» look like a foundation; it looks like one only to someone who already has the answer. Where the bridge needs the root's meaning, the verdict is not_covered.",
+      "miss_classes": {
+        "imported": "the gloss needs a notion absent from the realised primitives",
+        "inert": "the primitives are compatible with the gloss and say nothing about it",
+        "direction": "the positional order contradicts the gloss",
+        "collision": "another root with a divergent aṣl composes to these exact realised primitives, so nothing in this reading is about this root"
+      },
+      "why_the_classes": "§D3's reopening condition requires collision failures to be strictly more than half of all failing roots, classified on the per-root reasons ALREADY COMMITTED. That is only checkable if the reasons were classified when they were written, against a vocabulary fixed beforehand. This is that vocabulary, and every `not_covered` reason opens with one of the four words.",
+      "collision_is_computed_afterwards": "Whether another QAC root composes to the same realised primitives is a mechanical fact about the table, not a judgement. It is recorded per root as `collision_with` and derived AFTER the judging pass, so that knowing a root collides cannot soften or harden the reading of its uses. The criterion above never mentions collision: a use fails on the three tests before anyone asks why."
     }
   },
   "roots": {

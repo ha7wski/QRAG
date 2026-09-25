@@ -92,6 +92,48 @@ first installed, none of them deliberately.
 - **AND** this SHALL be the opposite failure direction from the metric reader, which fails open
   because there an empty set can only shrink what is claimed
 
+### Requirement: Coverage is judged against a criterion fixed before the first concept is read
+
+What makes a use `covered` SHALL be written down and committed **before** any witness root's concept
+is generated. A judge with no written criterion applies one anyway and discovers it while judging,
+which is the same defect as writing the `uses[]` after reading the sentence — one layer further in.
+
+The criterion SHALL be: a use is covered when a reader given only the realised primitives, in their
+positional order, and told nothing about the root, would recognise that use's notion as something
+the reading says. Three tests, all necessary — **nothing imported** (every content notion of the
+gloss traces to a realised primitive), **not merely inert** (at least one realised primitive carries
+the gloss's central notion; compatibility is not coverage), and **the direction holds** (the
+positional rule is part of the claim). The judge SHALL NOT use knowledge of what the root means to
+bridge from the primitives to the gloss.
+
+Every miss SHALL name its class in its `reason`, from a vocabulary fixed with the criterion:
+`imported`, `inert`, `direction`, `collision`. The classes exist so that §D3's reopening condition —
+collision failures strictly more than half of failing roots — is measurable against reasons that
+were classified when they were written rather than re-read afterwards.
+
+`collision` SHALL be derived mechanically, from whether another root with a divergent aṣl composes
+to the same realised primitives, and SHALL be derived **after** the verdicts are written, so that
+knowing a root collides cannot shape the reading of its uses.
+
+#### Scenario: The criterion is committed before the concepts
+
+- **WHEN** the history is read
+- **THEN** the commit declaring the coverage criterion SHALL precede the commit recording any
+  witness root's concept
+- **AND** no verdict SHALL exist in the tree at that commit
+
+#### Scenario: Every miss is classified
+
+- **WHEN** a use is recorded `not_covered`
+- **THEN** its `reason` SHALL open with one of the four declared classes
+- **AND** the reason SHALL name the notion that was missing, imported, or contradicted
+
+#### Scenario: Compatibility is not coverage
+
+- **WHEN** a concept neither contradicts a use nor says anything about it
+- **THEN** the use SHALL be recorded `not_covered` with class `inert`
+- **AND** it SHALL NOT be recorded covered on the ground that nothing conflicts
+
 ### Requirement: Disagreement is recorded, never repaired
 
 A root whose generated concept fails to cover an attested use SHALL be recorded as a miss, with one

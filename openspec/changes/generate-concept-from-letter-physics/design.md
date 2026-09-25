@@ -473,6 +473,57 @@ For each witness root, in this order:
 2. **Generate the concept**, blind, by D8.
 3. **Judge coverage per use**: `covered` / `not_covered`, with one line of reason. Then the root's
    verdict is `covers_all` only if every `uses[]` entry is `covered`.
+
+> **THE COVERAGE CRITERION, ADDED 2026-09-25 — written before any witness root's concept was read,
+> and that ordering is the only thing that makes it a criterion rather than a description.**
+>
+> §D9 said «judge coverage» and did not say what coverage is. A judge with no written criterion
+> applies one anyway, discovers it while judging, and drifts toward the answer that makes the number
+> look like whatever they expected — in either direction. The criterion below was committed as its
+> own step, before the first witness concept was generated, for the same reason the `uses[]` were.
+>
+> **A use is `covered` when a reader given ONLY the nine realised primitives, in their positional
+> order, and told nothing whatever about the root, would recognise that use's notion as something
+> the reading says.** Three tests, all necessary:
+>
+> 1. **Nothing imported.** Every content notion of the gloss traces to at least one realised
+>    primitive. If the step from the primitives to the gloss needs a notion the nine do not carry,
+>    the use is not covered. This is the containment discipline the phrasing veto already applies to
+>    prose, applied to the judgement.
+> 2. **Not merely inert.** The primitives must do more than fail to contradict the gloss. A reading
+>    compatible with a use but silent about it is a MISS, not a pass — «does not contradict» is the
+>    failure mode a nine-primitive reading is most prone to, because nine notions are compatible with
+>    almost anything. At least one realised primitive must carry the gloss's CENTRAL notion.
+> 3. **The direction holds.** The positional rule is part of the claim: opens → body → concludes. A
+>    gloss whose notion requires the root to end in an opening-out is not covered by a reading whose
+>    third position is `قَطْع`, however well the first two fit.
+>
+> **The prohibition that makes it work: the judge may not use what they know the root means to build
+> the bridge.** Knowing that `قوم` is standing makes `أَصْل · ظُهور` look like a foundation. It only
+> looks like one to someone who already has the answer, and that is precisely the back-fitting the
+> whole design exists to exclude. Where the bridge needs the root's meaning, the verdict is
+> `not_covered`.
+>
+> **A miss names its class, in the first word of its `reason`.** Four, and they are exhaustive by
+> construction — a miss fails test 1, test 2 or test 3, or the reading is not about this root at all:
+>
+> | class | what failed |
+> |---|---|
+> | `imported` | test 1 — the gloss needs a notion absent from the nine |
+> | `inert` | test 2 — the nine are compatible with the gloss and say nothing about it |
+> | `direction` | test 3 — the positional order contradicts the gloss |
+> | `collision` | another root with a divergent aṣl composes to these exact nine, so nothing in this reading is about this root |
+>
+> The classes exist to make §D3's reopening condition measurable. That condition requires collision
+> failures to be **strictly more than half** of all failing roots, «classified on the per-root
+> reasons already committed» — which is only checkable if the reasons were classified when they were
+> written, against a vocabulary fixed beforehand. This is that vocabulary.
+>
+> **`collision` is computed, and it is computed AFTER the verdicts are written.** Whether another
+> QAC root composes to the same nine realised primitives is a mechanical fact about the table, not a
+> judgement, and it is recorded per root as `collision_with`. It is derived after the judging pass so
+> that knowing a root collides cannot soften or harden the reading of its uses — the criterion above
+> never mentions collision, and a use that fails does so on tests 1–3 before anyone asks why.
 4. **Record disagreement as a result.** A root whose concept misses its aṣl stays recorded as a
    miss. It is **never** a reason to add a row to the table, change a primitive's gloss, or
    re-order anything. The table changes only through a lock version justified by a feature-level

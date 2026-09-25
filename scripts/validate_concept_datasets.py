@@ -238,6 +238,17 @@ USE_VERDICTS = ("covered", "not_covered")
 # is unjudged (below), and a `concept_recorded_at` earlier than `uses_frozen_at`.
 VERDICT_NOT_JUDGED = "not_judged"
 
+# §D9's coverage criterion classifies every miss, and the class is the FIRST word
+# of the reason. Four, exhaustive by construction: a miss fails one of the
+# criterion's three tests, or the reading is not about this root at all.
+#
+# They are validated rather than trusted because §D3's reopening condition — a
+# granularity change requires collision failures to be strictly more than half of
+# all failing roots — is measured over these reasons «already committed». A
+# free-text reason cannot be counted afterwards without re-reading and
+# re-deciding, which is the reopening condition being decided by whoever reopens.
+MISS_CLASSES = ("imported", "inert", "direction", "collision")
+
 
 # ── inputs ───────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
@@ -1128,12 +1139,21 @@ def check_attestation(attestation: dict | None,
                     f"{', '.join(USE_VERDICTS)} — there is no partial credit at "
                     "the use level either"
                 )
-            if verdict == "not_covered" and not _text(use.get("reason")):
-                findings.append(
-                    f"{where}: uses[{j}] is a miss with no `reason` — a miss is a "
-                    "recorded result and carries its one line; it is never a "
-                    "reason to edit the table"
-                )
+            if verdict == "not_covered":
+                reason = _text(use.get("reason"))
+                if not reason:
+                    findings.append(
+                        f"{where}: uses[{j}] is a miss with no `reason` — a miss is "
+                        "a recorded result and carries its one line; it is never a "
+                        "reason to edit the table"
+                    )
+                elif reason.split(":", 1)[0].split()[0] not in MISS_CLASSES:
+                    findings.append(
+                        f"{where}: uses[{j}]'s reason does not open with one of "
+                        f"{', '.join(MISS_CLASSES)}. An unclassified miss cannot be "
+                        "counted later, and §D3's reopening condition is a count "
+                        "over exactly these classes."
+                    )
 
         covers_all = all(
             isinstance(u, dict) and _text(u.get("verdict")) == "covered" for u in uses
@@ -1232,11 +1252,18 @@ def check_attestation(attestation: dict | None,
                     f"{where}: uses[{j}] `verdict` is «{verdict}», expected one of "
                     f"{', '.join(USE_VERDICTS)}"
                 )
-            elif verdict == "not_covered" and not _text(use.get("reason")):
-                findings.append(
-                    f"{where}: uses[{j}] is a miss with no `reason` — an uncounted "
-                    f"root's miss is still a published result"
-                )
+            elif verdict == "not_covered":
+                reason = _text(use.get("reason"))
+                if not reason:
+                    findings.append(
+                        f"{where}: uses[{j}] is a miss with no `reason` — an "
+                        f"uncounted root's miss is still a published result"
+                    )
+                elif reason.split(":", 1)[0].split()[0] not in MISS_CLASSES:
+                    findings.append(
+                        f"{where}: uses[{j}]'s reason does not open with one of "
+                        f"{', '.join(MISS_CLASSES)}"
+                    )
 
     # A RECORD FOR A NON-WITNESS ROOT IS NOT A FINDING, and treating it as one
     # made the gate contradict two documents it is supposed to enforce. §D9 step 3
