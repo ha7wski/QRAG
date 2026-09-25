@@ -284,6 +284,31 @@ class LisanService:
         return out
 
     # ── orchestration ─────────────────────────────────────────────────────
+    def occurrences(self, root: str) -> dict:
+        """How often the root occurs in the corpus, and in which verses.
+
+        The ATTESTED layer of this page, and the reason it is published here at
+        all: «تحليل اللسان» leads with what the corpus and Ibn Fāris record, and a
+        root's occurrence list is the most solid thing the product holds about it.
+        It used to reach the screen only through the concept engine's
+        confrontation block, which made an attested fact depend on an
+        experimental route staying up.
+
+        `sample=1` because only the counts and the reference list are wanted:
+        `retrieve_by_root` also materialises verse TEXTS for its sample, and the
+        exhaustive vocalized display with highlighting is «دراسة الآية»'s job, not
+        this page's. Zero is not a legal sample (it divides by `k`), so one verse
+        is loaded and dropped.
+        """
+        if not root:
+            return {"count": 0, "verse_ids": [], "forms": []}
+        found = self.lex.retrieve_by_root(root, sample=1)
+        return {
+            "count": int(found.get("occurrences_count") or 0),
+            "verse_ids": list(found.get("verse_ids") or []),
+            "forms": list(found.get("forms") or []),
+        }
+
     def analyze(self, word: str) -> dict:
         """Run the full pipeline and return the response object (Arabic-only).
 
@@ -309,10 +334,16 @@ class LisanService:
         identities = self.identities(root, letters)
         cores = self.cores.lookup(root)
 
+        found = self.occurrences(root)
         base = {
             "word": word,
             "root": root,
             "root_source": resolved["root_source"],
+            # The attested layer, published before anything interpretive is
+            # composed from it.
+            "occurrences": found["count"],
+            "occurrence_verses": found["verse_ids"],
+            "forms": found["forms"],
             "letters": identities,
             "synthesis_source": "template",
             "ishtiqaq_akbar": self.ishtiqaq_akbar(root),

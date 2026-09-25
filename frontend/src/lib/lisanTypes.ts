@@ -173,6 +173,20 @@ export interface LisanResponse {
    *  `"fallback"` to decide the جذر تقديري badge, and a typo in that comparison
    *  has to be a compile error rather than a badge that silently never shows. */
   root_source: "qac" | "fallback" | null;
+  /** The ATTESTED layer, published before anything composed from it.
+   *
+   *  `occurrences` counts the Quranic verses the root occurs in,
+   *  `occurrence_verses` is the exhaustive `"s:a"` list, and `forms` the written
+   *  forms QAC records for it. The page prints the figures and a short sample
+   *  and sends the reader to «دراسة الآية» for the vocalized display with
+   *  highlighting — that page's job, not this one's.
+   *
+   *  They are required, not optional: these facts used to reach the screen only
+   *  through the concept engine's confrontation block, which made an attested
+   *  datum depend on an experimental route staying up. */
+  occurrences: number;
+  occurrence_verses: string[];
+  forms: string[];
   constrained: boolean;
   letters: LetterIdentity[];
   cores: RootCore[];

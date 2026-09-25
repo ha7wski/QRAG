@@ -170,6 +170,15 @@ class LisanResponse(BaseModel):
     word: str
     root: str | None
     root_source: str | None = None      # "qac" | "fallback" | None
+    # The ATTESTED layer, and it is published before anything composed from it.
+    # `occurrence_verses` is the exhaustive reference list — the page shows a
+    # handful and sends the reader to «دراسة الآية» for the vocalized display
+    # with highlighting, which is that page's job and not this one's. These used
+    # to reach the screen only through the concept engine's confrontation block,
+    # which made an attested fact depend on an experimental route staying up.
+    occurrences: int = 0
+    occurrence_verses: list[str] = []
+    forms: list[str] = []               # the written forms QAC records for the root
     constrained: bool = False
     letters: list[LetterIdentity] = []
     cores: list[RootCore] = []

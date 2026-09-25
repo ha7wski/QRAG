@@ -458,8 +458,19 @@ export const S = {
 
   lexical: {
     heading: "تحليل اللسان",
+    /**
+     * The page leads with the ATTESTED layers, in the order it now renders them:
+     * the verified root, Ibn Fāris' cited aṣl, the occurrences, the morphology.
+     * The letter reading is named last and named for what it is — a transmitted
+     * مذهب, displayed with its sources.
+     *
+     * It used to read «اكتب كلمةً عربيّةً لقراءة جذرها حرفًا حرفًا — قراءةٌ تأويليّةٌ
+     * لرمزيّة الحروف في اللسان», which led with the letters and let the whole page
+     * be read as a tool that derives a root's meaning from them. It does not, and
+     * the first sentence a reader sees is where that has to be said.
+     */
     caption:
-      "اكتب كلمةً عربيّةً لقراءة جذرها حرفًا حرفًا — قراءةٌ تأويليّةٌ لرمزيّة الحروف في اللسان.",
+      "اكتب كلمةً عربيّةً فترى جذرَها المُحقَّق، وأصلَه كما نصَّ عليه ابن فارس، ومواضعَه في الآيات، وصرفَه وإعرابَه. ويأتي بعدَ ذلك مذهبُ القائلين بدلالةِ الحروف، منسوبًا إلى أصحابه — عَرضًا لقولهم، لا استنباطًا لمعنى الجذر من حروفه.",
     analyze: "حلِّل",
     word: "الكلمة",
     /** The input's example word. It was the last Arabic literal left in a
@@ -494,6 +505,27 @@ export const S = {
     coreSource: (source: string, edition: string) =>
       edition ? `${source} — ${iso(edition)}` : source,
 
+    /* ── المواضع: the attested occurrences, above everything composed ──
+     *
+     * Figures and a short sample only. The exhaustive vocalized display with
+     * the matched word highlighted belongs to «دراسة الآية», and this section
+     * links there rather than growing a second copy of it. */
+    occurrencesHeading: "المواضع",
+    occurrencesNote: `ورودُ الجذر في القرآن كما تُثبِته مدوّنةُ ${iso("QAC")} المُحقَّقة.`,
+    /** «313 آية» / «11 لفظًا» — the two figures, each counted on its own set.
+     *  No label in front of either: the counted noun already says what is
+     *  counted, and «عدد الآيات : 313 آية» says it twice. */
+    occurrencesAyat: (n: number) => count(n, NOUNS.aya),
+    occurrencesForms: (n: number) => count(n, NOUNS.lafz),
+    formsLabel: "الألفاظ :",
+    /** The sample is a SAMPLE and says so; the remainder is stated as a number
+     *  rather than trailed off, so the reader knows what is not on screen. */
+    occurrencesSampleLabel: "من مواضعه :",
+    occurrencesMore: (n: number) => `و${count(n, NOUNS.aya)} أخرى`,
+    occurrencesLink: "اعرض المواضع كاملةً، مشكولةً، في «دراسة الآية»",
+    /** A root QAC records with no occurrence — the state is stated, not blank. */
+    noOccurrences: "لم يُسجَّل لهذا الجذر موضعٌ في المدوّنة.",
+
     /* ── The letters, as phonetics only. Meaning belongs to a reading. ── */
     lettersHeading: "حروف الجذر — المخارج والصفات",
     positionLabel: "الموضع",
@@ -501,6 +533,21 @@ export const S = {
     positionKind: POSITION_KINDS,
     /** «3 وجوه» — how many senses the letter's bundle holds. */
     senseCount: (n: number) => count(n, NOUNS.wajh),
+
+    /* ── What the letter reading IS, said once and without interaction ──
+     *
+     * Everything below this banner is a REPORTED مذهب: what Ḥasan ʿAbbās says a
+     * letter carries, and Ibn Jinnī's ishtiqāq al-akbar. Each sense already
+     * names its source and page; the banner is what says what the whole section
+     * is, in the page's own words, for the reader who opens no disclosure.
+     *
+     * The application does not derive a root's meaning from its letters, and
+     * this is the sentence that states it where it could be believed otherwise. */
+    madhhabHeading: "ما يلي مذهبٌ منقولٌ في دلالة الحروف",
+    madhhabNote:
+      "ما يُعرَض بعدُ هو قولُ حسن عبّاس في خصائص الحروف وقولُ ابن جنّي في الاشتقاق الأكبر، منسوبًا إلى أصحابه، كلُّ وجهٍ بمصدره وصفحته. عَرضُ مذهبٍ وحكايتُه، لا تبنٍّ له.",
+    madhhabDisavowal:
+      "وهذا التطبيقُ لا يستنبط معنى الجذر من حروفه؛ إنّما مستندُه ما تقدَّم: الجذرُ المُحقَّق، والأصلُ المنصوصُ عند ابن فارس، والمواضعُ في الآيات.",
 
     /* ── One reading per core, never a blend ─────────────────────────── */
     readingOn: (gloss: string) => `قراءةٌ على أصل «${gloss}»`,
@@ -528,9 +575,14 @@ export const S = {
     discardedSummary: "معانٍ أخرى للحرف لم تُعتمد هنا",
     discardedReason: DISCARD_REASONS,
 
-    /* ── The composed reading ────────────────────────────────────────── */
-    synthesisHeading: "قراءة اللسان",
-    synthesisNote: "مُولَّد آليًّا من الوجوه المختارة",
+    /* ── The composed reading ──────────────────────────────────────────
+     *
+     * «قراءة اللسان» was the heading, and standing alone over a paragraph about
+     * a root it read as that root's meaning. The heading now names what the
+     * paragraph is a reading OF — the letters, on this one aṣl, on the مذهب the
+     * banner above declared — and the note denies the definition outright. */
+    synthesisHeading: "قراءةُ الحروف على هذا الأصل",
+    synthesisNote: "مُولَّد آليًّا من الوجوه المختارة — لا تعريفَ للجذر",
     /** The same paragraph when the core selected NOTHING — a real and frequent
      *  shape (ظلم's first aṣl selects for none of ظ ل م). Saying it was composed
      *  «من الوجوه المختارة» would assert a provenance the reading does not have;
@@ -577,6 +629,27 @@ export const S = {
    * reading, or that lets one engine read as the other's correction.
    */
   concept: {
+    /* ── The closure, at the top of the panel and before anything it frames ──
+     *
+     * The experiment is over and its result is negative. The header states the
+     * number, not a mood: `0 / 40` witness roots have a concept covering ALL of
+     * their frozen uses. It also states WHY the failure is not parametric —
+     * 162 of the 176 misses are `imported`, i.e. the notion the gloss needs is
+     * absent from the feature vocabulary altogether — so that no reader takes
+     * «it needs tuning» away from a panel that is not being tuned.
+     *
+     * The figures are literals here on purpose: they belong to a measurement
+     * that is closed and frozen, not to a payload that could change under them.
+     */
+    closureHeading: "تجربةٌ مغلقة — لا يجري إصلاحُها",
+    closureMetricLabel: "من الجذور الأربعين الشاهدة، ما غطَّى مفهومُه كلَّ شواهده المجمَّدة :",
+    /** Isolated: a Latin/numeric run inside an Arabic paragraph reorders around
+     *  its own separators without FSI…PDI (design D15). */
+    closureMetric: iso("0 / 40"),
+    closureBody: `أُغلقت هذه التجربةُ على نتيجتها. ومن ${iso(176)} إخفاقًا، ${iso(162)} من صنف «المستورَد»: الدلالةُ التي تطلبها الشاهدةُ غائبةٌ أصلًا عن معجمِ الصفات — فالخللُ ليس في ضبطِ وسيطٍ ولا في دقّةِ التفصيل، ولا يُرجى من توسيعِ نافذةٍ ولا من إعادةِ ترتيبٍ شيء.`,
+    closureNotAlternative:
+      "وليست هذه اللوحةُ قراءةً بديلةً يُخيَّر القارئُ بينها وبين ما فوقها، ولم يُحكَم لمحرِّكٍ على الآخر بصوابٍ ولا خطأ. تبقى منشورةً لأنّ النتيجةَ السالبةَ خبرٌ يُنشَر، وسلسلتُها مسجَّلةٌ كما وقعت.",
+
     heading: "المفهوم — من فيزياءِ الحروف",
     caption:
       "مفهومٌ مُركَّبٌ من وصفِ حروفِ الجذرِ في التجويدِ وحدَه — مخارجِها وصفاتِها — لا من معنًى منقولٍ ولا من أصلٍ في المعاجم.",

@@ -1,4 +1,14 @@
-import { ChevronDown, Info, Quote, Scale, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BookOpen,
+  ChevronDown,
+  Info,
+  ListTree,
+  Quote,
+  Scale,
+  TriangleAlert,
+} from "lucide-react";
 import SarfiRows from "@/components/SarfiRows";
 import type {
   Confidence,
@@ -19,17 +29,30 @@ import { S } from "@/lib/strings";
 /**
  * Renders a Lisan Analysis result.
  *
- * The page publishes the CONSTRAINT, not just the conclusion. A letter holds a
- * bundle of sourced senses, and which member applies depends on the root's
- * attested aṣl — so the order on screen is the order of the argument:
+ * The order on screen is ATTESTED FIRST, and it is the argument the page makes:
  *
- *   root → the cited core(s) → the letters' phonetics → one reading per core
+ *   root (QAC) → Ibn Fāris' cited aṣl → the occurrences → صرف/إعراب
+ *   → the letters' phonetics → the reported letter مذهب → Ibn Jinnī
  *
- * The core comes FIRST because it is what the reading is built on; each reading
- * names the aṣl it belongs to, and a root with two aṣl gets two parallel readings
- * that are never merged into one paragraph. Under every letter, the senses the
- * core did not admit stay reachable with the reason they were dropped: hiding them
- * would leave the reader with a single gloss again, only a different one.
+ * Everything before the مذهب banner is a fact with a source that can be checked
+ * against the corpus or against a printed page. Everything after it is what
+ * Ḥasan ʿAbbās and Ibn Jinnī SAY about a letter — reported, sourced, and framed
+ * as a مذهب by a banner that needs no interaction to be read. The application
+ * derives no root's meaning from its letters, and the sequence is how the screen
+ * says so before the reader reaches the part that could be mistaken for it.
+ *
+ * The letters' phonetics sit BELOW the morphology rather than above the reading
+ * they used to introduce: مخرج and صفات are a description of a sound, not of a
+ * meaning, and placing them at the head of the letter section made them read as
+ * the premises of it.
+ *
+ * Inside the reading, the page still publishes the CONSTRAINT and not just the
+ * conclusion. A letter holds a bundle of sourced senses, and which member applies
+ * depends on the root's attested aṣl; each reading names the aṣl it belongs to,
+ * and a root with two aṣl gets two parallel readings that are never merged into
+ * one paragraph. Under every letter, the senses the core did not admit stay
+ * reachable with the reason they were dropped: hiding them would leave the reader
+ * with a single gloss again, only a different one.
  *
  * There is no path here that composes a paragraph out of letter glosses. That is
  * the defect this component replaces — it read خ-ي-ر as «القذارة والخشونة والخواء»
@@ -40,6 +63,12 @@ import { S } from "@/lib/strings";
  * The feature is Arabic-only; the document is RTL (`<html dir="rtl">`), so the
  * logical properties (`ms-`, `ps-`, `border-s-`) resolve right-to-left.
  */
+
+/** How many verse references the المواضع section prints before it says how many
+ *  it is not printing. A sample, deliberately: the exhaustive vocalized list with
+ *  the matched word highlighted is «دراسة الآية»'s job, and this section links
+ *  there instead of growing a second copy of it. */
+const REF_SAMPLE = 8;
 
 /** Source confidence of a sense, as a colour. The labels live in `S.lexical.confidence` —
  *  an Arabic literal here is exactly what the string table exists to prevent. */
@@ -109,32 +138,51 @@ export default function LisanResult({
         </div>
       </div>
 
-      {/* 2 — What the reading stands on: the cited aṣl, or the amber banner
-             saying there is none. Above the letters, because the letters are
-             read THROUGH it. */}
+      {/* 2 — The aṣl as Ibn Fāris states it, quoted; or the amber banner naming
+             whose silence it is. It is the first thing after the root because it
+             is the strongest sourced statement the page holds about it. */}
       {data.constrained ? (
         <CoresCitation cores={data.cores} axisLabels={data.axis_labels} />
       ) : (
         <UnconstrainedBanner warning={data.warning} status={data.core_status} />
       )}
 
-      {/* 3 — The letters' phonetic identity. Stable across cores, so it is
-             published once and carries no meaning. */}
-      <LetterPhonetics letters={data.letters} />
+      {/* 3 — المواضع: what the corpus itself attests. Figures, the written forms,
+             a sample of references, and the link to the page that displays them
+             all, vocalized and highlighted. */}
+      <Occurrences
+        word={data.word}
+        occurrences={data.occurrences}
+        verses={data.occurrence_verses}
+        forms={data.forms}
+      />
 
-      {/* 4 — الصرف والإعراب: deterministic morphology (collapsible) — the established
-             facts about the word come before the interpretive reading of its letters. */}
+      {/* 4 — الصرف والإعراب: deterministic morphology (collapsible). Still an
+             established fact about the word, so it stays on this side of the
+             مذهب banner. */}
       <GrammarSection sarfi={sarfi} />
 
-      {/* 5 — The readings, one per core; or the unselected inventory. Never both,
-             and never a synthesis on the inventory path. */}
+      {/* 5 — The letters' phonetic identity: مخرج and صفات, a description of a
+             sound and of nothing else. Stable across cores, published once, and
+             below the attested layers rather than at the head of the reading —
+             it is not the premise of anything. */}
+      <LetterPhonetics letters={data.letters} />
+
+      {/* 6 — The reported مذهب. The banner is not decoration and not a disclosure:
+             it states, before any of it is read, that what follows is what Ḥasan
+             ʿAbbās and Ibn Jinnī say about a letter, and that this application
+             does not derive a root's meaning from its letters. */}
+      <MadhhabBanner />
+
+      {/* The readings, one per core; or the unselected inventory. Never both,
+          and never a synthesis on the inventory path. */}
       {data.constrained ? (
         <Readings readings={data.readings} axisLabels={data.axis_labels} />
       ) : (
         <Inventory inventory={data.inventory} />
       )}
 
-      {/* 6 — Ibn Jinni: ishtiqaq al-akbar (collapsible, interpretive) */}
+      {/* 7 — Ibn Jinni: ishtiqaq al-akbar (collapsible, interpretive) */}
       {data.ishtiqaq_akbar.length > 0 && (
         <details className="group rounded-lg border border-gray-200 bg-white p-4">
           <summary className="flex cursor-pointer items-center gap-2 font-arabic font-semibold text-gray-800">
@@ -229,6 +277,163 @@ function CoresCitation({
           </div>
         ))}
       </div>
+    </section>
+  );
+}
+
+/* ── المواضع — the attested occurrences ─────────────────────────────────── */
+
+/**
+ * What the corpus attests for the root: how many āyāt hold it, which written
+ * forms QAC records, and a SAMPLE of references — then the way out to the page
+ * that shows all of them properly.
+ *
+ * The sample is a sample and says so with a number, so nothing here pretends to
+ * be exhaustive. The exhaustive display — every āya, vocalized, with the matched
+ * word highlighted at its position — is «دراسة الآية», and the link is how this
+ * section stays a summary instead of becoming a worse second copy of that page.
+ *
+ * These are facts with a source that can be checked against the corpus, which is
+ * why they sit above the morphology and far above the reported letter مذهب. They
+ * used to reach the screen only through the concept engine's confrontation
+ * block: an attested datum displayed only while an experimental route was up.
+ */
+function Occurrences({
+  word,
+  occurrences,
+  verses,
+  forms,
+}: {
+  word: string;
+  occurrences: number;
+  verses: string[];
+  forms: string[];
+}) {
+  const sample = verses.slice(0, REF_SAMPLE);
+  const remaining = verses.length - sample.length;
+  // A root the resolver produced but the corpus does not attest — a heuristic
+  // fallback root, typically. Stated, not left as an empty frame.
+  const empty = occurrences === 0 && verses.length === 0 && forms.length === 0;
+
+  return (
+    <section
+      aria-labelledby="lisan-occurrences"
+      className="rounded-lg border border-gray-200 bg-white p-4"
+    >
+      <h2
+        id="lisan-occurrences"
+        className="font-arabic font-semibold text-gray-800"
+      >
+        {S.lexical.occurrencesHeading}
+      </h2>
+      <p className="mt-1 font-arabic text-xs text-gray-500" dir="auto">
+        {S.lexical.occurrencesNote}
+      </p>
+
+      {empty ? (
+        <p className="mt-3 font-arabic text-gray-600">
+          {S.lexical.noOccurrences}
+        </p>
+      ) : (
+        <>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded bg-brand-light px-2 py-1 font-arabic text-base text-brand-dark">
+              {S.lexical.occurrencesAyat(occurrences)}
+            </span>
+            <span className="rounded bg-gray-100 px-2 py-1 font-arabic text-base text-gray-700">
+              {S.lexical.occurrencesForms(forms.length)}
+            </span>
+          </div>
+
+          {forms.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-baseline gap-1.5">
+              <span className="font-arabic text-xs text-gray-500">
+                {S.lexical.formsLabel}
+              </span>
+              {forms.map((form) => (
+                <span
+                  key={form}
+                  className="rounded bg-gray-50 px-1.5 py-0.5 font-arabic text-lg text-gray-800"
+                >
+                  {form}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {sample.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-baseline gap-1.5">
+              <span className="font-arabic text-xs text-gray-500">
+                {S.lexical.occurrencesSampleLabel}
+              </span>
+              {sample.map((ref) => (
+                // `2:255` is a Latin-digit run: without `dir="auto"` its colon
+                // reorders against the Arabic line it sits in (design D15).
+                <span
+                  key={ref}
+                  dir="auto"
+                  className="rounded bg-gray-50 px-1.5 py-0.5 font-arabic text-sm text-gray-600"
+                >
+                  {ref}
+                </span>
+              ))}
+              {remaining > 0 && (
+                <span className="font-arabic text-xs text-gray-500">
+                  {S.lexical.occurrencesMore(remaining)}
+                </span>
+              )}
+            </div>
+          )}
+
+          <Link
+            href={`/verse-study?word=${encodeURIComponent(word)}`}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 font-arabic text-white transition hover:bg-brand-dark"
+          >
+            <ListTree aria-hidden className="h-4 w-4" />
+            {S.lexical.occurrencesLink}
+            <ArrowLeft aria-hidden className="h-4 w-4" />
+          </Link>
+        </>
+      )}
+    </section>
+  );
+}
+
+/* ── What the letter section IS, before any of it is read ───────────────── */
+
+/**
+ * The frame around everything below it: a REPORTED مذهب.
+ *
+ * It is a banner and not a disclosure on purpose. Every sense in the section
+ * already carries its source and its page, but a reader who opens nothing would
+ * still meet a paragraph about a root with no statement of what kind of claim it
+ * is — and that reader is exactly the one who would take it for a definition. So
+ * the page says it once, visibly, without interaction: this is what Ḥasan ʿAbbās
+ * and Ibn Jinnī say about a letter, and the application does not derive a root's
+ * meaning from its letters.
+ *
+ * Deliberately not amber (which this app reserves for a gap or a warning) and not
+ * indigo (the divergence guard's colour, which reports a finding): it is neither.
+ */
+function MadhhabBanner() {
+  return (
+    <section
+      aria-labelledby="lisan-madhhab"
+      className="rounded-lg border-2 border-slate-300 bg-slate-50 p-4"
+    >
+      <h2
+        id="lisan-madhhab"
+        className="flex items-center gap-2 font-arabic font-semibold text-slate-900"
+      >
+        <BookOpen aria-hidden className="h-4 w-4 shrink-0" />
+        {S.lexical.madhhabHeading}
+      </h2>
+      <p className="mt-1 font-arabic leading-relaxed text-slate-800">
+        {S.lexical.madhhabNote}
+      </p>
+      <p className="mt-1 font-arabic text-sm leading-relaxed text-slate-700">
+        {S.lexical.madhhabDisavowal}
+      </p>
     </section>
   );
 }

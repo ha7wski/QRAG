@@ -32,7 +32,9 @@ import LisanResult from "@/components/LisanResult";
  * The concept is a SECOND ENGINE, not a section of the first: it composes from the
  * root's letters alone and meets Ibn Fāris afterwards, where `/lisan/analyze` reads
  * the letters through him from the start. They are fetched independently for that
- * reason, and the page hands each payload to its own component untouched.
+ * reason, and the page hands each payload to its own component untouched. That
+ * engine is now a CLOSED EXPERIMENT — it measured 0 / 40 — so it renders after the
+ * reading rather than before it, under the closure header `ConceptResult` carries.
  *
  * `?word=` deep-links into an analysis (Verse Study's «تحليل لساني» button sends
  * the reader here); `useSearchParams` requires the Suspense boundary below.
@@ -188,13 +190,20 @@ function LisanAnalysis() {
         <p className="text-sm text-gray-500">{S.lexical.loading}</p>
       )}
 
-      {/* The composed مفهوم comes first and the core-first reading follows it, so
-          the comparison panel that closes the concept sits immediately above the
-          reading it is compared with — and so nothing lands after the disclaimer
-          `LisanResult` publishes at the foot of the page. */}
-      {concept && !loading && <ConceptResult data={concept} lisan={data} />}
+      {/* The attested layers first — root, Ibn Fāris' cited aṣl, the occurrences,
+          the morphology — and the closed experiment after them.
 
+          The مفهوم used to come first, so that its comparison panel would sit
+          immediately above the reading it compares itself with. That ordering
+          read as an offer of two engines to choose between; the physics engine
+          measured 0 / 40 and is archived, so it now follows what the page is
+          actually built on, carrying its own closure header. The cost is that
+          `LisanResult`'s disclaimer is no longer the last thing on the page —
+          the closed panel's header is what the reader meets instead, which is
+          the statement that matters more at that point. */}
       {data && !loading && <LisanResult data={data} sarfi={sarfi} />}
+
+      {concept && !loading && <ConceptResult data={concept} lisan={data} />}
     </div>
   );
 }

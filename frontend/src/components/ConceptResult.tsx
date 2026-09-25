@@ -1,4 +1,4 @@
-import { Info, Quote, Scale, TriangleAlert } from "lucide-react";
+import { Ban, Info, Quote, Scale, TriangleAlert } from "lucide-react";
 import type {
   AttestedUse,
   Concept,
@@ -13,14 +13,24 @@ import type {
 import { S } from "@/lib/strings";
 
 /**
- * The مفهوم composed from a root's letters — the SECOND engine on «تحليل اللسان».
+ * The مفهوم composed from a root's letters — a CLOSED EXPERIMENT, published
+ * below `LisanResult` on «تحليل اللسان».
  *
- * `LisanResult` beside it argues core-first: the attested aṣl selects among each
+ * `LisanResult` above it argues core-first: the attested aṣl selects among each
  * letter's sourced senses. This one argues the other way round — the concept is
  * composed from the tajwīd description of the letters and from nothing else, and
- * Ibn Fāris arrives AFTERWARDS, as the test the concept is put to. Nothing here
- * may call either engine correct, better, or the other's fallback: the comparison
- * between them is not decided, and the page is what that undecidedness looks like.
+ * Ibn Fāris arrives AFTERWARDS, as the test the concept is put to.
+ *
+ * The test was run and it came back negative: `0 / 40` witness roots have a
+ * concept covering every use frozen for them, and 162 of the 176 misses are
+ * `imported` — the notion the gloss needs is not in the feature vocabulary at
+ * all. So the experiment is closed and is NOT being repaired, and `ClosureHeader`
+ * says all of that above everything it frames. Nothing below it is deleted: a
+ * negative result is only publishable while what produced it is still on screen.
+ *
+ * Nothing here may call either engine correct, better, or the other's fallback,
+ * and this panel is not an alternative reading the user picks instead of the one
+ * above. A closed experiment is neither of those things.
  *
  * Three things this component owes the reader and cannot get from the payload:
  *
@@ -72,6 +82,10 @@ export default function ConceptResult({
 
   return (
     <div className="space-y-4">
+      {/* Before anything it frames, and before the reader can take the panel for
+          a second opinion on offer. */}
+      <ClosureHeader />
+
       <header className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap items-baseline gap-3">
           <h2 className="font-arabic text-lg font-semibold text-gray-800">
@@ -111,6 +125,61 @@ export default function ConceptResult({
         />
       )}
     </div>
+  );
+}
+
+/* ── The closure, first and unmissable ──────────────────────────────────── */
+
+/**
+ * The experiment is over, it failed, and the panel says so before it shows
+ * anything else.
+ *
+ * The header carries the NUMBER — `0 / 40` witness roots have a concept covering
+ * every use frozen for them — because a closure stated as a mood is one a reader
+ * can round off to «promising, needs work». It also carries the one clause that
+ * forecloses that reading: 162 of the 176 misses are `imported`, meaning the
+ * notion the gloss needs is absent from the feature vocabulary altogether. The
+ * failure is therefore not parametric and not a question of granularity, and no
+ * setting reopens it.
+ *
+ * It is not a refutation of the panel below either. Nothing here is deleted and
+ * nothing is relabelled as wrong: the recorded chain, the positional groups, the
+ * badges, the confrontation and the window reservation all still render exactly
+ * as they did, because a negative result is only publishable if what produced it
+ * is still on screen.
+ */
+function ClosureHeader() {
+  return (
+    <section
+      aria-labelledby="concept-closure"
+      className="rounded-lg border-2 border-rose-300 bg-rose-50 p-4"
+    >
+      <h2
+        id="concept-closure"
+        className="flex items-center gap-2 font-arabic text-lg font-semibold text-rose-900"
+      >
+        <Ban aria-hidden className="h-5 w-5 shrink-0" />
+        {S.concept.closureHeading}
+      </h2>
+
+      {/* The figure gets its own line and its own weight: it is the result, and
+          every sentence around it is commentary on it. */}
+      <div className="mt-2 flex flex-wrap items-baseline gap-2 border-s-4 border-rose-300 ps-3">
+        <span className="font-arabic text-sm text-rose-800">
+          {S.concept.closureMetricLabel}
+        </span>
+        <span dir="auto" className="font-arabic text-2xl font-semibold text-rose-900">
+          {S.concept.closureMetric}
+        </span>
+      </div>
+
+      <p className="mt-2 font-arabic leading-relaxed text-rose-900">
+        {S.concept.closureBody}
+      </p>
+      <p className="mt-1 font-arabic text-sm leading-relaxed text-rose-800">
+        {S.concept.closureNotAlternative}
+      </p>
+    </section>
   );
 }
 

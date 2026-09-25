@@ -121,13 +121,23 @@ function VerseStudy() {
   }
 
   // Deep-link: ?surah=&ayah= selects the context tab and auto-loads that verse.
+  //
+  // ?word= is the other direction of the same traffic: Lisan Analysis publishes
+  // the root's occurrence figures and sends the reader here for the exhaustive
+  // vocalized display, which is this tab's job and not that page's. A verse
+  // target still wins — the two parameters name different destinations, and the
+  // one that opens a specific āya is the more specific request.
   const params = useSearchParams();
+  const requestedWord = params.get("word")?.trim() || "";
   useEffect(() => {
     const s = Number(params.get("surah"));
     const a = Number(params.get("ayah"));
     if (s && a) {
       setContextTarget({ surah: s, ayah: a, nonce: 1 });
       setTab("context");
+    } else if (requestedWord) {
+      // The cached tab may be «الآيات القريبة»; an explicit word overrides it.
+      setTab("word");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -160,7 +170,7 @@ function VerseStudy() {
 
       {/* All three stay mounted so switching tabs preserves each one's results. */}
       <div className={tab === "word" ? "" : "hidden"}>
-        <WordInVerses openInContext={openInContext} />
+        <WordInVerses openInContext={openInContext} requested={requestedWord} />
       </div>
       <div className={tab === "similar" ? "" : "hidden"}>
         <SimilarVerses />
@@ -375,8 +385,12 @@ function SurahCard({
  *  reach the screen in any form — `/qlisan` is where per-word morphology lives. */
 function WordInVerses({
   openInContext,
+  requested = "",
 }: {
   openInContext: (surah: number, ayah: number) => void;
+  /** A word handed over by `?word=` — Lisan Analysis' «اعرض المواضع كاملةً» link.
+   *  Empty when the tab was reached any other way. */
+  requested?: string;
 }) {
   // Everything durable is cached — the search, its verses, the error banner and
   // which sections the reader had folded away. `loading` stays plain state: a
@@ -411,9 +425,12 @@ function WordInVerses({
     "mushaf",
   );
 
-  async function run() {
-    if (!word.trim() || loading) return;
-    const w = word.trim();
+  // `explicit` is the deep-linked word: the effect below has to search a word
+  // that is not in `word` yet, since a state update it just queued is not
+  // readable here.
+  async function run(explicit?: string) {
+    const w = (explicit ?? word).trim();
+    if (!w || loading) return;
     setLoading(true);
     setError(null);
     setCollapsedSurahs(new Set());
@@ -427,6 +444,21 @@ function WordInVerses({
       setLoading(false);
     }
   }
+
+  // Arriving with ?word=: the parameter is an explicit intent, so it wins over
+  // whatever the cache holds — but a word already on screen is not re-fetched,
+  // so coming back from Lisan Analysis costs nothing. The ref stores the VALUE
+  // consumed, not a boolean: ?word=A → ?word=B without an unmount must still
+  // trigger the second search. Same idiom as `app/lexical/page.tsx`.
+  const consumed = useRef<string | null>(null);
+  useEffect(() => {
+    if (!requested || consumed.current === requested) return;
+    consumed.current = requested;
+    setWord(requested);
+    if (data?.word === requested) return; // already searched and restored
+    run(requested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requested]);
 
   function toggleIn(
     setter: Dispatch<SetStateAction<Set<string>>>,
@@ -515,7 +547,8 @@ function WordInVerses({
           className="min-w-[200px] flex-1 rounded-lg border border-gray-300 px-3 py-2 font-arabic text-xl focus:border-brand focus:outline-none"
         />
         <button
-          onClick={run}
+          // Wrapped: `onClick={run}` would hand the MouseEvent to `explicit`.
+          onClick={() => run()}
           disabled={loading || !word.trim()}
           className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 font-arabic text-lg text-white disabled:opacity-50"
         >
