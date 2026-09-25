@@ -61,1386 +61,4073 @@
       },
       "why_the_classes": "§D3's reopening condition requires collision failures to be strictly more than half of all failing roots, classified on the per-root reasons ALREADY COMMITTED. That is only checkable if the reasons were classified when they were written, against a vocabulary fixed beforehand. This is that vocabulary, and every `not_covered` reason opens with one of the four words.",
       "collision_is_computed_afterwards": "Whether another QAC root composes to the same realised primitives is a mechanical fact about the table, not a judgement. It is recorded per root as `collision_with` and derived AFTER the judging pass, so that knowing a root collides cannot soften or harden the reading of its uses. The criterion above never mentions collision: a use fails on the three tests before anyone asks why."
-    }
+    },
+    "the_development_case_record": "«ضرب» carries a record here and is NOT a witness root. Its five uses are the ones §D9 names from the brief — الضرب باليد · الضرب في الأرض · ضرب الأمثال · ضرب الحاجز · «وضُرِبت عليهم الذلة» — and each is evidenced by one of its own occurrence verses. Its record does NOT and cannot claim the freeze-before-generate ordering the 40 claim: its concept has been read since §D5 was written, which is exactly why §D9 excludes it from k. Recording it with honest stamps and an explicit exemption is the whole point — a quiet absence on the flagship case would read as a pass."
   },
   "roots": {
     "أثم": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 42,
       "uses": [
         {
           "gloss": "الذنب والمعصية",
           "verse": "2:181",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجُرمُ والمخالفةُ ليسا في الأصول التسعة؛ غَوْرٌ وقَطْعٌ وصفُ مخرجٍ وشدّة لا حكمٌ على فعل."
         },
         {
           "gloss": "الأثيم: المُوغِل في الإثم",
           "verse": "2:276",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإيغالُ في الذنب يقتضي الذنبَ أوّلًا، وهو غائب."
         },
         {
           "gloss": "الأثام: جزاء الإثم",
           "verse": "25:68",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجزاءُ والمقابلةُ غائبان من الأصول."
         },
         {
           "gloss": "التأثيم: نسبة الإثم أو الوقوع فيه",
           "verse": "52:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نسبةُ الحكم إلى فاعلٍ غائبة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وقَطْعٌ، ثُمَّ خَفاءٌ وطَرَفٌ وجَرَيانٌ، حتَّى رَنينٌ وبُرُوزٌ وتَمَهُّلٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "قَطْع",
+          "خَفاء",
+          "طَرَف",
+          "جَرَيان",
+          "رَنين",
+          "بُرُوز",
+          "تَمَهُّل"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "أ",
+            "makhraj_ar": "أقصى الحلق",
+            "realised": [
+              "غَوْر",
+              "قَطْع"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ث",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "خَفاء",
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "م",
+            "makhraj_ar": "الشفتان مع الغنة",
+            "realised": [
+              "رَنين",
+              "بُرُوز",
+              "تَمَهُّل"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "بعث": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 64,
       "uses": [
         {
           "gloss": "البعث بعد الموت",
           "verse": "2:56",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: القراءةُ تنتهي إلى خَفاءٍ وجَرَيان، والبعثُ ينتهي إلى ظُهور؛ الترتيبُ يعاكس المعنى وإن كان غَوْر→ظُهور في الجسد يقاربه."
         },
         {
           "gloss": "بعث الرسل وإرسالهم",
           "verse": "2:129",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإرسالُ لغايةٍ ورسالةٌ مُبلَّغة ليسا في الأصول."
         },
         {
           "gloss": "بعث رجل لمهمة",
           "verse": "4:35",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القصدُ إلى مهمّةٍ غائب."
         },
         {
           "gloss": "الانبعاث: النهوض والاندفاع",
           "verse": "9:46",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: البُروزُ في الافتتاح يوافق الاندفاع، لكنّ الجسدَ يهبط إلى غَوْرٍ والخاتمةَ خَفاء، والنهوضُ لا ينتهي خافيًا."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "بُرُوزٌ وارتِدادٌ وقَطْعٌ، ثُمَّ تَمَهُّلٌ وغَوْرٌ وظُهورٌ، حتَّى خَفاءٌ وطَرَفٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع",
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور",
+          "خَفاء",
+          "طَرَف",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ث",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "خَفاء",
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "توب": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 69,
       "uses": [
         {
           "gloss": "توبة العبد: الرجوع عن الذنب",
           "verse": "2:160",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الارتدادُ في الخاتمة يحمل الرجوعَ، لكنّ الذنبَ والمفارقةَ الخُلُقيّةَ عنه غائبان."
         },
         {
           "gloss": "توبة الله على عبده: قبول رجوعه",
           "verse": "2:37",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القبولُ من الأعلى وعطفُه غائبان."
         },
         {
           "gloss": "التوّاب اسمًا من أسماء الله",
           "verse": "2:54",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاسمُ الإلهيُّ وكثرةُ القبول غائبان."
         },
         {
           "gloss": "المتاب: المرجع بالتوبة",
           "verse": "25:71",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموضعيّةُ — المرجِعُ بوصفه مكانًا — غائبة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "قَطْعٌ وخَفاءٌ وطَرَفٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى بُرُوزٌ وارتِدادٌ وقَطْعٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "قَطْع",
+          "خَفاء",
+          "طَرَف",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ت",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "قَطْع",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "ثني": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 24,
       "uses": [
         {
           "gloss": "الاثنان: العدد",
           "verse": "4:11",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العددُ والاثنينيّةُ ليسا وصفًا صوتيًّا."
         },
         {
           "gloss": "المثاني: ما يُثنّى ويُكرَّر",
           "verse": "15:87",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: لا «تَكرار» في أصول هذا الجذر أصلًا، فالقراءةُ لا تملك ما تقول به إعادةً."
         },
         {
           "gloss": "ثني الصدور: طيّها على ما فيها",
           "verse": "11:5",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الطيُّ والانعطافُ غائبان؛ لا «مَيْل» في الأصول التسعة."
         },
         {
           "gloss": "الاستثناء: إخراج بعض من كل",
           "verse": "68:18",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإخراجُ والتبعيضُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "خَفاءٌ وطَرَفٌ وجَرَيانٌ، ثُمَّ رَنينٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى لِينٌ ومَدٌّ ووَسَطٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "خَفاء",
+          "طَرَف",
+          "جَرَيان",
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "لِين",
+          "مَدّ",
+          "وَسَط"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ث",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "خَفاء",
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ي",
+            "makhraj_ar": "وسط اللسان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "خشي": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 40,
       "uses": [
         {
           "gloss": "خشية الله: خوف مقرون بالتعظيم",
           "verse": "2:150",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التعظيمُ والتوجّهُ إلى معظَّمٍ غائبان؛ الضَّخامةُ ثِقَلٌ لا هيبة."
         },
         {
           "gloss": "خشية الفقر والإملاق",
           "verse": "17:31",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: توقّعُ الضرر غائب."
         },
         {
           "gloss": "الخشية بمعنى التوقّع والحذر",
           "verse": "18:80",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاستقبالُ والتوقّعُ غائبان؛ الأصولُ كلُّها أوصافُ حالٍ لا زمن."
         },
         {
           "gloss": "خشية الجماد لله",
           "verse": "2:74",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانفعالُ ونسبتُه إلى جمادٍ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وضَخامةٌ وخَفاءٌ، ثُمَّ انتِشارٌ ووَسَطٌ وخَفاءٌ، حتَّى لِينٌ ومَدٌّ ووَسَطٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "ضَخامة",
+          "خَفاء",
+          "انتِشار",
+          "وَسَط",
+          "خَفاء",
+          "لِين",
+          "مَدّ",
+          "وَسَط"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "خ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ش",
+            "makhraj_ar": "وسط اللسان مع وسط الحنك",
+            "realised": [
+              "انتِشار",
+              "وَسَط",
+              "خَفاء"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ي",
+            "makhraj_ar": "وسط اللسان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "خلص": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 30,
       "uses": [
         {
           "gloss": "الإخلاص في الدين",
           "verse": "7:29",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التصفيةُ من الشوائب والقصدُ غائبان."
         },
         {
           "gloss": "الخالص: الصافي غير المشوب",
           "verse": "16:66",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الصفاءُ ونفيُ الخلط غائبان؛ ليس في الأصول ما ينفي شوبًا."
         },
         {
           "gloss": "الخلوص: الانفراد والاعتزال",
           "verse": "12:80",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانفرادُ والاعتزالُ غائبان."
         },
         {
           "gloss": "المُخلَص: المصطفى المجتبى",
           "verse": "19:51",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاصطفاءُ غائب."
         },
         {
           "gloss": "الاستخلاص: الاصطفاء للنفس",
           "verse": "12:54",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاصطفاءُ للنفس غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وضَخامةٌ وخَفاءٌ، ثُمَّ مَيْلٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى حِدّةٌ وضَخامةٌ وخَفاءٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "ضَخامة",
+          "خَفاء",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف",
+          "حِدّة",
+          "ضَخامة",
+          "خَفاء"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "خ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ص",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "ذوق": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 61,
       "uses": [
         {
           "gloss": "ذوق الطعام حقيقةً",
           "verse": "7:22",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإدراكُ بالحاسّة غائب؛ «طَرَف» مخرجٌ لا عضوُ ذوق، والمصادفةُ اللفظيّةُ ليست تغطية."
         },
         {
           "gloss": "ذوق العذاب",
           "verse": "3:106",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العذابُ والمقاساةُ غائبان."
         },
         {
           "gloss": "ذوق الموت",
           "verse": "3:185",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموتُ غائب."
         },
         {
           "gloss": "إذاقة الرحمة والنعمة",
           "verse": "11:9",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الرحمةُ والنعمةُ غائبتان."
         },
         {
           "gloss": "ذوق وبال الأمر",
           "verse": "5:95",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الوبالُ وعاقبةُ الأمر غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "طَرَفٌ وجَرَيانٌ وظُهورٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى أَصْلٌ وارتِدادٌ وضَخامةٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "طَرَف",
+          "جَرَيان",
+          "ظُهور",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ذ",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "طَرَف",
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "زيد": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 59,
       "uses": [
         {
           "gloss": "الزيادة في المقدار",
           "verse": "9:124",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: «مَدّ» في الجسد يقارب الإطالة، لكنّ الخاتمةَ ارتدادٌ وقَطْع، والزيادةُ لا تنتهي بانقطاع."
         },
         {
           "gloss": "الزيادة عقوبةً",
           "verse": "2:10",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العقوبةُ غائبة."
         },
         {
           "gloss": "المزيد والزيادة تفضّلًا",
           "verse": "10:26",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التفضّلُ والعطاءُ غائبان."
         },
         {
           "gloss": "الازدياد: طلب الزيادة",
           "verse": "3:90",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الطلبُ غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "حِدّةٌ وطَرَفٌ وجَرَيانٌ، ثُمَّ لِينٌ ومَدٌّ ووَسَطٌ، حتَّى ارتِدادٌ وقَطْعٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "حِدّة",
+          "طَرَف",
+          "جَرَيان",
+          "لِين",
+          "مَدّ",
+          "وَسَط",
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ز",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ي",
+            "makhraj_ar": "وسط اللسان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "سرف": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 21,
       "uses": [
         {
           "gloss": "الإسراف في الإنفاق",
           "verse": "25:67",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: مجاوزةُ الحدّ غائبة؛ ليس في الأصول حدٌّ يُتجاوَز."
         },
         {
           "gloss": "الإسراف في الأكل والشرب",
           "verse": "7:31",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة: لا حدَّ في الأصول."
         },
         {
           "gloss": "الإسراف على النفس بالذنوب",
           "verse": "39:53",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الذنبُ والجنايةُ على النفس غائبان."
         },
         {
           "gloss": "الإسراف في القتل",
           "verse": "17:33",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القتلُ والإفراطُ فيه غائبان."
         },
         {
           "gloss": "المسرف وصفًا للمتجاوز المكذّب",
           "verse": "40:28",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الوصفُ بالتكذيب غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "حِدّةٌ وخَفاءٌ وطَرَفٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى بُرُوزٌ وخَفاءٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "حِدّة",
+          "خَفاء",
+          "طَرَف",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "بُرُوز",
+          "خَفاء",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "س",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ف",
+            "makhraj_ar": "باطن الشفة السفلى مع الثنايا",
+            "realised": [
+              "بُرُوز",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "سوع": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 44,
       "uses": [
         {
           "gloss": "الساعة: القيامة",
           "verse": "7:187",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الزمانُ والموعدُ غائبان من الأصول كلِّها."
         },
         {
           "gloss": "الساعة: المدة اليسيرة من الزمن",
           "verse": "10:45",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المدّةُ المقدَّرةُ غائبة؛ «مَدّ» إطالةُ صوتٍ لا قَدْرُ زمن."
         },
         {
           "gloss": "ساعة العسرة",
           "verse": "9:117",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العُسرةُ والوقتُ المخصوص غائبان."
         },
         {
           "gloss": "سُواع: صنم",
           "verse": "71:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العَلَميّةُ لا تُشتقُّ من وصفٍ صوتيّ."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "حِدّةٌ وخَفاءٌ وطَرَفٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى تَمَهُّلٌ وغَوْرٌ وظُهورٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "حِدّة",
+          "خَفاء",
+          "طَرَف",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "س",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "صدر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 43,
       "uses": [
         {
           "gloss": "الصدر: موضع القلب من الإنسان",
           "verse": "7:2",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموضعُ من الجسد غائب؛ الضَّخامةُ ثِقَلٌ لا سَعةُ جوف."
         },
         {
           "gloss": "الصدور ظرفًا لما يُخفى",
           "verse": "3:119",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «خَفاء» في الافتتاح لا يعارض الإخفاء ولا يقوله؛ والظرفيّةُ — أن يكون وعاءً — ليست في الأصول."
         },
         {
           "gloss": "شرح الصدر: سعته للهدى",
           "verse": "6:125",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانشراحُ والهدى غائبان."
         },
         {
           "gloss": "الإصدار: ردّ الماشية عن الماء",
           "verse": "28:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الوِردُ والصَّدَرُ عن ماءٍ غائبان."
         },
         {
           "gloss": "صدور الناس عن الموقف",
           "verse": "99:6",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المبدأُ والمنتهى في الصدور عن موضعٍ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "حِدّةٌ وضَخامةٌ وخَفاءٌ، ثُمَّ ارتِدادٌ وقَطْعٌ وطَرَفٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "حِدّة",
+          "ضَخامة",
+          "خَفاء",
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ص",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "طير": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 24,
       "uses": [
         {
           "gloss": "الطير: الجنس الطائر",
           "verse": "2:260",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التسميةُ والجنسُ غائبان."
         },
         {
           "gloss": "الطيران بالجناح",
           "verse": "6:38",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «تَكرار» في الخاتمة لا يعارض خفقَ الجناح ولا يقوله؛ والارتفاعُ والتحليقُ — لبُّ الطيران — غائبان."
         },
         {
           "gloss": "التطيّر: التشاؤم",
           "verse": "7:131",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التشاؤمُ حكمٌ نفسيّ غائب."
         },
         {
           "gloss": "الطائر: عمل الإنسان اللازم له",
           "verse": "17:13",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: اللزومُ والعملُ غائبان."
         },
         {
           "gloss": "المستطير: المنتشر",
           "verse": "76:7",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: لا «انتِشار» في أصول هذا الجذر، فالقراءةُ لا تملك ما تقول به تفرُّقًا."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "ارتِدادٌ وضَخامةٌ وقَطْعٌ، ثُمَّ لِينٌ ومَدٌّ ووَسَطٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "ارتِداد",
+          "ضَخامة",
+          "قَطْع",
+          "لِين",
+          "مَدّ",
+          "وَسَط",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ط",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "ضَخامة",
+              "قَطْع"
+            ],
+            "carried": [
+              "طَرَف",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ي",
+            "makhraj_ar": "وسط اللسان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "عرب": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 22,
       "uses": [
         {
           "gloss": "العربي وصفًا للّسان والقرآن",
           "verse": "12:2",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: البيانُ والإفصاحُ غائبان؛ «ظُهور» جهرٌ مسموع لا إبانةُ معنى."
         },
         {
           "gloss": "الأعراب: أهل البادية",
           "verse": "9:97",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الباديةُ وأهلُها غائبان."
         },
         {
           "gloss": "العُرُب: المتحبّبات إلى أزواجهن",
           "verse": "56:37",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التحبّبُ غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "تَمَهُّلٌ وغَوْرٌ وظُهورٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى بُرُوزٌ وارتِدادٌ وقَطْعٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "عقل": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 49,
       "uses": [
         {
           "gloss": "العقل: الإدراك والفهم",
           "verse": "2:44",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإدراكُ والفهمُ غائبان؛ الأصولُ أوصافُ مجرًى لا أفعالُ نفس."
         },
         {
           "gloss": "عقل الخطاب بعد سماعه",
           "verse": "2:75",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: السماعُ ثمّ الفهمُ غائبان."
         },
         {
           "gloss": "العقل شرطًا للاعتبار بالآيات",
           "verse": "2:164",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاعتبارُ والاستدلالُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "تَمَهُّلٌ وغَوْرٌ وظُهورٌ، ثُمَّ أَصْلٌ وارتِدادٌ وضَخامةٌ، حتَّى مَيْلٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور",
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "غرق": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 23,
       "uses": [
         {
           "gloss": "الإغراق في الماء",
           "verse": "2:50",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: الافتتاحُ «غَوْر وضَخامة وجَرَيان» أقربُ ما بلغته القراءةُ إلى الرُّسوب في جارٍ ثقيل، لكنّ الخاتمةَ ارتدادٌ، والغَرَقُ لا يرتدّ."
         },
         {
           "gloss": "الغرق عقوبةً",
           "verse": "71:25",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العقوبةُ غائبة."
         },
         {
           "gloss": "النزع غرقًا: الإيغال في الشيء",
           "verse": "79:1",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «غَوْر» لا يعارض الإيغالَ ولا يقوله؛ والنزعُ والجذبُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وضَخامةٌ وجَرَيانٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى أَصْلٌ وارتِدادٌ وضَخامةٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "ضَخامة",
+          "جَرَيان",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "غ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "جَرَيان"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "غفل": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 35,
       "uses": [
         {
           "gloss": "الغفلة عن الآيات",
           "verse": "7:146",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الذهولُ والإعراضُ غائبان؛ «خَفاء» همسٌ في الصوت لا سهوٌ في النفس."
         },
         {
           "gloss": "نفي الغفلة عن الله",
           "verse": "2:74",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "غفلة القلب عن الشيء",
           "verse": "12:13",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القلبُ وأفعالُه غائبة."
         },
         {
           "gloss": "إغفال القلب عن الذكر",
           "verse": "18:28",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإغفالُ فعلُ فاعلٍ في قلبٍ، وكلاهما غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وضَخامةٌ وجَرَيانٌ، ثُمَّ بُرُوزٌ وخَفاءٌ وجَرَيانٌ، حتَّى مَيْلٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "ضَخامة",
+          "جَرَيان",
+          "بُرُوز",
+          "خَفاء",
+          "جَرَيان",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "غ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "جَرَيان"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ف",
+            "makhraj_ar": "باطن الشفة السفلى مع الثنايا",
+            "realised": [
+              "بُرُوز",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "فقه": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 20,
       "uses": [
         {
           "gloss": "الفقه: الفهم والإدراك",
           "verse": "4:78",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الفهمُ والإدراكُ غائبان."
         },
         {
           "gloss": "التفقه في الدين",
           "verse": "9:122",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الدِّينُ والتخصّصُ فيه غائبان."
         },
         {
           "gloss": "نفي الفقه عن القلوب المطبوعة",
           "verse": "7:179",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "عدم فقه الكلام واللسان",
           "verse": "18:93",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الكلامُ واللسانُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "بُرُوزٌ وخَفاءٌ وجَرَيانٌ، ثُمَّ أَصْلٌ وارتِدادٌ وضَخامةٌ، حتَّى غَوْرٌ وخَفاءٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "بُرُوز",
+          "خَفاء",
+          "جَرَيان",
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "غَوْر",
+          "خَفاء",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ف",
+            "makhraj_ar": "باطن الشفة السفلى مع الثنايا",
+            "realised": [
+              "بُرُوز",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ه",
+            "makhraj_ar": "أقصى الحلق",
+            "realised": [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "فلح": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 40,
       "uses": [
         {
           "gloss": "الفلاح: الفوز والنجاة",
           "verse": "2:5",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الفوزُ والنجاةُ غائبان."
         },
         {
           "gloss": "نفي الفلاح عن الظالمين",
           "verse": "6:21",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة، مع نفيٍ لا تقوله الأصول."
         },
         {
           "gloss": "أفلح بمعنى ظفر وعلا",
           "verse": "20:64",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: الظَّفَرُ والعلوُّ صعودٌ، والقراءةُ تنتهي إلى «غَوْر وخَفاء» — هبوطٍ وخفوت."
         },
         {
           "gloss": "الفلاح غايةً يُرجى",
           "verse": "3:200",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الرجاءُ والغايةُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "بُرُوزٌ وخَفاءٌ وجَرَيانٌ، ثُمَّ مَيْلٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى غَوْرٌ وخَفاءٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "بُرُوز",
+          "خَفاء",
+          "جَرَيان",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف",
+          "غَوْر",
+          "خَفاء",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ف",
+            "makhraj_ar": "باطن الشفة السفلى مع الثنايا",
+            "realised": [
+              "بُرُوز",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ح",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قرب": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 91,
       "uses": [
         {
           "gloss": "القرب المكاني والنهي عن القربان",
           "verse": "2:35",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «بُرُوز» في الخاتمة دنوٌّ إلى العتبة، وهو لا يعارض القربَ ولا يقوله؛ والمسافةُ بين شيئين ليست في الأصول."
         },
         {
           "gloss": "قرب الله من عبده",
           "verse": "2:186",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نسبةُ القرب إلى الله غائبة."
         },
         {
           "gloss": "ذو القربى: القرابة",
           "verse": "2:83",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: النَّسبُ والرَّحِمُ غائبان."
         },
         {
           "gloss": "القربان: ما يُتقرَّب به",
           "verse": "3:183",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التقرّبُ بقُربانٍ غائب."
         },
         {
           "gloss": "المقرَّبون: المصطفون منزلةً",
           "verse": "3:45",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المنزلةُ والاصطفاءُ غائبان."
         },
         {
           "gloss": "قربان الفاحشة: مقاربتها",
           "verse": "4:43",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الفاحشةُ ومقاربتُها غائبتان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى بُرُوزٌ وارتِدادٌ وقَطْعٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قسط": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 22,
       "uses": [
         {
           "gloss": "القسط: العدل",
           "verse": "3:18",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العدلُ والموازنةُ غائبان؛ ليس في الأصول كفّتان."
         },
         {
           "gloss": "الإقساط: العدل بين الناس",
           "verse": "49:9",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "القاسطون: الجائرون",
           "verse": "72:14",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجَورُ ضدُّ العدل، وكلاهما غائب."
         },
         {
           "gloss": "القسط في الكيل والميزان",
           "verse": "6:152",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الكيلُ والميزانُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ حِدّةٌ وخَفاءٌ وطَرَفٌ، حتَّى ارتِدادٌ وضَخامةٌ وقَطْعٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "حِدّة",
+          "خَفاء",
+          "طَرَف",
+          "ارتِداد",
+          "ضَخامة",
+          "قَطْع"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "س",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ط",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "ضَخامة",
+              "قَطْع"
+            ],
+            "carried": [
+              "طَرَف",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قعد": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 26,
       "uses": [
         {
           "gloss": "القعود ضدّ القيام",
           "verse": "3:191",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«أَصْل» ارتكازٌ في الأصل، ثمّ «تَمَهُّل» جريانٌ ممسوك، ثمّ «ارتِداد وقَطْع» في الخاتمة: هبوطٌ إلى قاعدةٍ ولبثٌ عليها ينتهي بوقف. قارئٌ لا يعرف الجذرَ يبلغ هذا، ومقابلةُ القيام نسبةٌ لا معنًى زائد."
         },
         {
           "gloss": "القعود تخلّفًا عن الجهاد",
           "verse": "4:95",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التخلّفُ عن أمرٍ ونكوصٌ عنه غائبان."
         },
         {
           "gloss": "القواعد: أسس البناء",
           "verse": "2:127",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: «أَصْل» يحمل القاعدةَ ولا يحمل المبنيَّ عليها؛ البناءُ غائب."
         },
         {
           "gloss": "القواعد من النساء",
           "verse": "24:60",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: السِّنُّ ووصفُ النساء غائبان."
         },
         {
           "gloss": "المقاعد: مواضع القعود",
           "verse": "3:121",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموضعيّةُ غائبة."
         },
         {
           "gloss": "القعيد: الملازم",
           "verse": "50:17",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المصاحبةُ لغيره غائبة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ تَمَهُّلٌ وغَوْرٌ وظُهورٌ، حتَّى ارتِدادٌ وقَطْعٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور",
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قمر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 26,
       "uses": [
         {
           "gloss": "القمر: الجرم السماوي",
           "verse": "6:77",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجرمُ السماويُّ غائب؛ العَلَميّةُ لا تُشتقُّ من وصفٍ صوتيّ."
         },
         {
           "gloss": "القمر مسخَّرًا آيةً",
           "verse": "7:54",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التسخيرُ والآيةُ غائبان."
         },
         {
           "gloss": "انشقاق القمر",
           "verse": "54:1",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانشقاقُ غائب."
         },
         {
           "gloss": "تقدير القمر منازل للحساب",
           "verse": "10:5",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «تَكرار» لا يعارض دورةَ المنازل ولا يقولها؛ والتقديرُ والحسابُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ رَنينٌ وبُرُوزٌ وتَمَهُّلٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "رَنين",
+          "بُرُوز",
+          "تَمَهُّل",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "م",
+            "makhraj_ar": "الشفتان مع الغنة",
+            "realised": [
+              "رَنين",
+              "بُرُوز",
+              "تَمَهُّل"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "لسن": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 24,
       "uses": [
         {
           "gloss": "اللسان: العضو",
           "verse": "75:16",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العضوُ غائب؛ «طَرَف» مخرجٌ يُنسَب إليه الصوتُ لا عضوٌ مُسمًّى."
         },
         {
           "gloss": "اللسان: اللغة",
           "verse": "14:4",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: اللغةُ ونظامُها غائبان."
         },
         {
           "gloss": "لسان صدق: الذكر الحسن",
           "verse": "19:50",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الذِّكرُ الحسنُ غائب."
         },
         {
           "gloss": "الألسنة في الطعن والأذى",
           "verse": "33:19",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الطعنُ والأذى غائبان."
         },
         {
           "gloss": "شهادة الألسنة",
           "verse": "24:24",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الشهادةُ غائبة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "مَيْلٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ حِدّةٌ وخَفاءٌ وطَرَفٌ، حتَّى رَنينٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف",
+          "حِدّة",
+          "خَفاء",
+          "طَرَف",
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "س",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "مسك": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 24,
       "uses": [
         {
           "gloss": "الإمساك: الحبس",
           "verse": "35:41",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«تَمَهُّل» في الافتتاح هو نصًّا «جريانٌ ممسوكٌ لا مقطوعٌ ولا مُرسَل»، ثمّ «أَصْل وقَطْع» في الخاتمة: ارتكازٌ وحبس. القراءةُ تقول الحبسَ من غير أن تستعير شيئًا."
         },
         {
           "gloss": "إمساك الزوجة خلاف التسريح",
           "verse": "2:229",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الزوجيّةُ والتخييرُ بين إمساكٍ وتسريحٍ غائبان."
         },
         {
           "gloss": "الاستمساك: التعلّق الوثيق",
           "verse": "2:256",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«تَمَهُّل» ممسوكٌ و«أَصْل» ارتكازٌ راسخ: تشبُّثٌ لا يُرسِل. الوثاقةُ شدّةُ الارتكاز، وهي في الأصول لا خارجَها."
         },
         {
           "gloss": "المسك: الطيب",
           "verse": "83:26",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الرائحةُ والطِّيبُ غائبان تمامًا."
         },
         {
           "gloss": "الإمساك بخلًا",
           "verse": "17:100",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: البخلُ حكمٌ خُلُقيّ غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "رَنينٌ وبُرُوزٌ وتَمَهُّلٌ، ثُمَّ حِدّةٌ وخَفاءٌ وطَرَفٌ، حتَّى أَصْلٌ وقَطْعٌ وخَفاءٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "رَنين",
+          "بُرُوز",
+          "تَمَهُّل",
+          "حِدّة",
+          "خَفاء",
+          "طَرَف",
+          "أَصْل",
+          "قَطْع",
+          "خَفاء"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "م",
+            "makhraj_ar": "الشفتان مع الغنة",
+            "realised": [
+              "رَنين",
+              "بُرُوز",
+              "تَمَهُّل"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "س",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "خَفاء",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ك",
+            "makhraj_ar": "أقصى اللسان أسفل من مخرج القاف",
+            "realised": [
+              "أَصْل",
+              "قَطْع",
+              "خَفاء"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "نجو": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 75,
       "uses": [
         {
           "gloss": "النجاة من الهلاك",
           "verse": "2:49",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الهلاكُ والخلاصُ منه غائبان؛ «بُرُوز» خروجٌ إلى العتبة لا نجاةٌ من شيء."
         },
         {
           "gloss": "الإنجاء فعلًا إلهيًّا",
           "verse": "10:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نسبةُ الفعل إلى الله غائبة."
         },
         {
           "gloss": "النجوى: المسارّة",
           "verse": "4:114",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: السِّرُّ والمسارّةُ غائبان، بل الافتتاحُ «رَنين» وهو صوتٌ محتبَسٌ مسموع."
         },
         {
           "gloss": "النجيّ: المتناجي المنفرد",
           "verse": "12:80",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانفرادُ والمناجاةُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "رَنينٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ وَسَطٌ وارتِدادٌ وقَطْعٌ، حتَّى لِينٌ ومَدٌّ وبُرُوزٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "وَسَط",
+          "ارتِداد",
+          "قَطْع",
+          "لِين",
+          "مَدّ",
+          "بُرُوز"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ج",
+            "makhraj_ar": "وسط اللسان مع وسط الحنك",
+            "realised": [
+              "وَسَط",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "نكر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 37,
       "uses": [
         {
           "gloss": "المنكر: ما ينكره الشرع",
           "verse": "3:104",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الحكمُ الشرعيُّ غائب."
         },
         {
           "gloss": "الإنكار: الجحود",
           "verse": "16:83",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجحدُ والنفيُ غائبان."
         },
         {
           "gloss": "نَكِرَ: لم يعرف فاستغرب",
           "verse": "11:70",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المعرفةُ ونفيُها غائبان."
         },
         {
           "gloss": "النكير: الإنكار والعقوبة",
           "verse": "22:44",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العقوبةُ غائبة."
         },
         {
           "gloss": "النُّكر: الفظيع المستبشَع",
           "verse": "18:74",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاستبشاعُ حكمٌ ذوقيّ غائب."
         },
         {
           "gloss": "التنكير: تغيير الشيء ليُجهل",
           "verse": "27:41",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التغييرُ للتجهيل غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "رَنينٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ أَصْلٌ وقَطْعٌ وخَفاءٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "أَصْل",
+          "قَطْع",
+          "خَفاء",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ك",
+            "makhraj_ar": "أقصى اللسان أسفل من مخرج القاف",
+            "realised": [
+              "أَصْل",
+              "قَطْع",
+              "خَفاء"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "هجر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 27,
       "uses": [
         {
           "gloss": "الهجرة: مفارقة الديار",
           "verse": "2:218",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المفارقةُ والديارُ غائبتان؛ «قَطْع» انقطاعٌ صوتيّ لا فراقُ مكان."
         },
         {
           "gloss": "الهجر: المفارقة والترك",
           "verse": "4:34",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: «قَطْع» في الجسد يقارب الترك، لكنّ الخاتمةَ «تَكرار وتَمَهُّل» عَودٌ ولبث، والهجرُ لا يعود."
         },
         {
           "gloss": "المهجور: المتروك",
           "verse": "25:30",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: نفسُ العلّة: القراءةُ تنتهي بمعاودةٍ لا بقطيعة."
         },
         {
           "gloss": "الهُجْر: القول الفاحش",
           "verse": "23:67",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القولُ والفحشُ غائبان."
+        }
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وخَفاءٌ وجَرَيانٌ، ثُمَّ وَسَطٌ وارتِدادٌ وقَطْعٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "خَفاء",
+          "جَرَيان",
+          "وَسَط",
+          "ارتِداد",
+          "قَطْع",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ه",
+            "makhraj_ar": "أقصى الحلق",
+            "realised": [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ج",
+            "makhraj_ar": "وسط اللسان مع وسط الحنك",
+            "realised": [
+              "وَسَط",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": [
+        {
+          "root": "حجر",
+          "asl": [
+            "الحاء والجيم والراء أصل واحد مطرد، وهو المنع والإحاطة على الشيء"
+          ],
+          "asl_divergent": true
         }
       ]
     },
     "وثق": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 29,
       "uses": [
         {
           "gloss": "الميثاق: العهد المؤكَّد",
           "verse": "2:27",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العهدُ والالتزامُ غائبان."
         },
         {
           "gloss": "الموثق: العهد المأخوذ",
           "verse": "12:66",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "الوثاق: القيد والشدّ",
           "verse": "47:4",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "inert: «أَصْل وضَخامة» في الخاتمة ثِقَلٌ راسخٌ لا يعارض الشدَّ ولا يقوله؛ والربطُ بين شيئين غائب."
         },
         {
           "gloss": "العروة الوثقى: المُحكَمة",
           "verse": "2:256",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإحكامُ وصفُ عملٍ مُتقَن، وليس في الأصول إتقان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "لِينٌ ومَدٌّ وبُرُوزٌ، ثُمَّ خَفاءٌ وطَرَفٌ وجَرَيانٌ، حتَّى أَصْلٌ وارتِدادٌ وضَخامةٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "خَفاء",
+          "طَرَف",
+          "جَرَيان",
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ث",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "خَفاء",
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "وجه": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 71,
       "uses": [
         {
           "gloss": "الوجه: العضو",
           "verse": "3:106",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العضوُ غائب."
         },
         {
           "gloss": "وجه الله: جهته ورضاه",
           "verse": "2:272",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجهةُ والرضا غائبان."
         },
         {
           "gloss": "إسلام الوجه: انقياد الذات",
           "verse": "2:112",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانقيادُ غائب."
         },
         {
           "gloss": "الوجهة: الجهة المقصودة",
           "verse": "2:148",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القصدُ والجهةُ غائبان؛ «بُرُوز» عتبةٌ لا وِجهة."
         },
         {
           "gloss": "الوجيه: ذو الجاه والمنزلة",
           "verse": "3:45",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجاهُ والمنزلةُ غائبان."
         },
         {
           "gloss": "توجيه الوجه: قصد الجهة",
           "verse": "6:79",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "لِينٌ ومَدٌّ وبُرُوزٌ، ثُمَّ وَسَطٌ وارتِدادٌ وقَطْعٌ، حتَّى غَوْرٌ وخَفاءٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "وَسَط",
+          "ارتِداد",
+          "قَطْع",
+          "غَوْر",
+          "خَفاء",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ج",
+            "makhraj_ar": "وسط اللسان مع وسط الحنك",
+            "realised": [
+              "وَسَط",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ه",
+            "makhraj_ar": "أقصى الحلق",
+            "realised": [
+              "غَوْر",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "أبو": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 104,
       "uses": [
         {
           "gloss": "الأب: الوالد",
           "verse": "12:4",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الولادةُ والنَّسبُ غائبان."
         },
         {
           "gloss": "الآباء: الأسلاف",
           "verse": "2:170",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: السَّلفيّةُ غائبة."
         },
         {
           "gloss": "الأبوان",
           "verse": "4:11",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "الأب إطلاقًا على الجدّ والعمّ",
           "verse": "2:133",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التوسّعُ في إطلاق النسب غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وقَطْعٌ، ثُمَّ بُرُوزٌ وارتِدادٌ وقَطْعٌ، حتَّى لِينٌ ومَدٌّ وبُرُوزٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "قَطْع",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع",
+          "لِين",
+          "مَدّ",
+          "بُرُوز"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "أ",
+            "makhraj_ar": "أقصى الحلق",
+            "realised": [
+              "غَوْر",
+              "قَطْع"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "بني": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 150,
       "uses": [
         {
           "gloss": "البناء: الرفع والتشييد",
           "verse": "2:22",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الرفعُ والتشييدُ غائبان؛ والقراءةُ تنتهي إلى «لِين ومَدّ ووَسَط»."
         },
         {
           "gloss": "البنيان: المبنى",
           "verse": "16:26",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المبنى غائب."
         },
         {
           "gloss": "الابن: الولد",
           "verse": "3:61",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الولدُ والنَّسبُ غائبان."
         },
         {
           "gloss": "بنو فلان: الانتساب",
           "verse": "2:40",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانتسابُ غائب."
         },
         {
           "gloss": "البنات",
           "verse": "4:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "بُرُوزٌ وارتِدادٌ وقَطْعٌ، ثُمَّ رَنينٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى لِينٌ ومَدٌّ ووَسَطٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع",
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "لِين",
+          "مَدّ",
+          "وَسَط"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ي",
+            "makhraj_ar": "وسط اللسان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "وَسَط"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "خوف": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 112,
       "uses": [
         {
           "gloss": "الخوف من الله",
           "verse": "5:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الانفعالُ النفسيُّ غائب من الأصول كلِّها."
         },
         {
           "gloss": "الخوف من المخلوق",
           "verse": "2:182",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "نفي الخوف عن أولياء الله",
           "verse": "2:38",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة، مع نفيٍ لا تقوله الأصول."
         },
         {
           "gloss": "حال الخوف في الصلاة",
           "verse": "2:239",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الصلاةُ وحالُها غائبتان."
         },
         {
           "gloss": "الخِيفة: الخوف المستكنّ",
           "verse": "20:67",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: «خَفاء» يوافق الاستكنانَ ولا يقول خوفًا؛ الخوفُ نفسُه غائب."
         },
         {
           "gloss": "التخويف: بثّ الخوف",
           "verse": "17:59",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: بثُّ الانفعال في غيره غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "غَوْرٌ وضَخامةٌ وخَفاءٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى بُرُوزٌ وخَفاءٌ وجَرَيانٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "غَوْر",
+          "ضَخامة",
+          "خَفاء",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "بُرُوز",
+          "خَفاء",
+          "جَرَيان"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "خ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ف",
+            "makhraj_ar": "باطن الشفة السفلى مع الثنايا",
+            "realised": [
+              "بُرُوز",
+              "خَفاء",
+              "جَرَيان"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "دخل": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 111,
       "uses": [
         {
           "gloss": "الدخول المكاني",
           "verse": "2:58",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«طَرَف» حدٌّ ومُلامسة في الافتتاح، ثمّ «غَوْر» مَصدرٌ من الداخل في الجسد: مجاوزةُ حدٍّ إلى جوف. القارئُ يبلغ الدخولَ من الترتيب نفسِه، ولا يستعير شيئًا."
         },
         {
           "gloss": "دخول الجنة",
           "verse": "4:124",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجنّةُ موضعٌ مخصوصٌ أجنبيّ عن الأصول."
         },
         {
           "gloss": "الإدخال",
           "verse": "4:13",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: التعديةُ تقتضي فاعلًا مُدخِلًا، وليس في الأصول فاعل."
         },
         {
           "gloss": "الدخول بالمرأة كنايةً",
           "verse": "4:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الكنايةُ والعلاقةُ الزوجيّةُ غائبتان."
         },
         {
           "gloss": "الدَّخَل: الدَّغَل والفساد",
           "verse": "16:92",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الدَّغَلُ والفسادُ حكمٌ لا وصفٌ حركيّ."
         },
         {
           "gloss": "المُدَّخَل: الملجأ",
           "verse": "9:57",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: اللجوءُ والموضعُ غائبان."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "ارتِدادٌ وقَطْعٌ وطَرَفٌ، ثُمَّ غَوْرٌ وضَخامةٌ وخَفاءٌ، حتَّى مَيْلٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف",
+          "غَوْر",
+          "ضَخامة",
+          "خَفاء",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "خ",
+            "makhraj_ar": "أدنى الحلق",
+            "realised": [
+              "غَوْر",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "رجع": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 103,
       "uses": [
         {
           "gloss": "الرجوع إلى الله بعد الموت",
           "verse": "2:28",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموتُ وما بعده غائبان."
         },
         {
           "gloss": "الرجوع المكاني",
           "verse": "9:83",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«تَكرار» افتتاحًا و«ارتِداد» في الجسد: إعادةٌ وعَودٌ بعد مُضيّ. القارئُ يبلغ الرجوعَ من الأصلين نصًّا، والمكانيّةُ لا تزيد عليه."
         },
         {
           "gloss": "المرجع: موضع الرجوع",
           "verse": "5:48",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموضعيّةُ غائبة."
         },
         {
           "gloss": "التراجع بين الزوجين",
           "verse": "2:230",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الزوجيّةُ والتخييرُ غائبان."
         },
         {
           "gloss": "الرجع: الإعادة البعيدة",
           "verse": "50:3",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«تَكرار» و«ارتِداد» يقولان الإعادةَ، و«غَوْر» في الخاتمة بُعدٌ من داخل: الرَّجعُ بمعنى الإعادة البعيدة يقع في الأصول."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ وَسَطٌ وارتِدادٌ وقَطْعٌ، حتَّى تَمَهُّلٌ وغَوْرٌ وظُهورٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "وَسَط",
+          "ارتِداد",
+          "قَطْع",
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ج",
+            "makhraj_ar": "وسط اللسان مع وسط الحنك",
+            "realised": [
+              "وَسَط",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "رود": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 120,
       "uses": [
         {
           "gloss": "الإرادة: مشيئة الله",
           "verse": "2:185",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المشيئةُ إرادةُ فاعلٍ، وليس في الأصول فاعلٌ ولا نيّة."
         },
         {
           "gloss": "إرادة العبد وقصده",
           "verse": "4:20",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "المراودة: المخادعة في الطلب",
           "verse": "12:23",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: «تَكرار وارتِداد» يقولان المعاودةَ، لكنّ الطلبَ والخداعَ غائبان."
         },
         {
           "gloss": "رويدًا: التمهّل",
           "verse": "86:17",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "covered",
+          "reason": "«تَمَهُّل» بعينه: «جريانٌ ممسوكٌ لا مقطوعٌ ولا مُرسَل». هذا هو الرُّويدُ نصًّا، لا تقريبًا."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى ارتِدادٌ وقَطْعٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "عبد": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 251,
       "uses": [
         {
           "gloss": "العبادة لله",
           "verse": "1:5",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الخضوعُ والتألّهُ غائبان."
         },
         {
           "gloss": "العبد: المملوك",
           "verse": "2:178",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: المِلكُ غائب."
         },
         {
           "gloss": "العباد: الخلق مضافين إليه",
           "verse": "3:15",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الخلقُ ونسبتُهم غائبان."
         },
         {
           "gloss": "عبادة الطاغوت وغير الله",
           "verse": "5:60",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "التعبيد: الاستعباد",
           "verse": "26:22",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاستعبادُ غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "تَمَهُّلٌ وغَوْرٌ وظُهورٌ، ثُمَّ بُرُوزٌ وارتِدادٌ وقَطْعٌ، حتَّى ارتِدادٌ وقَطْعٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "تَمَهُّل",
+          "غَوْر",
+          "ظُهور",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع",
+          "ارتِداد",
+          "قَطْع",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ع",
+            "makhraj_ar": "وسط الحلق",
+            "realised": [
+              "تَمَهُّل",
+              "غَوْر",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "د",
+            "makhraj_ar": "طرف اللسان وأصول الثنايا",
+            "realised": [
+              "ارتِداد",
+              "قَطْع",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قول": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 1383,
       "uses": [
         {
           "gloss": "القول: الكلام المنطوق",
           "verse": "2:8",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: النُّطقُ غائب — والأصولُ كلُّها أوصافُ مخرجٍ وصفة، فهي تصف كيف يُنطَق ولا تقول أنّ ثَمّ كلامًا. هذه أوضحُ حدودِ المنهج."
         },
         {
           "gloss": "قيل: القول مبنيًّا للمجهول",
           "verse": "2:11",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "القول اسمًا موصوفًا",
           "verse": "4:9",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "التقوّل: اختلاق القول",
           "verse": "69:44",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الاختلاقُ حكمٌ على قائلٍ، وكلاهما غائب."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى مَيْلٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "مَيْل",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ل",
+            "makhraj_ar": "حافة اللسان مع ما يحاذيها من اللثة",
+            "realised": [
+              "مَيْل",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "قوم": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 597,
       "uses": [
         {
           "gloss": "القوم: الجماعة",
           "verse": "2:54",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجماعةُ والاجتماعُ غائبان."
         },
         {
           "gloss": "القيام: الانتصاب",
           "verse": "2:238",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "direction: «أَصْل» ارتكازٌ يوافق القاعدةَ، لكنّ الانتصابَ علوٌّ، والقراءةُ تنتهي إلى «رَنين وبُرُوز وتَمَهُّل» — احتباسٍ لا ارتفاع؛ ولا شيء في الأصول يقول علوًّا."
         },
         {
           "gloss": "إقامة الصلاة",
           "verse": "2:3",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الصلاةُ وإقامتُها غائبتان."
         },
         {
           "gloss": "الاستقامة: لزوم الجادة",
           "verse": "1:6",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجادّةُ ولزومُها غائبان."
         },
         {
           "gloss": "القيّوم: القائم على كل شيء",
           "verse": "2:255",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: القيامُ على كلِّ شيءٍ نسبةٌ إلى غيره، وهي غائبة."
         },
         {
           "gloss": "القيامة",
           "verse": "2:85",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: اليومُ الموعودُ غائب."
         },
         {
           "gloss": "المقام: موضع القيام",
           "verse": "2:125",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الموضعيّةُ غائبة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "أَصْلٌ وارتِدادٌ وضَخامةٌ، ثُمَّ لِينٌ ومَدٌّ وبُرُوزٌ، حتَّى رَنينٌ وبُرُوزٌ وتَمَهُّلٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "أَصْل",
+          "ارتِداد",
+          "ضَخامة",
+          "لِين",
+          "مَدّ",
+          "بُرُوز",
+          "رَنين",
+          "بُرُوز",
+          "تَمَهُّل"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ق",
+            "makhraj_ar": "أقصى اللسان مع الحنك اللين",
+            "realised": [
+              "أَصْل",
+              "ارتِداد",
+              "ضَخامة"
+            ],
+            "carried": [
+              "قَطْع",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "و",
+            "makhraj_ar": "الشفتان (حرف علة)",
+            "realised": [
+              "لِين",
+              "مَدّ",
+              "بُرُوز"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "م",
+            "makhraj_ar": "الشفتان مع الغنة",
+            "realised": [
+              "رَنين",
+              "بُرُوز",
+              "تَمَهُّل"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "نذر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 115,
       "uses": [
         {
           "gloss": "الإنذار: التحذير",
           "verse": "2:6",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإعلامُ بمخوفٍ غائب؛ ليس في الأصول إعلامٌ ولا مخوف."
         },
         {
           "gloss": "النذير: المحذِّر",
           "verse": "2:119",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "النذر: ما يوجبه المرء على نفسه",
           "verse": "2:270",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الإيجابُ على النفس غائب."
         },
         {
           "gloss": "النُّذُر: الإنذارات أو النُّذُر",
           "verse": "10:101",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "رَنينٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ طَرَفٌ وجَرَيانٌ وظُهورٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "طَرَف",
+          "جَرَيان",
+          "ظُهور",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ذ",
+            "makhraj_ar": "طرف اللسان وأطراف الثنايا",
+            "realised": [
+              "طَرَف",
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "carried": [],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     },
     "نصر": {
       "uses_frozen_at": "2026-09-25T18:29:15",
-      "concept_recorded_at": "",
+      "concept_recorded_at": "2026-09-25T19:10:42",
       "occurrences": 137,
       "uses": [
         {
           "gloss": "النصر: العون والتأييد",
           "verse": "2:214",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العونُ يقتضي معينًا ومُعانًا، وليس في الأصول اثنان."
         },
         {
           "gloss": "النصير: الناصر",
           "verse": "2:107",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: نفسُ العلّة."
         },
         {
           "gloss": "الأنصار",
           "verse": "3:52",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: الجماعةُ الناصرةُ غائبة."
         },
         {
           "gloss": "الانتصار: أخذ الحق والانتقام",
           "verse": "42:41",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: أخذُ الحقِّ والانتقامُ غائبان."
         },
         {
           "gloss": "النصارى",
           "verse": "2:62",
-          "verdict": "not_judged",
-          "reason": ""
+          "verdict": "not_covered",
+          "reason": "imported: العَلَميّةُ لا تُشتقُّ من وصفٍ صوتيّ."
         }
-      ]
+      ],
+      "concept": {
+        "sentence": "رَنينٌ وتَمَهُّلٌ وطَرَفٌ، ثُمَّ حِدّةٌ وضَخامةٌ وخَفاءٌ، حتَّى تَكرارٌ وتَمَهُّلٌ وطَرَفٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "رَنين",
+          "تَمَهُّل",
+          "طَرَف",
+          "حِدّة",
+          "ضَخامة",
+          "خَفاء",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ن",
+            "makhraj_ar": "طرف اللسان مع الغنة",
+            "realised": [
+              "رَنين",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ص",
+            "makhraj_ar": "طرف اللسان وفويق الثنايا السفلى",
+            "realised": [
+              "حِدّة",
+              "ضَخامة",
+              "خَفاء"
+            ],
+            "carried": [
+              "طَرَف",
+              "جَرَيان"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
+    },
+    "ضرب": {
+      "uses_frozen_at": "2026-09-25T19:30:00",
+      "concept_recorded_at": "2026-09-25T19:10:42",
+      "occurrences": 54,
+      "ordering_exemption": "NOT frozen before its concept existed, and the record says so rather than implying otherwise. «ضرب» is the declared development case: §D5's composition rule was verified against its reading, so the blindness the other 40 records assert was never available here. It counts toward neither half of k / 40 and the validator exempts it from the ordering gate for this reason alone.",
+      "uses": [
+        {
+          "gloss": "الضرب باليد أو بالآلة: إيقاعُ جسمٍ على جسم",
+          "verse": "8:12",
+          "verdict": "covered",
+          "reason": "«طَرَف» حدٌّ ومُلامسة، ثمّ الخاتمةُ «بُرُوز فارتِداد فقَطْع»: مُلامسةٌ عند العتبة ترتدّ وتنقطع. اليدُ والآلةُ تعيينُ سياقٍ لا زيادةٌ على المفهوم."
+        },
+        {
+          "gloss": "الضرب في الأرض: السفر والسير فيها",
+          "verse": "4:101",
+          "verdict": "not_covered",
+          "reason": "imported: الأرضُ وقطعُ المسافة غائبان؛ «امتِداد» امتدادٌ في الحيِّز لا انتقالٌ فيه."
+        },
+        {
+          "gloss": "ضرب المثل: إيرادُه وبيانُه",
+          "verse": "2:26",
+          "verdict": "not_covered",
+          "reason": "imported: المثلُ وإيرادُه غائبان — وهو ما نصّ §D6 على أنّ التركيبَ لا يبلغه."
+        },
+        {
+          "gloss": "ضرب الحاجز: إقامتُه بين شيئين",
+          "verse": "57:13",
+          "verdict": "not_covered",
+          "reason": "imported: البينيّةُ بين شيئين غائبة؛ لا «وَسَط» في أصول هذا الجذر."
+        },
+        {
+          "gloss": "ضُرِبت عليهم الذلة: إلزامُها إياهم وإحاطتُها بهم",
+          "verse": "2:61",
+          "verdict": "not_covered",
+          "reason": "imported: الإلزامُ والإحاطةُ غائبان."
+        }
+      ],
+      "concept": {
+        "sentence": "امتِدادٌ وضَخامةٌ وطَرَفٌ، ثُمَّ تَكرارٌ وتَمَهُّلٌ وطَرَفٌ، حتَّى بُرُوزٌ وارتِدادٌ وقَطْعٌ",
+        "sentence_source": "template",
+        "realised_primitives": [
+          "امتِداد",
+          "ضَخامة",
+          "طَرَف",
+          "تَكرار",
+          "تَمَهُّل",
+          "طَرَف",
+          "بُرُوز",
+          "ارتِداد",
+          "قَطْع"
+        ],
+        "positions": [
+          {
+            "position": "opens",
+            "letter": "ض",
+            "makhraj_ar": "حافة اللسان مع الأضراس",
+            "realised": [
+              "امتِداد",
+              "ضَخامة",
+              "طَرَف"
+            ],
+            "carried": [
+              "جَرَيان",
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "body",
+            "letter": "ر",
+            "makhraj_ar": "طرف اللسان مع ما يليه من اللثة",
+            "realised": [
+              "تَكرار",
+              "تَمَهُّل",
+              "طَرَف"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          },
+          {
+            "position": "concludes",
+            "letter": "ب",
+            "makhraj_ar": "الشفتان",
+            "realised": [
+              "بُرُوز",
+              "ارتِداد",
+              "قَطْع"
+            ],
+            "carried": [
+              "ظُهور"
+            ],
+            "silent": false
+          }
+        ],
+        "partial": false,
+        "silent_letters": [],
+        "refused": false,
+        "refusal_code": "",
+        "lock_version": "1.0.0"
+      },
+      "collision_with": []
     }
   }
 }
