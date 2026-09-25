@@ -3,13 +3,14 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Type } from "lucide-react";
-import { API_URL, ApiError, qlisanForm } from "@/lib/api";
-import type { LisanResponse } from "@/lib/lisanTypes";
+import { API_URL, ApiError, lisanConcept, qlisanForm } from "@/lib/api";
+import type { ConceptResponse, LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { statusOf, detailOf } from "@/lib/api";
 import { S, forStatus, type FailureKind } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
+import ConceptResult from "@/components/ConceptResult";
 import LisanResult from "@/components/LisanResult";
 
 /**
@@ -22,10 +23,16 @@ import LisanResult from "@/components/LisanResult";
  * this page reads no field of the response except `word` (to decide whether a
  * `?word=` arrival is already on screen).
  *
- * Two independent lanes per run: the letter reading (the page) and the
- * deterministic morphology behind the «الصرف والإعراب» section (POST /qlisan/form).
- * The morphology is supplementary — its failure costs the section, never the
- * reading — so it is fired alongside and its rejection swallowed.
+ * Three independent lanes per run: the letter reading (the page), the
+ * deterministic morphology behind the «الصرف والإعراب» section (POST /qlisan/form),
+ * and the مفهوم composed from the letters' physics (POST /lisan/concept). The last
+ * two are supplementary — their failure costs their panel, never the reading — so
+ * both are fired alongside and their rejections swallowed.
+ *
+ * The concept is a SECOND ENGINE, not a section of the first: it composes from the
+ * root's letters alone and meets Ibn Fāris afterwards, where `/lisan/analyze` reads
+ * the letters through him from the start. They are fetched independently for that
+ * reason, and the page hands each payload to its own component untouched.
  *
  * `?word=` deep-links into an analysis (Verse Study's «تحليل لساني» button sends
  * the reader here); `useSearchParams` requires the Suspense boundary below.
@@ -48,6 +55,10 @@ function LisanAnalysis() {
   );
   const [sarfi, setSarfi] = useCachedState<QlisanFormResponse | null>(
     "lexical.sarfi",
+    null,
+  );
+  const [concept, setConcept] = useCachedState<ConceptResponse | null>(
+    "lexical.concept",
     null,
   );
   const [loading, setLoading] = useState(false);
@@ -81,10 +92,12 @@ function LisanAnalysis() {
     setLoading(true);
     setError(null);
     setSarfi(null);
+    setConcept(null);
 
-    // Fired first so both lanes travel together; awaited last so the reading is
-    // never held up by it.
+    // Fired first so the three lanes travel together; awaited last so the reading
+    // is never held up by either.
     const morphology = qlisanForm(typed).catch(() => null);
+    const physics = lisanConcept(typed).catch(() => null);
 
     try {
       // Arabic-only: no `lang` in the body.
@@ -124,8 +137,11 @@ function LisanAnalysis() {
       if (seq === runSeq.current) setLoading(false);
     }
 
-    const resolved = await morphology;
-    if (seq === runSeq.current) setSarfi(resolved);
+    const [resolved, composed] = await Promise.all([morphology, physics]);
+    if (seq === runSeq.current) {
+      setSarfi(resolved);
+      setConcept(composed);
+    }
   }
 
   return (
@@ -171,6 +187,12 @@ function LisanAnalysis() {
       {loading && (
         <p className="text-sm text-gray-500">{S.lexical.loading}</p>
       )}
+
+      {/* The composed مفهوم comes first and the core-first reading follows it, so
+          the comparison panel that closes the concept sits immediately above the
+          reading it is compared with — and so nothing lands after the disclaimer
+          `LisanResult` publishes at the foot of the page. */}
+      {concept && !loading && <ConceptResult data={concept} lisan={data} />}
 
       {data && !loading && <LisanResult data={data} sarfi={sarfi} />}
     </div>

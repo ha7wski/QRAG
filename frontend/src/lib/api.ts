@@ -14,6 +14,7 @@ import type {
   VerseLookupResponse,
 } from "./types";
 import type { FassilaOverviewResponse, FassilaResponse } from "./fassilaTypes";
+import type { ConceptResponse } from "./lisanTypes";
 import type {
   TahlilReviewResponse,
   TahlilWordResponse,
@@ -106,6 +107,26 @@ export async function qlisanForm(word: string): Promise<QlisanFormResponse> {
     body: JSON.stringify({ word }),
   });
   if (!res.ok) throw new ApiError(`QLisan form failed: ${res.status}`, res.status);
+  return res.json();
+}
+
+// ── Lisan: the مفهوم composed from the letters' physics ───────────────
+// The SECOND engine on the «تحليل اللسان» page. `POST /lisan/analyze` is
+// core-first and the page fetches it inline; this one is the inverse — the
+// concept is composed from the root's letters and Ibn Fāris arrives afterwards
+// as the test — so it gets a client of its own and the two share no code path.
+//
+// Only transport failures throw. A root the rule does not cover (a quadriliteral)
+// comes back 200 carrying its refusal, because the statement «this rule covers
+// three positions only» is the answer; raising on it would put an empty panel
+// where a stated reason belongs.
+export async function lisanConcept(word: string): Promise<ConceptResponse> {
+  const res = await fetch(`${API_URL}/lisan/concept`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word }),
+  });
+  if (!res.ok) throw new ApiError(`Lisan concept failed: ${res.status}`, res.status);
   return res.json();
 }
 

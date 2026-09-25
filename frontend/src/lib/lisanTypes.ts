@@ -189,3 +189,160 @@ export interface LisanResponse {
   sources: Record<string, string>;
   message: string | null; // set when the root could not be resolved
 }
+
+/* ── the physics-first engine (POST /lisan/concept) ────────────────────────
+ *
+ * A SECOND engine, mirroring `api/models/lisan.py`'s lower half field for field.
+ * Everything above is CORE-FIRST — the attested aṣl selects among each letter's
+ * sourced senses. Everything below is the inverse: the مفهوم is composed from the
+ * tajwīd description of the root's letters and from nothing else, and Ibn Fāris
+ * arrives afterwards as the TEST. The two are published side by side until the
+ * comparison is done, so nothing here is typed as a fallback for anything there.
+ *
+ * The shapes are flatter than the core-first ones on purpose: there is nothing to
+ * select, so there is no `discarded`, no `matched_axes` and no `selection_rule`.
+ */
+
+/** The sourcing regime of one primitive, and the page MUST distinguish on it.
+ *  `attested` — a named authority with real pages states this mapping.
+ *  `hypothesis` — the project asserts it, carrying an uncontested tajwīd fact as
+ *  its basis. Most rows are hypotheses, and a screen that rendered both alike
+ *  would publish the project's construction with Ibn Jinnī's face on. */
+export type PrimitiveStatus = "attested" | "hypothesis";
+
+/** The positional rule, fixed in advance and never adapted to a root: the first
+ *  radical opens the action, the second is its body, the third concludes it. The
+ *  API sends these English keys and the Arabic wording belongs to the page — the
+ *  same division of labour `LetterIdentity.position` already follows. */
+export type ConceptPosition = "opens" | "body" | "concludes";
+
+/** Whether the مفهوم covers one attested Quranic sense. `not_judged` is the
+ *  mandated intermediate state — uses frozen, verdict not yet written — and not a
+ *  third grade between the other two. */
+export type UseVerdict = "covered" | "not_covered" | "not_judged";
+
+/** The root-level coverage verdict. It is a COVERAGE VERDICT, so no surface may
+ *  print it without `ConceptResponse.metric_reservation` beside it. */
+export type ConfrontationVerdict = "covers_all" | "partial" | "not_recorded";
+
+/** Where the concept's sentence came from. The deterministic template is the
+ *  ground truth; `phrasing` is the optional LLM pass, off by default and vetoed
+ *  by a containment check before it can reach this field. */
+export type SentenceSource = "template" | "phrasing";
+
+/** One primitive a letter carries, with the table row that licensed it.
+ *
+ *  `coverage` is how many of the 28 letters carry this primitive and is the
+ *  ordering signal — rarest first; `declaration_index` is the table's own row
+ *  order and breaks every tie. Both travel with every hit so a reader can
+ *  re-derive the order by hand, which is why the page prints them rather than
+ *  presenting the cut as a given. */
+export interface PrimitiveHit {
+  primitive: string;
+  feature: string;
+  gloss_ar: string;
+  status: PrimitiveStatus;
+  coverage: number;
+  declaration_index: number;
+}
+
+/** One radical read at one fixed slot, with its whole evidence chain.
+ *
+ *  `letter` is the glyph as the root key spells it and is never rewritten;
+ *  `sheet_letter` is the row it was read from, which differs for a hamza seat
+ *  (`أ` → `ء`) and is null when the sheet has no row at all.
+ *
+ *  `ordered` is everything the letter carries, `realised` its first three,
+ *  `carried` the remainder. `carried` is PUBLISHED, never hidden: the cut is a
+ *  display budget, not a claim that the rest are absent. */
+export interface PositionReading {
+  position: ConceptPosition;
+  letter: string;
+  sheet_letter: string | null;
+  makhraj_ar: string;
+  features: string[];
+  ordered: PrimitiveHit[];
+  realised: PrimitiveHit[];
+  carried: PrimitiveHit[];
+  silent: boolean;
+  silent_reason: string; // Arabic; says WHOSE gap it is
+}
+
+/** A root's composed مفهوم, or a stated refusal to compose one.
+ *
+ *  `refused` and `partial` are different failures and the page must not merge
+ *  them. `refused` — the rule does not cover this root at all (a quadriliteral),
+ *  `positions` is empty and `refusal_reason` carries the Arabic statement.
+ *  `partial` — the rule applied and one position is silent; the concept exists
+ *  and is honestly short by that position.
+ *
+ *  `sentence` is the ground truth and the thing the metric is measured on. The
+ *  page may GROUP `realised` by position for readability, and grouping is all it
+ *  may do: the chain is shown verbatim beside the groups, never instead of them. */
+export interface Concept {
+  root: string;
+  refused: boolean;
+  refusal_code: string;
+  refusal_reason: string;
+  positions: PositionReading[];
+  realised_primitives: string[];
+  sentence: string;
+  sentence_source: SentenceSource;
+  /** Non-empty in exactly one case: a phrasing was produced and the containment
+   *  veto refused it. «the model invented something» and «the model was not
+   *  running» must not look the same, so this is empty when the pass is off. */
+  phrasing_rejection: string;
+  partial: boolean;
+  silent_letters: string[];
+  lock_version: string; // the table version this concept was produced under
+}
+
+/** One Quranic sense frozen for a root BEFORE its concept was generated.
+ *  `reason` is required on anything not `covered`, and it is the only thing that
+ *  lets a reader who disagrees redo the judgement. */
+export interface AttestedUse {
+  gloss: string;
+  verse: string; // "s:a"
+  verdict: UseVerdict;
+  reason: string;
+}
+
+/** What is attested for the root, set beside the concept — a report only.
+ *
+ *  The aṣl arrives AFTER the answer, which is the whole reason the engine exists:
+ *  the two can disagree, and nothing here feeds back into the concept.
+ *
+ *  `core_status` says whose silence it is when `cores` is empty, and is `""` when
+ *  cores exist. `counts_toward_k` is a published exclusion, never a silence: a
+ *  root off the holdout is confronted and shown like any other. */
+export interface Confrontation {
+  cores: RootCore[];
+  core_status: CoreStatus | "";
+  occurrences: number;
+  verses: string[];
+  uses: AttestedUse[];
+  verdict: ConfrontationVerdict;
+  uses_frozen_at: string;
+  concept_recorded_at: string;
+  in_witness_set: boolean;
+  counts_toward_k: boolean;
+}
+
+/** `root: null` with a `message` when nothing resolves — never a 500.
+ *
+ *  `concept` and `confrontation` are both null on that path and both present
+ *  otherwise, INCLUDING when the concept is refused: a refusal is an answer the
+ *  page displays, not an empty panel. */
+export interface ConceptResponse {
+  word: string;
+  root: string | null;
+  root_source: "qac" | "fallback" | null;
+  concept: Concept | null;
+  confrontation: Confrontation | null;
+  /** The window reservation, carried in the response rather than left to the
+   *  page: any surface that prints a coverage verdict must print it WITH the
+   *  number, and `Confrontation.verdict` is one. */
+  metric_reservation: string;
+  disclaimer: string;
+  message: string | null;
+}

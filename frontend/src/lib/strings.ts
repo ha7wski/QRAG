@@ -15,13 +15,18 @@
  */
 
 import type {
+  ConceptPosition,
   Confidence,
+  ConfrontationVerdict,
   CoreStatus,
   PositionKind,
   DiscardReason,
   MatchedRule,
   Polarity,
+  PrimitiveStatus,
   SensePosition,
+  SentenceSource,
+  UseVerdict,
 } from "./lisanTypes";
 
 /**
@@ -204,6 +209,84 @@ const POSITIONS: Record<SensePosition, string> = {
   medial: "وسط",
   final: "آخر",
   any: "أيّ موضع",
+};
+
+/* ── The physics-first engine's vocabulary (POST /lisan/concept) ────────────
+ *
+ * The API sends the ENGLISH keys `opens` / `body` / `concludes` and nothing else:
+ * the positional rule is the backend's, the Arabic wording is the page's, exactly
+ * as `LetterIdentity.position` already splits it. These maps are the whole of
+ * that wording, and the `Record<Enum, string>` annotation is what turns a fourth
+ * position — should the rule ever be widened — into a compile error here rather
+ * than a nameless card on screen.
+ */
+
+/** The role each radical plays, by the rule fixed before any root was composed. */
+const CONCEPT_ROLES: Record<ConceptPosition, string> = {
+  opens: "يَفتَح",
+  body: "جَسَد",
+  concludes: "يَختِم",
+};
+
+/** Which radical it is. Named beside the role so a group states both — the
+ *  reading aid has to say WHICH letter it is grouping, or it is just a third of
+ *  a sentence with no owner. */
+const CONCEPT_ORDINALS: Record<ConceptPosition, string> = {
+  opens: "الحرف الأوَّل",
+  body: "الحرف الثاني",
+  concludes: "الحرف الثالث",
+};
+
+/** The role spelled out as the rule states it, for the card's own line. */
+const CONCEPT_ROLE_SENTENCES: Record<ConceptPosition, string> = {
+  opens: "يفتَحُ الحدث",
+  body: "جسَدُ الحدث",
+  concludes: "يختِمُ الحدث",
+};
+
+/**
+ * The sourcing regime of a primitive — and the two labels are deliberately
+ * asymmetric, because the facts are.
+ *
+ * `attested` means a named authority with real pages states the mapping;
+ * `hypothesis` means THIS PROJECT asserts it, resting on an uncontested tajwīd
+ * fact rather than on anyone's word. Most rows are hypotheses, and a badge that
+ * read the same for both would publish the project's own construction as if it
+ * were transmitted scholarship.
+ */
+const PRIMITIVE_STATUSES: Record<PrimitiveStatus, string> = {
+  attested: "منصوص",
+  hypothesis: "فرضُ المشروع",
+};
+
+const PRIMITIVE_STATUS_TITLES: Record<PrimitiveStatus, string> = {
+  attested: "نصَّ على هذه النسبة مصدرٌ مُسمًّى بصفحاته",
+  hypothesis: "دعوى هذا المشروع، مبناها واقعةٌ تجويديةٌ لا خلافَ فيها، لا قولُ عالِم",
+};
+
+/** Where the concept's sentence came from. The template is the ground truth; the
+ *  generated phrasing is an optional pass that may only re-word what the template
+ *  already realised, and is vetoed before it can reach the page. */
+const SENTENCE_SOURCES: Record<SentenceSource, string> = {
+  template: "قالبٌ حتميّ",
+  phrasing: "صياغةٌ مولَّدة",
+};
+
+/** Whether the مفهوم covers one attested Quranic sense. `not_judged` is the
+ *  mandated intermediate state — the uses were frozen before the concept
+ *  existed — and it is not a middle grade between the other two. */
+const USE_VERDICTS: Record<UseVerdict, string> = {
+  covered: "يشملُه المفهوم",
+  not_covered: "لا يشملُه المفهوم",
+  not_judged: "لم يُحكَم بعد",
+};
+
+/** The root-level coverage verdict. Never rendered without the reservation
+ *  beside it — see `S.concept.reservationLabel`. */
+const CONFRONTATION_VERDICTS: Record<ConfrontationVerdict, string> = {
+  covers_all: "يشملُ الوجوهَ المُثبَتةَ كلَّها",
+  partial: "يشملُ بعضَ الوجوهِ المُثبَتة",
+  not_recorded: "لم يُسجَّل حكمٌ بعد",
 };
 
 export const S = {
@@ -483,6 +566,120 @@ export const S = {
 
     /** The disclaimer's hover tooltip. */
     sourcesTooltip: "المصادر",
+  },
+
+  /**
+   * The مفهوم panel on the same «تحليل اللسان» page — a SECOND engine, grouped
+   * apart from `lexical` because it argues the other way round: it composes the
+   * concept from the letters' physics alone and only then sets Ibn Fāris beside
+   * it. Its wording must be reviewable as one block, since the whole risk of the
+   * panel is a sentence that quietly promotes a construction into a transmitted
+   * reading, or that lets one engine read as the other's correction.
+   */
+  concept: {
+    heading: "المفهوم — من فيزياءِ الحروف",
+    caption:
+      "مفهومٌ مُركَّبٌ من وصفِ حروفِ الجذرِ في التجويدِ وحدَه — مخارجِها وصفاتِها — لا من معنًى منقولٍ ولا من أصلٍ في المعاجم.",
+
+    /**
+     * The distinction the whole approach rests on, in the page's OWN words: it
+     * is not a field of the response and must never become one. Rendered without
+     * any interaction, because a reader who never opens a disclosure is exactly
+     * the reader who would take the مفهوم for a dictionary meaning.
+     */
+    conceptVsMeaning:
+      "المفهومُ ثابتٌ لا يتبدَّلُ بالسياق: هو ما تُمليه فيزياءُ حروفِ الجذرِ وترتيبُها فيه. وأمَّا المعنى فبالسياقِ يتعيَّن؛ فاللفظةُ الواحدةُ يختلفُ معناها من آيةٍ إلى آية، والمفهومُ تحتَها واحدٌ لا يختلف. وهذه اللوحةُ تعرضُ المفهومَ وحدَه، ولا تعرضُ المعنى.",
+
+    /* ── 9.2: the three positional groups ────────────────────────────── */
+    positionsHeading: "المواضعُ الثلاثة",
+    positionsNote:
+      "قاعدةٌ واحدةٌ تجري على كلِّ جذرٍ ثلاثيّ: الحرفُ الأوَّلُ يفتَحُ الحدثَ، والثاني جسَدُه، والثالثُ يختِمُه. وُضِعَت قبلَ أن يُركَّبَ جذرٌ واحد، ولا تُبدَّلُ لجذرٍ ولا لنتيجة.",
+    role: CONCEPT_ROLES,
+    ordinal: CONCEPT_ORDINALS,
+    roleSentence: CONCEPT_ROLE_SENTENCES,
+    makhrajLabel: "المخرج",
+    featuresLabel: "الصفات",
+    /** A hamza seat is read from the `ء` row; the root's own spelling is never
+     *  rewritten, so the page says which row it read rather than showing a letter
+     *  the reader did not type. */
+    sheetLetter: (letter: string) => `قُرئ من صفِّ الحرف «${letter}»`,
+    realisedLabel: "الأصولُ البالغةُ العبارة",
+    carriedLabel: "أصولٌ يحملُها الحرفُ ولم تبلغِ العبارة",
+    carriedNote:
+      "الحدُّ ثلاثةٌ في كلِّ موضع، وهو حدُّ عرضٍ لا نفيَ لما وراءه؛ ولذلك تُنشَرُ ولا تُطوى.",
+    orderedLabel: "الترتيبُ بالنُّدرة",
+    orderedNote:
+      "الأندرُ أوَّلًا، ويفصلُ بين المتساويَين ترتيبُ الجدولِ نفسُه — فيستطيعُ القارئُ أن يعيدَ الترتيبَ بيدِه.",
+    /** The ordering signal itself: how many of the 28 letters carry the
+     *  primitive. Printed on every hit so the cut is checkable, not asserted. */
+    coverage: (n: number) => `${n} من 28 حرفًا`,
+    coverageTitle: "عددُ الحروفِ التي تحملُ هذا الأصل",
+
+    /* ── 9.3: the sourcing regime ────────────────────────────────────── */
+    status: PRIMITIVE_STATUSES,
+    statusTitle: PRIMITIVE_STATUS_TITLES,
+    statusLegendHeading: "ما معنى «منصوص» و«فرضُ المشروع»",
+    statusLegend:
+      "«منصوص» يعني أنَّ مصدرًا مُسمًّى بصفحاتِه نصَّ على نسبةِ هذا الأصلِ إلى هذه الصفة. و«فرضُ المشروع» يعني أنَّ هذا المشروعَ هو الذي ادَّعى النسبة، مبناها واقعةٌ تجويديةٌ لا خلافَ فيها، لا قولُ عالِم. وأكثرُ ما في الجدولِ فروضٌ، فلا تُقرأ قراءةَ المنقول.",
+
+    /* ── The recorded chain: the ground truth beside its reading aid ─── */
+    sentenceHeading: "العبارةُ المُسجَّلة",
+    sentenceNote:
+      "هذه هي العبارةُ كما ركَّبَها المُركِّبُ حرفًا بحرف، وعليها وحدَها يقعُ التسجيلُ والقياسُ والعَرضُ على الأصل. والتقسيمُ إلى ثلاثةِ مواضعَ أعلاه تيسيرٌ للقراءةِ لا بديلٌ عنها: لم يُحذَف أصلٌ، ولا قُدِّمَ ولا أُخِّر، ولا أُعيدَت صياغتُه.",
+    sentenceSource: SENTENCE_SOURCES,
+    lockVersion: (version: string) => `جدولُ الأصول، النسخة ${iso(version)}`,
+    /** Set only when a generated phrasing was produced AND vetoed. «the model
+     *  invented something» and «the model was not running» must not look alike. */
+    phrasingRejectionHeading: "صياغةٌ مولَّدةٌ رُدَّت",
+
+    /* ── The two failures, kept apart ────────────────────────────────── */
+    partialHeading: "مفهومٌ ناقص",
+    partialLetters: (letters: string) => `الحرفُ الساكت: ${letters}`,
+    silentBadge: "موضعٌ ساكت",
+    /** The rule does not reach this root at all — a different fact from a silent
+     *  letter, and it gets its own heading rather than the partial banner. */
+    refusedHeading: "لا مفهومَ لهذا الجذر",
+
+    /* ── 9.5: the two engines, side by side and undecided ────────────── */
+    comparisonHeading: "المحرِّكانِ جنبًا إلى جنب",
+    comparisonNote:
+      "محرِّكانِ مستقلّان: هذا يبني المفهومَ من الحروفِ وحدَها ثمَّ يُعرَضُ عليه الأصلُ المنصوص، وذاك يقرأُ الحروفَ على الأصلِ ابتداءً. ولم يُحكَم لأحدِهما على الآخر — لا أصوبَ، ولا أولى، ولا بديلًا عند عجزِ صاحبِه — والمقارنةُ بينهما لم تُقضَ بعد.",
+    physicsSide: "المفهوم — من الحروف",
+    coreSide: "القراءة — على الأصلِ المنصوص",
+    noCoreReading: "لم يُركِّب المحرِّكُ الآخرُ قراءةً لهذا الجذر.",
+    /** The counterpart never answered — its request failed or has not returned.
+     *  A DIFFERENT fact from «it composed no reading», and stating the second in
+     *  its place would publish a missing response as a finding about the root. */
+    noCoreAnswer: "لم يصل جوابُ المحرِّكِ الآخرِ عن هذه الكلمة.",
+    refusedSide: "لا عبارةَ هنا: القاعدةُ لا تتناولُ هذا الجذر.",
+
+    aslHeading: "الأصلُ المنصوصُ عند ابن فارس",
+    aslNote:
+      "يأتي الأصلُ بعدَ المفهومِ لا قبلَه، عَرضًا عليه؛ فقد يوافقُه وقد يخالفُه، ولا يُعادُ التركيبُ من أجلِه.",
+    /** Which silence it is. The differentiating half is `S.lexical.noCoreHeading`,
+     *  keyed on `core_status` — one sentence for all three is what told the reader
+     *  that Maqāyīs holds no aṣl for حرب, where Ibn Fāris gives three. */
+    noCoreLead: "لا أصلَ يُعرَضُ عليه المفهوم — ",
+
+    occurrences: (n: number) => `مواضعُ الجذرِ في القرآن: ${n}`,
+    usesHeading: "الوجوهُ المُثبَتةُ للجذرِ في القرآن",
+    usesNote:
+      "وجوهٌ كُتِبَت وجُمِّدَت قبلَ أن يُولَّدَ مفهومُ هذا الجذر، حتَّى يكونَ العَرضُ عليها عَرضًا لا مصادرة.",
+    useVerdict: USE_VERDICTS,
+    useReasonLabel: "التعليل :",
+
+    verdictHeading: "حكمُ الشمول",
+    verdict: CONFRONTATION_VERDICTS,
+    /* The §D11 reservation travels WITH the verdict, on the same panel — a
+       coverage verdict printed without it is precisely what is forbidden. It has
+       no entry here on purpose: the backend sends the sentence, opening words
+       included, and a label of ours in front of it would repeat them. */
+    /** A published exclusion, never a silence: a root outside the holdout is
+     *  confronted and shown like any other, and says that it counts for nothing. */
+    excludedFromK: "خارجَ عيِّنةِ القياس: لا يدخلُ هذا الجذرُ في حسابِ النسبة.",
+    inWitnessSet: "من عيِّنةِ القياسِ المسحوبةِ سلفًا.",
+    frozenAt: (date: string) => `جُمِّدَت الوجوهُ في ${iso(date)}`,
+    recordedAt: (date: string) => `سُجِّلَ المفهومُ في ${iso(date)}`,
   },
 
   /** Shared verse chrome. */
