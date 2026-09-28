@@ -278,7 +278,8 @@ MANIFEST: dict[str, Entry] = {
                "row changes only to correct a transcription error proved against "
                "the image, through a new lock version.",
         producer=None,
-        consumers=("scripts/validate_islambouli_datasets.py",),
+        consumers=("scripts/validate_islambouli_datasets.py",
+                   "linguistics/lisan/islambouli/table.py"),
         regenerable=False,
     ),
     "ISLAMBOULI_LETTERS_LOCK_JSON": Entry(
@@ -292,7 +293,8 @@ MANIFEST: dict[str, Entry] = {
                "of the second holdout existed. Changes only through a new "
                "version correcting a transcription error proved on the image.",
         producer=None,
-        consumers=("scripts/validate_islambouli_datasets.py",),
+        consumers=("scripts/validate_islambouli_datasets.py",
+                   "linguistics/lisan/islambouli/table.py"),
         regenerable=False,
     ),
     "ISLAMBOULI_LETTERS_GRID_JSON": Entry(
@@ -320,7 +322,8 @@ MANIFEST: dict[str, Entry] = {
                "transcribed. Never re-drawn: a draw repeated until it looks "
                "convenient is not a holdout.",
         producer="scripts/draw_islambouli_witness_set.py",
-        consumers=("scripts/validate_islambouli_datasets.py",),
+        consumers=("scripts/validate_islambouli_datasets.py",
+                   "linguistics/lisan/islambouli/witness_guard.py"),
         regenerable=False,
     ),
     "CONCEPT_ATTESTATION_JSON": Entry(

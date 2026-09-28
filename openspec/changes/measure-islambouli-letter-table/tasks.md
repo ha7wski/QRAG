@@ -36,11 +36,11 @@
 
 ## 5. Composer, blindness and guard
 
-- [ ] 5.1 Write the blindness rules for `linguistics/lisan/islambouli/` into `tests/test_import_direction.py` first (banned names incl. the grid for every module, `confront.py` exemption for the meaning layer only, `harness/verdicts.py` banned from the composer)
-- [ ] 5.2 `islambouli/compose.py`: load + digest-check the table, D5 letter mapping (carrier table imported from the closed harness), three verbatim positions, quadriliteral refusal, partial path; guard call on its first line
-- [ ] 5.3 Tests on roots off both holdouts: verbatim bytes, «أو» kept whole, `اول` → row 26, no partial over all triliteral QAC roots, partial on a synthetic key, quadriliteral refusal
-- [ ] 5.4 Guard tests: a new-witness root raises under pytest; empty holdout raises; the closed guard still covers its own 40
-- [ ] 5.5 Commit
+- [x] 5.1 Write the blindness rules for `linguistics/lisan/islambouli/` into `tests/test_import_direction.py` first (banned names incl. the grid for every module, `confront.py` exemption for the meaning layer only, `harness/verdicts.py` banned from the composer)
+- [x] 5.2 `islambouli/compose.py`: load + digest-check the table, D5 letter mapping (carrier table imported from the closed harness), three verbatim positions, quadriliteral refusal, partial path; guard call on its first line
+- [x] 5.3 Tests on roots off both holdouts: verbatim bytes, «أو» kept whole, `اول` → row 26, no partial over all triliteral QAC roots, partial on a synthetic key, quadriliteral refusal
+- [x] 5.4 Guard tests: a new-witness root raises under pytest; empty holdout raises; the closed guard still covers its own 40
+- [x] 5.5 Commit
 
 ## 6. Uses freeze (no reading generated)
 
