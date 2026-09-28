@@ -20,7 +20,7 @@
 - [x] 2.1 Add the CSV and lock paths + manifest entries (the poster as a `source/` original with its sha256)
 - [x] 2.2 Transcribe the 29 rows from the image into `islambouli_letters.csv` (`row`, `label_as_printed`, `text_as_printed`, `text`, `status`, `reading_note`), re-checking every row at 3× crop; row 12 without shadda/tanween and with its `reading_note`
 - [x] 2.3 Validator: 29 rows 0–28; whitespace-stripped identity per row; status only `transcribed_from_poster`; row 26 label «آ - ى», row 25 «هـ»; no field relating row 0 to row 26
-- [ ] 2.4 Commit the transcription (git ancestry check: 1.5 precedes)
+- [x] 2.4 Commit the transcription (git ancestry check: 1.5 precedes)
 
 ## 3. System check (before any root)
 
