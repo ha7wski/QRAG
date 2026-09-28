@@ -74,6 +74,10 @@ PHYSICAL_PRIMITIVES_LOCK_JSON = REFERENCES / "physical_primitives.lock.json"
 # table existed. Committed rather than left under `tests/`, which is git-ignored:
 # a metric nobody cloning the repo can re-derive is not a published metric.
 CONCEPT_WITNESS_SET_JSON = REFERENCES / "concept_witness_set.json"
+# The SECOND holdout, for the Islambouli letter table: 40 roots drawn with seed
+# 20260928 from the same frame minus the 40 above (whose uses have been read), and
+# committed BEFORE a single row of that table was transcribed.
+ISLAMBOULI_WITNESS_SET_JSON = REFERENCES / "islambouli_witness_set.json"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before
 # its numerator — and the `probe` block is appended only afterwards, carrying the

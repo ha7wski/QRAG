@@ -255,6 +255,21 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_concept_datasets.py",),
         regenerable=False,
     ),
+    "ISLAMBOULI_WITNESS_SET_JSON": Entry(
+        bucket="references",
+        what="The second 40-root holdout, for the Islambouli letter table: seed "
+             "20260928, the frame it was drawn from (280 minus the first "
+             "holdout's 40 = 176 + 64), the preconditions it asserted, the "
+             "replayable procedure, and the draw's recorded structure.",
+        origin="Drawn once by scripts/draw_islambouli_witness_set.py through "
+               "linguistics/lisan/harness/draw.py — the code that also replays "
+               "the first draw — and committed before any row of the table was "
+               "transcribed. Never re-drawn: a draw repeated until it looks "
+               "convenient is not a holdout.",
+        producer="scripts/draw_islambouli_witness_set.py",
+        consumers=("scripts/validate_islambouli_datasets.py",),
+        regenerable=False,
+    ),
     "CONCEPT_ATTESTATION_JSON": Entry(
         bucket="references",
         what="The confrontation record k/40 is computed from: per witness root, "

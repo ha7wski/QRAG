@@ -8,11 +8,11 @@
 
 ## 1. Second holdout (before any row is transcribed)
 
-- [ ] 1.1 Add `ISLAMBOULI_WITNESS_SET_JSON` to `quran_data/paths.py`, its `manifest.py` entry and loader
-- [ ] 1.2 Write `scripts/draw_islambouli_witness_set.py` on `harness/draw.py`: pinned exclusions, assert frame 280 = 205 + 75, assert seed `20260925` reproduces the burned 40, remove them, assert 176 + 64, draw 29 + 11 on one `Random(20260928)`, lower first, sorted lists
-- [ ] 1.3 Run it once; write the file with seed, rationale, date, procedure, frame, strata and the recorded structure (weak radicals, hamza carriers, bare alef, overlap with probe roots / widening / `ضرب`)
-- [ ] 1.4 Validator replay + tests (`test_islambouli_witness_set.py`): reproducibility, no burned root, file tamper fails
-- [ ] 1.5 Commit the set and its replay — **no Islambouli file in this commit or any ancestor**
+- [x] 1.1 Add `ISLAMBOULI_WITNESS_SET_JSON` to `quran_data/paths.py`, its `manifest.py` entry and loader
+- [x] 1.2 Write `scripts/draw_islambouli_witness_set.py` on `harness/draw.py`: pinned exclusions, assert frame 280 = 205 + 75, assert seed `20260925` reproduces the burned 40, remove them, assert 176 + 64, draw 29 + 11 on one `Random(20260928)`, lower first, sorted lists
+- [x] 1.3 Run it once; write the file with seed, rationale, date, procedure, frame, strata and the recorded structure (weak radicals, hamza carriers, bare alef, overlap with probe roots / widening / `ضرب`)
+- [x] 1.4 Validator replay + tests (`test_islambouli_witness_set.py`): reproducibility, no burned root, file tamper fails
+- [x] 1.5 Commit the set and its replay — **no Islambouli file in this commit or any ancestor**
 
 ## 2. Transcription
 

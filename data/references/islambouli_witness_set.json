@@ -1,0 +1,302 @@
+{
+ "meta": {
+  "name": "islambouli-witness-set",
+  "description": "The frozen holdout for the Islambouli letter table: 40 triliteral roots against which k/40 is measured under the harness that measured the closed physics-first engine. Drawn and committed before any row of the table was transcribed.",
+  "holdout_discipline": [
+   "The IDENTITY of these roots is public: a set can only be held out if it is known.",
+   "What never happens before the table is frozen: writing their uses, reading their aṣl for the purpose of this measurement, or generating their readings.",
+   "The set is never re-drawn. A draw repeated until it looks convenient is not a holdout."
+  ]
+ },
+ "seed": 20260928,
+ "seed_rationale": "Fixed in the design note (design.md §D2) before any draw ran, and reviewed there. It is the date the note was written.",
+ "drawn_on": "2026-09-28",
+ "procedure": [
+  "frame, lower, upper = harness.draw.build_frame(morphology, has_asl, CURATED_AT_FIRST_DRAW | {DEVELOPMENT_CASE}); assert (len(lower), len(upper)) == (205, 75)",
+  "assert harness.draw.sample(lower, upper, 20260925, 29, 11) == concept_witness_set.json roots",
+  "lower_rest = lower − first holdout; upper_rest = upper − first holdout",
+  "drawn = harness.draw.sample(lower_rest, upper_rest, 20260928, 29, 11) — one generator, lower stratum first, each stratum sorted"
+ ],
+ "frame": {
+  "size": 240,
+  "derived_from": "the first holdout's frame (280 = 205 + 75), minus its 40 roots",
+  "criteria": [
+   "a triliteral QAC root key",
+   "joined through arabic_text.normalize_root to a maqayis_asl.csv row whose asl_status is has_asl",
+   "at least 20 Quranic occurrences (morphology.json `count`)"
+  ],
+  "exclusions": {
+   "curated_at_first_draw": [
+    "خبث",
+    "خير",
+    "رحم",
+    "ظلم",
+    "كفر"
+   ],
+   "development_case": [
+    "ضرب"
+   ],
+   "first_holdout": "the 40 roots of concept_witness_set.json — burned, their 183 uses read"
+  }
+ },
+ "preconditions_asserted": {
+  "first_frame_reproduces": [
+   205,
+   75
+  ],
+  "first_draw_reproduces": true
+ },
+ "strata": [
+  {
+   "name": "20-99 occurrences",
+   "frame": 176,
+   "drawn": 29
+  },
+  {
+   "name": "100+ occurrences",
+   "frame": 64,
+   "drawn": 11
+  }
+ ],
+ "structure_of_the_draw": {
+  "weak_radical_waw_or_ya": [
+   "أذي",
+   "بدو",
+   "بوب",
+   "بيت",
+   "بين",
+   "حول",
+   "حين",
+   "دعو",
+   "ريب",
+   "غني",
+   "موت",
+   "هون",
+   "وقع",
+   "يسر"
+  ],
+  "hamza_seat": [
+   "أدم",
+   "أذن",
+   "أذي",
+   "أمن"
+  ],
+  "bare_alef": [],
+  "overlap_with_closed_run": {
+   "probe_roots": [],
+   "widening_roots": [
+    "سبق",
+    "سحر",
+    "صرف",
+    "عند",
+    "مثل",
+    "نهر"
+   ],
+   "widening_asl_published_verbatim": [],
+   "development_case": []
+  },
+  "note": "Recorded after the draw, never acted on. No root was excluded, replaced or re-drawn on account of anything here. A root whose aṣl the closed run published has not had its USES read, which is what burned the first 40; the overlap is published so a reader can discount it."
+ },
+ "roots": [
+  {
+   "root": "أدم",
+   "occurrences": 25,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "أذن",
+   "occurrences": 90,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "أذي",
+   "occurrences": 22,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "بدو",
+   "occurrences": 29,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "بوب",
+   "occurrences": 24,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "بيت",
+   "occurrences": 54,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "حول",
+   "occurrences": 25,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "حين",
+   "occurrences": 33,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "خلد",
+   "occurrences": 86,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "ذهب",
+   "occurrences": 56,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "ريب",
+   "occurrences": 35,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "سبح",
+   "occurrences": 87,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "سبق",
+   "occurrences": 35,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "سحر",
+   "occurrences": 59,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "شكر",
+   "occurrences": 69,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "صرف",
+   "occurrences": 29,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "عجل",
+   "occurrences": 44,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "عهد",
+   "occurrences": 36,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "غني",
+   "occurrences": 72,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "فحش",
+   "occurrences": 23,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "قدم",
+   "occurrences": 48,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "قطع",
+   "occurrences": 36,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "كسب",
+   "occurrences": 60,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "كشف",
+   "occurrences": 20,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "لعن",
+   "occurrences": 36,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "نصب",
+   "occurrences": 29,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "هون",
+   "occurrences": 26,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "وقع",
+   "occurrences": 22,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "يسر",
+   "occurrences": 40,
+   "stratum": "20-99 occurrences"
+  },
+  {
+   "root": "أمن",
+   "occurrences": 723,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "بشر",
+   "occurrences": 119,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "بصر",
+   "occurrences": 139,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "بين",
+   "occurrences": 454,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "تبع",
+   "occurrences": 156,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "جمع",
+   "occurrences": 123,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "دعو",
+   "occurrences": 182,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "عند",
+   "occurrences": 189,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "مثل",
+   "occurrences": 148,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "موت",
+   "occurrences": 143,
+   "stratum": "100+ occurrences"
+  },
+  {
+   "root": "نهر",
+   "occurrences": 102,
+   "stratum": "100+ occurrences"
+  }
+ ]
+}

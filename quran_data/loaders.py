@@ -269,6 +269,16 @@ def concept_witness_set() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_witness_set() -> dict:
+    """The second 40-root holdout, for the Islambouli letter table.
+
+    Replayed from its own seed by `scripts/validate_islambouli_datasets.py`, which
+    also checks that the first draw still reproduces.
+    """
+    return _json("ISLAMBOULI_WITNESS_SET_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def concept_attestation() -> dict:
     """The frozen expectation k/40 is judged against, root by root.
 

@@ -67,3 +67,47 @@ def sample(lower: list[str], upper: list[str], seed: int,
     rng = random.Random(seed)
     return tuple(sorted(rng.sample(lower, n_lower))
                  + sorted(rng.sample(upper, n_upper)))
+
+
+class FrameMoved(RuntimeError):
+    """The first draw no longer reproduces, so no later draw can claim its frame."""
+
+
+def first_draw(morphology: dict[str, dict],
+               has_asl: frozenset[str]) -> tuple[list[str], list[str], tuple[str, ...]]:
+    """`(lower, upper, drawn)` for the FIRST holdout, with its preconditions asserted.
+
+    Raises `FrameMoved` if the recorded frame (205 + 75) or the recorded draw
+    (seed 20260925, 29 + 11) no longer reproduces. A later draw built on a frame
+    that has moved would be drawn from a different population than the one it
+    claims to share with the first.
+    """
+    _frame, lower, upper = build_frame(
+        morphology, has_asl, set(CURATED_AT_FIRST_DRAW) | {DEVELOPMENT_CASE}
+    )
+    if (len(lower), len(upper)) != FIRST_FRAME:
+        raise FrameMoved(
+            f"the first frame reproduces {len(lower)} + {len(upper)}, recorded "
+            f"{FIRST_FRAME[0]} + {FIRST_FRAME[1]}"
+        )
+    drawn = sample(lower, upper, FIRST_SEED, *FIRST_DRAWN)
+    return lower, upper, drawn
+
+
+def draw_after(morphology: dict[str, dict], has_asl: frozenset[str],
+               first_recorded: tuple[str, ...], seed: int,
+               n_lower: int, n_upper: int) -> tuple[list[str], list[str], tuple[str, ...]]:
+    """A later holdout: the first frame, minus the first holdout, resampled.
+
+    `first_recorded` is the first holdout as its file records it. It must equal
+    the replay of the first draw, or `FrameMoved` is raised: the roots excluded
+    here are the ones actually burned, not the ones a moved frame would produce.
+    Returns `(lower_remaining, upper_remaining, drawn)`.
+    """
+    lower, upper, first = first_draw(morphology, has_asl)
+    if tuple(first_recorded) != first:
+        raise FrameMoved("the first holdout on file is not the replay of the first draw")
+    burned = set(first)
+    lower_rest = [r for r in lower if r not in burned]
+    upper_rest = [r for r in upper if r not in burned]
+    return lower_rest, upper_rest, sample(lower_rest, upper_rest, seed, n_lower, n_upper)
