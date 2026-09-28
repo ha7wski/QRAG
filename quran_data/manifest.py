@@ -281,6 +281,19 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_islambouli_datasets.py",),
         regenerable=False,
     ),
+    "ISLAMBOULI_LETTERS_GRID_JSON": Entry(
+        bucket="references",
+        what="The system check of the Islambouli table: per row, alternatives "
+             "and action / intensity / ending slots in the poster's own words, "
+             "the one rule ambiguity (row 14) and the criteria, hypotheses and "
+             "verdict under both of its readings.",
+        origin="Decomposed by hand under design.md §D11's rules, fixed before "
+               "the grid existed. The `result` block is written by the validator's "
+               "evaluate_grid(), never typed, and is recomputed on every run.",
+        producer=None,
+        consumers=("scripts/validate_islambouli_datasets.py",),
+        regenerable=False,
+    ),
     "ISLAMBOULI_WITNESS_SET_JSON": Entry(
         bucket="references",
         what="The second 40-root holdout, for the Islambouli letter table: seed "

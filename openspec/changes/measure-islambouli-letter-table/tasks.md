@@ -24,9 +24,9 @@
 
 ## 3. System check (before any root)
 
-- [ ] 3.1 Write `islambouli_letters_grid.json` by the D11 parsing rules (formula excluded, split on «،»/«أو», nearest-noun attachment, row 0's «خفيف» on «صوت»)
-- [ ] 3.2 Validator: C1 substring check on every slot, C2 residue list, C3 same-form contradictions + root-level observations, C4 discrimination; H1–H4 each `holds`/`fails` with deciding rows; recompute the verdict and fail on mismatch
-- [ ] 3.3 Publish the grid and its verdict (in the doc draft) and commit
+- [x] 3.1 Write `islambouli_letters_grid.json` by the D11 parsing rules (formula excluded, split on «،»/«أو», nearest-noun attachment, row 0's «خفيف» on «صوت»)
+- [x] 3.2 Validator: C1 substring check on every slot, C2 residue list, C3 same-form contradictions + root-level observations, C4 discrimination; H1–H4 each `holds`/`fails` with deciding rows; recompute the verdict and fail on mismatch
+- [x] 3.3 Publish the grid and its verdict (in the doc draft) and commit
 
 ## 4. Freeze
 

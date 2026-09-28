@@ -86,6 +86,11 @@ ISLAMBOULI_WITNESS_SET_JSON = REFERENCES / "islambouli_witness_set.json"
 # whitespace. `status` is `transcribed_from_poster` for every row, because no page
 # of the book has been read.
 ISLAMBOULI_LETTERS_CSV = REFERENCES / "islambouli_letters.csv"
+# The system check of that table: each gloss decomposed into action / intensity /
+# ending with the poster's own words, and the verdict (system / partial system /
+# list) recomputed by the validator. An analysis, never an input: no module of the
+# Islambouli engine may name it.
+ISLAMBOULI_LETTERS_GRID_JSON = REFERENCES / "islambouli_letters_grid.json"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before
 # its numerator — and the `probe` block is appended only afterwards, carrying the

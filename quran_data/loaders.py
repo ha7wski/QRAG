@@ -275,6 +275,12 @@ def islambouli_letters() -> list[dict]:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_letters_grid() -> dict:
+    """The system check of the Islambouli table. Read by the validator only."""
+    return _json("ISLAMBOULI_LETTERS_GRID_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_witness_set() -> dict:
     """The second 40-root holdout, for the Islambouli letter table.
 

@@ -344,6 +344,13 @@ the action, and is recorded as such.
   - The grid decides whether the table encodes either pattern, both, or neither.
   - **H3**: `س/ص` differ only by ending. **H4**: `ح/هـ` differ only by intensity.
 
+**Found while applying the rule (recorded, not resolved by preference).** «split on «،» and «أو»»
+was written with the «، أو» of rows 5, 18, 20, 21 and 24 in view. Row 14 («دفع شديد جداً، متوقف»)
+carries a «،» with no «أو» after it. Read literally, the rule splits it, and «متوقف» becomes an
+alternative with no action. The grid records the literal reading as primary and the «، أو» reading
+beside it, and the validator computes the verdict under both. They agree (`partial system`), so
+the ambiguity does not decide anything. Had they disagreed, both would have been published.
+
 **Verdict**, by a rule fixed now:
 
 - `system` — C1–C4 hold with no residue, and H1 or H2 holds in full;

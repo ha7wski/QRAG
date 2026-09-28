@@ -1,0 +1,713 @@
+{
+ "meta": {
+  "name": "islambouli-letters-grid",
+  "description": "The system check of the transcribed Islambouli table (design.md §D11): each gloss decomposed into alternatives and, per alternative, into action / intensity / ending, using only words the gloss itself contains. An ANALYSIS of the table, never an input to any reading: no module of linguistics/lisan/islambouli/ may name this file.",
+  "table_sha256_at_analysis": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+  "parsing_rules_fixed_in_advance": [
+   "The formula «صوت يدل على» (row 0: «صوت خفيف يدل على») is the table's frame and is not decomposed.",
+   "Each gloss is split into alternatives on «،» and «أو».",
+   "Within an alternative: action = the head noun(s); intensity = a word of the closed scale خفيف · وسط · شديد · شديد جداً; ending = any other qualifier, vocabulary taken from the table.",
+   "A qualifier attaches to the NEAREST noun, uniformly.",
+   "Row 0's «خفيف» qualifies «صوت», not the action, and is recorded as such."
+  ],
+  "applications_recorded_here": [
+   "Nouns coordinated by و inside one alternative (row 12 «انتشار وتفش», row 26 «إثارة و امتداد») are both heads: the action slot holds a list. و is not أو and does not open an alternative.",
+   "The ending slot holds a list when an alternative carries several qualifiers (rows 11, 13, 22, 27, 28). The design fixed three slots, not one word per slot.",
+   "A prepositional qualifier is kept whole as one ending («في الشيء», «في الزمان والمكان»).",
+   "Row 22's «ثقيلة» is not on the closed intensity scale, so it is an ending by the rule. That it reads like an intensity is recorded below as an observation, not acted on.",
+   "Row 0's second sentence «وهو جزء من صوت (آ)» is a relation between rows, which design.md §D4 forbids structuring. It is therefore RESIDUE: the three-slot scheme does not cover it."
+  ]
+ },
+ "rows": [
+  {
+   "row": 0,
+   "label": "ء",
+   "alternatives": [
+    {
+     "action": [
+      "ظهور"
+     ],
+     "intensity": "خفيف",
+     "intensity_attached_to": "صوت",
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ],
+   "residue": [
+    "وهو جزء من صوت (آ)"
+   ]
+  },
+  {
+   "row": 1,
+   "label": "ب",
+   "alternatives": [
+    {
+     "action": [
+      "جمع"
+     ],
+     "intensity": null,
+     "ending": [
+      "مستقر"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 2,
+   "label": "ت",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "خفيف",
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 3,
+   "label": "ث",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "خفيف",
+     "ending": [
+      "ملتصق"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 4,
+   "label": "ج",
+   "alternatives": [
+    {
+     "action": [
+      "جهد"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "شدة"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 5,
+   "label": "ح",
+   "alternatives": [
+    {
+     "action": [
+      "تأرجح"
+     ],
+     "intensity": "شديد",
+     "ending": [
+      "منضبط"
+     ]
+    },
+    {
+     "action": [
+      "سعة"
+     ],
+     "intensity": null,
+     "ending": [
+      "محددة"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 6,
+   "label": "خ",
+   "alternatives": [
+    {
+     "action": [
+      "رخاوة"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "طراوة"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 7,
+   "label": "د",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "شديد",
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 8,
+   "label": "ذ",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "وسط",
+     "ending": [
+      "ملتصق"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 9,
+   "label": "ر",
+   "alternatives": [
+    {
+     "action": [
+      "تكرار"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 10,
+   "label": "ز",
+   "alternatives": [
+    {
+     "action": [
+      "بروز"
+     ],
+     "intensity": null,
+     "ending": [
+      "متصل"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 11,
+   "label": "س",
+   "alternatives": [
+    {
+     "action": [
+      "حركة"
+     ],
+     "intensity": null,
+     "ending": [
+      "متصلة",
+      "حرة"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 12,
+   "label": "ش",
+   "alternatives": [
+    {
+     "action": [
+      "انتشار",
+      "تفش"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 13,
+   "label": "ص",
+   "alternatives": [
+    {
+     "action": [
+      "حركة"
+     ],
+     "intensity": null,
+     "ending": [
+      "متصلة",
+      "محددة"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 14,
+   "label": "ض",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "شديد جداً",
+     "ending": []
+    },
+    {
+     "action": [],
+     "intensity": null,
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 15,
+   "label": "ط",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "وسط",
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 16,
+   "label": "ظ",
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "شديد",
+     "ending": [
+      "ملتصق"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 17,
+   "label": "ع",
+   "alternatives": [
+    {
+     "action": [
+      "عمق"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "بُعد"
+     ],
+     "intensity": null,
+     "ending": [
+      "في الشيء"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 18,
+   "label": "غ",
+   "alternatives": [
+    {
+     "action": [
+      "غموض"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "غياب"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 19,
+   "label": "ف",
+   "alternatives": [
+    {
+     "action": [
+      "فتح"
+     ],
+     "intensity": "خفيف",
+     "ending": [
+      "منضم"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 20,
+   "label": "ق",
+   "alternatives": [
+    {
+     "action": [
+      "قطع"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "وقف"
+     ],
+     "intensity": "شديد",
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 21,
+   "label": "ك",
+   "alternatives": [
+    {
+     "action": [
+      "وقف"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "ضغط"
+     ],
+     "intensity": "خفيف",
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 22,
+   "label": "ل",
+   "alternatives": [
+    {
+     "action": [
+      "حركة"
+     ],
+     "intensity": null,
+     "ending": [
+      "ثقيلة",
+      "متصلة",
+      "لازمة"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 23,
+   "label": "م",
+   "alternatives": [
+    {
+     "action": [
+      "جمع"
+     ],
+     "intensity": null,
+     "ending": [
+      "متصل"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 24,
+   "label": "ن",
+   "alternatives": [
+    {
+     "action": [
+      "ستر"
+     ],
+     "intensity": null,
+     "ending": []
+    },
+    {
+     "action": [
+      "اختباء"
+     ],
+     "intensity": null,
+     "ending": []
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 25,
+   "label": "هـ",
+   "alternatives": [
+    {
+     "action": [
+      "تأرجح"
+     ],
+     "intensity": "خفيف",
+     "ending": [
+      "منضبط"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 26,
+   "label": "آ - ى",
+   "alternatives": [
+    {
+     "action": [
+      "إثارة",
+      "امتداد"
+     ],
+     "intensity": null,
+     "ending": [
+      "في الزمان والمكان"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 27,
+   "label": "و",
+   "alternatives": [
+    {
+     "action": [
+      "ضم"
+     ],
+     "intensity": null,
+     "ending": [
+      "ممتد",
+      "مكانياً"
+     ]
+    }
+   ],
+   "residue": []
+  },
+  {
+   "row": 28,
+   "label": "ي",
+   "alternatives": [
+    {
+     "action": [
+      "جهد"
+     ],
+     "intensity": null,
+     "ending": [
+      "ممتد",
+      "زمانياً"
+     ]
+    }
+   ],
+   "residue": []
+  }
+ ],
+ "rule_ambiguity": {
+  "row": 14,
+  "text": "صوت يدل على دفع شديد جداً، متوقف.",
+  "what": "The rule «split on ، and أو» was written with the «، أو» of rows 5, 18, 20, 21 and 24 in view. Row 14 carries a «،» that is NOT followed by «أو». Read literally, the rule splits it, and «متوقف» becomes an alternative of its own with no action. Read as «، أو», the row is one alternative: دفع | شديد جداً | متوقف.",
+  "primary": "literal — the rule as written, applied as written; the rows above use it",
+  "alternative_reading": {
+   "alternatives": [
+    {
+     "action": [
+      "دفع"
+     ],
+     "intensity": "شديد جداً",
+     "ending": [
+      "متوقف"
+     ]
+    }
+   ]
+  },
+  "effect": "reported under both readings below; the verdict is computed under each"
+ },
+ "result": {
+  "primary": {
+   "C1_literal": {
+    "holds": true,
+    "violations": []
+   },
+   "C2_exhaustive": {
+    "holds": false,
+    "rows_with_residue": [
+     0
+    ],
+    "uncovered_words": []
+   },
+   "C3_no_same_form_in_two_slots": {
+    "holds": true,
+    "contradictions": []
+   },
+   "C4_discrimination": {
+    "holds": true,
+    "identical": []
+   },
+   "rows_with_two_or_more_slots": 23,
+   "H1": {
+    "holds": true,
+    "failing": []
+   },
+   "H2": {
+    "holds": true,
+    "failing": []
+   },
+   "H3": {
+    "holds": true,
+    "failing": []
+   },
+   "H4": {
+    "holds": false,
+    "failing": [
+     "ح has 2 alternative(s), هـ 1"
+    ]
+   },
+   "verdict": "partial system"
+  },
+  "alternative": {
+   "C1_literal": {
+    "holds": true,
+    "violations": []
+   },
+   "C2_exhaustive": {
+    "holds": false,
+    "rows_with_residue": [
+     0
+    ],
+    "uncovered_words": []
+   },
+   "C3_no_same_form_in_two_slots": {
+    "holds": true,
+    "contradictions": []
+   },
+   "C4_discrimination": {
+    "holds": true,
+    "identical": []
+   },
+   "rows_with_two_or_more_slots": 23,
+   "H1": {
+    "holds": true,
+    "failing": []
+   },
+   "H2": {
+    "holds": true,
+    "failing": []
+   },
+   "H3": {
+    "holds": true,
+    "failing": []
+   },
+   "H4": {
+    "holds": false,
+    "failing": [
+     "ح has 2 alternative(s), هـ 1"
+    ]
+   },
+   "verdict": "partial system"
+  }
+ },
+ "observations": {
+  "push_series": {
+   "what": "The دفع rows as a table of intensity × ending (row 14's ending read from its second alternative under the literal reading).",
+   "cells": {
+    "خفيف": {
+     "متوقف": "ت",
+     "ملتصق": "ث"
+    },
+    "وسط": {
+     "متوقف": "ط",
+     "ملتصق": "ذ"
+    },
+    "شديد": {
+     "متوقف": "د",
+     "ملتصق": "ظ"
+    },
+    "شديد جداً": {
+     "متوقف": "ض",
+     "ملتصق": null
+    }
+   },
+   "hole": "شديد جداً × ملتصق is empty: seven letters fill seven of the eight cells."
+  },
+  "root_level_reuse_across_slots": [
+   {
+    "forms": [
+     "شدة (action, row 4)",
+     "شديد / شديد جداً (intensity)"
+    ]
+   },
+   {
+    "forms": [
+     "وقف (action, rows 20, 21)",
+     "متوقف (ending)"
+    ]
+   },
+   {
+    "forms": [
+     "ضم (action, row 27)",
+     "منضم (ending, row 19)"
+    ]
+   },
+   {
+    "forms": [
+     "امتداد (action, row 26)",
+     "ممتد (ending, rows 27, 28)"
+    ]
+   },
+   {
+    "forms": [
+     "متصلة (ending, rows 11, 13, 22)",
+     "متصل (ending, rows 10, 23)"
+    ],
+    "note": "same slot; listed for completeness"
+   }
+  ],
+  "intensity_like_ending": "Row 22's «ثقيلة» reads like an intensity but is not on the closed scale, so the rule makes it an ending. Not acted on.",
+  "intensity_on_the_sound": "Row 0 is the only row whose intensity qualifies «صوت» rather than the action."
+ },
+ "verdict_statement": {
+  "verdict": "partial system",
+  "same_under_both_readings_of_row_14": true,
+  "what_it_implies": "PARTIAL SYSTEM. The table is not a list: 23 of 29 rows decompose into two or more slots, no word form occupies two slots, no two letters share a decomposition, and the push series is a regular grid — H1 and H2 both hold. It is not a complete system: row 0's relation clause lies outside the three-slot scheme (C2), and ح/هـ do not form an intensity-only pair because ح carries a second alternative (H4). For the measurement this means a miss bears PARTLY on a generative principle — the دفع series and the pairs H1–H3 describe are regular enough to be one — and partly on independent glosses (rows 4, 6, 9, 12, 18, 24 are single-slot). The verdict changes what a result means, never how it is obtained: the grid is not read by any reading or any judgement."
+ }
+}
