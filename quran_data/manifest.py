@@ -281,6 +281,20 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_islambouli_datasets.py",),
         regenerable=False,
     ),
+    "ISLAMBOULI_LETTERS_LOCK_JSON": Entry(
+        bucket="references",
+        what="The freeze on islambouli_letters.csv: version, date, sha256 of the "
+             "CSV bytes, and a history whose source names the authority, the "
+             "witness image and its digest, the poster's transcribed imprint "
+             "(title band, banner, footer, top edge), an empty `pages` and the "
+             "attribution basis.",
+        origin="Written once when the transcription was frozen, before any uses "
+               "of the second holdout existed. Changes only through a new "
+               "version correcting a transcription error proved on the image.",
+        producer=None,
+        consumers=("scripts/validate_islambouli_datasets.py",),
+        regenerable=False,
+    ),
     "ISLAMBOULI_LETTERS_GRID_JSON": Entry(
         bucket="references",
         what="The system check of the Islambouli table: per row, alternatives "

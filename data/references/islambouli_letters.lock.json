@@ -1,0 +1,51 @@
+{
+ "name": "islambouli-letters-lock",
+ "table": "data/references/islambouli_letters.csv",
+ "version": "1.0.0",
+ "frozen_on": "2026-09-28",
+ "sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+ "rule": "A row changes ONLY to correct a transcription error proved against the witness image, through a new version whose reason names the row and the evidence. A row never changes because a root reads badly: that would stop citing Islambouli.",
+ "history": [
+  {
+   "version": "1.0.0",
+   "date": "2026-09-28",
+   "sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+   "reason": "First freeze: the transcription of the poster's 29 rows, each re-read at 3× on the original image, before any uses of the second holdout were written.",
+   "source": {
+    "authority": "سامر إسلامبولي، «علمية اللسان العربي وعالميته»",
+    "witness": "data/source/islambouli_letters_poster.png",
+    "witness_sha256": "e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c",
+    "witness_origin": "supplied by the user, origin unrecorded",
+    "witness_history": "A truncated first deposit (ending at row 28, showing neither book nor author) was replaced by this original before any row was transcribed.",
+    "witness_imprint": [
+     {
+      "position": "title band",
+      "text_as_printed": "دلالة أصوات الأحرف العربية فيزيائياً",
+      "text": "دلالة أصوات الأحرف العربية فيزيائياً",
+      "reading_note": "Set with kashida stretching (دلالـة أصـوات الأحـرف العربيـة); the image cannot show whether that is typed tatweel or justification, so it is not transcribed."
+     },
+     {
+      "position": "banner",
+      "text_as_printed": "من كتاب : علمية اللسان العربي وعالميته\nللأستاذ سامر إسلامبولي",
+      "text": "من كتاب: علمية اللسان العربي وعالميته للأستاذ سامر إسلامبولي",
+      "reading_note": "Two lines, with no dash or other mark between the title and the author."
+     },
+     {
+      "position": "footer",
+      "text_as_printed": "الإسلام الان - القراءة المعاصرة .... طريق الى الله",
+      "text": "الإسلام الان - القراءة المعاصرة .... طريق الى الله",
+      "reading_note": "The alef of «الان» carries a mark that cannot be told apart as hamza or madda at this resolution; the alef is transcribed bare. «طريق الى الله» is printed in red (colour not transcribed)."
+     },
+     {
+      "position": "top edge",
+      "text_as_printed": "",
+      "text": "",
+      "reading_note": "A line of white text cut off by the frame; unreadable, not transcribed."
+     }
+    ],
+    "pages": [],
+    "attribution_basis": "Title and author are printed on the witness and transcribed in witness_imprint; the user states that the witness reproduces the book's table."
+   }
+  }
+ ]
+}

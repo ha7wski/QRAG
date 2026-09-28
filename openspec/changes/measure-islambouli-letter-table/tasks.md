@@ -30,9 +30,9 @@
 
 ## 4. Freeze
 
-- [ ] 4.1 Write `islambouli_letters.lock.json` v1.0.0: `frozen_on`, sha256 of the CSV bytes, `history[0].source` with authority, witness + sha256, `witness_origin`, `witness_imprint` (title band, banner, footer, top edge — as read in 2.0), `pages: []`, `attribution_basis` naming the imprint
-- [ ] 4.2 Validator: CSV digest match; witness file digest match; imprint entries with identity check, banner non-empty, empty entries noted; refuse `attested` and non-empty `pages`; refuse a history reason that cites a root, a use or `k`
-- [ ] 4.3 Commit the lock
+- [x] 4.1 Write `islambouli_letters.lock.json` v1.0.0: `frozen_on`, sha256 of the CSV bytes, `history[0].source` with authority, witness + sha256, `witness_origin`, `witness_imprint` (title band, banner, footer, top edge — as read in 2.0), `pages: []`, `attribution_basis` naming the imprint
+- [x] 4.2 Validator: CSV digest match; witness file digest match; imprint entries with identity check, banner non-empty, empty entries noted; refuse `attested` and non-empty `pages`; refuse a history reason that cites a root, a use or `k`
+- [x] 4.3 Commit the lock
 
 ## 5. Composer, blindness and guard
 

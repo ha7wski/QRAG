@@ -90,6 +90,9 @@ ISLAMBOULI_LETTERS_CSV = REFERENCES / "islambouli_letters.csv"
 # ending with the poster's own words, and the verdict (system / partial system /
 # list) recomputed by the validator. An analysis, never an input: no module of the
 # Islambouli engine may name it.
+# The freeze on that table: version, sha256 of its bytes, and a sourced history
+# whose first entry carries the witness digest and the poster's printed imprint.
+ISLAMBOULI_LETTERS_LOCK_JSON = REFERENCES / "islambouli_letters.lock.json"
 ISLAMBOULI_LETTERS_GRID_JSON = REFERENCES / "islambouli_letters_grid.json"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before

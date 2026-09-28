@@ -22,6 +22,11 @@ the data it checks:
      from the decomposition and compared with what the file records. The rules
      are design.md §D11's, fixed before the grid existed.
 
+  D. the freeze — the lock's digest is the CSV's bytes; its source cites no page,
+     names the witness by the original's digest, carries the poster's imprint
+     under the same whitespace-only rule as the rows, and rests the attribution
+     on that imprint; no history entry justifies itself by a root or a result.
+
 The one risk a transcribed table carries is a wrong copy. Section B makes the
 copy's only permitted liberty — whitespace — mechanically checkable, and the
 image it was copied from identifiable by digest.
@@ -41,7 +46,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from quran_data import loaders  # noqa: E402
-from quran_data.paths import ISLAMBOULI_POSTER_PNG  # noqa: E402
+from quran_data.paths import (  # noqa: E402
+    ISLAMBOULI_LETTERS_CSV,
+    ISLAMBOULI_POSTER_PNG,
+)
 from linguistics.lisan.harness import draw  # noqa: E402
 
 LABEL_WITNESS = "islambouli_witness_set.json"
@@ -78,6 +86,8 @@ class Datasets:
 
     witness: dict                        # islambouli_witness_set.json
     grid: dict | None                    # islambouli_letters_grid.json, once written
+    lock: dict | None                    # islambouli_letters.lock.json, once written
+    table_bytes: bytes                   # the raw CSV bytes the lock's digest is over
     table: list[dict]                    # islambouli_letters.csv rows
     poster_sha256: str                   # digest of the witness image on disk
     first_witness: dict                  # concept_witness_set.json
@@ -89,6 +99,8 @@ class Datasets:
         return cls(
             witness=loaders.islambouli_witness_set(),
             grid=_read_grid(),
+            lock=_read_lock(),
+            table_bytes=ISLAMBOULI_LETTERS_CSV.read_bytes(),
             table=loaders.islambouli_letters(),
             poster_sha256=hashlib.sha256(ISLAMBOULI_POSTER_PNG.read_bytes()).hexdigest(),
             first_witness=loaders.concept_witness_set(),
@@ -451,12 +463,100 @@ def check_grid(data: Datasets) -> list[str]:
     return findings
 
 
+# ── D. the freeze ────────────────────────────────────────────────────────────
+LABEL_LOCK = "islambouli_letters.lock.json"
+IMPRINT_POSITIONS = ("title band", "banner", "footer", "top edge")
+SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
+# A reason that cites a measurement is a rescue edit, whatever else it says.
+RESULT_WORDS = re.compile(r"k\s*/\s*40|covered|not_covered|miss\b|coverage", re.I)
+
+
+def _read_lock() -> dict | None:
+    from quran_data.paths import ISLAMBOULI_LETTERS_LOCK_JSON
+    if not ISLAMBOULI_LETTERS_LOCK_JSON.exists():
+        return None
+    return loaders.islambouli_letters_lock()
+
+
+def check_lock(data: Datasets) -> list[str]:
+    lock = data.lock
+    if lock is None:
+        return []
+    findings: list[str] = []
+    digest = hashlib.sha256(data.table_bytes).hexdigest()
+    if _text(lock.get("sha256")) != digest:
+        findings.append(
+            f"{LABEL_LOCK}: sha256 {_text(lock.get('sha256'))[:12]}… does not match "
+            f"the CSV bytes ({digest[:12]}…) — the table moved under its freeze"
+        )
+    if not SEMVER.match(_text(lock.get("version"))):
+        findings.append(f"{LABEL_LOCK}: `version` is not x.y.z")
+    history = lock.get("history")
+    if not isinstance(history, list) or not history:
+        return findings + [f"{LABEL_LOCK}: `history` is missing or empty"]
+    if _text(history[-1].get("sha256")) != _text(lock.get("sha256")) or \
+            _text(history[-1].get("version")) != _text(lock.get("version")):
+        findings.append(f"{LABEL_LOCK}: the last history entry is not the current version")
+
+    witness_roots = {_text(e.get("root")) for doc in (data.witness, data.first_witness)
+                     for e in doc.get("roots") or [] if isinstance(e, dict)}
+    for i, entry in enumerate(history):
+        where = f"{LABEL_LOCK}: history[{i}]"
+        reason = _text(entry.get("reason"))
+        if not reason:
+            findings.append(f"{where} has no `reason`")
+        if RESULT_WORDS.search(reason) or any(r and r in reason for r in witness_roots):
+            findings.append(
+                f"{where}: the reason cites a root or a result. A row changes only "
+                "against the image; changing it for a root is ceasing to cite "
+                "Islambouli."
+            )
+        source = entry.get("source")
+        if not isinstance(source, dict):
+            findings.append(f"{where}: `source` must be an object")
+            continue
+        if source.get("pages") != []:
+            findings.append(
+                f"{where}: `pages` is {source.get('pages')!r}. No page of the book "
+                "has been read; a page recorded anyway is a page invented."
+            )
+        if _text(source.get("witness_sha256")) != POSTER_SHA256:
+            findings.append(f"{where}: `witness_sha256` is not the original poster's")
+        if not _text(source.get("authority")):
+            findings.append(f"{where}: no `authority`")
+        if not _text(source.get("witness_origin")):
+            findings.append(f"{where}: no `witness_origin`")
+        imprint = source.get("witness_imprint")
+        positions = tuple(_text(x.get("position")) for x in imprint or []
+                          if isinstance(x, dict))
+        if positions != IMPRINT_POSITIONS:
+            findings.append(f"{where}: `witness_imprint` positions are {positions}, "
+                            f"expected {IMPRINT_POSITIONS}")
+        for item in imprint or []:
+            if not isinstance(item, dict):
+                continue
+            printed, spaced = item.get("text_as_printed") or "", item.get("text") or ""
+            label = f"{where} imprint «{_text(item.get('position'))}»"
+            if _strip_ws(printed) != _strip_ws(spaced):
+                findings.append(f"{label}: `text` differs from what is printed by "
+                                "more than whitespace")
+            if not _strip_ws(printed) and not _text(item.get("reading_note")):
+                findings.append(f"{label}: empty with no `reading_note` saying why")
+            if _text(item.get("position")) == "banner" and not _strip_ws(printed):
+                findings.append(f"{label}: the banner is what names the book; it "
+                                "cannot be empty")
+        if "witness_imprint" not in _text(source.get("attribution_basis")):
+            findings.append(f"{where}: `attribution_basis` does not rest on "
+                            "`witness_imprint`")
+    return findings
+
+
 # ── entry points ─────────────────────────────────────────────────────────────
 def validate(data: Datasets | None = None) -> list[str]:
     """Every finding, in section order. Empty == clean."""
     data = data or Datasets.load()
     _replay, witness_findings = check_witness_set(data)
-    return [*witness_findings, *check_table(data), *check_grid(data)]
+    return [*witness_findings, *check_table(data), *check_grid(data), *check_lock(data)]
 
 
 def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
@@ -483,6 +583,10 @@ def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
     print(f"    witness            : {ISLAMBOULI_POSTER_PNG.name}, sha256 "
           f"{data.poster_sha256[:12]}… "
           + ("(the original)" if data.poster_sha256 == POSTER_SHA256 else "(NOT the original)"))
+    if data.lock is not None:
+        print(f"  table freeze         : FROZEN at v{_text(data.lock.get('version'))} "
+              f"(sha256 {_text(data.lock.get('sha256'))[:12]}…, since "
+              f"{_text(data.lock.get('frozen_on'))}); pages cited: none")
     if data.grid is not None:
         texts = {int(r["row"]): r.get("text") or "" for r in rows}
         primary = evaluate_grid(data.grid, texts, "primary")

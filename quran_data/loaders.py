@@ -275,6 +275,12 @@ def islambouli_letters() -> list[dict]:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_letters_lock() -> dict:
+    """The freeze on the Islambouli table — digest, version, sourced history."""
+    return _json("ISLAMBOULI_LETTERS_LOCK_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_letters_grid() -> dict:
     """The system check of the Islambouli table. Read by the validator only."""
     return _json("ISLAMBOULI_LETTERS_GRID_JSON")
