@@ -25,6 +25,18 @@ The identity of the witness roots is public, because the set can only be held ou
 What SHALL NOT happen before the primitive table is locked: reading their aṣl, generating their
 concepts, or checking any table decision against them.
 
+**This holdout is burned for any further measurement**: its 183 uses have been read. It SHALL stay
+frozen as the record of the closed measurement and SHALL NOT be reused as the holdout of another
+table. A different letter table SHALL be measured on its **own** holdout, drawn once from the same
+frame minus these 40, by the same procedure with its own seed, and recorded in its own file. Such a
+draw is a second, independent holdout — **not** a re-roll of this one, which stays as drawn.
+
+#### Scenario: A second holdout is not a re-roll
+
+- **WHEN** a second letter table is measured
+- **THEN** `concept_witness_set.json` SHALL be byte-unchanged
+- **AND** the second table's holdout SHALL exclude all 40 of its roots
+
 #### Scenario: The draw is reproducible
 
 - **WHEN** the recorded frame and seed are replayed
@@ -271,6 +283,21 @@ The conclusion SHALL be stated at its measured scope and no wider: a root's mean
 recoverable from its letters' articulatory properties **under this vocabulary, this composition
 rule, this coverage criterion, on these 40 pre-drawn roots**. It SHALL NOT be stated as a refutation
 of the معاني الحروف tradition, which proposed no such table.
+
+**Measuring a different, published table is not a repair of this one.** Replacing the input table
+wholesale by a third party's published table — transcribed, not curated — and measuring it on a
+fresh holdout under the unchanged harness is a new experiment. It SHALL leave this engine's code,
+table, lock, holdout, uses, verdicts and number unchanged, and its result SHALL be published beside
+`0 / 40`, never in place of it.
+
+#### Scenario: A third-party table is measured beside, not instead
+
+- **WHEN** a change measures a published third-party letter table under this harness
+- **THEN** it SHALL NOT be refused as a rescue attempt
+- **AND** `k / 40 = 0` and its distribution SHALL still be printed, unchanged, by this engine's
+  validator
+- **AND** a change to this engine's feature vocabulary, zones or window made under that heading SHALL
+  still be refused
 
 #### Scenario: The closed engine stays reachable and labelled
 
