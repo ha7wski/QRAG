@@ -218,6 +218,9 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/build_maqayis_dataset.py` | Build the curated Maqāyīs aṣl reference `data/references/maqayis_asl.csv` from the OpenITI source |
 | `scripts/build_root_cores_seed.py` | Seed `data/references/root_cores.json` from the Maqāyīs aṣl — the mechanical half of a root's semantic core. Dry run by default |
 | `scripts/validate_lisan_datasets.py` | Validate the three curated Lisan datasets (axes, root cores, letter senses), enforce the letter-sheet freeze, and report coverage + the method indicator |
+| `scripts/draw_islambouli_witness_set.py` | Draw the Islambouli measurement's 40-root holdout once (seed 20260928) through the shared harness; `--check` replays it |
+| `scripts/record_islambouli_verdicts.py` | The Islambouli recording path: `bundle` (the blind uses-writers' input), `generate`, `worksheet`, `record`, `collisions` |
+| `scripts/validate_islambouli_datasets.py` | Validate the Islambouli holdout, transcription, system-check grid, lock and record, and print `k / 40` beside the closed engine's with R1–R6 |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference

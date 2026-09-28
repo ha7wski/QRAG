@@ -60,7 +60,7 @@
 
 ## 8. Publish
 
-- [ ] 8.1 `scripts/validate_islambouli_datasets.py`: `k / 40`, `0 / 40` read from the closed record, covered-use counts, class distributions for both, inherited signature split, grid verdict and its meaning, R1–R6 in the same block, and the `ضرب` calibration table; no literal `0 / 40` in source
-- [ ] 8.2 `documentation/lisan-islambouli-table.md` (English): result first with reservations, the transcription check table, the grid, the protocol and its order, the scope statement
-- [ ] 8.3 One-line pointer in `documentation/lisan-concept-from-physics.md` §0; update `CLAUDE.md`'s `linguistics/` section and `scripts/README.md`
-- [ ] 8.4 Full `pytest -q`; re-run the closed validator and confirm it still prints `k / 40 = 0` unchanged; commit
+- [x] 8.1 `scripts/validate_islambouli_datasets.py`: `k / 40`, `0 / 40` read from the closed record, covered-use counts, class distributions for both, inherited signature split, grid verdict and its meaning, R1–R6 in the same block, and the `ضرب` calibration table; no literal `0 / 40` in source
+- [x] 8.2 `documentation/lisan-islambouli-table.md` (English): result first with reservations, the transcription check table, the grid, the protocol and its order, the scope statement
+- [x] 8.3 One-line pointer in `documentation/lisan-concept-from-physics.md` §0; update `CLAUDE.md`'s `linguistics/` section and `scripts/README.md`
+- [x] 8.4 Full `pytest -q`; re-run the closed validator and confirm it still prints `k / 40 = 0` unchanged; commit

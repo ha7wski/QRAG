@@ -19,6 +19,11 @@ correct ici. Le présent document publie ce que la mesure a donné, et elle est 
 >
 > La décision et sa justification complète : **§10.6**. La portée exacte de ce qui est conclu —
 > et de ce qui ne l'est **pas** : **§10.1–10.5**.
+>
+> **Mesure sœur.** La table *publiée* de Samer Islambouli, transcrite et non curée, a été
+> passée au même harnais sur un lot témoin neuf : **`k / 40 = 0`** également, 28 attestations
+> couvertes sur 379. Résultat, réserves et protocole :
+> [`lisan-islambouli-table.md`](lisan-islambouli-table.md).
 
 ---
 

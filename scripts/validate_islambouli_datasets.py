@@ -87,6 +87,12 @@ _WHITESPACE = re.compile(r"\s+")
 SEED = 20260928                          # fixed in design.md §D2, before any draw
 
 
+def _wrap(line: str, width: int = 96) -> list[str]:
+    import textwrap
+    indent = " " * (len(line) - len(line.lstrip()) + 2)
+    return textwrap.wrap(line, width=width, subsequent_indent=indent) or [line]
+
+
 def _text(value) -> str:
     return (value or "").strip() if isinstance(value, (str, type(None))) else str(value)
 
@@ -666,6 +672,111 @@ def metric(data: Datasets):
     return check_attestation(data.attestation, holdout, ISLAMBOULI_RECORD)
 
 
+# ── the publication block ────────────────────────────────────────────────────
+# Written ONCE and printed with the number, wherever the number is printed.
+RESERVATIONS = (
+    ("R1 (inherited)",
+     "The harness's composition window was set after a measurement on the closed "
+     "run's development case. Under this table it is non-binding — one gloss per "
+     "position — and it is stated here rather than dropped."),
+    ("R2 (source)",
+     "Transcribed from a poster, not from the book. Title and author are printed "
+     "on the poster and transcribed. No page of the book has been read. The "
+     "poster's origin is unrecorded. Row 12 carries a mark that could not be read."),
+    ("R3 (method)",
+     "The positional rule is the harness's, not Islambouli's. A miss refutes this "
+     "table under this rule, not his reading method, which the book may state "
+     "differently and which was not read."),
+    ("R4 (judge)",
+     "One judge. The committed records make the judgement redoable by anyone who "
+     "clones the repository; no independent review took place."),
+    ("R5 (uses writer)",
+     "These uses were written by agents blind to the table; the closed run's by a "
+     "curator who knew that run's table. Blind writing may differ in nature, not only "
+     "in severity, so «it can only lower k» is plausible, not demonstrated. Measured: "
+     "{blind} blind uses against {closed} for the closed 40; on ضرب, {matched} of "
+     "{reference} reference uses have a blind match and the blind writer lists "
+     "{blind_dev}."),
+    ("R6 (samples)",
+     "The two numbers share a frame and a method, not a sample: two independent "
+     "draws of 40. ضرب is the only root judged against identical uses under both."),
+)
+
+
+def _closed_figures(closed: dict) -> dict:
+    from linguistics.lisan.harness.verdicts import CLOSED_ENGINE
+    roots = tuple(_text(e.get("root")) for e in loaders.concept_witness_set()["roots"])
+    m, _ = check_attestation(closed, roots, CLOSED_ENGINE)
+    return {"metric": m, **_use_figures(closed, roots)}
+
+
+def _use_figures(att: dict, roots: tuple[str, ...]) -> dict:
+    recs = _records(att)
+    uses = [u for r in roots for u in (recs.get(r) or {}).get("uses") or []]
+    classes: dict[str, int] = {}
+    for u in uses:
+        if _text(u.get("verdict")) == "not_covered":
+            head = _text(u.get("reason")).split(":", 1)[0].split()[0]
+            classes[head] = classes.get(head, 0) + 1
+    return {"uses": len(uses),
+            "covered": sum(1 for u in uses if _text(u.get("verdict")) == "covered"),
+            "classes": classes}
+
+
+def publication(data: Datasets) -> list[str]:
+    """The result block: this table's k beside the closed engine's, never alone."""
+    holdout = tuple(_text(e.get("root")) for e in data.witness.get("roots") or [])
+    mine, _ = metric(data)
+    if not mine.printable:
+        return []
+    ours = _use_figures(data.attestation, holdout)
+    closed = _closed_figures(data.closed_attestation)
+    cm = closed["metric"]
+    texts = {int(r["row"]): r.get("text") or "" for r in data.table}
+    verdict = evaluate_grid(data.grid, texts)["verdict"] if data.grid else "?"
+    cal = (_records(data.attestation).get(draw.DEVELOPMENT_CASE) or {}).get("calibration") or {}
+    echo = sum(1 for u in (_records(data.attestation).get("قطع") or {}).get("uses") or []
+               if _text(u.get("verdict")) == "covered")
+
+    def classes(c: dict) -> str:
+        return " · ".join(f"{k} {c.get(k, 0)}" for k in
+                          ("imported", "direction", "inert", "collision"))
+
+    lines = [
+        f"  ── the result (k / {mine.total}, strict, no partial credit) ──",
+        f"  Islambouli table      : k / {mine.total} = {mine.k} / {mine.total}   "
+        f"uses covered {ours['covered']} / {ours['uses']}",
+        f"    misses              : {classes(ours['classes'])}",
+        f"  closed physics table  : k / {cm.total} = {cm.k} / {cm.total}   "
+        f"uses covered {closed['covered']} / {closed['uses']}   (read from its record)",
+        f"    misses              : {classes(closed['classes'])}",
+        f"  signature-letter split (inherited for comparability; its rationale, "
+        f"rarity ordering, is non-binding here):",
+        f"    Islambouli          : {mine.signature[0]} / {mine.signature[1]} with · "
+        f"{mine.plain[0]} / {mine.plain[1]} without",
+        f"    closed              : {cm.signature[0]} / {cm.signature[1]} with · "
+        f"{cm.plain[0]} / {cm.plain[1]} without",
+        f"  granularity           : {ours['uses']} blind uses against {closed['uses']} — "
+        f"a finer list is harder to cover under a metric with no partial credit",
+        f"  calibration «{draw.DEVELOPMENT_CASE}»   : reference {cal.get('reference_count')}, "
+        f"blind {cal.get('blind_count')}, matched {cal.get('matched')} → {cal.get('verdict')}",
+        f"  system check          : {verdict} — a miss bears partly on a generative "
+        "principle (the دفع series and the pairs H1–H3 are regular) and partly on "
+        "independent single-slot glosses",
+        f"  note                  : row ق's gloss is «قطع، أو وقف شديد», so for the "
+        f"witness root قطع the reading contains the root's own word; {echo} of the "
+        f"{ours['covered']} covered uses are that root's",
+        f"  scope                 : this table, transcribed from this poster, under "
+        "this positional rule and this criterion, on these 40 roots. Not a verdict "
+        "on Islambouli's method, nor on the معاني الحروف tradition.",
+    ]
+    for label, text in RESERVATIONS:
+        lines.append(f"  {label}: " + text.format(
+            blind=ours["uses"], closed=closed["uses"], matched=cal.get("matched"),
+            reference=cal.get("reference_count"), blind_dev=cal.get("blind_count")))
+    return lines
+
+
 # ── entry points ─────────────────────────────────────────────────────────────
 def validate(data: Datasets | None = None) -> list[str]:
     """Every finding, in section order. Empty == clean."""
@@ -731,6 +842,11 @@ def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
               f"blind {cal.get('blind_count')}, matched {cal.get('matched')} → "
               f"{str(cal.get('verdict', '?')).upper()}")
         m_, _f = metric(data)
+        if m_.printable:
+            print()
+            for line in publication(data):
+                for wrapped in _wrap(line):
+                    print(wrapped)
         if not m_.printable:
             for line in (m_.note or "").split(". "):
                 if line:
