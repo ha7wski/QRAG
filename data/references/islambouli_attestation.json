@@ -2,7 +2,7 @@
  "meta": {
   "name": "islambouli-attestation",
   "description": "The frozen expectation the Islambouli table's k/40 is judged against: per root of the second holdout, its Quranic uses (gloss + one own verse), written BLIND to the letter table and committed before any reading of these roots existed; then per-use verdicts once the readings exist.",
-  "state": "READINGS GENERATED, AWAITING JUDGEMENT. Every reading was composed after its root's uses were frozen and committed.",
+  "state": "MEASURED. Uses frozen blind (5c26985), readings generated after them (c98d522), then every use judged under the inherited criterion; collision computed after the verdicts.",
   "the_ordering_is_the_protocol": [
    "A root's `uses[]` is written and committed FIRST, from morphology.json's occurrence list and the aṣl's verbatim, with the concept not yet generated.",
    "The reading is generated afterwards, blind: nothing under linguistics/lisan/islambouli/ but confront.py may read the aṣl or the uses, and an import boundary enforces it.",
@@ -140,12 +140,14 @@
     {
      "gloss": "آدم: اسم أبي البشر",
      "verse": "2:31",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العَلَميّةُ واسمُ الشخص غائبان."
     },
     {
      "gloss": "بنو آدم: ذريّته، البشر",
      "verse": "7:26",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذرّيّةُ والنوعُ البشريّ غائبان."
     }
    ],
    "collision_with": [],
@@ -187,42 +189,50 @@
     {
      "gloss": "الأذن والآذان: عضو السمع",
      "verse": "2:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العضوُ والسمعُ غائبان."
     },
     {
      "gloss": "أُذُنٌ: من يسمع كل ما يقال له ويصدّقه",
      "verse": "9:61",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السماعُ والتصديقُ غائبان."
     },
     {
      "gloss": "بإذن الله: بمشيئته وتيسيره",
      "verse": "2:102",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المشيئةُ والتيسيرُ غائبان."
     },
     {
      "gloss": "أذِن له: أباح له ورخّص، والاستئذان طلب ذلك",
      "verse": "9:43",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإباحةُ والترخيصُ غائبان."
     },
     {
      "gloss": "أذّن ومؤذّن وأذان: نادى وأعلن في الناس",
      "verse": "22:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النداءُ والإعلانُ صوتٌ وإخبار، لا يحملهما «ظهور متوقف» ولا «دفع ملتصق»، والخاتمةُ «ستر» تنافي الإعلان."
     },
     {
      "gloss": "آذن وأَذِن بالشيء: أعلم وعلِم",
      "verse": "21:109",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإعلامُ والعلمُ غائبان."
     },
     {
      "gloss": "تأذّن ربكم: أعلم إعلامًا مؤكدًا",
      "verse": "7:167",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإعلامُ المؤكَّد غائب."
     },
     {
      "gloss": "أذِنت لربها: استمعت وانقادت",
      "verse": "84:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستماعُ والانقيادُ غائبان."
     }
    ],
    "collision_with": [],
@@ -264,52 +274,62 @@
     {
      "gloss": "أذى من رأسه: علّة أو ضرر في البدن",
      "verse": "2:196",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العلّةُ والضررُ في البدن غائبان."
     },
     {
      "gloss": "المحيض أذى: قذر ومكروه",
      "verse": "2:222",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القذرُ والكراهةُ غائبان."
     },
     {
      "gloss": "المنّ والأذى: القول الجارح بعد العطاء",
      "verse": "2:262",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القولُ الجارح غائب."
     },
     {
      "gloss": "لن يضرّوكم إلا أذى: ضرر يسير باللسان",
      "verse": "3:111",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الضررُ باللسان غائب."
     },
     {
      "gloss": "أُوذوا في سبيلي: نالهم الاضطهاد والتعذيب",
      "verse": "3:195",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاضطهادُ والتعذيبُ غائبان."
     },
     {
      "gloss": "فآذوهما: عاقبوهما بالتوبيخ",
      "verse": "4:16",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقوبةُ والتوبيخ غائبان."
     },
     {
      "gloss": "أذى من مطر: مشقّة",
      "verse": "4:102",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«جهد ممتد زمانياً» في الخاتمة يحمل المشقّةَ نفسَها بعد «دفعٍ ملتصق»؛ المطرُ تعيينُ سببٍ لا معنًى زائد."
     },
     {
      "gloss": "يؤذون النبي / الله ورسوله: يسيئون إليه بالقول والفعل",
      "verse": "33:57",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإساءةُ بالقول والفعل غائبة."
     },
     {
      "gloss": "كان يؤذي النبي: يُثقل عليه ويضايقه",
      "verse": "33:53",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«دفع وسط ملتصق» ثمّ «جهد ممتد زمانياً»: ضغطٌ لاصقٌ يطول احتمالُه، وهو الإثقالُ والمضايقة؛ النبيّ مفعولٌ لا معنًى زائد."
     },
     {
      "gloss": "فلا يؤذين: لا يُتعرّض لهنّ بسوء",
      "verse": "33:59",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعرّضُ بالسوء غائب."
     }
    ],
    "collision_with": [],
@@ -351,42 +371,50 @@
     {
      "gloss": "أبدى / تُبدوا: أظهر ما يُخفى ويُكتم، ضدّ الإخفاء",
      "verse": "2:271",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإظهارُ بعد الإخفاء غائب: لا أصلَ يحمل الظهور."
     },
     {
      "gloss": "بدا لـ: ظهر وانكشف لهم ما كان مستورًا عنهم",
      "verse": "7:22",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الظهورُ والانكشاف غائبان."
     },
     {
      "gloss": "بدا لهم: ظهر لهم رأي جديد بعد غيره",
      "verse": "12:35",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الرأيُ الجديد غائب."
     },
     {
      "gloss": "بدا بيننا العداوة: ظهرت وأُعلنت",
      "verse": "60:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العداوةُ وظهورُها غائبان."
     },
     {
      "gloss": "بادي الرأي: ظاهرُ الرأي، أوّلُ النظر من غير تعمّق",
      "verse": "11:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الرأيُ والنظر غائبان."
     },
     {
      "gloss": "البدو: البادية، خلاف الحضر",
      "verse": "12:100",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الباديةُ صنفَ مكانٍ خلافَ الحضر غائبة."
     },
     {
      "gloss": "بادون في الأعراب: خارجون إلى البادية نازلون فيها",
      "verse": "33:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الخروجُ إلى البادية والنزولُ فيها غائبان."
     },
     {
      "gloss": "البادِ: الطارئ القادم من خارج، مقابل العاكف المقيم",
      "verse": "22:25",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطروءُ من خارجٍ مقابلَ الإقامة غائب؛ والفاتحةُ «جمع مستقر»."
     }
    ],
    "collision_with": [],
@@ -428,37 +456,44 @@
     {
      "gloss": "الباب: مدخل البيت أو البلد",
      "verse": "2:58",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المدخلُ منفذًا غائب."
     },
     {
      "gloss": "أبواب البيوت: مداخلها",
      "verse": "2:189",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المداخلُ غائبة."
     },
     {
      "gloss": "أبواب كلّ شيء: أسباب النعم والرزق",
      "verse": "6:44",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأسبابُ والنِّعم غائبة."
     },
     {
      "gloss": "أبواب السماء: منافذها",
      "verse": "54:11",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المنافذُ غائبة."
     },
     {
      "gloss": "أبواب جهنّم / الجنّة: مداخل دار الجزاء",
      "verse": "39:73",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المداخلُ ودارُ الجزاء غائبة."
     },
     {
      "gloss": "بابًا ذا عذاب: طريقًا للبلاء",
      "verse": "23:77",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطريقُ والبلاء غائبان."
     },
     {
      "gloss": "سور له باب: منفذ في الحاجز",
      "verse": "57:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المنفذُ في الحاجز غائب."
     }
    ],
    "collision_with": [],
@@ -500,37 +535,44 @@
     {
      "gloss": "البيت والبيوت: المسكن والمأوى",
      "verse": "4:100",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المسكنُ موضعًا غائب؛ «جمع مستقر» استقرارٌ لا مأوًى مبنيّ."
     },
     {
      "gloss": "البيت الحرام: الكعبة",
      "verse": "2:125",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكعبةُ غائبة."
     },
     {
      "gloss": "أهل البيت: الأسرة وأهل المنزل",
      "verse": "11:73",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأسرةُ وأهلُ المنزل غائبون."
     },
     {
      "gloss": "بياتًا: ليلًا وقت النوم",
      "verse": "7:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الليلُ والنومُ غائبان؛ «ممتد زمانياً» امتدادٌ لا ليل."
     },
     {
      "gloss": "بيّت: دبّر الأمر ليلًا سرًّا",
      "verse": "4:81",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التدبيرُ والليلُ والسرّ غائبة."
     },
     {
      "gloss": "لنبيّتنّه: لنوقعنّ به ليلًا",
      "verse": "27:49",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإيقاعُ بالعدوّ والليلُ غائبان."
     },
     {
      "gloss": "يبيتون لربهم: يقضون الليل في العبادة",
      "verse": "25:64",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الليلُ والعبادةُ غائبان."
     }
    ],
    "collision_with": [],
@@ -572,42 +614,50 @@
     {
      "gloss": "حوله: ما يحيط به من الجهات",
      "verse": "2:17",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«سعة محددة» ثمّ «ضم ممتد مكانياً»: حيّزٌ محدودٌ يضمّ ما حوله ممتدًّا في المكان، وهو الإحاطةُ من الجهات."
     },
     {
      "gloss": "من حولك: المحيطون بك من الناس",
      "verse": "3:159",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "الإحاطةُ نفسُها كالسابقة؛ «من الناس» تعيينُ المحيطين لا معنًى زائد."
     },
     {
      "gloss": "حولين: عامين",
      "verse": "2:233",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السنةُ مقدارًا زمنيًّا غائبة."
     },
     {
      "gloss": "حيلة: وسيلة وتدبير للخلاص",
      "verse": "4:98",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوسيلةُ والتدبير غائبان."
     },
     {
      "gloss": "يحول بين: يحجز ويفصل",
      "verse": "8:24",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحجزُ والفصلُ بين شيئين غائبان."
     },
     {
      "gloss": "حال بينهما الموج: حجز",
      "verse": "11:43",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحجزُ بين شيئين غائب."
     },
     {
      "gloss": "تحويلًا: نقلًا وتغييرًا عن الحال",
      "verse": "17:77",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: تبدّلُ الحال غائب؛ «حركة» في الخاتمة حركةٌ لا تغييرُ حال."
     },
     {
      "gloss": "لا يبغون عنها حِولًا: تحوّلًا وانتقالًا",
      "verse": "18:108",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«حركة ثقيلة متصلة» في الخاتمة تحمل الانتقالَ نفسَه؛ التحوّلُ حركةٌ من موضع."
     }
    ],
    "collision_with": [],
@@ -649,42 +699,50 @@
     {
      "gloss": "إلى حين: إلى أجل ومدّة محدودة",
      "verse": "2:36",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«سعة محددة» ثمّ «ممتد زمانياً»: امتدادٌ في الزمن محدود، وهو الأجلُ والمدّة المحدودة."
     },
     {
      "gloss": "حين البأس / حين تقوم: وقت حدوث الشيء",
      "verse": "2:177",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«ممتد زمانياً» يحمل الوقتَ؛ «حدوث الشيء» تعيينٌ لما يقع فيه."
     },
     {
      "gloss": "حتى حين: مدّة مبهمة",
      "verse": "12:35",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "امتدادٌ زمانيّ ينتهي بـ«ستر، أو اختباء»: مدّةٌ مبهمة."
     },
     {
      "gloss": "كلّ حين: كلّ وقت وموسم",
      "verse": "14:25",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "الوقتُ حاضرٌ في «ممتد زمانياً»؛ «كلّ» سورُ عمومٍ لا معنًى زائد."
     },
     {
      "gloss": "بعد حين: بعد زمن",
      "verse": "38:88",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "الزمنُ حاضرٌ في «ممتد زمانياً»."
     },
     {
      "gloss": "لات حين مناص: ليس الوقت وقت خلاص",
      "verse": "38:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الخلاصُ والمناص غائبان."
     },
     {
      "gloss": "حين من الدهر: قطعة طويلة من الزمن",
      "verse": "76:1",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«ممتد زمانياً» يحمل القطعةَ الطويلة من الزمن."
     },
     {
      "gloss": "حينئذ: في ذلك الوقت",
      "verse": "56:84",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "الوقتُ حاضرٌ في «ممتد زمانياً»."
     }
    ],
    "collision_with": [],
@@ -726,22 +784,26 @@
     {
      "gloss": "خالدون فيها: ماكثون إقامة دائمة في الجنة أو النار",
      "verse": "2:25",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "direction: الإقامةُ الدائمة لا تنتهي، والخاتمةُ «دفع شديد متوقف» انتهاءٌ؛ «لازمة» في الجسد وحدها لا تحمل الدوامَ حتى الخاتمة."
     },
     {
      "gloss": "الخلد: البقاء وعدم الموت في الدنيا",
      "verse": "21:34",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "direction: البقاءُ بلا انقطاع تنقضه خاتمةٌ «متوقف»."
     },
     {
      "gloss": "أخلد إلى الأرض: ركن إليها ومال ولزمها",
      "verse": "7:176",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«رخاوة» ثمّ «حركة ثقيلة متصلة لازمة» ثمّ «دفع شديد متوقف»: ميلٌ ليّن ثقيلٌ لازمٌ ينتهي بقرار، وهو الركونُ واللزوم؛ الأرضُ تعيين."
     },
     {
      "gloss": "ولدان مخلّدون: باقون على حالهم لا يتغيرون",
      "verse": "56:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "direction: البقاءُ على الحال بلا تغيّر دوامٌ، والخاتمةُ «متوقف» انتهاء."
     }
    ],
    "collision_with": [],
@@ -783,42 +845,50 @@
     {
      "gloss": "الذهب: المعدن النفيس",
      "verse": "3:14",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المعدنُ غائب."
     },
     {
      "gloss": "ذهب واذهب: مضى وانطلق",
      "verse": "5:24",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المضيُّ والانطلاق مفارقةٌ لا يحملها أصل؛ والدفعُ هنا «ملتصق» والخاتمةُ «جمع مستقر»."
     },
     {
      "gloss": "ذهبوا به: أخذوه معهم",
      "verse": "12:15",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأخذُ والمصاحبة غائبان."
     },
     {
      "gloss": "ذهب الله بنورهم: أزاله وسلبه",
      "verse": "2:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإزالةُ والسلب غائبان."
     },
     {
      "gloss": "ذهب الروع: زال وانقضى",
      "verse": "11:74",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الزوالُ والانقضاء غائبان."
     },
     {
      "gloss": "يُذهبكم: يُفنيكم ويهلككم",
      "verse": "4:133",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإفناءُ والإهلاك غائبان."
     },
     {
      "gloss": "لا تذهب نفسك حسرات: لا تهلك غمًّا",
      "verse": "35:8",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الهلاكُ غمًّا غائب."
     },
     {
      "gloss": "أذهبتم طيباتكم: استنفدتموها",
      "verse": "46:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستنفادُ غائب."
     }
    ],
    "collision_with": [],
@@ -860,17 +930,20 @@
     {
      "gloss": "الريب والارتياب: الشك",
      "verse": "2:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الشكُّ غائب."
     },
     {
      "gloss": "شك مريب: شك مقلق يوقع في التهمة",
      "verse": "11:62",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الشكُّ والتهمة غائبان."
     },
     {
      "gloss": "ريب المنون: حوادث الدهر والموت",
      "verse": "52:30",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموتُ غائب؛ «تكرار» و«ممتد زمانياً» يحملان تعاقبَ الحوادث دون الموت."
     }
    ],
    "collision_with": [],
@@ -912,27 +985,32 @@
     {
      "gloss": "سبّح بحمده: نزّهه وعظّمه ذكرًا",
      "verse": "2:30",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التنزيهُ والتعظيمُ غائبان."
     },
     {
      "gloss": "سبحان: تنزيه الله عمّا لا يليق به",
      "verse": "2:116",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التنزيهُ غائب."
     },
     {
      "gloss": "سبّح في أوقات النهار والليل: الصلاة",
      "verse": "20:130",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصلاةُ غائبة."
     },
     {
      "gloss": "يسبح في فلك: يجري ويسير",
      "verse": "21:33",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«حركة متصلة حرة» تحمل الجريانَ والسير؛ الخاتمةُ «سعة محددة» مجالٌ محدود تجري فيه، والفلكُ تعيين."
     },
     {
      "gloss": "سبحًا طويلًا: تصرّف وانشغال في المعاش",
      "verse": "73:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المعاشُ والانشغالُ به غائبان."
     }
    ],
    "collision_with": [],
@@ -974,67 +1052,80 @@
     {
      "gloss": "استبقوا الخيرات / سابقوا: التنافس في المبادرة",
      "verse": "2:148",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التنافسُ بين فريقين غائب."
     },
     {
      "gloss": "نستبق / استبقا الباب: التسابق عدوًا",
      "verse": "12:25",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسابقُ بين اثنين غائب؛ «حركة» تحمل العدوَ لا المسابقة."
     },
     {
      "gloss": "ما سبقكم بها من أحد: تقدّمكم في الزمن إلى الفعل",
      "verse": "7:80",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقدّمُ في الزمن غائب."
     },
     {
      "gloss": "سبقوا / يسبقونا: فاتوا وأفلتوا من القدرة",
      "verse": "8:59",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإفلاتُ من قدرة طالبٍ غائب."
     },
     {
      "gloss": "بمسبوقين: مغلوبين عاجزين",
      "verse": "56:60",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الغلبةُ والعجز غائبان."
     },
     {
      "gloss": "كتاب سبق / كلمة سبقت: قضاء متقدّم",
      "verse": "10:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القضاءُ المتقدّم غائب."
     },
     {
      "gloss": "سبق عليه القول: حقّ عليه الحكم من قبل",
      "verse": "11:40",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: وجوبُ الحكم غائب."
     },
     {
      "gloss": "السابقون: المتقدّمون في الإيمان والفضل",
      "verse": "9:100",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقدّمُ في الإيمان والفضل غائب."
     },
     {
      "gloss": "ما تسبق من أمة أجلها: لا تتقدّم عليه",
      "verse": "15:5",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقدّمُ على الأجل غائب."
     },
     {
      "gloss": "ما قد سبق: ما مضى من أخبار",
      "verse": "20:99",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المضيُّ والأخبار غائبان."
     },
     {
      "gloss": "لا يسبقونه بالقول: لا يتقدّمون أمره",
      "verse": "21:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقدّمُ على الأمر غائب."
     },
     {
      "gloss": "الليل سابق النهار: يدركه ويتقدّمه",
      "verse": "36:40",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإدراكُ والتقدّم والليلُ والنهار غائبة."
     },
     {
      "gloss": "السابقات سبقًا: المسرعات إلى أمر الله",
      "verse": "79:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإسراعُ غائب؛ «حركة» بلا سرعة."
     }
    ],
    "collision_with": [],
@@ -1076,32 +1167,38 @@
     {
      "gloss": "السحر والساحر: التمويه والخداع بالحيلة",
      "verse": "2:102",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التمويهُ والخداع غائبان."
     },
     {
      "gloss": "سحر مبين: وصف المكذّبين للآيات والحق",
      "verse": "6:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: وصفُ الآيات بالسحر غائب."
     },
     {
      "gloss": "سحروا أعين الناس: خيّلوا إليها",
      "verse": "7:116",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التخييلُ للأعين غائب."
     },
     {
      "gloss": "مسحور: مخدوع العقل مصروف عنه",
      "verse": "17:47",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: خداعُ العقل غائب."
     },
     {
      "gloss": "تُسحرون: تُخدعون وتُصرفون عن الحق",
      "verse": "23:89",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الخداعُ والصرف عن الحق غائبان."
     },
     {
      "gloss": "الأسحار والسحر: آخر الليل قبيل الفجر",
      "verse": "3:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: آخرُ الليل غائب."
     }
    ],
    "collision_with": [],
@@ -1143,22 +1240,26 @@
     {
      "gloss": "شكر الله: الاعتراف بنعمته والثناء عليه بها",
      "verse": "2:152",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاعترافُ بالنعمة والثناء غائبان."
     },
     {
      "gloss": "شكر الوالدين والناس: مقابلة إحسانهم بالثناء",
      "verse": "31:14",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: مقابلةُ الإحسان بالثناء غائبة."
     },
     {
      "gloss": "الله شاكر وشكور: يثيب على العمل ويضاعفه",
      "verse": "2:158",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإثابةُ والمضاعفة غائبتان."
     },
     {
      "gloss": "سعيهم مشكورًا: عمل مقبول مُثاب عليه",
      "verse": "17:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القبولُ والإثابة غائبان."
     }
    ],
    "collision_with": [],
@@ -1200,57 +1301,68 @@
     {
      "gloss": "تصريف الرياح: تقليبها وتحويلها في الجهات",
      "verse": "2:164",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: تغيّرُ الجهة غائب؛ «حركة متصلة محددة» مع «تكرار» حركةٌ متكرّرة لا تقليبٌ في الجهات."
     },
     {
      "gloss": "نصرّف الآيات / صرّفنا في القرآن: ننوّعها ونردّدها بوجوه",
      "verse": "6:46",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التنويعُ وتعدّدُ الوجوه غائب؛ «تكرار» إعادةٌ لا تنويع."
     },
     {
      "gloss": "صرفكم عنهم: ردّكم عنهم",
      "verse": "3:152",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الردُّ عن وجهةٍ غائب."
     },
     {
      "gloss": "يُصرف عنه العذاب: يُدفع عنه",
      "verse": "6:16",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدفعُ عن الشيء غائب."
     },
     {
      "gloss": "صُرفت أبصارهم: حُوّلت",
      "verse": "7:47",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التحويلُ غائب."
     },
     {
      "gloss": "سأصرف عن آياتي: أصدّ وأمنع",
      "verse": "7:146",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصدُّ والمنع غائبان."
     },
     {
      "gloss": "انصرفوا: ذهبوا وتولّوا",
      "verse": "9:127",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الانصرافُ والتولّي غائبان."
     },
     {
      "gloss": "أنّى تُصرفون: كيف تُصدّون عن الحقّ",
      "verse": "10:32",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصدُّ عن الحق غائب."
     },
     {
      "gloss": "مصرفًا: معدلًا ومهربًا",
      "verse": "18:53",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المعدلُ والمهرب غائبان."
     },
     {
      "gloss": "صرفًا ولا نصرًا: دفعًا للعذاب",
      "verse": "25:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: دفعُ العذاب غائب."
     },
     {
      "gloss": "صرفنا إليك نفرًا: وجّهناهم إليك",
      "verse": "46:29",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التوجيهُ نحو مقصد غائب؛ «محددة» حدٌّ للحركة لا وجهةٌ لها."
     }
    ],
    "collision_with": [],
@@ -1292,72 +1404,86 @@
     {
      "gloss": "العِجل: ولد البقرة الذي اتُّخذ معبودًا",
      "verse": "2:51",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحيوانُ والعبادة غائبان."
     },
     {
      "gloss": "أُشربوا في قلوبهم العجل: حبّ عبادته",
      "verse": "2:93",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحبُّ والعبادة غائبان."
     },
     {
      "gloss": "عِجل حنيذ: ولد البقر المشويّ طعامًا",
      "verse": "11:69",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحيوانُ والطعام غائبان."
     },
     {
      "gloss": "تعجّل في يومين: أسرع بالنفر",
      "verse": "2:203",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإسراعُ غائب؛ والخاتمةُ «ثقيلة» تنافيه."
     },
     {
      "gloss": "تستعجلون به: تطلبون تعجيل العذاب",
      "verse": "6:57",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطلبُ والتعجيل غائبان."
     },
     {
      "gloss": "أعجلتم أمر ربّكم: سبقتموه واستبطأتموه",
      "verse": "7:150",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ والاستبطاء غائبان."
     },
     {
      "gloss": "يعجّل الله للناس الشرّ: يُوقعه قبل أوانه",
      "verse": "10:11",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإيقاعُ قبل الأوان غائب."
     },
     {
      "gloss": "عجّل لكم هذه: أعطاكم معجّلًا",
      "verse": "48:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإعطاءُ المعجّل غائب."
     },
     {
      "gloss": "عجّل لنا قطّنا: أعطنا حظّنا عاجلًا",
      "verse": "38:16",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإعطاءُ عاجلًا غائب."
     },
     {
      "gloss": "عجولًا / من عجل: طبع الإنسان في التسرّع",
      "verse": "21:37",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسرّعُ طبعًا غائب."
     },
     {
      "gloss": "العاجلة: الدنيا الحاضرة",
      "verse": "17:18",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدنيا الحاضرة غائبة."
     },
     {
      "gloss": "لا تعجل عليهم: لا تستعجل هلاكهم",
      "verse": "19:84",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستعجالُ والهلاك غائبان."
     },
     {
      "gloss": "ما أعجلك عن قومك: ما حملك على السبق",
      "verse": "20:83",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ غائب."
     },
     {
      "gloss": "لا تعجل بالقرآن: لا تسبق بقراءته قبل تمام الوحي",
      "verse": "20:114",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ بالقراءة غائب."
     }
    ],
    "collision_with": [],
@@ -1399,62 +1525,74 @@
     {
      "gloss": "عهد الله: الميثاق الذي أخذه الله على عباده",
      "verse": "2:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الميثاقُ غائب."
     },
     {
      "gloss": "أوفوا بعهدي أوفِ بعهدكم: الالتزام المتبادل",
      "verse": "2:40",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الالتزامُ المتبادل غائب."
     },
     {
      "gloss": "اتّخذتم عند الله عهدًا: وعد أو ضمان من الله",
      "verse": "2:80",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوعدُ والضمان غائبان."
     },
     {
      "gloss": "عاهدوا عهدًا: تعاقدوا والتزموا",
      "verse": "2:100",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعاقدُ غائب."
     },
     {
      "gloss": "لا ينال عهدي الظالمين: الإمامة والولاية الموهوبة من الله",
      "verse": "2:124",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإمامةُ والولاية غائبتان."
     },
     {
      "gloss": "عهدنا إلى: أوصينا وأمرنا",
      "verse": "2:125",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوصيّةُ والأمر غائبان."
     },
     {
      "gloss": "عاهدتم من المشركين: المعاهدة والصلح بين الفريقين",
      "verse": "9:1",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المعاهدةُ والصلح غائبان."
     },
     {
      "gloss": "عاهد الله: نذر والتزم أمام الله",
      "verse": "9:75",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النذرُ والالتزام غائبان."
     },
     {
      "gloss": "بما عهد عندك: ما خصّك به وأعلمك",
      "verse": "7:134",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التخصيصُ والإعلام غائبان."
     },
     {
      "gloss": "ما وجدنا لأكثرهم من عهد: وفاء بالعهد",
      "verse": "7:102",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوفاءُ غائب."
     },
     {
      "gloss": "عهدهم راعون: ما التزموه وأؤتمنوا عليه",
      "verse": "23:8",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الالتزامُ والأمانة غائبان."
     },
     {
      "gloss": "طال عليكم العهد: الزمن منذ اللقاء",
      "verse": "20:86",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الزمنُ غائب: لا «ممتد زمانياً» في هذه القراءة."
     }
    ],
    "collision_with": [],
@@ -1496,42 +1634,50 @@
     {
      "gloss": "الغَنِيّ (صفة لله): المستغني عن خلقه لا يحتاج إليهم",
      "verse": "3:97",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستغناءُ عن الغير غائب."
     },
     {
      "gloss": "غَنِيًّا / أغنياء: ذو المال واليسار، ضد الفقير",
      "verse": "4:6",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المالُ واليسار غائبان."
     },
     {
      "gloss": "يُغْنِيكُمُ الله / فأغنى / أغنى وأقنى: إعطاء الكفاية والمال وإزالة الفقر",
      "verse": "9:28",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكفايةُ والإعطاء غائبان."
     },
     {
      "gloss": "ما أغنى عنه / لن تغني عنهم / مُغْنُون عنّا: النفع والدفع عن الغير",
      "verse": "111:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النفعُ والدفع عن الغير غائبان."
     },
     {
      "gloss": "لا يغني من الحق شيئًا: لا يكفي ولا يقوم مقامه",
      "verse": "10:36",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكفايةُ غائبة."
     },
     {
      "gloss": "كأن لم يَغْنَوْا فيها / لم تَغْنَ بالأمس: الإقامة في المكان وعمرانه",
      "verse": "7:92",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإقامةُ والعمران غائبان."
     },
     {
      "gloss": "اسْتَغْنَى: رؤية الإنسان نفسه مستغنيًا عن ربه وغيره فيتكبّر",
      "verse": "96:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستغناءُ والتكبّر غائبان."
     },
     {
      "gloss": "شأنٌ يُغْنِيه: يكفيه ويشغله عن غيره",
      "verse": "80:37",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكفايةُ والانشغال غائبان."
     }
    ],
    "collision_with": [],
@@ -1573,47 +1719,56 @@
     {
      "gloss": "الفحشاء: كل قبيح متناهٍ في القبح",
      "verse": "2:169",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القبحُ غائب."
     },
     {
      "gloss": "الفاحشة: الزنا",
      "verse": "4:15",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الزنا غائب."
     },
     {
      "gloss": "إنه كان فاحشة: نكاح امرأة الأب",
      "verse": "4:22",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النكاحُ المحرّم غائب."
     },
     {
      "gloss": "أتأتون الفاحشة: فعل قوم لوط",
      "verse": "7:80",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الفعلُ القبيح غائب."
     },
     {
      "gloss": "فعلوا فاحشة: قبيح ينسبونه إلى الآباء والدين",
      "verse": "7:28",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القبحُ ونسبتُه غائبان."
     },
     {
      "gloss": "فاحشة مبيّنة: سوء عشرة ظاهر من الزوجة",
      "verse": "4:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: سوءُ العشرة غائب."
     },
     {
      "gloss": "الفواحش: الكبائر القبيحة ظاهرها وباطنها",
      "verse": "6:151",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكبائرُ والقبح غائبان."
     },
     {
      "gloss": "فعلوا فاحشة: ذنب قبيح",
      "verse": "3:135",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذنبُ القبيح غائب."
     },
     {
      "gloss": "تشيع الفاحشة: انتشار الحديث بالقبيح",
      "verse": "24:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القبحُ غائب؛ «انتشار» يحمل الشيوعَ وحده."
     }
    ],
    "collision_with": [],
@@ -1655,97 +1810,116 @@
     {
      "gloss": "بما قدّمت أيديهم: ما أسلفوه من عمل فجُوزوا به",
      "verse": "3:182",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العملُ والجزاء غائبان."
     },
     {
      "gloss": "تُقدّموا لأنفسكم: تسلفوا الخير ليُدّخر لكم عند الله",
      "verse": "2:110",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الادّخارُ للآخرة غائب."
     },
     {
      "gloss": "ما قدّمتم لهنّ: ما ادّخرتموه وأعددتموه سلفًا",
      "verse": "12:48",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الادّخارُ «سلفًا» غائب: «جمع متصل» جمعٌ بلا سبقٍ في الزمن."
     },
     {
      "gloss": "قدّمتموه لنا: تسبّبتم فيه وأوقعتمونا فيه من قبل",
      "verse": "38:60",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسبّبُ من قبل غائب."
     },
     {
      "gloss": "قدّموا بين يدي نجواكم صدقة: قدّموها قبلها",
      "verse": "58:12",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقديمُ قبلَ غيرٍ غائب."
     },
     {
      "gloss": "قدّمتُ إليكم بالوعيد: أنذرتكم سلفًا",
      "verse": "50:28",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإنذارُ سلفًا غائب."
     },
     {
      "gloss": "لا تقدّموا بين يدي الله ورسوله: لا تسبقوا بقول أو حكم",
      "verse": "49:1",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ بالقول والحكم غائب."
     },
     {
      "gloss": "ما تقدّم من ذنبك: ما سلف ومضى",
      "verse": "48:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المضيُّ والسلف غائبان."
     },
     {
      "gloss": "يتقدّم أو يتأخّر: يسبق إلى الخير أو يتخلّف",
      "verse": "74:37",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ والتخلّف غائبان."
     },
     {
      "gloss": "لا يستقدمون: لا يسبقون أجلهم ولا يتعجّلونه",
      "verse": "7:34",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ إلى الأجل غائب."
     },
     {
      "gloss": "المستقدمين: السابقون في الزمن أو الوجود",
      "verse": "15:24",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ في الزمن غائب."
     },
     {
      "gloss": "يقدُم قومه: يتقدّمهم ويسير أمامهم",
      "verse": "11:98",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التقدّمُ أمامَ قومٍ غائب؛ «دفع» بلا أمام."
     },
     {
      "gloss": "قدِمنا إلى ما عملوا: عمدنا وأقبلنا عليه",
      "verse": "25:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القصدُ والإقبال غائبان."
     },
     {
      "gloss": "القديم: العتيق الذي طال عليه الزمن",
      "verse": "36:39",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القِدَمُ في الزمن غائب."
     },
     {
      "gloss": "الأقدمون: الآباء الأوّلون السابقون",
      "verse": "26:76",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الآباءُ والأوّليّة غائبان."
     },
     {
      "gloss": "قدم صدق: سابقة ومنزلة رفيعة",
      "verse": "10:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السابقةُ والمنزلة غائبتان."
     },
     {
      "gloss": "الأقدام: الأرجل، العضو",
      "verse": "55:41",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العضوُ غائب."
     },
     {
      "gloss": "ثبّت أقدامنا: الثبات في موقف القتال",
      "verse": "2:250",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«وقف شديد» في الفاتحة يحمل الثباتَ في الموقف، ثمّ «دفع شديد متوقف» ثمّ «جمع متصل»؛ القتالُ تعيينُ موقف."
     },
     {
      "gloss": "تزلّ قدم بعد ثبوتها: الانحراف بعد الاستقامة",
      "verse": "16:94",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الانحرافُ بعد الاستقامة غائب."
     }
    ],
    "collision_with": [],
@@ -1787,117 +1961,140 @@
     {
      "gloss": "فاقطعوا أيديهما: إبانة العضو عقوبةً",
      "verse": "5:38",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقوبةُ غائبة؛ القطعُ حاضرٌ والغرضُ مستورد."
     },
     {
      "gloss": "قطّعن أيديهنّ: جرحنها بالسكين",
      "verse": "12:31",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» في الفاتحة و«عمق» في الخاتمة: شقٌّ نافذ، وهو الجرح؛ السكّينُ آلةٌ لا معنًى زائد."
     },
     {
      "gloss": "يقطعون ما أمر الله به أن يوصل: القطيعة وترك الصلة",
      "verse": "2:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القطيعةُ صلةً اجتماعية غائبة؛ «قطع» فصلٌ لا صلةَ فيه."
     },
     {
      "gloss": "تقطّعوا أرحامكم: قطيعة القرابة",
      "verse": "47:22",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القرابةُ غائبة."
     },
     {
      "gloss": "قُطع دابر القوم: استئصالهم وإهلاكهم",
      "verse": "6:45",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستئصالُ والإهلاك غائبان."
     },
     {
      "gloss": "ليقطع طرفًا: يُهلك طائفة",
      "verse": "3:127",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإهلاكُ غائب."
     },
     {
      "gloss": "تقطّعت بهم الأسباب: انقطعت الصلات والوسائل",
      "verse": "2:166",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصلاتُ والوسائل غائبة."
     },
     {
      "gloss": "تقطّع بينكم: انفصل ما كان يجمعكم",
      "verse": "6:94",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» ثمّ «دفع متوقف» ثمّ «بُعد»: فصلٌ ينتهي بتباعد، وهو انفصالُ ما كان مجتمعًا."
     },
     {
      "gloss": "قطّعناهم أممًا: فرّقناهم جماعات",
      "verse": "7:160",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل التفريقَ أجزاءً؛ الجماعاتُ هي الأجزاء."
     },
     {
      "gloss": "تقطّعوا أمرهم: تفرّقوا في دينهم أحزابًا",
      "verse": "21:93",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدينُ والتحزّب غائبان."
     },
     {
      "gloss": "تقطّع قلوبهم: تتمزّق وتتلاشى بالموت",
      "verse": "9:110",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموتُ غائب."
     },
     {
      "gloss": "يقطعون واديًا: يجتازونه ويعبرونه",
      "verse": "9:121",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاجتيازُ والعبور غائبان؛ «قطع» فصلٌ لا مرور."
     },
     {
      "gloss": "تقطعون السبيل: تقطعون الطريق على المارّة",
      "verse": "29:29",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: قطعُ الطريق على المارّة غائب."
     },
     {
      "gloss": "قِطع / قِطْع من الليل: جزء منه",
      "verse": "11:81",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل الجزءَ المفصول؛ الليلُ تعيينُ المقطوع منه."
     },
     {
      "gloss": "قِطَع متجاورات: بقاع من الأرض",
      "verse": "13:4",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل القِطَعَ المفصولة؛ الأرضُ تعيينُ المقطوع منه."
     },
     {
      "gloss": "قُطّعت به الأرض: شُقّت",
      "verse": "13:31",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل الشقّ."
     },
     {
      "gloss": "ليقطع: ليقطع الحبل الممدود",
      "verse": "22:15",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل قطعَ الحبل نفسه."
     },
     {
      "gloss": "قُطّعت لهم ثياب من نار: فُصّلت على مقاديرهم",
      "verse": "22:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التفصيلُ على المقادير غائب."
     },
     {
      "gloss": "قاطعة أمرًا: مُبرمة للأمر فاصلة فيه",
      "verse": "27:32",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإبرامُ والفصلُ في الأمر غائبان."
     },
     {
      "gloss": "فقطّع أمعاءهم: مزّقها",
      "verse": "47:15",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» يحمل التمزيق؛ الأمعاءُ تعيين."
     },
     {
      "gloss": "لا مقطوعة: لا ينقطع مددها",
      "verse": "56:33",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدوامُ بلا انقطاع غائب، والفاتحةُ «قطع» تنافيه."
     },
     {
      "gloss": "ما قطعتم من لينة: قطع الشجر من أصله",
      "verse": "59:5",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«قطع» في الفاتحة و«عمق» في الخاتمة: قطعٌ من الأصل."
     },
     {
      "gloss": "لقطعنا منه الوتين: إهلاكه بقطع عرقٍ حيوي",
      "verse": "69:46",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإهلاكُ غائب."
     }
    ],
    "collision_with": [],
@@ -1939,17 +2136,20 @@
     {
      "gloss": "كسب واكتسب: ما يجنيه الإنسان من عمل فيُجزى به",
      "verse": "2:81",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الجنيُ والجزاء غائبان."
     },
     {
      "gloss": "ما كسبتم: المال المكتسب",
      "verse": "2:267",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المالُ غائب."
     },
     {
      "gloss": "كسبت قلوبكم: ما عقدته القلوب وقصدته",
      "verse": "2:225",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقدُ والقصد غائبان."
     }
    ],
    "collision_with": [],
@@ -1991,22 +2191,26 @@
     {
      "gloss": "كشف الضر / العذاب: أزاله ورفعه",
      "verse": "6:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإزالةُ والرفع غائبان."
     },
     {
      "gloss": "كشفت عن ساقيها: رفعت الثوب عنهما",
      "verse": "27:44",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: رفعُ الثوب غائب؛ «فتح خفيف منضم» انفتاحٌ لا رفعُ غطاء."
     },
     {
      "gloss": "كشفنا عنك غطاءك: أزلنا الحجاب عن الإدراك",
      "verse": "50:22",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإدراكُ وإزالةُ الحجاب غائبان."
     },
     {
      "gloss": "يُكشف عن ساق: اشتداد الأمر وظهور هوله",
      "verse": "68:42",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاشتدادُ والهول غائبان."
     }
    ],
    "collision_with": [],
@@ -2048,27 +2252,32 @@
     {
      "gloss": "لعنه الله: طرده وأبعده عن رحمته",
      "verse": "2:88",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطردُ من رحمة الله غائب؛ «بُعد» حاضرٌ والرحمةُ مستوردة."
     },
     {
      "gloss": "يلعنهم اللاعنون: يدعون عليهم بالإبعاد",
      "verse": "2:159",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدعاءُ بالإبعاد غائب."
     },
     {
      "gloss": "لعنت أختها: تلاعن الأمم في النار",
      "verse": "7:38",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التلاعنُ والنار غائبان."
     },
     {
      "gloss": "لعنة الله على الكاذبين: الدعاء بها في المباهلة واللعان",
      "verse": "24:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المباهلةُ والدعاء غائبان."
     },
     {
      "gloss": "الشجرة الملعونة: المذمومة المبعدة",
      "verse": "17:60",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذمُّ غائب."
     }
    ],
    "collision_with": [],
@@ -2110,57 +2319,68 @@
     {
      "gloss": "نصيب: حظّ وحصّة",
      "verse": "4:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحظُّ والحصّة غائبان."
     },
     {
      "gloss": "نصيبًا من الكتاب: حظّ من العلم به",
      "verse": "3:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحظُّ من العلم غائب."
     },
     {
      "gloss": "نصيبًا مفروضًا: حصّة مقتطعة من العباد",
      "verse": "4:118",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحصّةُ المقتطعة غائبة."
     },
     {
      "gloss": "موفّوهم نصيبهم: جزاؤهم المستحقّ",
      "verse": "11:109",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الجزاءُ غائب."
     },
     {
      "gloss": "النُّصُب / الأنصاب: حجارة منصوبة يُذبح عليها وتُعظّم",
      "verse": "5:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحجارةُ المنصوبة والذبح غائبة."
     },
     {
      "gloss": "إلى نُصُب يوفضون: علم أو غاية منصوبة",
      "verse": "70:43",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العَلَمُ والغاية غائبان."
     },
     {
      "gloss": "نصب: تعب ومشقّة",
      "verse": "18:62",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعبُ غائب."
     },
     {
      "gloss": "بنُصب وعذاب: بلاء ومشقّة",
      "verse": "38:41",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: البلاءُ والمشقّة غائبان."
     },
     {
      "gloss": "ناصبة: متعبة كادحة",
      "verse": "88:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعبُ والكدح غائبان."
     },
     {
      "gloss": "نُصبت: أُقيمت ثابتة",
      "verse": "88:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإقامةُ منتصبةً غائبة؛ «جمع مستقر» استقرارٌ لا انتصاب."
     },
     {
      "gloss": "فانصب: اجتهد وتعب في العبادة",
      "verse": "94:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاجتهادُ والتعب غائبان."
     }
    ],
    "collision_with": [],
@@ -2202,42 +2422,50 @@
     {
      "gloss": "عذاب مهين: مُذلّ",
      "verse": "2:90",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإذلالُ غائب."
     },
     {
      "gloss": "عذاب الهون: الذلّ والخزي",
      "verse": "6:93",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذلُّ والخزي غائبان."
     },
     {
      "gloss": "على هون: على ذلّ",
      "verse": "16:59",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذلُّ غائب."
     },
     {
      "gloss": "من يُهن الله / أهانن: يُذلّ ويحطّ",
      "verse": "22:18",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإذلالُ والحطّ غائبان."
     },
     {
      "gloss": "مُهانًا: ذليلًا",
      "verse": "25:69",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الذلُّ غائب."
     },
     {
      "gloss": "هيّن / أهون: سهل لا مشقّة فيه",
      "verse": "19:9",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ غائبة؛ «خفيف» صفةُ تأرجحٍ لا يُسر."
     },
     {
      "gloss": "تحسبونه هيّنًا: أمرًا حقيرًا لا خطر له",
      "verse": "24:15",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحقارةُ غائبة."
     },
     {
      "gloss": "يمشون هونًا: بسكينة ووقار",
      "verse": "25:63",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السكينةُ والوقار غائبان؛ «تأرجح خفيف منضبط» يقارب المشيةَ ولا يحمل الوقار."
     }
    ],
    "collision_with": [],
@@ -2279,62 +2507,74 @@
     {
      "gloss": "وقع أجره على الله: ثبت ووجب",
      "verse": "4:100",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الثبوتُ والوجوب غائبان."
     },
     {
      "gloss": "يوقع بينكم العداوة: يلقيها",
      "verse": "5:91",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإلقاءُ والعداوة غائبان."
     },
     {
      "gloss": "وقع عليكم رجس / الرجز: نزل وحلّ",
      "verse": "7:134",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النزولُ والحلول غائبان."
     },
     {
      "gloss": "وقع الحقّ: ثبت وظهر",
      "verse": "7:118",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الثبوتُ والظهور غائبان."
     },
     {
      "gloss": "واقع بهم: ساقط عليهم",
      "verse": "7:171",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السقوطُ غائب."
     },
     {
      "gloss": "تقع على الأرض: تسقط",
      "verse": "22:65",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السقوطُ غائب؛ «عمق» غورٌ لا هبوط."
     },
     {
      "gloss": "فقعوا ساجدين: خرّوا",
      "verse": "15:29",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الخرورُ والسجود غائبان."
     },
     {
      "gloss": "مواقعوها: داخلوها ملابسوها",
      "verse": "18:53",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدخولُ والملابسة غائبان."
     },
     {
      "gloss": "وقع القول عليهم: وجب وحقّ",
      "verse": "27:82",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوجوبُ غائب."
     },
     {
      "gloss": "لواقع: كائن لا محالة",
      "verse": "51:6",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكونُ المحتوم غائب."
     },
     {
      "gloss": "الواقعة: القيامة",
      "verse": "56:1",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القيامةُ غائبة."
     },
     {
      "gloss": "مواقع النجوم: مساقطها ومغاربها",
      "verse": "56:75",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المساقطُ والمغارب غائبة."
     }
    ],
    "collision_with": [],
@@ -2376,82 +2616,98 @@
     {
      "gloss": "اليُسر: السهولة ورفع المشقّة، ضدّ العسر",
      "verse": "2:185",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ غائبة، والفاتحةُ «جهد ممتد» تنافيها."
     },
     {
      "gloss": "ما استيسر: ما تهيّأ وسهُل تحصيله",
      "verse": "2:196",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ والتهيّؤ غائبان."
     },
     {
      "gloss": "ما تيسّر من القرآن: ما سهُل من غير مشقّة",
      "verse": "73:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ غائبة."
     },
     {
      "gloss": "الميسر: القمار",
      "verse": "2:219",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القمارُ غائب."
     },
     {
      "gloss": "ميسرة: الغِنى والسعة بعد العسرة",
      "verse": "2:280",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الغنى والسعة غائبان."
     },
     {
      "gloss": "يسيرًا على الله: هيّن لا يعسر عليه",
      "verse": "4:30",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ غائبة."
     },
     {
      "gloss": "إلا يسيرًا: زمنًا قليلًا",
      "verse": "33:14",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القِلّةُ غائبة، و«ممتد زمانياً» ينافيها."
     },
     {
      "gloss": "قبضًا يسيرًا: شيئًا فشيئًا، قليلًا قليلًا",
      "verse": "25:46",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«ممتد زمانياً» ثمّ «حركة متصلة» ثمّ «تكرار»: فعلٌ يتكرّر عبر الزمن، وهو «شيئًا فشيئًا» نفسه."
     },
     {
      "gloss": "قولًا ميسورًا: قولًا ليّنًا سهلًا",
      "verse": "17:28",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القولُ واللين غائبان."
     },
     {
      "gloss": "يسّرناه بلسانك / يسّرنا القرآن: سهّلناه للفهم والذكر",
      "verse": "54:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسهيلُ للفهم غائب."
     },
     {
      "gloss": "يسّر لي أمري: سهّله",
      "verse": "20:26",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسهيلُ غائب."
     },
     {
      "gloss": "نيسّرك لليسرى: نهيّئك ونوفّقك للطريقة السهلة",
      "verse": "87:8",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التهيئةُ والسهولة غائبتان."
     },
     {
      "gloss": "فسنيسّره للعسرى: نهيّئه لطريق الشدّة",
      "verse": "92:10",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التهيئةُ والطريق غائبان."
     },
     {
      "gloss": "السبيل يسّره: سهّل له الطريق",
      "verse": "80:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: تسهيلُ الطريق غائب."
     },
     {
      "gloss": "الجاريات يسرًا: جريانًا سهلًا",
      "verse": "51:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السهولةُ غائبة؛ «حركة متصلة حرة» تحمل الجريانَ وحده، والفاتحةُ «جهد ممتد» تنافي السهولة."
     },
     {
      "gloss": "حسابًا يسيرًا: حسابًا سهلًا لا مناقشة فيه",
      "verse": "84:8",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحسابُ والسهولة غائبان."
     }
    ],
    "collision_with": [],
@@ -2493,72 +2749,86 @@
     {
      "gloss": "آمَنَ بـ / يُؤْمِنُونَ: التصديق بالله والغيب وما أُنزل، الإيمان",
      "verse": "2:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التصديقُ والإيمان غائبان."
     },
     {
      "gloss": "آمَنَ لـ / مُؤْمِن لنا: تصديق قائلٍ فيما يخبر به والإذعان له",
      "verse": "12:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التصديقُ والإذعان غائبان."
     },
     {
      "gloss": "أَمِنْتُم: زوال الخوف وسكون النفس بعد الخوف",
      "verse": "2:239",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: زوالُ الخوف غائب."
     },
     {
      "gloss": "آمَنَهُمْ: جعلهم في أمنٍ وأزال عنهم الخوف",
      "verse": "106:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأمنُ غائب."
     },
     {
      "gloss": "آمِنِين / آمِنًا (حال): في سلامةٍ مطمئنين لا يخافون",
      "verse": "15:46",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السلامةُ والطمأنينة غائبتان."
     },
     {
      "gloss": "الأَمْن: الطمأنينة والسلامة من الخوف",
      "verse": "2:125",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطمأنينةُ غائبة."
     },
     {
      "gloss": "أَمَنَة: سكينة وطمأنينة يُنزلها الله (النعاس)",
      "verse": "3:154",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السكينةُ والنعاس غائبان."
     },
     {
      "gloss": "بلدًا آمنًا / البلد الأمين / مَأْمَنه: موضعٌ ذو أمنٍ يأمن فيه من حلّه",
      "verse": "2:126",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموضعُ الآمن غائب."
     },
     {
      "gloss": "أَفَأَمِنُوا مكر الله / غير مأمون: الاطمئنان إلى أن الشيء لا يقع، وترك الحذر منه",
      "verse": "7:99",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاطمئنانُ وتركُ الحذر غائبان."
     },
     {
      "gloss": "تَأْمَنَّا على / تأمنه بقنطار / اؤتُمِن: الاستئمان والوثوق بالغير فيما يُحفَظ",
      "verse": "12:11",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستئمانُ والوثوق غائبان."
     },
     {
      "gloss": "الأمانات / أمانته: ما يُؤتَمن عليه من حقٍّ فيجب أداؤه، ضد الخيانة",
      "verse": "4:58",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأمانةُ والأداء غائبان."
     },
     {
      "gloss": "الأمانة المعروضة على السماوات والأرض: التكليف الذي حمله الإنسان",
      "verse": "33:72",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التكليفُ غائب."
     },
     {
      "gloss": "أَمِين: الموثوق الذي لا يخون ما اؤتُمن عليه",
      "verse": "26:107",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الثقةُ غائبة."
     },
     {
      "gloss": "المُؤْمِن (اسم لله): واهب الأمن لخلقه",
      "verse": "59:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: هبةُ الأمن غائبة."
     }
    ],
    "collision_with": [],
@@ -2600,42 +2870,50 @@
     {
      "gloss": "بشّر والبشرى: الإخبار بما يسرّ",
      "verse": "3:39",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإخبارُ والسرور غائبان."
     },
     {
      "gloss": "بشّرهم بعذاب: الإخبار بالعقاب على وجه التهكم",
      "verse": "3:21",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإخبارُ والتهكّم غائبان."
     },
     {
      "gloss": "بُشّر أحدهم: أُخبر بخبر فتغيّر وجهه كرهًا",
      "verse": "16:58",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإخبارُ والكره غائبان."
     },
     {
      "gloss": "بشير ومبشّر: حامل البشارة من الرسل",
      "verse": "2:119",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: حملُ البشارة غائب."
     },
     {
      "gloss": "استبشر ومستبشرة: فرح وظهر السرور على وجهه",
      "verse": "3:170",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الفرحُ غائب."
     },
     {
      "gloss": "الرياح بُشرًا ومبشّرات: مقدّمات للمطر",
      "verse": "7:57",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المطرُ والتقدّم غائبان."
     },
     {
      "gloss": "البشر: الإنسان",
      "verse": "3:47",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإنسانُ غائب."
     },
     {
      "gloss": "باشر: لامس المرأة (الجماع)",
      "verse": "2:187",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الملامسةُ غائبة."
     }
    ],
    "collision_with": [],
@@ -2677,77 +2955,92 @@
     {
      "gloss": "البصر / الأبصار: حاسة الرؤية والعين",
      "verse": "67:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الرؤيةُ غائبة."
     },
     {
      "gloss": "أبصر / يبصرون: رأى بعينه",
      "verse": "7:198",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الرؤيةُ غائبة."
     },
     {
      "gloss": "بصير ضد الأعمى: سليم البصر",
      "verse": "12:96",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: سلامةُ البصر غائبة."
     },
     {
      "gloss": "مبصرون / على بصيرة: مدركون بالقلب متبيّنون للحق",
      "verse": "7:201",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإدراكُ غائب."
     },
     {
      "gloss": "بصير (صفة الله): عالم مطّلع على الأعمال",
      "verse": "2:96",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العلمُ غائب."
     },
     {
      "gloss": "بصائر: حجج بيّنة وهدى يُبصَر به",
      "verse": "6:104",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحجّةُ والهدى غائبان."
     },
     {
      "gloss": "تبصرة: تذكير وعبرة تفتح الإدراك",
      "verse": "50:8",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التذكيرُ والإدراك غائبان."
     },
     {
      "gloss": "النهار مبصرا: مضيئا يُبصَر فيه",
      "verse": "10:67",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الضياءُ غائب."
     },
     {
      "gloss": "آياتنا مبصرة / الناقة مبصرة: بيّنة واضحة",
      "verse": "27:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوضوحُ غائب."
     },
     {
      "gloss": "أولي الأبصار: ذوو العقول والاعتبار",
      "verse": "59:2",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقلُ غائب."
     },
     {
      "gloss": "بصرت بما لم يبصروا به: علمت وأدركت ما خفي عليهم",
      "verse": "20:96",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العلمُ والإدراك غائبان."
     },
     {
      "gloss": "مستبصرين: ذوي عقل وتمييز",
      "verse": "29:38",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقلُ والتمييز غائبان."
     },
     {
      "gloss": "يُبَصَّرونهم: يُرَون إياهم ويُعرَّفونهم",
      "verse": "70:11",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الرؤيةُ والتعريف غائبان."
     },
     {
      "gloss": "على نفسه بصيرة: شاهد عليها وحجة",
      "verse": "75:14",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الشهادةُ غائبة."
     },
     {
      "gloss": "أبصر به وأسمع: صيغة تعجب من قوة إبصاره",
      "verse": "18:26",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإبصارُ والتعجّب غائبان."
     }
    ],
    "collision_with": [],
@@ -2789,72 +3082,86 @@
     {
      "gloss": "بَيْنَ: الموضع الفاصل الواقع وسط شيئين أو حدّين",
      "verse": "2:164",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: البينيّةُ بين شيئين غائبة."
     },
     {
      "gloss": "بَيْنَ ذلك: الوسط بين طرفين أو حالين",
      "verse": "2:68",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الوسطُ غائب."
     },
     {
      "gloss": "بَيْنَهم: ما يقع بين طرفين من علاقة أو خصومة أو حكم",
      "verse": "4:35",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: ما بين طرفين غائب."
     },
     {
      "gloss": "لما بين يديه: ما تقدّمه وسبقه زمانًا",
      "verse": "2:97",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السبقُ في الزمن غائب؛ «ممتد زمانياً» امتدادٌ لا تقدّم."
     },
     {
      "gloss": "من بين أيديهم: من أمامهم وقُدّامهم",
      "verse": "7:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأمامُ غائب."
     },
     {
      "gloss": "بَيْنُكم / ذات بينكم: الوصل والصلة التي تجمع القوم",
      "verse": "6:94",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصلةُ الاجتماعية غائبة؛ «جمع مستقر» جمعٌ لا وصلُ قوم."
     },
     {
      "gloss": "بيّن يبيّن: أوضح الشيء وكشفه لغيره",
      "verse": "2:187",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإيضاحُ غائب، والخاتمةُ «ستر» تنافيه."
     },
     {
      "gloss": "تبيّن / استبان: ظهر واتّضح وانكشف",
      "verse": "2:256",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الظهورُ غائب، والخاتمةُ «ستر» تنافيه."
     },
     {
      "gloss": "فتبيّنوا: تثبّتوا وتحقّقوا حتى يظهر الأمر",
      "verse": "49:6",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التحقّقُ غائب."
     },
     {
      "gloss": "البيّنة / البيّنات: الحجة الواضحة والبرهان الظاهر",
      "verse": "2:87",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحجّةُ غائبة."
     },
     {
      "gloss": "مبين / مبيّنة: ظاهر بيّن لا خفاء فيه",
      "verse": "2:168",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الظهورُ غائب، والخاتمةُ «ستر» تنافيه."
     },
     {
      "gloss": "الكتاب المبين: المُظهِر الموضِّح لما فيه",
      "verse": "12:1",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإظهارُ غائب."
     },
     {
      "gloss": "البيان / يُبين: الإفصاح عمّا في النفس بالكلام",
      "verse": "55:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإفصاحُ بالكلام غائب."
     },
     {
      "gloss": "بيان: الإيضاح والشرح لما أُنزل",
      "verse": "75:19",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإيضاحُ غائب."
     }
    ],
    "collision_with": [],
@@ -2896,62 +3203,74 @@
     {
      "gloss": "اتّبع: اقتدى وأطاع وسلك طريق غيره (الرسول، الهدى، الملة)",
      "verse": "3:31",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاقتداءُ والطاعة غائبان."
     },
     {
      "gloss": "اتّباع الهوى والظن: الانقياد لما لا حجة فيه",
      "verse": "6:116",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الانقيادُ غائب."
     },
     {
      "gloss": "أتبعهم / اتّبع أدبارهم: سار خلفهم ولحق بهم حسًّا",
      "verse": "20:78",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السيرُ خلفَ غيرٍ غائب."
     },
     {
      "gloss": "أتبعه شهاب: لحقه وطارده",
      "verse": "15:18",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: اللحاقُ والمطاردة غائبان."
     },
     {
      "gloss": "أُتبعوا لعنة / أتبعنا بعضهم بعضا: أُلحقوا وأُردفوا به",
      "verse": "11:60",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإلحاقُ غائب."
     },
     {
      "gloss": "يتبعها أذى / تتبعها الرادفة: جاء بعدها وتلاها",
      "verse": "79:7",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعاقبُ غائب."
     },
     {
      "gloss": "أتبع سببا: سلك طريقا وسار فيه",
      "verse": "18:85",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السيرُ في الطريق غائب."
     },
     {
      "gloss": "تَبَعًا: أتباعًا تابعين لغيرهم",
      "verse": "14:21",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأتباعُ غائبون."
     },
     {
      "gloss": "التابعين غير أولي الإربة: من يلحقون بالبيت ويخدمونه",
      "verse": "24:31",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الخدمةُ غائبة."
     },
     {
      "gloss": "تبيعًا: مطالبًا بالثأر ونصيرًا يتعقّب",
      "verse": "17:69",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الثأرُ غائب."
     },
     {
      "gloss": "فاتّباع بالمعروف: مطالبة ولي الدم بالدية بإحسان",
      "verse": "2:178",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المطالبةُ بالدية غائبة."
     },
     {
      "gloss": "متتابعين: متواليين بلا انقطاع",
      "verse": "4:92",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التوالي بلا انقطاع غائب."
     }
    ],
    "collision_with": [],
@@ -2993,67 +3312,80 @@
     {
      "gloss": "جمع: ضمّ المتفرّق من أشخاص أو أشياء",
      "verse": "26:38",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«جمع متصل» في الجسد يحمل ضمَّ المتفرّق؛ الفاتحةُ «جهد أو شدة» والخاتمةُ «عمق» لا تناقضانه."
     },
     {
      "gloss": "جمع مالا / مما يجمعون: كنز المال وادّخاره",
      "verse": "104:2",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«جمع متصل» يحمل الجمعَ والإمساك؛ المالُ تعيينُ المجموع."
     },
     {
      "gloss": "جمع الناس ليوم القيامة: حشرهم للحساب (يوم الجمع)",
      "verse": "3:9",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحشرُ للحساب غائب."
     },
     {
      "gloss": "أجمعوا أمرهم: عزموا عليه وأحكموه",
      "verse": "10:71",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العزمُ والإحكام غائبان."
     },
     {
      "gloss": "جميعا: كلهم أو معًا غير متفرّقين",
      "verse": "4:71",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«جمع متصل» يحمل الاجتماعَ وعدمَ التفرّق."
     },
     {
      "gloss": "أجمعين / أجمعون: توكيد الشمول",
      "verse": "15:30",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: توكيدُ الشمول غائب."
     },
     {
      "gloss": "الجمع / الجمعان: الجماعة والجيش",
      "verse": "3:155",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الجيشُ غائب."
     },
     {
      "gloss": "اجتمعوا: تعاونوا وتظاهروا على أمر",
      "verse": "17:88",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التعاونُ والتظاهر غائبان."
     },
     {
      "gloss": "مجمع البحرين: ملتقاهما",
      "verse": "18:60",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموضعُ الملتقى غائب."
     },
     {
      "gloss": "تجمعوا بين الأختين: تضمّوهما في نكاح واحد",
      "verse": "4:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النكاحُ غائب."
     },
     {
      "gloss": "أمر جامع: شأن يجتمع له الناس",
      "verse": "24:62",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الشأنُ غائب."
     },
     {
      "gloss": "يوم الجمعة: اليوم الذي يُجتمع فيه للصلاة",
      "verse": "62:9",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: اليومُ والصلاة غائبان."
     },
     {
      "gloss": "جمعه وقرآنه: حفظه وضمّه في الصدر",
      "verse": "75:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحفظُ غائب."
     }
    ],
    "collision_with": [],
@@ -3095,72 +3427,86 @@
     {
      "gloss": "دعا ربه: سأله وتضرع إليه بطلب",
      "verse": "3:38",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السؤالُ والتضرّع غائبان."
     },
     {
      "gloss": "يدعون من دون الله: يعبدون غيره ويتوجهون إليه",
      "verse": "6:56",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العبادةُ غائبة."
     },
     {
      "gloss": "دعا إلى كذا: حثّ عليه ورغّب فيه (إلى الله، إلى الهدى، إلى النار)",
      "verse": "16:125",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحثُّ والترغيب غائبان."
     },
     {
      "gloss": "دعاه: ناداه ليحضر ويأتي إليه",
      "verse": "28:25",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النداءُ غائب."
     },
     {
      "gloss": "ادعوا شهداءكم: استعينوا بهم واستنصروهم",
      "verse": "2:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الاستعانةُ غائبة."
     },
     {
      "gloss": "دعوة البعث: نداء الخلق للخروج يوم القيامة (الداعي)",
      "verse": "30:25",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النداءُ والبعث غائبان."
     },
     {
      "gloss": "دعواهم: قولهم وما ينطقون به",
      "verse": "10:10",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القولُ غائب."
     },
     {
      "gloss": "يَدَّعون: يطلبون ويتمنّون ما يشتهون في الجنة",
      "verse": "36:57",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطلبُ والتمنّي غائبان."
     },
     {
      "gloss": "تَدَّعون: تطلبون وتستعجلون ما كنتم تنكرونه",
      "verse": "67:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الطلبُ والاستعجال غائبان."
     },
     {
      "gloss": "ادعوهم لآبائهم: انسبوهم وسمّوهم بهم",
      "verse": "33:5",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النسبةُ غائبة."
     },
     {
      "gloss": "أن دعوا للرحمن ولدا: نسبوا إليه ولدا وزعموه",
      "verse": "19:91",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النسبةُ والزعم غائبان."
     },
     {
      "gloss": "ادعوا الله أو ادعوا الرحمن: سمّوه ونادوه بهذا الاسم",
      "verse": "17:110",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التسميةُ والنداء غائبان."
     },
     {
      "gloss": "أدعياؤكم: المتبنَّون المنسوبون إلى غير آبائهم",
      "verse": "33:4",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التبنّي غائب."
     },
     {
      "gloss": "دعوا ثبورا: صاحوا بالهلاك ونادوه على أنفسهم",
      "verse": "25:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصياحُ والنداء غائبان."
     }
    ],
    "collision_with": [],
@@ -3202,47 +3548,56 @@
     {
      "gloss": "عند: ظرف للقرب المكاني الحسّي",
      "verse": "2:191",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: القربُ غائب، والفاتحةُ «بُعد» تنافيه."
     },
     {
      "gloss": "عند رسول الله: في حضرة الشخص ومجلسه",
      "verse": "49:3",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحضرةُ والمجلس غائبان."
     },
     {
      "gloss": "عند الله: في حكمه وميزانه وتقديره",
      "verse": "49:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحكمُ والتقدير غائبان."
     },
     {
      "gloss": "عند ربهم: ما أُعدّ لهم محفوظًا في جوار الله",
      "verse": "2:62",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإعدادُ والجوار غائبان."
     },
     {
      "gloss": "من عند الله: الصادر من جهته ومصدره",
      "verse": "2:79",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصدورُ من جهة غائب."
     },
     {
      "gloss": "عندي / عندهم: الملك والحيازة لما في اليد",
      "verse": "6:50",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الملكُ والحيازة غائبان."
     },
     {
      "gloss": "عنده علم الساعة: اختصاص العلم به",
      "verse": "31:34",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: اختصاصُ العلم غائب."
     },
     {
      "gloss": "عنده الكبر: في كنفه ورعايته",
      "verse": "17:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الكنفُ والرعاية غائبان."
     },
     {
      "gloss": "عنيد: المعاند المجاوز للحق التارك طريق الاستقامة",
      "verse": "11:59",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المعاندةُ غائبة."
     }
    ],
    "collision_with": [],
@@ -3284,47 +3639,56 @@
     {
      "gloss": "مِثْل: النظير والشبيه المساوي في الجنس أو الصفة",
      "verse": "18:110",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المماثلةُ غائبة."
     },
     {
      "gloss": "بمثل / مثل حظ: القدر المساوي في المقدار أو الجزاء",
      "verse": "2:194",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: المساواةُ في المقدار غائبة."
     },
     {
      "gloss": "ضرب المَثَل: التشبيه المضروب للإيضاح والعبرة",
      "verse": "14:24",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التشبيهُ غائب."
     },
     {
      "gloss": "مَثَل الشيء: صفته وحاله",
      "verse": "13:35",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصفةُ والحال غائبتان."
     },
     {
      "gloss": "جعلناهم مثلا: عبرة ونموذجا يُقتدى به أو يُعتبر",
      "verse": "43:56",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العبرةُ والنموذج غائبان."
     },
     {
      "gloss": "المَثُلات: العقوبات النازلة بمن سبق",
      "verse": "13:6",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العقوباتُ غائبة."
     },
     {
      "gloss": "تمثّل لها بشرا: ظهر في صورة البشر وهيئته",
      "verse": "19:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: التصوّرُ في هيئة غائب."
     },
     {
      "gloss": "التماثيل: الصور المصنوعة على هيئة غيرها",
      "verse": "21:52",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصورُ المصنوعة غائبة."
     },
     {
      "gloss": "المُثْلى / أمثلهم: الأفضل والأعدل",
      "verse": "20:63",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الأفضليّةُ غائبة."
     }
    ],
    "collision_with": [],
@@ -3366,62 +3730,74 @@
     {
      "gloss": "الموت: مفارقة الحياة وحضور الأجل",
      "verse": "2:180",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموتُ غائب."
     },
     {
      "gloss": "أمات يميت: إيقاع الله الموت على خلقه",
      "verse": "2:258",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإماتةُ غائبة."
     },
     {
      "gloss": "الموتى / الأموات: من فارقوا الحياة ويُبعثون",
      "verse": "2:73",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموتى غائبون."
     },
     {
      "gloss": "كنتم أمواتًا: حال العدم قبل الإحياء الأول",
      "verse": "2:28",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: العدمُ قبل الإحياء غائب."
     },
     {
      "gloss": "الميتة: الحيوان الذي مات دون تذكية",
      "verse": "2:173",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الميتةُ غائبة."
     },
     {
      "gloss": "موت الأرض / بلد ميت: همودها وجدبها بلا نبات",
      "verse": "2:164",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: همودُ الأرض غائب."
     },
     {
      "gloss": "الميت من الحيّ: ما لا حياة فيه كالنطفة والحبّ",
      "verse": "6:95",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: انعدامُ الحياة غائب."
     },
     {
      "gloss": "كان ميتًا فأحييناه / لا تُسمع الموتى: الضالّ الذي لا يستجيب للهدى",
      "verse": "6:122",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الضلالُ غائب."
     },
     {
      "gloss": "يأتيه الموت من كل مكان: أسباب الهلاك وشدائده دون وقوعه",
      "verse": "14:17",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: أسبابُ الهلاك غائبة."
     },
     {
      "gloss": "المغشيّ عليه من الموت: سكرة الموت وغشيته",
      "verse": "47:20",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: سكرةُ الموت غائبة."
     },
     {
      "gloss": "موتوا بغيظكم: دعاء بالهلاك كناية عن شدة الغيظ",
      "verse": "3:119",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الدعاءُ بالهلاك غائب."
     },
     {
      "gloss": "لم تمت في منامها: الموت مقابَلًا بالنوم الذي تُتوفّى فيه الأنفس",
      "verse": "39:42",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الموتُ والنوم غائبان."
     }
    ],
    "collision_with": [],
@@ -3463,17 +3839,20 @@
     {
      "gloss": "النهر والأنهار: مجرى الماء الجاري",
      "verse": "2:249",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الماءُ والمجرى غائبان."
     },
     {
      "gloss": "النهار: وقت الضياء المقابل لليل",
      "verse": "3:27",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: النهارُ والضياء غائبان."
     },
     {
      "gloss": "نَهَرَ: زجر وأغلظ في القول",
      "verse": "17:23",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الزجرُ غائب."
     }
    ],
    "collision_with": [],
@@ -3515,74 +3894,88 @@
     {
      "gloss": "الضرب باليد أو بالآلة: إيقاعُ جسمٍ على جسم",
      "verse": "8:12",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«دفع شديد جداً، متوقف» في الفاتحة: دفعٌ شديد ينتهي عند جسم، وهو إيقاعُ جسمٍ على جسم؛ اليدُ والآلة تعيين."
     },
     {
      "gloss": "الضرب في الأرض: السفر والسير فيها",
      "verse": "4:101",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السفرُ والسير غائبان."
     },
     {
      "gloss": "ضرب المثل: إيرادُه وبيانُه",
      "verse": "2:26",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: إيرادُ المثل غائب."
     },
     {
      "gloss": "ضرب الحاجز: إقامتُه بين شيئين",
      "verse": "57:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: البينيّةُ والحاجز غائبان."
     },
     {
      "gloss": "ضُرِبت عليهم الذلة: إلزامُها إياهم وإحاطتُها بهم",
      "verse": "2:61",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإلزامُ والإحاطة غائبان."
     }
    ],
    "uses_blind": [
     {
      "gloss": "ضرب بالعصا وباليد: أوقع الضربة",
      "verse": "2:60",
-     "verdict": "not_judged"
+     "verdict": "covered",
+     "reason": "«دفع شديد جداً، متوقف»: إيقاعُ الضربة نفسُه؛ العصا واليد تعيين."
     },
     {
      "gloss": "ضرب مثلًا: ذكره وبيّنه",
      "verse": "2:26",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: ذكرُ المثل غائب."
     },
     {
      "gloss": "ضرب في الأرض: سافر وسعى",
      "verse": "4:101",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: السفرُ غائب."
     },
     {
      "gloss": "ضُربت عليهم الذلة: أُلزموها وأحاطت بهم",
      "verse": "2:61",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإلزامُ والإحاطة غائبان."
     },
     {
      "gloss": "ضربنا على آذانهم: أنمناهم وسددنا سمعهم",
      "verse": "18:11",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإنامةُ وسدُّ السمع غائبان."
     },
     {
      "gloss": "ضرب لهم طريقًا: جعل وشقّ",
      "verse": "20:77",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: شقُّ الطريق غائب."
     },
     {
      "gloss": "ليضربن بخمرهن: ليُسدلنها ويلقينها",
      "verse": "24:31",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الإسدالُ غائب."
     },
     {
      "gloss": "ضُرب بينهم بسور: أُقيم حاجز",
      "verse": "57:13",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الحاجزُ غائب."
     },
     {
      "gloss": "نضرب عنكم الذكر صفحًا: نصرفه ونعرض به عنكم",
      "verse": "43:5",
-     "verdict": "not_judged"
+     "verdict": "not_covered",
+     "reason": "imported: الصرفُ والإعراض غائبان."
     }
    ],
    "calibration": {
