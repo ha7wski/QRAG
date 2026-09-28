@@ -44,12 +44,12 @@
 
 ## 6. Uses freeze (no reading generated)
 
-- [ ] 6.1 Add `islambouli_attestation.json` path, manifest entry, loader; meta carrying the ordering, the inherited criterion verbatim, the two D7 applications, and who wrote the uses and what they had read (per the answer to Open Question 1)
-- [ ] 6.2 Build the inline input bundle (procedure, 40 roots + `ضرب`, occurrences, Maqāyīs verbatim); dispatch the blind, tool-free sub-agent; store its prompt and raw output in the meta
-- [ ] 6.2b Record the 40 roots' uses from that output (verse-membership check only; failures recorded, not hand-repaired); copy `ضرب`'s five reference uses unchanged and store the blind ones as `uses_blind`
-- [ ] 6.2c Match `ضرب` reference ↔ blind uses with reasons, before any `ضرب` reading is looked at; compute the concordance verdict by the fixed rule
-- [ ] 6.3 Validator: every verse belongs to its root; all verdicts `not_judged`; `ضرب` identical across files; no reading recorded
-- [ ] 6.4 Commit the frozen uses
+- [x] 6.1 Add `islambouli_attestation.json` path, manifest entry, loader; meta carrying the ordering, the inherited criterion verbatim, the two D7 applications, and who wrote the uses and what they had read (per the answer to Open Question 1)
+- [x] 6.2 Build the inline input bundle (procedure, 40 roots + `ضرب`, occurrences, Maqāyīs verbatim); dispatch the blind, tool-free sub-agent; store its prompt and raw output in the meta
+- [x] 6.2b Record the 40 roots' uses from that output (verse-membership check only; failures recorded, not hand-repaired); copy `ضرب`'s five reference uses unchanged and store the blind ones as `uses_blind`
+- [x] 6.2c Match `ضرب` reference ↔ blind uses with reasons, before any `ضرب` reading is looked at; compute the concordance verdict by the fixed rule
+- [x] 6.3 Validator: every verse belongs to its root; all verdicts `not_judged`; `ضرب` identical across files; no reading recorded
+- [x] 6.4 Commit the frozen uses
 
 ## 7. Generate, judge, compute
 

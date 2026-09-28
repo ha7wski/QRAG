@@ -310,6 +310,21 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_islambouli_datasets.py",),
         regenerable=False,
     ),
+    "ISLAMBOULI_ATTESTATION_JSON": Entry(
+        bucket="references",
+        what="The Islambouli confrontation record k/40 is computed from: per "
+             "witness root, uses (gloss + one own verse) frozen before its "
+             "reading existed, then per-use verdicts with a classed reason on "
+             "every miss; `ضرب` with its closed-run uses and a blind calibration "
+             "copy.",
+        origin="Uses written by blind sub-agents from a reproducible bundle "
+               "(scripts/record_islambouli_verdicts.py bundle); prompts, raw "
+               "outputs' digests and the bundle digests are in the meta. "
+               "Verdicts by the curator under the inherited criterion.",
+        producer="scripts/record_islambouli_verdicts.py",
+        consumers=("scripts/validate_islambouli_datasets.py",),
+        regenerable=False,
+    ),
     "ISLAMBOULI_WITNESS_SET_JSON": Entry(
         bucket="references",
         what="The second 40-root holdout, for the Islambouli letter table: seed "

@@ -384,6 +384,12 @@ the reservations, **with the number and not by reference**:
   not only in severity. So the claim "this can only lower `k`" is plausible but **not demonstrated**.
   The `ضرب` calibration is the only measurement of that difference, and its figures are printed here:
   reference uses, blind uses, matched, unmatched on each side, and the concordance verdict.
+  **As measured at the freeze:** the blind writers produced **379** uses for the 40 roots, against
+  **183** in the closed run, about twice as fine. On `ضرب`, all 5 reference uses have a blind match,
+  and the blind writer adds 4 more (5 against 9 → `partial` under the fixed rule). The difference
+  in nature is therefore **granularity**, and its direction under a metric with no partial credit
+  is known: a finer list is harder to cover. So `k` for this table is measured on harder lists than
+  `0 / 40` was.
 - **R6 (samples).** The two numbers share a frame and a method, not a sample: they are two
   independent draws of 40. `ضرب` is the only root judged against identical uses under both.
 
@@ -415,12 +421,19 @@ schema, route or frontend change; nothing to roll back in production.
 
 ### D13 — The uses are written blind, and the writer is calibrated on `ضرب`
 
-**Writer.** The `uses[]` of the 40 are written by a fresh sub-agent that has never seen the poster.
-Its prompt carries, **inline**, everything it may use: the procedure (D7), the root list, each root's
-`morphology.json` occurrences and its Maqāyīs `verbatim`. It is told to use no tool, so no file of
-the repository — the Islambouli files, and `concept_attestation.json` in particular — can enter its
-context. That restriction is **by instruction**; the harness does not enforce it, and the meta says
-so. The prompt goes into `islambouli_attestation.json`'s meta verbatim, and so does the returned
+**Writer.** The `uses[]` of the 40 are written by fresh sub-agents that have never seen the poster.
+Their input is built by `scripts/record_islambouli_verdicts.py bundle`: the procedure (D7), then per
+root its Maqāyīs `verbatim` and every occurrence verse, vocalized. It contains nothing from the
+letter table and no example drawn from the closed run's uses, because an example would pass the
+non-blind writer's manner to the blind one. **As applied:** the 41 roots carry about 644 000 characters
+of verse text, which does not fit one prompt. The bundle is therefore split, deterministically, into
+5 batches under **one template**, and each batch is written by its own sub-agent, with `ضرب` in
+batch 4. Pasting 690 000 characters into five tool calls would have cost that much output again for
+identical content. So each agent is given the path of its batch file and told that reading that one
+file is the only tool call it may make. The restriction — no other file, and so neither the
+Islambouli files nor `concept_attestation.json` — is **by instruction**, as before, and the harness
+does not enforce it. The meta records this, together with each batch file's sha256 (the bundle is
+reproducible byte for byte). The prompt goes into `islambouli_attestation.json`'s meta verbatim, and so does the returned
 output before any editing. Editing that output is limited to checking that each verse belongs to its
 root; a failed check is recorded, not repaired by hand.
 

@@ -81,6 +81,11 @@ CONCEPT_WITNESS_SET_JSON = REFERENCES / "concept_witness_set.json"
 # 20260928 from the same frame minus the 40 above (whose uses have been read), and
 # committed BEFORE a single row of that table was transcribed.
 ISLAMBOULI_WITNESS_SET_JSON = REFERENCES / "islambouli_witness_set.json"
+# The Islambouli confrontation record: per root of the second holdout, uses
+# written BLIND to the table and frozen before any reading was generated, then
+# per-use verdicts; `ضرب` carries its closed-run uses unchanged plus a blind copy
+# (`uses_blind`) that calibrates the writer and counts in no k.
+ISLAMBOULI_ATTESTATION_JSON = REFERENCES / "islambouli_attestation.json"
 # Samer Islambouli's letter table, transcribed from the poster below and never
 # curated: each row is the printed text, plus a copy of it that differs only in
 # whitespace. `status` is `transcribed_from_poster` for every row, because no page

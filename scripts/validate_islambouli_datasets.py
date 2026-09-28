@@ -27,6 +27,13 @@ the data it checks:
      under the same whitespace-only rule as the rows, and rests the attribution
      on that imprint; no history entry justifies itself by a root or a result.
 
+  E. the uses and the metric — every use is evidenced by one of its root's own
+     verses; `ضرب` carries the closed run's uses unchanged plus the blind
+     calibration copy, whose concordance verdict is recomputed from its matches;
+     then the harness's own ordering gate and strict metric
+     (`linguistics/lisan/harness/verdicts.py`), unchanged, under this record's
+     names.
+
 The one risk a transcribed table carries is a wrong copy. Section B makes the
 copy's only permitted liberty — whitespace — mechanically checkable, and the
 image it was copied from identifiable by digest.
@@ -51,6 +58,11 @@ from quran_data.paths import (  # noqa: E402
     ISLAMBOULI_POSTER_PNG,
 )
 from linguistics.lisan.harness import draw  # noqa: E402
+from linguistics.lisan.harness.verdicts import (  # noqa: E402
+    RecordSpec,
+    check_attestation,
+    records as _records,
+)
 
 LABEL_WITNESS = "islambouli_witness_set.json"
 LABEL_TABLE = "islambouli_letters.csv"
@@ -87,6 +99,8 @@ class Datasets:
     witness: dict                        # islambouli_witness_set.json
     grid: dict | None                    # islambouli_letters_grid.json, once written
     lock: dict | None                    # islambouli_letters.lock.json, once written
+    attestation: dict | None             # islambouli_attestation.json, once written
+    closed_attestation: dict             # concept_attestation.json — ضرب's reference uses
     table_bytes: bytes                   # the raw CSV bytes the lock's digest is over
     table: list[dict]                    # islambouli_letters.csv rows
     poster_sha256: str                   # digest of the witness image on disk
@@ -100,6 +114,8 @@ class Datasets:
             witness=loaders.islambouli_witness_set(),
             grid=_read_grid(),
             lock=_read_lock(),
+            attestation=_read_attestation(),
+            closed_attestation=loaders.concept_attestation(),
             table_bytes=ISLAMBOULI_LETTERS_CSV.read_bytes(),
             table=loaders.islambouli_letters(),
             poster_sha256=hashlib.sha256(ISLAMBOULI_POSTER_PNG.read_bytes()).hexdigest(),
@@ -551,12 +567,113 @@ def check_lock(data: Datasets) -> list[str]:
     return findings
 
 
+# ── E. the uses, the calibration and the metric ──────────────────────────────
+LABEL_ATTESTATION = "islambouli_attestation.json"
+ISLAMBOULI_RECORD = RecordSpec(
+    label=LABEL_ATTESTATION,
+    path_label="data/references/islambouli_attestation.json",
+    recorded_field="reading_recorded_at",
+    noun="reading",
+    off_set_reason=("it is the closed run's development case, carried over with "
+                    "its uses unchanged; it is the one root judged against "
+                    "identical uses under both tables, and tests neither."),
+)
+# design.md §D13, fixed before the blind uses existed.
+CONCORDANT_MIN_MATCHED = 4
+CONCORDANT_MAX_BLIND_UNMATCHED = 2
+STRONG_DIVERGENCE_BELOW = 3
+
+
+def _read_attestation() -> dict | None:
+    from quran_data.paths import ISLAMBOULI_ATTESTATION_JSON
+    if not ISLAMBOULI_ATTESTATION_JSON.exists():
+        return None
+    return loaders.islambouli_attestation()
+
+
+def concordance(reference: int, blind: int, matched: int) -> str:
+    if matched >= CONCORDANT_MIN_MATCHED and blind - matched <= CONCORDANT_MAX_BLIND_UNMATCHED:
+        return "concordant"
+    if matched < STRONG_DIVERGENCE_BELOW:
+        return "strong divergence"
+    return "partial"
+
+
+def _use_pairs(uses) -> list[tuple[str, str]]:
+    return [(_text(u.get("gloss")), _text(u.get("verse")))
+            for u in uses or [] if isinstance(u, dict)]
+
+
+def check_uses(data: Datasets) -> list[str]:
+    att = data.attestation
+    if att is None:
+        return []
+    findings: list[str] = []
+    records = _records(att)
+    holdout = [_text(e.get("root")) for e in data.witness.get("roots") or []]
+    for root in holdout + [draw.DEVELOPMENT_CASE]:
+        record = records.get(root)
+        if record is None:
+            findings.append(f"{LABEL_ATTESTATION}: «{root}» has no record")
+            continue
+        own = set((data.morphology.get(root) or {}).get("verses") or [])
+        for field in ("uses", "uses_blind"):
+            for j, (gloss, verse) in enumerate(_use_pairs(record.get(field))):
+                if verse and verse not in own:
+                    findings.append(
+                        f"{LABEL_ATTESTATION}: «{root}» {field}[{j}] cites {verse}, "
+                        "where the root does not occur — not an attested use of it"
+                    )
+
+    dev = records.get(draw.DEVELOPMENT_CASE) or {}
+    reference = _use_pairs((_records(data.closed_attestation).get(draw.DEVELOPMENT_CASE)
+                            or {}).get("uses"))
+    if _use_pairs(dev.get("uses")) != reference:
+        findings.append(
+            f"{LABEL_ATTESTATION}: «{draw.DEVELOPMENT_CASE}»'s uses are not the closed "
+            "run's, unchanged — it is the one root judged against identical uses "
+            "under both tables"
+        )
+    calibration = dev.get("calibration")
+    if dev and not dev.get("uses_blind"):
+        findings.append(f"{LABEL_ATTESTATION}: «{draw.DEVELOPMENT_CASE}» has no `uses_blind`")
+    if isinstance(calibration, dict):
+        blind = _use_pairs(dev.get("uses_blind"))
+        matches = calibration.get("matches") or []
+        ref_idx = [m.get("reference") for m in matches if isinstance(m, dict)]
+        blind_idx = [m.get("blind") for m in matches if isinstance(m, dict)]
+        if len(set(ref_idx)) != len(ref_idx) or len(set(blind_idx)) != len(blind_idx):
+            findings.append(f"{LABEL_ATTESTATION}: a calibration use is matched twice")
+        if any(not isinstance(i, int) or not 0 <= i < len(reference) for i in ref_idx) or \
+                any(not isinstance(i, int) or not 0 <= i < len(blind) for i in blind_idx):
+            findings.append(f"{LABEL_ATTESTATION}: a calibration match points nowhere")
+        if any(not _text(m.get("reason")) for m in matches if isinstance(m, dict)):
+            findings.append(f"{LABEL_ATTESTATION}: a calibration match has no reason")
+        computed = concordance(len(reference), len(blind), len(matches))
+        if _text(calibration.get("verdict")) != computed:
+            findings.append(
+                f"{LABEL_ATTESTATION}: calibration verdict «{calibration.get('verdict')}», "
+                f"the fixed rule gives «{computed}» — computed, never chosen"
+            )
+    elif dev.get("uses_blind"):
+        findings.append(f"{LABEL_ATTESTATION}: «{draw.DEVELOPMENT_CASE}» has blind uses "
+                        "and no `calibration`")
+    return findings
+
+
+def metric(data: Datasets):
+    holdout = tuple(_text(e.get("root")) for e in data.witness.get("roots") or [])
+    return check_attestation(data.attestation, holdout, ISLAMBOULI_RECORD)
+
+
 # ── entry points ─────────────────────────────────────────────────────────────
 def validate(data: Datasets | None = None) -> list[str]:
     """Every finding, in section order. Empty == clean."""
     data = data or Datasets.load()
     _replay, witness_findings = check_witness_set(data)
-    return [*witness_findings, *check_table(data), *check_grid(data), *check_lock(data)]
+    _metric, metric_findings = metric(data)
+    return [*witness_findings, *check_table(data), *check_grid(data), *check_lock(data),
+            *check_uses(data), *metric_findings]
 
 
 def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
@@ -601,6 +718,23 @@ def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
         print(f"    rows with ≥ 2 slots           : "
               f"{primary['rows_with_two_or_more_slots']} / {len(rows)} "
               f"(a `list` below {LIST_THRESHOLD})")
+    if data.attestation is not None:
+        recs = _records(data.attestation)
+        holdout = [_text(e.get("root")) for e in w.get("roots") or []]
+        n_uses = sum(len(recs.get(r, {}).get("uses") or []) for r in holdout)
+        dev = recs.get(draw.DEVELOPMENT_CASE) or {}
+        cal = dev.get("calibration") or {}
+        print()
+        print(f"  uses                 : {n_uses} for the {len(holdout)} witness roots, "
+              "written blind to the table")
+        print(f"    calibration «{draw.DEVELOPMENT_CASE}» : reference {cal.get('reference_count')}, "
+              f"blind {cal.get('blind_count')}, matched {cal.get('matched')} → "
+              f"{str(cal.get('verdict', '?')).upper()}")
+        m_, _f = metric(data)
+        if not m_.printable:
+            for line in (m_.note or "").split(". "):
+                if line:
+                    print(f"    {line.rstrip('.')}.")
     if not findings:
         print("\n  findings: none — the Islambouli datasets are consistent.")
     else:

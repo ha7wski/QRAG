@@ -287,6 +287,12 @@ def islambouli_letters_grid() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_attestation() -> dict:
+    """The Islambouli confrontation record — uses, then verdicts."""
+    return _json("ISLAMBOULI_ATTESTATION_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_witness_set() -> dict:
     """The second 40-root holdout, for the Islambouli letter table.
 

@@ -1,0 +1,2435 @@
+{
+ "meta": {
+  "name": "islambouli-attestation",
+  "description": "The frozen expectation the Islambouli table's k/40 is judged against: per root of the second holdout, its Quranic uses (gloss + one own verse), written BLIND to the letter table and committed before any reading of these roots existed; then per-use verdicts once the readings exist.",
+  "state": "FROZEN, AWAITING GENERATION. All 40 roots of the second holdout and ضرب have their uses on file; no reading of any of them has been generated.",
+  "the_ordering_is_the_protocol": [
+   "A root's `uses[]` is written and committed FIRST, from morphology.json's occurrence list and the aṣl's verbatim, with the concept not yet generated.",
+   "The reading is generated afterwards, blind: nothing under linguistics/lisan/islambouli/ but confront.py may read the aṣl or the uses, and an import boundary enforces it.",
+   "Only then is each use judged `covered` or `not_covered`, and `reading_recorded_at` stamped."
+  ],
+  "how_these_uses_were_written": {
+   "writer": "Five fresh sub-agents that never saw the poster, the table or its files, one per batch of the bundle built by `python scripts/record_islambouli_verdicts.py bundle <dir>` (deterministic: the same command reproduces every batch byte for byte; digests below).",
+   "input": "Per root: Ibn Fāris' aṣl verbatim from maqayis_asl.csv and every occurrence verse from morphology.json, vocalized from quran_chakl.csv with the Basmala stripped. The procedure is the template in record_islambouli_verdicts.py (PROMPT_TEMPLATE). No example use was given: an example drawn from the closed run would have passed its writer's manner to the blind one.",
+   "dispatch_prompt": "Read the file <batch file> in full with the Read tool (use offset/limit to page through it until you have read every line). That is the ONLY tool call you may make and the ONLY file you may read: do not search, do not run commands, do not open any other file or directory. Then carry out the instructions written at the top of that file exactly. Your final reply must be ONLY the JSON object those instructions ask for — no preamble, no commentary, no code fence.",
+   "why_a_file_and_not_inline": "The 41 roots carry about 644 000 characters of verse text, which does not fit one prompt, so the bundle is split into 5 batches under one template. Pasting them inline would have cost that much output again for identical content, so each agent was given the path of its own batch file.",
+   "restriction": "By instruction, not enforced by the harness. AUDITED AFTERWARDS: each agent's transcript shows exactly one kind of tool call — Read of its own batch file — and its final handback.",
+   "raw_outputs": "Each agent's final JSON was extracted mechanically from its transcript, not retyped, and recorded here unchanged. The only check applied is that each verse belongs to its root's occurrences: 0 failures.",
+   "batches": [
+    {
+     "batch": 1,
+     "roots": [
+      "أمن",
+      "غني"
+     ],
+     "bundle_sha256": "54932961d9847b44e4e6801f3206f403d5e73feb4be8d2a74fa73d7dced0c319",
+     "raw_output_sha256": "8a4d7458bdbd9cc2857874cbb87423dc473ab5ea28026bdc27ccce998016acf4",
+     "tool_calls_audited": "Read of its own batch file only (checked in the agent transcript); no other tool, no other file."
+    },
+    {
+     "batch": 2,
+     "roots": [
+      "بين",
+      "عند",
+      "موت"
+     ],
+     "bundle_sha256": "5320a0df7bce39725a7f99dba04464266199b6bc3097cd2af6049c1bc96096c7",
+     "raw_output_sha256": "dc21a787eb0ead34ebf23c467d759dc246534b7cc7ee9854bdb34a2ccd9a9bc4",
+     "tool_calls_audited": "Read of its own batch file only (checked in the agent transcript); no other tool, no other file."
+    },
+    {
+     "batch": 3,
+     "roots": [
+      "دعو",
+      "مثل",
+      "تبع",
+      "بصر",
+      "جمع",
+      "خلد",
+      "كشف"
+     ],
+     "bundle_sha256": "3f6fa62c0981e4dedb6f7976447a448e8a42a7afca82658e9deacc006a809010",
+     "raw_output_sha256": "4dfe6c94a174875859fc96c8d14c6205c6a090d71ff5cc18c39101bb8aca2998",
+     "tool_calls_audited": "Read of its own batch file only (checked in the agent transcript); no other tool, no other file."
+    },
+    {
+     "batch": 4,
+     "roots": [
+      "نهر",
+      "أذن",
+      "بشر",
+      "ضرب",
+      "شكر",
+      "سبح",
+      "بيت",
+      "كسب",
+      "ذهب",
+      "ريب",
+      "سحر",
+      "لعن"
+     ],
+     "bundle_sha256": "1b02cc59a4288b2ae641042541faeb0a3177a83b383944e52a638c0ec3c5a8d0",
+     "raw_output_sha256": "1032592d260f4fe35cc7a2986967aa04a7f5fe0bce1345199efc71c68532e29c",
+     "tool_calls_audited": "Read of its own batch file only (checked in the agent transcript); no other tool, no other file."
+    },
+    {
+     "batch": 5,
+     "roots": [
+      "بدو",
+      "قدم",
+      "قطع",
+      "عهد",
+      "يسر",
+      "عجل",
+      "أذي",
+      "نصب",
+      "صرف",
+      "سبق",
+      "فحش",
+      "حول",
+      "حين",
+      "هون",
+      "أدم",
+      "بوب",
+      "وقع"
+     ],
+     "bundle_sha256": "50d330d641f32c51cc93502db04ebc41f6ffd4f0782b7815592b2c5a632cc1f1",
+     "raw_output_sha256": "95087f06a272ad63788fd9bc5c0377456761513627ea1e705799334a901c7833",
+     "tool_calls_audited": "Read of its own batch file only (checked in the agent transcript); no other tool, no other file."
+    }
+   ],
+   "development_case": "ضرب was in batch 4, written by the same template in the same pass as 11 witness roots. Its blind uses are `uses_blind`; `uses` holds the closed run's five, unchanged."
+  },
+  "granularity_observed": {
+   "blind_uses_for_the_40": 379,
+   "closed_uses_for_its_40": 183,
+   "note": "The blind writer produced about twice as many uses per root as the closed run's curator (379 against 183). Under a metric where a root counts only when EVERY use is covered, a finer list is harder to cover. This is the difference in NATURE that R5 warned of, measured — it bears on how the two numbers compare, and it is reported with them, not corrected."
+  },
+  "coverage_criterion": {
+   "inherited_verbatim_from": "concept_attestation.json meta.coverage_criterion (committed ec3a807)",
+   "rule": "A use is `covered` when a reader given ONLY the realised row texts, in their positional order, and told nothing about the root, would recognise that use's notion as something the reading says.",
+   "rule_as_inherited": "A use is `covered` when a reader given ONLY the realised primitives, in their positional order, and told nothing about the root, would recognise that use's notion as something the reading says.",
+   "tests_all_necessary": [
+    "nothing imported — every content notion of the gloss traces to at least one realised primitive; if the step from primitives to gloss needs a notion the nine do not carry, it is not covered",
+    "not merely inert — the primitives must do more than fail to contradict the gloss; at least one realised primitive must carry the gloss's CENTRAL notion. Nine notions are compatible with almost anything, so «does not contradict» is the failure mode this reading is most prone to",
+    "the direction holds — opens → body → concludes is part of the claim; a gloss needing the root to end in an opening-out is not covered by a reading whose third position is قَطْع"
+   ],
+   "the_prohibition": "The judge may not use what they know the root means to build the bridge. Knowing that قوم is standing makes «أَصْل · ظُهور» look like a foundation; it looks like one only to someone who already has the answer. Where the bridge needs the root's meaning, the verdict is not_covered.",
+   "miss_classes": {
+    "imported": "the gloss needs a notion absent from the realised primitives",
+    "inert": "the primitives are compatible with the gloss and say nothing about it",
+    "direction": "the positional order contradicts the gloss",
+    "collision": "another root with a divergent aṣl composes to these exact realised primitives, so nothing in this reading is about this root"
+   },
+   "applications_fixed_before_any_reading": [
+    "«أو» is disjunctive: a position says a notion when either alternative of its row's gloss says it.",
+    "The whole text of a row counts as said — qualifiers («في الزمان والمكان», «في الشيء») and row 0's clause included.",
+    "The unit changed from primitives to glosses: where the inherited wording says «primitive», read «the row text realised at that position»."
+   ],
+   "collision_is_computed_afterwards": "Whether another QAC root composes to the same realised primitives is a mechanical fact about the table, not a judgement. It is recorded per root as `collision_with` and derived AFTER the judging pass, so that knowing a root collides cannot soften or harden the reading of its uses. The criterion above never mentions collision: a use fails on the three tests before anyone asks why."
+  },
+  "no_partial_credit": "A use is `covered` or it is not, and a root counts toward k only when EVERY one of its uses is covered. There is no weighting, no «mostly», and no grade between the two. A root with no `uses[]` on file is `not_recorded` — never `covers_all`: an empty list must never read as full coverage.",
+  "a_miss_is_a_result": "A root whose reading fails to cover an attested use is recorded as a miss with one line of reason, and that record is NEVER a reason to change a row of the table: the table is transcribed, and a changed row would no longer cite Islambouli.",
+  "audit": "Audit is POSSIBLE, not performed. There is no second judge: the curator writes the verdicts. What is committed here — the frozen uses, the verdict and its reason, beside the generated reading and its lock version — is everything a reader who clones the repository needs to redo the judgement and disagree. No claim of independent review is made anywhere."
+ },
+ "roots": {
+  "أدم": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 25,
+   "uses": [
+    {
+     "gloss": "آدم: اسم أبي البشر",
+     "verse": "2:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بنو آدم: ذريّته، البشر",
+     "verse": "7:26",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "أذن": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 90,
+   "uses": [
+    {
+     "gloss": "الأذن والآذان: عضو السمع",
+     "verse": "2:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أُذُنٌ: من يسمع كل ما يقال له ويصدّقه",
+     "verse": "9:61",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بإذن الله: بمشيئته وتيسيره",
+     "verse": "2:102",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أذِن له: أباح له ورخّص، والاستئذان طلب ذلك",
+     "verse": "9:43",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أذّن ومؤذّن وأذان: نادى وأعلن في الناس",
+     "verse": "22:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "آذن وأَذِن بالشيء: أعلم وعلِم",
+     "verse": "21:109",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تأذّن ربكم: أعلم إعلامًا مؤكدًا",
+     "verse": "7:167",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أذِنت لربها: استمعت وانقادت",
+     "verse": "84:2",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "أذي": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 22,
+   "uses": [
+    {
+     "gloss": "أذى من رأسه: علّة أو ضرر في البدن",
+     "verse": "2:196",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المحيض أذى: قذر ومكروه",
+     "verse": "2:222",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المنّ والأذى: القول الجارح بعد العطاء",
+     "verse": "2:262",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لن يضرّوكم إلا أذى: ضرر يسير باللسان",
+     "verse": "3:111",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أُوذوا في سبيلي: نالهم الاضطهاد والتعذيب",
+     "verse": "3:195",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فآذوهما: عاقبوهما بالتوبيخ",
+     "verse": "4:16",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أذى من مطر: مشقّة",
+     "verse": "4:102",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يؤذون النبي / الله ورسوله: يسيئون إليه بالقول والفعل",
+     "verse": "33:57",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كان يؤذي النبي: يُثقل عليه ويضايقه",
+     "verse": "33:53",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فلا يؤذين: لا يُتعرّض لهنّ بسوء",
+     "verse": "33:59",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بدو": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 29,
+   "uses": [
+    {
+     "gloss": "أبدى / تُبدوا: أظهر ما يُخفى ويُكتم، ضدّ الإخفاء",
+     "verse": "2:271",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بدا لـ: ظهر وانكشف لهم ما كان مستورًا عنهم",
+     "verse": "7:22",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بدا لهم: ظهر لهم رأي جديد بعد غيره",
+     "verse": "12:35",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بدا بيننا العداوة: ظهرت وأُعلنت",
+     "verse": "60:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بادي الرأي: ظاهرُ الرأي، أوّلُ النظر من غير تعمّق",
+     "verse": "11:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البدو: البادية، خلاف الحضر",
+     "verse": "12:100",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بادون في الأعراب: خارجون إلى البادية نازلون فيها",
+     "verse": "33:20",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البادِ: الطارئ القادم من خارج، مقابل العاكف المقيم",
+     "verse": "22:25",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بوب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 24,
+   "uses": [
+    {
+     "gloss": "الباب: مدخل البيت أو البلد",
+     "verse": "2:58",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبواب البيوت: مداخلها",
+     "verse": "2:189",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبواب كلّ شيء: أسباب النعم والرزق",
+     "verse": "6:44",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبواب السماء: منافذها",
+     "verse": "54:11",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبواب جهنّم / الجنّة: مداخل دار الجزاء",
+     "verse": "39:73",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بابًا ذا عذاب: طريقًا للبلاء",
+     "verse": "23:77",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سور له باب: منفذ في الحاجز",
+     "verse": "57:13",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بيت": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 54,
+   "uses": [
+    {
+     "gloss": "البيت والبيوت: المسكن والمأوى",
+     "verse": "4:100",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البيت الحرام: الكعبة",
+     "verse": "2:125",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أهل البيت: الأسرة وأهل المنزل",
+     "verse": "11:73",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بياتًا: ليلًا وقت النوم",
+     "verse": "7:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بيّت: دبّر الأمر ليلًا سرًّا",
+     "verse": "4:81",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لنبيّتنّه: لنوقعنّ به ليلًا",
+     "verse": "27:49",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يبيتون لربهم: يقضون الليل في العبادة",
+     "verse": "25:64",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "حول": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 25,
+   "uses": [
+    {
+     "gloss": "حوله: ما يحيط به من الجهات",
+     "verse": "2:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "من حولك: المحيطون بك من الناس",
+     "verse": "3:159",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حولين: عامين",
+     "verse": "2:233",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حيلة: وسيلة وتدبير للخلاص",
+     "verse": "4:98",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يحول بين: يحجز ويفصل",
+     "verse": "8:24",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حال بينهما الموج: حجز",
+     "verse": "11:43",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تحويلًا: نقلًا وتغييرًا عن الحال",
+     "verse": "17:77",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا يبغون عنها حِولًا: تحوّلًا وانتقالًا",
+     "verse": "18:108",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "حين": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 33,
+   "uses": [
+    {
+     "gloss": "إلى حين: إلى أجل ومدّة محدودة",
+     "verse": "2:36",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حين البأس / حين تقوم: وقت حدوث الشيء",
+     "verse": "2:177",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حتى حين: مدّة مبهمة",
+     "verse": "12:35",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كلّ حين: كلّ وقت وموسم",
+     "verse": "14:25",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بعد حين: بعد زمن",
+     "verse": "38:88",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لات حين مناص: ليس الوقت وقت خلاص",
+     "verse": "38:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حين من الدهر: قطعة طويلة من الزمن",
+     "verse": "76:1",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حينئذ: في ذلك الوقت",
+     "verse": "56:84",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "خلد": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 86,
+   "uses": [
+    {
+     "gloss": "خالدون فيها: ماكثون إقامة دائمة في الجنة أو النار",
+     "verse": "2:25",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الخلد: البقاء وعدم الموت في الدنيا",
+     "verse": "21:34",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أخلد إلى الأرض: ركن إليها ومال ولزمها",
+     "verse": "7:176",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ولدان مخلّدون: باقون على حالهم لا يتغيرون",
+     "verse": "56:17",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "ذهب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 56,
+   "uses": [
+    {
+     "gloss": "الذهب: المعدن النفيس",
+     "verse": "3:14",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ذهب واذهب: مضى وانطلق",
+     "verse": "5:24",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ذهبوا به: أخذوه معهم",
+     "verse": "12:15",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ذهب الله بنورهم: أزاله وسلبه",
+     "verse": "2:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ذهب الروع: زال وانقضى",
+     "verse": "11:74",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يُذهبكم: يُفنيكم ويهلككم",
+     "verse": "4:133",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا تذهب نفسك حسرات: لا تهلك غمًّا",
+     "verse": "35:8",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أذهبتم طيباتكم: استنفدتموها",
+     "verse": "46:20",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "ريب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 35,
+   "uses": [
+    {
+     "gloss": "الريب والارتياب: الشك",
+     "verse": "2:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "شك مريب: شك مقلق يوقع في التهمة",
+     "verse": "11:62",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ريب المنون: حوادث الدهر والموت",
+     "verse": "52:30",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "سبح": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 87,
+   "uses": [
+    {
+     "gloss": "سبّح بحمده: نزّهه وعظّمه ذكرًا",
+     "verse": "2:30",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سبحان: تنزيه الله عمّا لا يليق به",
+     "verse": "2:116",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سبّح في أوقات النهار والليل: الصلاة",
+     "verse": "20:130",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يسبح في فلك: يجري ويسير",
+     "verse": "21:33",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سبحًا طويلًا: تصرّف وانشغال في المعاش",
+     "verse": "73:7",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "سبق": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 35,
+   "uses": [
+    {
+     "gloss": "استبقوا الخيرات / سابقوا: التنافس في المبادرة",
+     "verse": "2:148",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نستبق / استبقا الباب: التسابق عدوًا",
+     "verse": "12:25",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما سبقكم بها من أحد: تقدّمكم في الزمن إلى الفعل",
+     "verse": "7:80",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سبقوا / يسبقونا: فاتوا وأفلتوا من القدرة",
+     "verse": "8:59",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بمسبوقين: مغلوبين عاجزين",
+     "verse": "56:60",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كتاب سبق / كلمة سبقت: قضاء متقدّم",
+     "verse": "10:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سبق عليه القول: حقّ عليه الحكم من قبل",
+     "verse": "11:40",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "السابقون: المتقدّمون في الإيمان والفضل",
+     "verse": "9:100",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما تسبق من أمة أجلها: لا تتقدّم عليه",
+     "verse": "15:5",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما قد سبق: ما مضى من أخبار",
+     "verse": "20:99",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا يسبقونه بالقول: لا يتقدّمون أمره",
+     "verse": "21:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الليل سابق النهار: يدركه ويتقدّمه",
+     "verse": "36:40",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "السابقات سبقًا: المسرعات إلى أمر الله",
+     "verse": "79:4",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "سحر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 59,
+   "uses": [
+    {
+     "gloss": "السحر والساحر: التمويه والخداع بالحيلة",
+     "verse": "2:102",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سحر مبين: وصف المكذّبين للآيات والحق",
+     "verse": "6:7",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سحروا أعين الناس: خيّلوا إليها",
+     "verse": "7:116",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مسحور: مخدوع العقل مصروف عنه",
+     "verse": "17:47",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تُسحرون: تُخدعون وتُصرفون عن الحق",
+     "verse": "23:89",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأسحار والسحر: آخر الليل قبيل الفجر",
+     "verse": "3:17",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "شكر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 69,
+   "uses": [
+    {
+     "gloss": "شكر الله: الاعتراف بنعمته والثناء عليه بها",
+     "verse": "2:152",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "شكر الوالدين والناس: مقابلة إحسانهم بالثناء",
+     "verse": "31:14",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الله شاكر وشكور: يثيب على العمل ويضاعفه",
+     "verse": "2:158",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سعيهم مشكورًا: عمل مقبول مُثاب عليه",
+     "verse": "17:19",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "صرف": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 29,
+   "uses": [
+    {
+     "gloss": "تصريف الرياح: تقليبها وتحويلها في الجهات",
+     "verse": "2:164",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نصرّف الآيات / صرّفنا في القرآن: ننوّعها ونردّدها بوجوه",
+     "verse": "6:46",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "صرفكم عنهم: ردّكم عنهم",
+     "verse": "3:152",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يُصرف عنه العذاب: يُدفع عنه",
+     "verse": "6:16",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "صُرفت أبصارهم: حُوّلت",
+     "verse": "7:47",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "سأصرف عن آياتي: أصدّ وأمنع",
+     "verse": "7:146",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "انصرفوا: ذهبوا وتولّوا",
+     "verse": "9:127",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أنّى تُصرفون: كيف تُصدّون عن الحقّ",
+     "verse": "10:32",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مصرفًا: معدلًا ومهربًا",
+     "verse": "18:53",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "صرفًا ولا نصرًا: دفعًا للعذاب",
+     "verse": "25:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "صرفنا إليك نفرًا: وجّهناهم إليك",
+     "verse": "46:29",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "عجل": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 44,
+   "uses": [
+    {
+     "gloss": "العِجل: ولد البقرة الذي اتُّخذ معبودًا",
+     "verse": "2:51",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أُشربوا في قلوبهم العجل: حبّ عبادته",
+     "verse": "2:93",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عِجل حنيذ: ولد البقر المشويّ طعامًا",
+     "verse": "11:69",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تعجّل في يومين: أسرع بالنفر",
+     "verse": "2:203",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تستعجلون به: تطلبون تعجيل العذاب",
+     "verse": "6:57",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أعجلتم أمر ربّكم: سبقتموه واستبطأتموه",
+     "verse": "7:150",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يعجّل الله للناس الشرّ: يُوقعه قبل أوانه",
+     "verse": "10:11",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عجّل لكم هذه: أعطاكم معجّلًا",
+     "verse": "48:20",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عجّل لنا قطّنا: أعطنا حظّنا عاجلًا",
+     "verse": "38:16",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عجولًا / من عجل: طبع الإنسان في التسرّع",
+     "verse": "21:37",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "العاجلة: الدنيا الحاضرة",
+     "verse": "17:18",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا تعجل عليهم: لا تستعجل هلاكهم",
+     "verse": "19:84",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما أعجلك عن قومك: ما حملك على السبق",
+     "verse": "20:83",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا تعجل بالقرآن: لا تسبق بقراءته قبل تمام الوحي",
+     "verse": "20:114",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "عهد": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 36,
+   "uses": [
+    {
+     "gloss": "عهد الله: الميثاق الذي أخذه الله على عباده",
+     "verse": "2:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أوفوا بعهدي أوفِ بعهدكم: الالتزام المتبادل",
+     "verse": "2:40",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "اتّخذتم عند الله عهدًا: وعد أو ضمان من الله",
+     "verse": "2:80",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عاهدوا عهدًا: تعاقدوا والتزموا",
+     "verse": "2:100",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا ينال عهدي الظالمين: الإمامة والولاية الموهوبة من الله",
+     "verse": "2:124",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عهدنا إلى: أوصينا وأمرنا",
+     "verse": "2:125",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عاهدتم من المشركين: المعاهدة والصلح بين الفريقين",
+     "verse": "9:1",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عاهد الله: نذر والتزم أمام الله",
+     "verse": "9:75",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بما عهد عندك: ما خصّك به وأعلمك",
+     "verse": "7:134",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما وجدنا لأكثرهم من عهد: وفاء بالعهد",
+     "verse": "7:102",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عهدهم راعون: ما التزموه وأؤتمنوا عليه",
+     "verse": "23:8",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "طال عليكم العهد: الزمن منذ اللقاء",
+     "verse": "20:86",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "غني": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 72,
+   "uses": [
+    {
+     "gloss": "الغَنِيّ (صفة لله): المستغني عن خلقه لا يحتاج إليهم",
+     "verse": "3:97",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "غَنِيًّا / أغنياء: ذو المال واليسار، ضد الفقير",
+     "verse": "4:6",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يُغْنِيكُمُ الله / فأغنى / أغنى وأقنى: إعطاء الكفاية والمال وإزالة الفقر",
+     "verse": "9:28",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما أغنى عنه / لن تغني عنهم / مُغْنُون عنّا: النفع والدفع عن الغير",
+     "verse": "111:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا يغني من الحق شيئًا: لا يكفي ولا يقوم مقامه",
+     "verse": "10:36",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كأن لم يَغْنَوْا فيها / لم تَغْنَ بالأمس: الإقامة في المكان وعمرانه",
+     "verse": "7:92",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "اسْتَغْنَى: رؤية الإنسان نفسه مستغنيًا عن ربه وغيره فيتكبّر",
+     "verse": "96:7",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "شأنٌ يُغْنِيه: يكفيه ويشغله عن غيره",
+     "verse": "80:37",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "فحش": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 23,
+   "uses": [
+    {
+     "gloss": "الفحشاء: كل قبيح متناهٍ في القبح",
+     "verse": "2:169",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الفاحشة: الزنا",
+     "verse": "4:15",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "إنه كان فاحشة: نكاح امرأة الأب",
+     "verse": "4:22",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أتأتون الفاحشة: فعل قوم لوط",
+     "verse": "7:80",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فعلوا فاحشة: قبيح ينسبونه إلى الآباء والدين",
+     "verse": "7:28",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فاحشة مبيّنة: سوء عشرة ظاهر من الزوجة",
+     "verse": "4:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الفواحش: الكبائر القبيحة ظاهرها وباطنها",
+     "verse": "6:151",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فعلوا فاحشة: ذنب قبيح",
+     "verse": "3:135",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تشيع الفاحشة: انتشار الحديث بالقبيح",
+     "verse": "24:19",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "قدم": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 48,
+   "uses": [
+    {
+     "gloss": "بما قدّمت أيديهم: ما أسلفوه من عمل فجُوزوا به",
+     "verse": "3:182",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تُقدّموا لأنفسكم: تسلفوا الخير ليُدّخر لكم عند الله",
+     "verse": "2:110",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما قدّمتم لهنّ: ما ادّخرتموه وأعددتموه سلفًا",
+     "verse": "12:48",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قدّمتموه لنا: تسبّبتم فيه وأوقعتمونا فيه من قبل",
+     "verse": "38:60",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قدّموا بين يدي نجواكم صدقة: قدّموها قبلها",
+     "verse": "58:12",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قدّمتُ إليكم بالوعيد: أنذرتكم سلفًا",
+     "verse": "50:28",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا تقدّموا بين يدي الله ورسوله: لا تسبقوا بقول أو حكم",
+     "verse": "49:1",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما تقدّم من ذنبك: ما سلف ومضى",
+     "verse": "48:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يتقدّم أو يتأخّر: يسبق إلى الخير أو يتخلّف",
+     "verse": "74:37",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا يستقدمون: لا يسبقون أجلهم ولا يتعجّلونه",
+     "verse": "7:34",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المستقدمين: السابقون في الزمن أو الوجود",
+     "verse": "15:24",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يقدُم قومه: يتقدّمهم ويسير أمامهم",
+     "verse": "11:98",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قدِمنا إلى ما عملوا: عمدنا وأقبلنا عليه",
+     "verse": "25:23",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "القديم: العتيق الذي طال عليه الزمن",
+     "verse": "36:39",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأقدمون: الآباء الأوّلون السابقون",
+     "verse": "26:76",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قدم صدق: سابقة ومنزلة رفيعة",
+     "verse": "10:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأقدام: الأرجل، العضو",
+     "verse": "55:41",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ثبّت أقدامنا: الثبات في موقف القتال",
+     "verse": "2:250",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تزلّ قدم بعد ثبوتها: الانحراف بعد الاستقامة",
+     "verse": "16:94",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "قطع": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 36,
+   "uses": [
+    {
+     "gloss": "فاقطعوا أيديهما: إبانة العضو عقوبةً",
+     "verse": "5:38",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قطّعن أيديهنّ: جرحنها بالسكين",
+     "verse": "12:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يقطعون ما أمر الله به أن يوصل: القطيعة وترك الصلة",
+     "verse": "2:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطّعوا أرحامكم: قطيعة القرابة",
+     "verse": "47:22",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قُطع دابر القوم: استئصالهم وإهلاكهم",
+     "verse": "6:45",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ليقطع طرفًا: يُهلك طائفة",
+     "verse": "3:127",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطّعت بهم الأسباب: انقطعت الصلات والوسائل",
+     "verse": "2:166",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطّع بينكم: انفصل ما كان يجمعكم",
+     "verse": "6:94",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قطّعناهم أممًا: فرّقناهم جماعات",
+     "verse": "7:160",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطّعوا أمرهم: تفرّقوا في دينهم أحزابًا",
+     "verse": "21:93",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطّع قلوبهم: تتمزّق وتتلاشى بالموت",
+     "verse": "9:110",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يقطعون واديًا: يجتازونه ويعبرونه",
+     "verse": "9:121",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقطعون السبيل: تقطعون الطريق على المارّة",
+     "verse": "29:29",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قِطع / قِطْع من الليل: جزء منه",
+     "verse": "11:81",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قِطَع متجاورات: بقاع من الأرض",
+     "verse": "13:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قُطّعت به الأرض: شُقّت",
+     "verse": "13:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ليقطع: ليقطع الحبل الممدود",
+     "verse": "22:15",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قُطّعت لهم ثياب من نار: فُصّلت على مقاديرهم",
+     "verse": "22:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قاطعة أمرًا: مُبرمة للأمر فاصلة فيه",
+     "verse": "27:32",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فقطّع أمعاءهم: مزّقها",
+     "verse": "47:15",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لا مقطوعة: لا ينقطع مددها",
+     "verse": "56:33",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما قطعتم من لينة: قطع الشجر من أصله",
+     "verse": "59:5",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لقطعنا منه الوتين: إهلاكه بقطع عرقٍ حيوي",
+     "verse": "69:46",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "كسب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 60,
+   "uses": [
+    {
+     "gloss": "كسب واكتسب: ما يجنيه الإنسان من عمل فيُجزى به",
+     "verse": "2:81",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما كسبتم: المال المكتسب",
+     "verse": "2:267",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كسبت قلوبكم: ما عقدته القلوب وقصدته",
+     "verse": "2:225",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "كشف": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 20,
+   "uses": [
+    {
+     "gloss": "كشف الضر / العذاب: أزاله ورفعه",
+     "verse": "6:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كشفت عن ساقيها: رفعت الثوب عنهما",
+     "verse": "27:44",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كشفنا عنك غطاءك: أزلنا الحجاب عن الإدراك",
+     "verse": "50:22",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يُكشف عن ساق: اشتداد الأمر وظهور هوله",
+     "verse": "68:42",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "لعن": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 36,
+   "uses": [
+    {
+     "gloss": "لعنه الله: طرده وأبعده عن رحمته",
+     "verse": "2:88",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يلعنهم اللاعنون: يدعون عليهم بالإبعاد",
+     "verse": "2:159",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لعنت أختها: تلاعن الأمم في النار",
+     "verse": "7:38",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لعنة الله على الكاذبين: الدعاء بها في المباهلة واللعان",
+     "verse": "24:7",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الشجرة الملعونة: المذمومة المبعدة",
+     "verse": "17:60",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "نصب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 29,
+   "uses": [
+    {
+     "gloss": "نصيب: حظّ وحصّة",
+     "verse": "4:7",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نصيبًا من الكتاب: حظّ من العلم به",
+     "verse": "3:23",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نصيبًا مفروضًا: حصّة مقتطعة من العباد",
+     "verse": "4:118",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "موفّوهم نصيبهم: جزاؤهم المستحقّ",
+     "verse": "11:109",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "النُّصُب / الأنصاب: حجارة منصوبة يُذبح عليها وتُعظّم",
+     "verse": "5:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "إلى نُصُب يوفضون: علم أو غاية منصوبة",
+     "verse": "70:43",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نصب: تعب ومشقّة",
+     "verse": "18:62",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بنُصب وعذاب: بلاء ومشقّة",
+     "verse": "38:41",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ناصبة: متعبة كادحة",
+     "verse": "88:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نُصبت: أُقيمت ثابتة",
+     "verse": "88:19",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فانصب: اجتهد وتعب في العبادة",
+     "verse": "94:7",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "هون": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 26,
+   "uses": [
+    {
+     "gloss": "عذاب مهين: مُذلّ",
+     "verse": "2:90",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عذاب الهون: الذلّ والخزي",
+     "verse": "6:93",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "على هون: على ذلّ",
+     "verse": "16:59",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "من يُهن الله / أهانن: يُذلّ ويحطّ",
+     "verse": "22:18",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مُهانًا: ذليلًا",
+     "verse": "25:69",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "هيّن / أهون: سهل لا مشقّة فيه",
+     "verse": "19:9",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تحسبونه هيّنًا: أمرًا حقيرًا لا خطر له",
+     "verse": "24:15",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يمشون هونًا: بسكينة ووقار",
+     "verse": "25:63",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "وقع": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 22,
+   "uses": [
+    {
+     "gloss": "وقع أجره على الله: ثبت ووجب",
+     "verse": "4:100",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يوقع بينكم العداوة: يلقيها",
+     "verse": "5:91",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "وقع عليكم رجس / الرجز: نزل وحلّ",
+     "verse": "7:134",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "وقع الحقّ: ثبت وظهر",
+     "verse": "7:118",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "واقع بهم: ساقط عليهم",
+     "verse": "7:171",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تقع على الأرض: تسقط",
+     "verse": "22:65",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فقعوا ساجدين: خرّوا",
+     "verse": "15:29",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مواقعوها: داخلوها ملابسوها",
+     "verse": "18:53",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "وقع القول عليهم: وجب وحقّ",
+     "verse": "27:82",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لواقع: كائن لا محالة",
+     "verse": "51:6",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الواقعة: القيامة",
+     "verse": "56:1",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مواقع النجوم: مساقطها ومغاربها",
+     "verse": "56:75",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "يسر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 40,
+   "uses": [
+    {
+     "gloss": "اليُسر: السهولة ورفع المشقّة، ضدّ العسر",
+     "verse": "2:185",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما استيسر: ما تهيّأ وسهُل تحصيله",
+     "verse": "2:196",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ما تيسّر من القرآن: ما سهُل من غير مشقّة",
+     "verse": "73:20",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الميسر: القمار",
+     "verse": "2:219",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ميسرة: الغِنى والسعة بعد العسرة",
+     "verse": "2:280",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يسيرًا على الله: هيّن لا يعسر عليه",
+     "verse": "4:30",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "إلا يسيرًا: زمنًا قليلًا",
+     "verse": "33:14",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قبضًا يسيرًا: شيئًا فشيئًا، قليلًا قليلًا",
+     "verse": "25:46",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "قولًا ميسورًا: قولًا ليّنًا سهلًا",
+     "verse": "17:28",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يسّرناه بلسانك / يسّرنا القرآن: سهّلناه للفهم والذكر",
+     "verse": "54:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يسّر لي أمري: سهّله",
+     "verse": "20:26",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نيسّرك لليسرى: نهيّئك ونوفّقك للطريقة السهلة",
+     "verse": "87:8",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فسنيسّره للعسرى: نهيّئه لطريق الشدّة",
+     "verse": "92:10",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "السبيل يسّره: سهّل له الطريق",
+     "verse": "80:20",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الجاريات يسرًا: جريانًا سهلًا",
+     "verse": "51:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "حسابًا يسيرًا: حسابًا سهلًا لا مناقشة فيه",
+     "verse": "84:8",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "أمن": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 723,
+   "uses": [
+    {
+     "gloss": "آمَنَ بـ / يُؤْمِنُونَ: التصديق بالله والغيب وما أُنزل، الإيمان",
+     "verse": "2:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "آمَنَ لـ / مُؤْمِن لنا: تصديق قائلٍ فيما يخبر به والإذعان له",
+     "verse": "12:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أَمِنْتُم: زوال الخوف وسكون النفس بعد الخوف",
+     "verse": "2:239",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "آمَنَهُمْ: جعلهم في أمنٍ وأزال عنهم الخوف",
+     "verse": "106:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "آمِنِين / آمِنًا (حال): في سلامةٍ مطمئنين لا يخافون",
+     "verse": "15:46",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأَمْن: الطمأنينة والسلامة من الخوف",
+     "verse": "2:125",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أَمَنَة: سكينة وطمأنينة يُنزلها الله (النعاس)",
+     "verse": "3:154",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بلدًا آمنًا / البلد الأمين / مَأْمَنه: موضعٌ ذو أمنٍ يأمن فيه من حلّه",
+     "verse": "2:126",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أَفَأَمِنُوا مكر الله / غير مأمون: الاطمئنان إلى أن الشيء لا يقع، وترك الحذر منه",
+     "verse": "7:99",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تَأْمَنَّا على / تأمنه بقنطار / اؤتُمِن: الاستئمان والوثوق بالغير فيما يُحفَظ",
+     "verse": "12:11",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأمانات / أمانته: ما يُؤتَمن عليه من حقٍّ فيجب أداؤه، ضد الخيانة",
+     "verse": "4:58",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الأمانة المعروضة على السماوات والأرض: التكليف الذي حمله الإنسان",
+     "verse": "33:72",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أَمِين: الموثوق الذي لا يخون ما اؤتُمن عليه",
+     "verse": "26:107",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المُؤْمِن (اسم لله): واهب الأمن لخلقه",
+     "verse": "59:23",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بشر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 119,
+   "uses": [
+    {
+     "gloss": "بشّر والبشرى: الإخبار بما يسرّ",
+     "verse": "3:39",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بشّرهم بعذاب: الإخبار بالعقاب على وجه التهكم",
+     "verse": "3:21",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بُشّر أحدهم: أُخبر بخبر فتغيّر وجهه كرهًا",
+     "verse": "16:58",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بشير ومبشّر: حامل البشارة من الرسل",
+     "verse": "2:119",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "استبشر ومستبشرة: فرح وظهر السرور على وجهه",
+     "verse": "3:170",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الرياح بُشرًا ومبشّرات: مقدّمات للمطر",
+     "verse": "7:57",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البشر: الإنسان",
+     "verse": "3:47",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "باشر: لامس المرأة (الجماع)",
+     "verse": "2:187",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بصر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 139,
+   "uses": [
+    {
+     "gloss": "البصر / الأبصار: حاسة الرؤية والعين",
+     "verse": "67:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبصر / يبصرون: رأى بعينه",
+     "verse": "7:198",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بصير ضد الأعمى: سليم البصر",
+     "verse": "12:96",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مبصرون / على بصيرة: مدركون بالقلب متبيّنون للحق",
+     "verse": "7:201",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بصير (صفة الله): عالم مطّلع على الأعمال",
+     "verse": "2:96",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بصائر: حجج بيّنة وهدى يُبصَر به",
+     "verse": "6:104",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تبصرة: تذكير وعبرة تفتح الإدراك",
+     "verse": "50:8",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "النهار مبصرا: مضيئا يُبصَر فيه",
+     "verse": "10:67",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "آياتنا مبصرة / الناقة مبصرة: بيّنة واضحة",
+     "verse": "27:13",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أولي الأبصار: ذوو العقول والاعتبار",
+     "verse": "59:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بصرت بما لم يبصروا به: علمت وأدركت ما خفي عليهم",
+     "verse": "20:96",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مستبصرين: ذوي عقل وتمييز",
+     "verse": "29:38",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يُبَصَّرونهم: يُرَون إياهم ويُعرَّفونهم",
+     "verse": "70:11",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "على نفسه بصيرة: شاهد عليها وحجة",
+     "verse": "75:14",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أبصر به وأسمع: صيغة تعجب من قوة إبصاره",
+     "verse": "18:26",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "بين": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 454,
+   "uses": [
+    {
+     "gloss": "بَيْنَ: الموضع الفاصل الواقع وسط شيئين أو حدّين",
+     "verse": "2:164",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بَيْنَ ذلك: الوسط بين طرفين أو حالين",
+     "verse": "2:68",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بَيْنَهم: ما يقع بين طرفين من علاقة أو خصومة أو حكم",
+     "verse": "4:35",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لما بين يديه: ما تقدّمه وسبقه زمانًا",
+     "verse": "2:97",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "من بين أيديهم: من أمامهم وقُدّامهم",
+     "verse": "7:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بَيْنُكم / ذات بينكم: الوصل والصلة التي تجمع القوم",
+     "verse": "6:94",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بيّن يبيّن: أوضح الشيء وكشفه لغيره",
+     "verse": "2:187",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تبيّن / استبان: ظهر واتّضح وانكشف",
+     "verse": "2:256",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فتبيّنوا: تثبّتوا وتحقّقوا حتى يظهر الأمر",
+     "verse": "49:6",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البيّنة / البيّنات: الحجة الواضحة والبرهان الظاهر",
+     "verse": "2:87",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مبين / مبيّنة: ظاهر بيّن لا خفاء فيه",
+     "verse": "2:168",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الكتاب المبين: المُظهِر الموضِّح لما فيه",
+     "verse": "12:1",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "البيان / يُبين: الإفصاح عمّا في النفس بالكلام",
+     "verse": "55:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بيان: الإيضاح والشرح لما أُنزل",
+     "verse": "75:19",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "تبع": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 156,
+   "uses": [
+    {
+     "gloss": "اتّبع: اقتدى وأطاع وسلك طريق غيره (الرسول، الهدى، الملة)",
+     "verse": "3:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "اتّباع الهوى والظن: الانقياد لما لا حجة فيه",
+     "verse": "6:116",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أتبعهم / اتّبع أدبارهم: سار خلفهم ولحق بهم حسًّا",
+     "verse": "20:78",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أتبعه شهاب: لحقه وطارده",
+     "verse": "15:18",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أُتبعوا لعنة / أتبعنا بعضهم بعضا: أُلحقوا وأُردفوا به",
+     "verse": "11:60",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يتبعها أذى / تتبعها الرادفة: جاء بعدها وتلاها",
+     "verse": "79:7",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أتبع سببا: سلك طريقا وسار فيه",
+     "verse": "18:85",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تَبَعًا: أتباعًا تابعين لغيرهم",
+     "verse": "14:21",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "التابعين غير أولي الإربة: من يلحقون بالبيت ويخدمونه",
+     "verse": "24:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تبيعًا: مطالبًا بالثأر ونصيرًا يتعقّب",
+     "verse": "17:69",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "فاتّباع بالمعروف: مطالبة ولي الدم بالدية بإحسان",
+     "verse": "2:178",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "متتابعين: متواليين بلا انقطاع",
+     "verse": "4:92",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "جمع": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 123,
+   "uses": [
+    {
+     "gloss": "جمع: ضمّ المتفرّق من أشخاص أو أشياء",
+     "verse": "26:38",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "جمع مالا / مما يجمعون: كنز المال وادّخاره",
+     "verse": "104:2",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "جمع الناس ليوم القيامة: حشرهم للحساب (يوم الجمع)",
+     "verse": "3:9",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أجمعوا أمرهم: عزموا عليه وأحكموه",
+     "verse": "10:71",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "جميعا: كلهم أو معًا غير متفرّقين",
+     "verse": "4:71",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أجمعين / أجمعون: توكيد الشمول",
+     "verse": "15:30",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الجمع / الجمعان: الجماعة والجيش",
+     "verse": "3:155",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "اجتمعوا: تعاونوا وتظاهروا على أمر",
+     "verse": "17:88",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مجمع البحرين: ملتقاهما",
+     "verse": "18:60",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تجمعوا بين الأختين: تضمّوهما في نكاح واحد",
+     "verse": "4:23",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أمر جامع: شأن يجتمع له الناس",
+     "verse": "24:62",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يوم الجمعة: اليوم الذي يُجتمع فيه للصلاة",
+     "verse": "62:9",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "جمعه وقرآنه: حفظه وضمّه في الصدر",
+     "verse": "75:17",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "دعو": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 182,
+   "uses": [
+    {
+     "gloss": "دعا ربه: سأله وتضرع إليه بطلب",
+     "verse": "3:38",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يدعون من دون الله: يعبدون غيره ويتوجهون إليه",
+     "verse": "6:56",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "دعا إلى كذا: حثّ عليه ورغّب فيه (إلى الله، إلى الهدى، إلى النار)",
+     "verse": "16:125",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "دعاه: ناداه ليحضر ويأتي إليه",
+     "verse": "28:25",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ادعوا شهداءكم: استعينوا بهم واستنصروهم",
+     "verse": "2:23",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "دعوة البعث: نداء الخلق للخروج يوم القيامة (الداعي)",
+     "verse": "30:25",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "دعواهم: قولهم وما ينطقون به",
+     "verse": "10:10",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يَدَّعون: يطلبون ويتمنّون ما يشتهون في الجنة",
+     "verse": "36:57",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تَدَّعون: تطلبون وتستعجلون ما كنتم تنكرونه",
+     "verse": "67:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ادعوهم لآبائهم: انسبوهم وسمّوهم بهم",
+     "verse": "33:5",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أن دعوا للرحمن ولدا: نسبوا إليه ولدا وزعموه",
+     "verse": "19:91",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ادعوا الله أو ادعوا الرحمن: سمّوه ونادوه بهذا الاسم",
+     "verse": "17:110",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أدعياؤكم: المتبنَّون المنسوبون إلى غير آبائهم",
+     "verse": "33:4",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "دعوا ثبورا: صاحوا بالهلاك ونادوه على أنفسهم",
+     "verse": "25:13",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "عند": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 189,
+   "uses": [
+    {
+     "gloss": "عند: ظرف للقرب المكاني الحسّي",
+     "verse": "2:191",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عند رسول الله: في حضرة الشخص ومجلسه",
+     "verse": "49:3",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عند الله: في حكمه وميزانه وتقديره",
+     "verse": "49:13",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عند ربهم: ما أُعدّ لهم محفوظًا في جوار الله",
+     "verse": "2:62",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "من عند الله: الصادر من جهته ومصدره",
+     "verse": "2:79",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عندي / عندهم: الملك والحيازة لما في اليد",
+     "verse": "6:50",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عنده علم الساعة: اختصاص العلم به",
+     "verse": "31:34",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عنده الكبر: في كنفه ورعايته",
+     "verse": "17:23",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "عنيد: المعاند المجاوز للحق التارك طريق الاستقامة",
+     "verse": "11:59",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "مثل": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 148,
+   "uses": [
+    {
+     "gloss": "مِثْل: النظير والشبيه المساوي في الجنس أو الصفة",
+     "verse": "18:110",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "بمثل / مثل حظ: القدر المساوي في المقدار أو الجزاء",
+     "verse": "2:194",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب المَثَل: التشبيه المضروب للإيضاح والعبرة",
+     "verse": "14:24",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "مَثَل الشيء: صفته وحاله",
+     "verse": "13:35",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "جعلناهم مثلا: عبرة ونموذجا يُقتدى به أو يُعتبر",
+     "verse": "43:56",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المَثُلات: العقوبات النازلة بمن سبق",
+     "verse": "13:6",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "تمثّل لها بشرا: ظهر في صورة البشر وهيئته",
+     "verse": "19:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "التماثيل: الصور المصنوعة على هيئة غيرها",
+     "verse": "21:52",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المُثْلى / أمثلهم: الأفضل والأعدل",
+     "verse": "20:63",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "موت": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 143,
+   "uses": [
+    {
+     "gloss": "الموت: مفارقة الحياة وحضور الأجل",
+     "verse": "2:180",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "أمات يميت: إيقاع الله الموت على خلقه",
+     "verse": "2:258",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الموتى / الأموات: من فارقوا الحياة ويُبعثون",
+     "verse": "2:73",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كنتم أمواتًا: حال العدم قبل الإحياء الأول",
+     "verse": "2:28",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الميتة: الحيوان الذي مات دون تذكية",
+     "verse": "2:173",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "موت الأرض / بلد ميت: همودها وجدبها بلا نبات",
+     "verse": "2:164",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الميت من الحيّ: ما لا حياة فيه كالنطفة والحبّ",
+     "verse": "6:95",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "كان ميتًا فأحييناه / لا تُسمع الموتى: الضالّ الذي لا يستجيب للهدى",
+     "verse": "6:122",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "يأتيه الموت من كل مكان: أسباب الهلاك وشدائده دون وقوعه",
+     "verse": "14:17",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "المغشيّ عليه من الموت: سكرة الموت وغشيته",
+     "verse": "47:20",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "موتوا بغيظكم: دعاء بالهلاك كناية عن شدة الغيظ",
+     "verse": "3:119",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "لم تمت في منامها: الموت مقابَلًا بالنوم الذي تُتوفّى فيه الأنفس",
+     "verse": "39:42",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "نهر": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 102,
+   "uses": [
+    {
+     "gloss": "النهر والأنهار: مجرى الماء الجاري",
+     "verse": "2:249",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "النهار: وقت الضياء المقابل لليل",
+     "verse": "3:27",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نَهَرَ: زجر وأغلظ في القول",
+     "verse": "17:23",
+     "verdict": "not_judged"
+    }
+   ],
+   "collision_with": []
+  },
+  "ضرب": {
+   "uses_frozen_at": "2026-09-28T18:19:08",
+   "occurrences": 54,
+   "uses": [
+    {
+     "gloss": "الضرب باليد أو بالآلة: إيقاعُ جسمٍ على جسم",
+     "verse": "8:12",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "الضرب في الأرض: السفر والسير فيها",
+     "verse": "4:101",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب المثل: إيرادُه وبيانُه",
+     "verse": "2:26",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب الحاجز: إقامتُه بين شيئين",
+     "verse": "57:13",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضُرِبت عليهم الذلة: إلزامُها إياهم وإحاطتُها بهم",
+     "verse": "2:61",
+     "verdict": "not_judged"
+    }
+   ],
+   "uses_blind": [
+    {
+     "gloss": "ضرب بالعصا وباليد: أوقع الضربة",
+     "verse": "2:60",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب مثلًا: ذكره وبيّنه",
+     "verse": "2:26",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب في الأرض: سافر وسعى",
+     "verse": "4:101",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضُربت عليهم الذلة: أُلزموها وأحاطت بهم",
+     "verse": "2:61",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضربنا على آذانهم: أنمناهم وسددنا سمعهم",
+     "verse": "18:11",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضرب لهم طريقًا: جعل وشقّ",
+     "verse": "20:77",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ليضربن بخمرهن: ليُسدلنها ويلقينها",
+     "verse": "24:31",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "ضُرب بينهم بسور: أُقيم حاجز",
+     "verse": "57:13",
+     "verdict": "not_judged"
+    },
+    {
+     "gloss": "نضرب عنكم الذكر صفحًا: نصرفه ونعرض به عنكم",
+     "verse": "43:5",
+     "verdict": "not_judged"
+    }
+   ],
+   "calibration": {
+    "reference": "the five uses of the closed run, copied unchanged — which that run NAMED IN ITS BRIEF (§D9) rather than wrote by the procedure",
+    "reference_count": 5,
+    "blind_count": 9,
+    "matched": 5,
+    "blind_unmatched": [
+     4,
+     5,
+     6,
+     8
+    ],
+    "reference_unmatched": [],
+    "matches": [
+     {
+      "reference": 0,
+      "blind": 0,
+      "reason": "the same sense — striking with the hand or an instrument; the two cite different verses of it (8:12, 2:60)"
+     },
+     {
+      "reference": 1,
+      "blind": 2,
+      "reason": "same sense and same verse: travelling in the land (4:101)"
+     },
+     {
+      "reference": 2,
+      "blind": 1,
+      "reason": "same sense and same verse: setting forth a parable (2:26)"
+     },
+     {
+      "reference": 3,
+      "blind": 7,
+      "reason": "same sense and same verse: a barrier set between (57:13)"
+     },
+     {
+      "reference": 4,
+      "blind": 3,
+      "reason": "same sense and same verse: abasement imposed on them (2:61)"
+     }
+    ],
+    "matched_before_any_reading": "The matches were written before any reading of ضرب under this table was generated or looked at.",
+    "rule": "concordant if ≥ 4 of 5 reference uses are matched and ≤ 2 blind uses are unmatched; strong divergence if < 3 of 5 are matched; partial otherwise (design.md §D13, fixed before the blind uses existed)",
+    "verdict": "partial"
+   },
+   "collision_with": [],
+   "counts_toward_k": false
+  }
+ }
+}
