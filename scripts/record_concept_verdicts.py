@@ -51,11 +51,12 @@ from quran_data import loaders  # noqa: E402
 from quran_data.paths import CONCEPT_ATTESTATION_JSON  # noqa: E402
 from linguistics.lisan.concept import witness_guard  # noqa: E402
 from linguistics.lisan.concept.compose import compose  # noqa: E402
-from linguistics.lisan.concept.confront import DEVELOPMENT_CASE  # noqa: E402
-
-USE_COVERED = "covered"
-USE_NOT_COVERED = "not_covered"
-MISS_CLASSES = ("imported", "inert", "direction", "collision")
+from linguistics.lisan.harness.verdicts import (  # noqa: E402
+    DEVELOPMENT_CASE,
+    MISS_CLASSES,
+    USE_COVERED,
+    USE_NOT_COVERED,
+)
 
 
 def _witness_roots() -> list[str]:

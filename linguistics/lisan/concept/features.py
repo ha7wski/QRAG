@@ -88,6 +88,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 from quran_data import loaders  # noqa: E402
+from linguistics.lisan.harness.letters import HAMZA_CARRIERS  # noqa: E402
 
 # The sheet columns this path may read, named once so the ban above is checkable
 # by reading this file. A `row.get(...)` over an unnamed key, or a loop over
@@ -237,7 +238,9 @@ COMPOUND_VALUES: dict[str, tuple[str, ...]] = {
 # neither occurs in a QAC root key (the 1656 keys use 31 distinct characters, and
 # those two are not among them), so adding them would be coverage for a case that
 # does not exist, in a map whose whole job is to be checkable at a glance.
-HAMZA_CARRIERS: dict[str, str] = {"أ": "ء", "ؤ": "ء", "ئ": "ء", "آ": "ء"}
+# `HAMZA_CARRIERS` itself is imported above from `linguistics/lisan/harness/letters.py`,
+# so that a later letter table resolves a seat the same way without importing this
+# engine.
 
 # Why a raw value produced no feature, as `DroppedValue.rule` names it.
 RULE_PRIVATIVE_ABSENT = "privative-absent"

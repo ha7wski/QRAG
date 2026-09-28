@@ -61,17 +61,30 @@ from __future__ import annotations
 
 import hashlib
 import json
-import random
 import re
 import sys
 from dataclasses import dataclass, replace
-from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from arabic_text import normalize_root  # noqa: E402
+from linguistics.lisan.harness import draw as harness_draw  # noqa: E402
+from linguistics.lisan.harness.draw import (  # noqa: E402
+    CURATED_AT_FIRST_DRAW,
+    DEVELOPMENT_CASE,
+    MIN_OCCURRENCES,
+    PROBE_ROOTS,
+    STRATUM_BOUNDARY,
+)
+from linguistics.lisan.harness.verdicts import (  # noqa: E402
+    MISS_CLASSES,
+    SIGNATURE_LETTERS,
+    USE_VERDICTS,
+    VERDICT_NOT_JUDGED,
+    Metric,
+    check_attestation,
+)
 from quran_data import loaders, paths  # noqa: E402
 from quran_data.paths import (  # noqa: E402
     LETTER_SEMANTICS_JSON,
@@ -191,25 +204,25 @@ HISTORY_FIELDS = ("version", "date", "sha256", "reason", "source")
 # by reading its own subject could be satisfied by editing the prose. The recorded
 # frame and stratum sizes ARE read from the file and compared against what these
 # constants produce, so a drift in either direction is a finding.
-MIN_OCCURRENCES = 20
-STRATUM_BOUNDARY = 100
+# (MIN_OCCURRENCES and STRATUM_BOUNDARY now live in
+# `linguistics/lisan/harness/draw.py`, imported above, so every holdout is framed
+# by one definition.)
 
 # The frame exclusions AS THEY STOOD AT THE DRAW. Frozen literals, not a re-read
 # of today's `root_cores.json`: the draw is a historical event and replaying it
 # against a curated set that has since grown would "reproduce" a different set
 # and report the file as edited.
-CURATED_AT_DRAW = ("خبث", "خير", "رحم", "ظلم", "كفر")
-DEVELOPMENT_CASE = "ضرب"
+CURATED_AT_DRAW = CURATED_AT_FIRST_DRAW
 
 # §D13's collision-probe roots. Probe roots are never witness roots: a root used
 # to settle whether the table discriminates cannot also be evidence that it
 # works.
-PROBE_ROOTS = ("حرب", "حرج", "حرد", "تبر", "كبر", "كود", "كيد")
+# (PROBE_ROOTS: imported from the harness.)
 
 # §D5's structural bias, declared BEFORE the measurement so the split cannot be
 # chosen afterwards for being flattering: seven letters own a صفة no other letter
 # carries, so rarity ordering makes them always lead with their own signature.
-SIGNATURE_LETTERS = frozenset("رشضلصزس")
+# (SIGNATURE_LETTERS: imported from the harness.)
 
 # The attestation record, not yet on disk (task 7.2 writes it, AFTER this gate
 # exists — the same ordering the protocol itself is about). Resolved through
@@ -221,7 +234,7 @@ CONCEPT_ATTESTATION_JSON = getattr(
 
 # A use is covered or it is not. There is no partial credit anywhere in this
 # protocol, at the use level or at the root level.
-USE_VERDICTS = ("covered", "not_covered")
+# (USE_VERDICTS: imported from the harness.)
 
 # The verdict a use carries between the two moments the protocol separates: its
 # `uses[]` are frozen and committed, and its concept does not exist yet.
@@ -236,7 +249,7 @@ USE_VERDICTS = ("covered", "not_covered")
 # A root in this state is not counted as `recorded`, contributes nothing to `k`,
 # and produces no finding. What is still refused: a concept recorded while a use
 # is unjudged (below), and a `concept_recorded_at` earlier than `uses_frozen_at`.
-VERDICT_NOT_JUDGED = "not_judged"
+# (VERDICT_NOT_JUDGED: imported from the harness.)
 
 # §D9's coverage criterion classifies every miss, and the class is the FIRST word
 # of the reason. Four, exhaustive by construction: a miss fails one of the
@@ -247,7 +260,7 @@ VERDICT_NOT_JUDGED = "not_judged"
 # all failing roots — is measured over these reasons «already committed». A
 # free-text reason cannot be counted afterwards without re-reading and
 # re-deciding, which is the reopening condition being decided by whoever reopens.
-MISS_CLASSES = ("imported", "inert", "direction", "collision")
+# (MISS_CLASSES: imported from the harness.)
 
 
 # ── inputs ───────────────────────────────────────────────────────────────────
@@ -785,16 +798,9 @@ def replay_draw(witness: dict, morphology: dict[str, dict],
             "one that was drawn"
         ]
 
-    excluded = set(CURATED_AT_DRAW) | {DEVELOPMENT_CASE}
-    frame = sorted(
-        root for root, rec in morphology.items()
-        if len(root) == 3
-        and normalize_root(root) in has_asl
-        and rec.get("count", 0) >= MIN_OCCURRENCES
-        and root not in excluded
+    frame, lower, upper = harness_draw.build_frame(
+        morphology, has_asl, set(CURATED_AT_DRAW) | {DEVELOPMENT_CASE}
     )
-    lower = [r for r in frame if morphology[r]["count"] < STRATUM_BOUNDARY]
-    upper = [r for r in frame if morphology[r]["count"] >= STRATUM_BOUNDARY]
 
     recorded_frame = (witness.get("frame") or {}).get("size")
     if recorded_frame is not None and recorded_frame != len(frame):
@@ -834,9 +840,7 @@ def replay_draw(witness: dict, morphology: dict[str, dict],
             f"{len(lower)}+{len(upper)} — the frame has shrunk below the draw"
         ]
 
-    rng = random.Random(seed)
-    drawn = tuple(sorted(rng.sample(lower, counts[0]))
-                  + sorted(rng.sample(upper, counts[1])))
+    drawn = harness_draw.sample(lower, upper, seed, counts[0], counts[1])
     return Draw(drawn, len(frame), len(lower), len(upper), ran=True), findings
 
 
@@ -916,372 +920,10 @@ def check_witness_set(witness: dict, morphology: dict[str, dict],
 
 
 # ── E. the metric gate (§D9 / §D11) ──────────────────────────────────────────
-@dataclass(frozen=True)
-class Metric:
-    """`k / 40`, or the reason it is not printable.
-
-    `printable` is False in two very different situations and the report must not
-    conflate them: nothing has been recorded yet (normal, most of this change's
-    life), or something was recorded out of protocol order (a finding). `blocked`
-    names the roots responsible for the second.
-
-    `total` is always the witness set's size. A `k` over a subset is not a
-    smaller version of this measurement, it is a different one — which is why a
-    partial record prints progress and no `k` at all.
-    """
-
-    total: int
-    recorded: int
-    k: int
-    signature: tuple[int, int]        # (k, n) over roots carrying a signature letter
-    plain: tuple[int, int]            # (k, n) over roots carrying none
-    blocked: tuple[str, ...]
-    printable: bool
-    note: str
-    # Roots the record file carries that are NOT on the holdout. They are
-    # published beside the number and counted in neither half — `ضرب` above all,
-    # which §D9 step 3 REQUIRES to be confronted and published.
-    published_off_set: tuple[str, ...] = ()
-
-    @property
-    def off_set(self) -> str:
-        """Why `ضرب` never contributes, stated wherever the number is."""
-        line = (f"«{DEVELOPMENT_CASE}» is confronted and published like any other "
-                f"root and contributes to neither half: it verified the "
-                f"composition rule, so it cannot also test it.")
-        if self.published_off_set:
-            line += (" Published and uncounted in this run: "
-                     + "، ".join(self.published_off_set) + ".")
-        return line
-
-
-def _records(attestation: dict) -> dict[str, dict]:
-    """`root → record`, accepting either shape the record file may take.
-
-    A dict keyed by root, or a list of objects each carrying `root`. Tolerated
-    rather than pinned because this gate is written BEFORE the file it gates: an
-    ordering that is the whole point of the protocol should not also be an
-    invitation to guess a schema wrong and fail the writer.
-    """
-    roots = attestation.get("roots")
-    if isinstance(roots, dict):
-        return {k: v for k, v in roots.items() if isinstance(v, dict)}
-    if isinstance(roots, list):
-        return {
-            _text(r.get("root")): r for r in roots
-            if isinstance(r, dict) and _text(r.get("root"))
-        }
-    return {}
-
-
-def _moment(value) -> datetime | None:
-    """An ISO-8601 timestamp, or None when it cannot be ordered.
-
-    A commit hash is accepted by the schema as an alternative identity but is NOT
-    orderable here, and «not orderable» blocks the metric rather than passing it:
-    the protocol's one claim is about ORDER, so a record that cannot state its
-    order has not made the claim.
-    """
-    text = _text(value)
-    if not text:
-        return None
-    try:
-        return datetime.fromisoformat(text.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
-
-def check_attestation(attestation: dict | None,
-                      witness_roots: tuple[str, ...]) -> tuple[Metric, list[str]]:
-    """The freeze-before-generate ordering, then `k / 40` when it holds.
-
-    The gate is the point, not the number. §D9's ordering is what makes "does the
-    concept cover its uses" a question with an answer: a `uses[]` list written
-    after the concept has been read shapes itself around the sentence, silently
-    and in good faith. Nothing downstream can detect that, so it is detected here
-    by refusing to print.
-    """
-    total = len(witness_roots)
-    empty = Metric(total=total, recorded=0, k=0, signature=(0, 0), plain=(0, 0),
-                   blocked=(), printable=False, note="")
-
-    if attestation is None:
-        return replace(empty, note=(
-            "no attestation records yet; the metric is not printable. "
-            f"{CONCEPT_ATTESTATION_JSON.relative_to(ROOT)} is written root by "
-            "root, each root's `uses[]` committed BEFORE its concept is generated."
-        )), []
-
-    findings: list[str] = []
-    records = _records(attestation)
-    if not records:
-        # AN EMPTY `roots` CONTAINER IS THE SKELETON, NOT A BROKEN FILE, and the
-        # two must not be conflated. This gate was written before the record file
-        # existed, and it assumed «the file exists» meant «curation has begun».
-        # It does not: the skeleton is committed first, carrying the protocol and
-        # the record shape and no root at all, precisely so that the first root's
-        # `uses[]` lands in a file whose rules are already published. Reporting
-        # that as a finding would make the ordering the protocol is about
-        # impossible to commit — the skeleton could only ever arrive with a
-        # record already in it.
-        #
-        # The finding stays for everything else that produces no records: a
-        # missing `roots` key, a `roots` of the wrong type (which is what a file
-        # that failed to parse reads as, `_read_attestation` returning `{}`), or
-        # a container holding entries none of which is a usable record. Those are
-        # a file saying nothing when it meant to say something.
-        container = attestation.get("roots")
-        if isinstance(container, (dict, list)) and not container:
-            return replace(empty, note=(
-                "the record file is on disk as a SKELETON and records no root "
-                "yet; the metric is not printable. Each root's `uses[]` is "
-                "committed BEFORE its concept is generated — that ordering is "
-                "the only property the file has."
-            )), []
-        findings.append(
-            "concept_attestation.json: exists but records no root — `roots` must "
-            "be an object keyed by root (or a list of objects each carrying "
-            "`root`). An EMPTY `roots` object is the skeleton and is accepted; "
-            "an absent or malformed one is a file that failed to say anything."
-        )
-        return replace(empty, note="the record file carries no root."), findings
-
-    witness = set(witness_roots)
-    off_set = sorted(set(records) - witness)
-
-    blocked: list[str] = []
-    k = 0
-    sig_k = sig_n = plain_k = plain_n = 0
-
-    for root in witness_roots:
-        record = records.get(root)
-        if record is None:
-            continue
-
-        where = f"concept_attestation.json: «{root}»"
-        frozen_at = _moment(record.get("uses_frozen_at"))
-        recorded_at = _moment(record.get("concept_recorded_at"))
-
-        # FROZEN, AWAITING GENERATION — the mandated intermediate state.
-        # An absent `concept_recorded_at` is not a missing field; it is the
-        # record saying the concept has not been generated, which is what the
-        # commit that freezes `uses[]` is FOR.
-        awaiting = not _text(record.get("concept_recorded_at"))
-        if awaiting:
-            if frozen_at is None:
-                findings.append(
-                    f"{where}: `uses_frozen_at` is missing or not an orderable "
-                    "ISO-8601 timestamp. A record awaiting its concept still has "
-                    "to state WHEN it was frozen — that stamp is the whole claim."
-                )
-            uses = record.get("uses")
-            if not isinstance(uses, list) or not uses:
-                findings.append(f"{where}: `uses[]` is missing or empty")
-                continue
-            for j, use in enumerate(uses):
-                if not isinstance(use, dict):
-                    findings.append(f"{where}: uses[{j}] is not an object")
-                    continue
-                if not _text(use.get("gloss")):
-                    findings.append(f"{where}: uses[{j}] has no `gloss`")
-                if not _text(use.get("verse")):
-                    findings.append(f"{where}: uses[{j}] has no verse reference")
-                verdict = _text(use.get("verdict"))
-                if verdict and verdict != VERDICT_NOT_JUDGED:
-                    findings.append(
-                        f"{where}: uses[{j}] carries the verdict «{verdict}» while "
-                        f"no concept is recorded. A use judged before the concept "
-                        f"exists was judged against nothing — leave it "
-                        f"«{VERDICT_NOT_JUDGED}» until the concept is generated."
-                    )
-            continue
-
-        if frozen_at is None or recorded_at is None:
-            blocked.append(root)
-            findings.append(
-                f"{where}: `uses_frozen_at` / `concept_recorded_at` is missing or "
-                "not an orderable ISO-8601 timestamp. The protocol's one claim is "
-                "about ORDER; a record that cannot state its order has not made "
-                "the claim."
-            )
-        elif frozen_at > recorded_at:
-            blocked.append(root)
-            findings.append(
-                f"{where}: `uses[]` was frozen at {frozen_at.isoformat()}, AFTER "
-                f"the concept was recorded at {recorded_at.isoformat()}. The list "
-                "can then have shaped itself around the sentence, so coverage is "
-                "not a measurement of anything — re-freeze the uses and regenerate."
-            )
-
-        uses = record.get("uses")
-        if not isinstance(uses, list) or not uses:
-            findings.append(f"{where}: `uses[]` is missing or empty")
-            continue
-        for j, use in enumerate(uses):
-            if not isinstance(use, dict):
-                findings.append(f"{where}: uses[{j}] is not an object")
-                continue
-            if not _text(use.get("gloss")):
-                findings.append(f"{where}: uses[{j}] has no `gloss`")
-            if not _text(use.get("verse")):
-                findings.append(f"{where}: uses[{j}] has no verse reference")
-            verdict = _text(use.get("verdict"))
-            if verdict == VERDICT_NOT_JUDGED:
-                findings.append(
-                    f"{where}: uses[{j}] is still «{VERDICT_NOT_JUDGED}» although a "
-                    "concept IS recorded. Generation without judgement leaves a "
-                    "root that can never reach `covers_all` and never appear as a "
-                    "miss either — it would silently drop out of the denominator."
-                )
-            elif verdict not in USE_VERDICTS:
-                findings.append(
-                    f"{where}: uses[{j}] `verdict` is «{verdict}», expected one of "
-                    f"{', '.join(USE_VERDICTS)} — there is no partial credit at "
-                    "the use level either"
-                )
-            if verdict == "not_covered":
-                reason = _text(use.get("reason"))
-                if not reason:
-                    findings.append(
-                        f"{where}: uses[{j}] is a miss with no `reason` — a miss is "
-                        "a recorded result and carries its one line; it is never a "
-                        "reason to edit the table"
-                    )
-                elif reason.split(":", 1)[0].split()[0] not in MISS_CLASSES:
-                    findings.append(
-                        f"{where}: uses[{j}]'s reason does not open with one of "
-                        f"{', '.join(MISS_CLASSES)}. An unclassified miss cannot be "
-                        "counted later, and §D3's reopening condition is a count "
-                        "over exactly these classes."
-                    )
-
-        covers_all = all(
-            isinstance(u, dict) and _text(u.get("verdict")) == "covered" for u in uses
-        )
-        k += 1 if covers_all else 0
-        if SIGNATURE_LETTERS & set(root):
-            sig_n += 1
-            sig_k += 1 if covers_all else 0
-        else:
-            plain_n += 1
-            plain_k += 1 if covers_all else 0
-
-    # RECORDED means «this root's concept has been generated and judged», never
-    # «this root has a record». The two were the same expression until the file
-    # first held its mandated intermediate state, and then they were not: with
-    # all 40 frozen and none generated, counting records made `recorded == total`
-    # and printed «k / 40 : 0 / 40» — a number over nothing, which reads as «the
-    # method covers no root» rather than «nothing has been measured yet». The
-    # most dangerous number this script can print is the one that looks like a
-    # result and is an artefact of its own bookkeeping.
-    recorded = sum(
-        1 for root in witness_roots
-        if isinstance(records.get(root), dict)
-        and _text(records[root].get("concept_recorded_at"))
-    )
-    awaiting_roots = tuple(sorted(
-        root for root in witness_roots
-        if isinstance(records.get(root), dict)
-        and not _text(records[root].get("concept_recorded_at"))
-    ))
-
-    if blocked:
-        note = (
-            "REFUSED — {n} witness root(s) recorded out of protocol order: "
-            "{roots}. The number is not printed at all; a caveat beside it would "
-            "be a number nobody reads the caveat of."
-        ).format(n=len(blocked), roots="، ".join(sorted(set(blocked))))
-        return replace(empty, recorded=recorded, blocked=tuple(sorted(set(blocked))),
-                       note=note), findings
-
-    if recorded < total:
-        if awaiting_roots and recorded == 0:
-            note = (
-                f"{len(awaiting_roots)} of {total} witness roots have their "
-                "`uses[]` FROZEN and not one concept has been generated, so "
-                "the metric is not printable — and that is the protocol "
-                "working, not a gap. The freeze is committed as its own step "
-                "so that it exists in the history before any concept does."
-            )
-        else:
-            note = (
-                f"{recorded} of {total} witness roots have a concept recorded"
-                + (f" ({len(awaiting_roots)} frozen and awaiting generation)"
-                   if awaiting_roots else "")
-                + "; the metric is not printable yet. A `k` over a subset is not a "
-                "smaller version of this measurement — it is a different one, and "
-                "the design forbids reporting it as the result."
-            )
-        return replace(empty, recorded=recorded, note=note), findings
-
-    # Off-set records get the SHAPE rules and not the ordering gate, and the
-    # asymmetry is the honest one. A published record must still be readable — a
-    # gloss, a verse, a verdict from the closed vocabulary, a reason on every
-    # miss — because a reader cannot tell from the page that this root is
-    # uncounted. But the freeze-before-generate ORDER cannot be claimed for
-    # `ضرب`: its concept has been read since §D5 was written, which is exactly
-    # why §D9 excludes it from `k`. Asserting the ordering here would be the
-    # record claiming a blindness it never had.
-    for root in off_set:
-        record = records.get(root)
-        if not isinstance(record, dict):
-            continue
-        where = f"concept_attestation.json: «{root}» (published, uncounted)"
-        uses = record.get("uses")
-        if not isinstance(uses, list) or not uses:
-            findings.append(f"{where}: `uses[]` is missing or empty")
-            continue
-        generated = bool(_text(record.get("concept_recorded_at")))
-        for j, use in enumerate(uses):
-            if not isinstance(use, dict):
-                findings.append(f"{where}: uses[{j}] is not an object")
-                continue
-            if not _text(use.get("gloss")):
-                findings.append(f"{where}: uses[{j}] has no `gloss`")
-            if not _text(use.get("verse")):
-                findings.append(f"{where}: uses[{j}] has no verse reference")
-            verdict = _text(use.get("verdict"))
-            if not generated:
-                if verdict and verdict != VERDICT_NOT_JUDGED:
-                    findings.append(
-                        f"{where}: uses[{j}] carries «{verdict}» while no concept "
-                        f"is recorded — judged against nothing."
-                    )
-            elif verdict not in USE_VERDICTS:
-                findings.append(
-                    f"{where}: uses[{j}] `verdict` is «{verdict}», expected one of "
-                    f"{', '.join(USE_VERDICTS)}"
-                )
-            elif verdict == "not_covered":
-                reason = _text(use.get("reason"))
-                if not reason:
-                    findings.append(
-                        f"{where}: uses[{j}] is a miss with no `reason` — an "
-                        f"uncounted root's miss is still a published result"
-                    )
-                elif reason.split(":", 1)[0].split()[0] not in MISS_CLASSES:
-                    findings.append(
-                        f"{where}: uses[{j}]'s reason does not open with one of "
-                        f"{', '.join(MISS_CLASSES)}"
-                    )
-
-    # A RECORD FOR A NON-WITNESS ROOT IS NOT A FINDING, and treating it as one
-    # made the gate contradict two documents it is supposed to enforce. §D9 step 3
-    # requires `ضرب` to be confronted and published; `concept_attestation.json`'s
-    # own meta says records may exist for roots off the holdout and are published
-    # like any other. A finding fails the run (`main` returns 1 on any), so the
-    # mandated step could not be taken without breaking the validator.
-    #
-    # It is safe to publish and not to count because `k` is computed by iterating
-    # `witness_roots`, not `records`: an off-set record has no path into either
-    # half of the number, whatever it says. What it CAN do is mislead a reader, so
-    # it is shape-checked above like every other record and named beside the
-    # number here rather than left to be discovered in the file.
-
-    return Metric(total=total, recorded=recorded, k=k,
-                  signature=(sig_k, sig_n), plain=(plain_k, plain_n),
-                  blocked=(), printable=True, note="",
-                  published_off_set=tuple(off_set)), findings
+# The metric gate — `Metric`, `check_attestation` — lives in
+# `linguistics/lisan/harness/verdicts.py`, shared with every later letter table so
+# the method cannot drift between them. Imported above under the names this
+# module has always exported.
 
 
 # ── the summary the report prints on a clean run ─────────────────────────────

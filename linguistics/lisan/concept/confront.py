@@ -79,39 +79,26 @@ from linguistics.lisan.lisan_service import (  # noqa: E402
 from linguistics.lisan.root_core_store import RootCoreStore  # noqa: E402
 from linguistics.madar.maqayis_store import MaqayisStore  # noqa: E402
 
-# §D9's declared development case. Confronted and published like any other root,
-# counted in neither half of k / 40.
-DEVELOPMENT_CASE = "ضرب"
-
-# What a single frozen use can be judged. `not_judged` is NOT a third outcome of
-# the judgement — it is how this module reads a record that carries no verdict
-# yet, so an unjudged use can never be mistaken for a covered one. The validator
-# accepts only the first two in a committed record and reports the third as a
-# finding; that division is deliberate: reporting must be able to show a state
-# the dataset must not ship.
-USE_COVERED = "covered"
-USE_NOT_COVERED = "not_covered"
-USE_NOT_JUDGED = "not_judged"
-
-# A root's verdict. `not_recorded` is the state of every witness root today.
-VERDICT_COVERS_ALL = "covers_all"
-VERDICT_PARTIAL = "partial"
-VERDICT_NOT_RECORDED = "not_recorded"
-
-
-@dataclass(frozen=True)
-class AttestedUse:
-    """One Quranic sense frozen for a root BEFORE its concept was generated.
-
-    `reason` is required on anything that is not `covered`: a miss is a recorded
-    result and carries its one line. It is the only thing that makes the
-    judgement redoable by a reader who disagrees with it.
-    """
-
-    gloss: str
-    verse: str                      # "s:a"
-    verdict: str                    # covered | not_covered | not_judged
-    reason: str
+# The use record, the verdicts and `counts_toward_k` live in
+# `linguistics/lisan/harness/verdicts.py`, shared with every later letter table
+# so the two measurements are judged by one piece of code. Re-exported here under
+# the names this module has always published.
+from linguistics.lisan.harness.verdicts import (  # noqa: E402,F401
+    DEVELOPMENT_CASE,
+    USE_COVERED,
+    USE_NOT_COVERED,
+    USE_NOT_JUDGED,
+    VERDICT_COVERS_ALL,
+    VERDICT_NOT_RECORDED,
+    VERDICT_PARTIAL,
+    AttestedUse,
+    _use,
+    counts_toward_k,
+    read_uses,
+    records,
+    verdict_for,
+    witness_roots,
+)
 
 
 @dataclass(frozen=True)
@@ -169,44 +156,6 @@ class Sources:
         )
 
 
-def witness_roots(witness: dict) -> frozenset[str]:
-    """The holdout's roots. Absent or malformed reads as an EMPTY set.
-
-    Empty is the safe direction: `in_witness_set` then reads False everywhere and
-    `counts_toward_k` with it, so a broken holdout file can only ever shrink what
-    the metric claims — never silently enrol a root into it.
-    """
-    entries = witness.get("roots")
-    if not isinstance(entries, list):
-        return frozenset()
-    return frozenset(
-        str(e.get("root") or "").strip()
-        for e in entries
-        if isinstance(e, dict) and str(e.get("root") or "").strip()
-    )
-
-
-def records(attestation: dict) -> dict[str, dict]:
-    """`root → record`, accepting either shape the record file may take.
-
-    A dict keyed by root, or a list of objects each carrying `root` — the same
-    tolerance `validate_concept_datasets._records` implements, deliberately
-    mirrored so the gate and the reader can never disagree about what the file
-    says. Anything else reads as no records at all, which lands on
-    `not_recorded`: an unreadable file is not a covered root.
-    """
-    roots = attestation.get("roots")
-    if isinstance(roots, dict):
-        return {k: v for k, v in roots.items() if isinstance(v, dict)}
-    if isinstance(roots, list):
-        return {
-            str(r.get("root") or "").strip(): r
-            for r in roots
-            if isinstance(r, dict) and str(r.get("root") or "").strip()
-        }
-    return {}
-
-
 def core_status(entry, cores: tuple[dict, ...]) -> str:
     """Whose silence it is when a root shows no curated core — or "" when it does.
 
@@ -227,63 +176,6 @@ def core_status(entry, cores: tuple[dict, ...]) -> str:
     if entry.asl_status == "no_asl":
         return CORE_STATUS_NO_ASL_IN_SOURCE
     return CORE_STATUS_NOT_RECORDED
-
-
-def _use(raw) -> AttestedUse:
-    """One `uses[]` entry as read. An unknown verdict reads `not_judged`.
-
-    Never `covered`: the whole file exists to make coverage a claim somebody
-    made, so a missing, misspelled or half-written verdict must land somewhere
-    that cannot be counted as a pass.
-    """
-    if not isinstance(raw, dict):
-        return AttestedUse(gloss="", verse="", verdict=USE_NOT_JUDGED, reason="")
-    verdict = str(raw.get("verdict") or "").strip()
-    return AttestedUse(
-        gloss=str(raw.get("gloss") or "").strip(),
-        verse=str(raw.get("verse") or "").strip(),
-        verdict=verdict if verdict in (USE_COVERED, USE_NOT_COVERED) else USE_NOT_JUDGED,
-        reason=str(raw.get("reason") or "").strip(),
-    )
-
-
-def read_uses(record: dict) -> tuple[AttestedUse, ...]:
-    """A record's frozen uses, in file order. No record, no `uses[]` → empty."""
-    raw = record.get("uses")
-    if not isinstance(raw, list):
-        return ()
-    return tuple(_use(entry) for entry in raw)
-
-
-def verdict_for(uses: tuple[AttestedUse, ...]) -> str:
-    """`covers_all` · `partial` · `not_recorded`, and EMPTY IS NOT FULL.
-
-    The single most dangerous default in this protocol is the vacuous one:
-    `all(u.verdict == "covered" for u in ())` is `True`, so a root nobody has
-    judged would report perfect coverage and contribute to `k`. The emptiness
-    test therefore comes FIRST, before anything that could read as agreement.
-
-    Everything else is the strict rule with no partial credit: one use short of
-    covered — whether it was judged a miss or never judged at all — makes the
-    root `partial`. There is no third grade, no weighting and no «mostly».
-    """
-    if not uses:
-        return VERDICT_NOT_RECORDED
-    if all(use.verdict == USE_COVERED for use in uses):
-        return VERDICT_COVERS_ALL
-    return VERDICT_PARTIAL
-
-
-def counts_toward_k(root: str, in_witness_set: bool) -> bool:
-    """Whether this root may contribute to `k / 40`.
-
-    `ضرب` is named here rather than left to fall out of its absence from the
-    holdout. It IS absent today, so the second clause alone would give the right
-    answer — and it would give it by accident: the day someone adds the
-    development case to the set, the exclusion has to survive the edit that would
-    otherwise reinstate it silently.
-    """
-    return in_witness_set and root != DEVELOPMENT_CASE
 
 
 def confront(root: str, sources: Sources | None = None) -> Confrontation:

@@ -42,7 +42,6 @@ an empty set silently disarms the guard, which is the failure mode the guard is.
 """
 from __future__ import annotations
 
-import os
 import sys
 from contextlib import contextmanager
 from functools import lru_cache
@@ -52,28 +51,18 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 from quran_data import loaders  # noqa: E402
+# The holdout-independent half of the guard — runner detection, the nesting
+# sanction, the exception type — is shared with every later letter table's guard.
+from linguistics.lisan.harness.guard import (  # noqa: E402,F401
+    Sanction,
+    WitnessRootComposed,
+    roots_of,
+    under_test_runner as _under_test_runner,
+)
 
-
-class WitnessRootComposed(RuntimeError):
-    """A test composed a root from the pre-registered holdout."""
-
-
-# How deep inside `recording_the_witness_set()` we are. An int rather than a bool
-# so nesting — the recording script calling a helper that takes the sanction too —
-# cannot let the outer one lift the guard early on its way out.
-_sanctioned = 0
-
-
-def _under_test_runner() -> bool:
-    """Whether this process is a test run.
-
-    Both signals are checked because neither alone covers the cases: the env var
-    is set by pytest per test and is absent at import time and in fixtures, while
-    `sys.modules` catches collection, session fixtures and anything a plugin does
-    outside a test. A subprocess spawned by a test inherits the env var and is
-    covered by the first.
-    """
-    return "PYTEST_CURRENT_TEST" in os.environ or "pytest" in sys.modules
+# How deep inside `recording_the_witness_set()` we are — a counter, so nesting
+# cannot let the outer sanction lift the guard early on its way out.
+_sanction = Sanction()
 
 
 @lru_cache(maxsize=1)
@@ -84,15 +73,7 @@ def witness_roots() -> frozenset[str]:
     no aṣl, no sense. The blindness rule bans the meaning datasets; a list of root
     spellings is not one, and this module could not do its job without it.
     """
-    witness = loaders.concept_witness_set()
-    entries = witness.get("roots")
-    if not isinstance(entries, list):
-        return frozenset()
-    return frozenset(
-        str(entry.get("root") or "").strip()
-        for entry in entries
-        if isinstance(entry, dict) and str(entry.get("root") or "").strip()
-    )
+    return roots_of(loaders.concept_witness_set())
 
 
 @contextmanager
@@ -106,17 +87,13 @@ def recording_the_witness_set():
     holdout can be opened, where a context manager makes it one block, named after
     what it is for.
     """
-    global _sanctioned
-    _sanctioned += 1
-    try:
+    with _sanction.held():
         yield
-    finally:
-        _sanctioned -= 1
 
 
 def check(root: str) -> None:
     """Raise if a test is composing a witness root. Silent in every other case."""
-    if not _under_test_runner() or _sanctioned:
+    if not _under_test_runner() or _sanction:
         return
     roots = witness_roots()
     if not roots:
