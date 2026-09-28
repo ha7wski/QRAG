@@ -2,7 +2,7 @@
  "meta": {
   "name": "islambouli-attestation",
   "description": "The frozen expectation the Islambouli table's k/40 is judged against: per root of the second holdout, its Quranic uses (gloss + one own verse), written BLIND to the letter table and committed before any reading of these roots existed; then per-use verdicts once the readings exist.",
-  "state": "FROZEN, AWAITING GENERATION. All 40 roots of the second holdout and ضرب have their uses on file; no reading of any of them has been generated.",
+  "state": "READINGS GENERATED, AWAITING JUDGEMENT. Every reading was composed after its root's uses were frozen and committed.",
   "the_ordering_is_the_protocol": [
    "A root's `uses[]` is written and committed FIRST, from morphology.json's occurrence list and the aṣl's verbatim, with the concept not yet generated.",
    "The reading is generated afterwards, blind: nothing under linguistics/lisan/islambouli/ but confront.py may read the aṣl or the uses, and an import boundary enforces it.",
@@ -148,7 +148,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "أ",
+      "row": 0,
+      "label": "ء",
+      "text": "صوت خفيف يدل على ظهور متوقف. وهو جزء من صوت (آ)"
+     },
+     {
+      "position": "body",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     },
+     {
+      "position": "concludes",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "أذن": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -195,7 +225,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "أ",
+      "row": 0,
+      "label": "ء",
+      "text": "صوت خفيف يدل على ظهور متوقف. وهو جزء من صوت (آ)"
+     },
+     {
+      "position": "body",
+      "letter": "ذ",
+      "row": 8,
+      "label": "ذ",
+      "text": "صوت يدل على دفع وسط ملتصق."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "أذي": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -252,7 +312,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "أ",
+      "row": 0,
+      "label": "ء",
+      "text": "صوت خفيف يدل على ظهور متوقف. وهو جزء من صوت (آ)"
+     },
+     {
+      "position": "body",
+      "letter": "ذ",
+      "row": 8,
+      "label": "ذ",
+      "text": "صوت يدل على دفع وسط ملتصق."
+     },
+     {
+      "position": "concludes",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بدو": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -299,7 +389,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     },
+     {
+      "position": "concludes",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بوب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -341,7 +461,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بيت": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -383,7 +533,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ت",
+      "row": 2,
+      "label": "ت",
+      "text": "صوت يدل على دفع خفيف متوقف."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "حول": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -430,7 +610,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ح",
+      "row": 5,
+      "label": "ح",
+      "text": "صوت يدل على تأرجح شديد منضبط، أو سعة محددة."
+     },
+     {
+      "position": "body",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ل",
+      "row": 22,
+      "label": "ل",
+      "text": "صوت يدل على حركة ثقيلة متصلة لازمة."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "حين": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -477,7 +687,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ح",
+      "row": 5,
+      "label": "ح",
+      "text": "صوت يدل على تأرجح شديد منضبط، أو سعة محددة."
+     },
+     {
+      "position": "body",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "خلد": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -504,7 +744,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "خ",
+      "row": 6,
+      "label": "خ",
+      "text": "صوت يدل على رخاوة أو طراوة."
+     },
+     {
+      "position": "body",
+      "letter": "ل",
+      "row": 22,
+      "label": "ل",
+      "text": "صوت يدل على حركة ثقيلة متصلة لازمة."
+     },
+     {
+      "position": "concludes",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "ذهب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -551,7 +821,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ذ",
+      "row": 8,
+      "label": "ذ",
+      "text": "صوت يدل على دفع وسط ملتصق."
+     },
+     {
+      "position": "body",
+      "letter": "ه",
+      "row": 25,
+      "label": "هـ",
+      "text": "صوت يدل على تأرجح خفيف منضبط."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "ريب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -573,7 +873,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     },
+     {
+      "position": "body",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "سبح": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -605,7 +935,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "س",
+      "row": 11,
+      "label": "س",
+      "text": "صوت يدل على حركة متصلة حرة."
+     },
+     {
+      "position": "body",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "concludes",
+      "letter": "ح",
+      "row": 5,
+      "label": "ح",
+      "text": "صوت يدل على تأرجح شديد منضبط، أو سعة محددة."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "سبق": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -677,7 +1037,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "س",
+      "row": 11,
+      "label": "س",
+      "text": "صوت يدل على حركة متصلة حرة."
+     },
+     {
+      "position": "body",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "concludes",
+      "letter": "ق",
+      "row": 20,
+      "label": "ق",
+      "text": "صوت يدل على قطع، أو وقف شديد."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "سحر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -714,7 +1104,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "س",
+      "row": 11,
+      "label": "س",
+      "text": "صوت يدل على حركة متصلة حرة."
+     },
+     {
+      "position": "body",
+      "letter": "ح",
+      "row": 5,
+      "label": "ح",
+      "text": "صوت يدل على تأرجح شديد منضبط، أو سعة محددة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "شكر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -741,7 +1161,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ش",
+      "row": 12,
+      "label": "ش",
+      "text": "صوت يدل على انتشار وتفش."
+     },
+     {
+      "position": "body",
+      "letter": "ك",
+      "row": 21,
+      "label": "ك",
+      "text": "صوت يدل على وقف، أو ضغط خفيف."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "صرف": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -803,7 +1253,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ص",
+      "row": 13,
+      "label": "ص",
+      "text": "صوت يدل على حركة متصلة محددة."
+     },
+     {
+      "position": "body",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     },
+     {
+      "position": "concludes",
+      "letter": "ف",
+      "row": 19,
+      "label": "ف",
+      "text": "صوت يدل على فتح خفيف منضم."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "عجل": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -880,7 +1360,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     },
+     {
+      "position": "body",
+      "letter": "ج",
+      "row": 4,
+      "label": "ج",
+      "text": "صوت يدل على جهد أو شدة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ل",
+      "row": 22,
+      "label": "ل",
+      "text": "صوت يدل على حركة ثقيلة متصلة لازمة."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "عهد": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -947,7 +1457,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     },
+     {
+      "position": "body",
+      "letter": "ه",
+      "row": 25,
+      "label": "هـ",
+      "text": "صوت يدل على تأرجح خفيف منضبط."
+     },
+     {
+      "position": "concludes",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "غني": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -994,7 +1534,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "غ",
+      "row": 18,
+      "label": "غ",
+      "text": "صوت يدل على غموض، أو غياب."
+     },
+     {
+      "position": "body",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     },
+     {
+      "position": "concludes",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "فحش": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1046,7 +1616,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ف",
+      "row": 19,
+      "label": "ف",
+      "text": "صوت يدل على فتح خفيف منضم."
+     },
+     {
+      "position": "body",
+      "letter": "ح",
+      "row": 5,
+      "label": "ح",
+      "text": "صوت يدل على تأرجح شديد منضبط، أو سعة محددة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ش",
+      "row": 12,
+      "label": "ش",
+      "text": "صوت يدل على انتشار وتفش."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "قدم": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1148,7 +1748,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ق",
+      "row": 20,
+      "label": "ق",
+      "text": "صوت يدل على قطع، أو وقف شديد."
+     },
+     {
+      "position": "body",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     },
+     {
+      "position": "concludes",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "قطع": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1270,7 +1900,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ق",
+      "row": 20,
+      "label": "ق",
+      "text": "صوت يدل على قطع، أو وقف شديد."
+     },
+     {
+      "position": "body",
+      "letter": "ط",
+      "row": 15,
+      "label": "ط",
+      "text": "صوت يدل على دفع وسط متوقف."
+     },
+     {
+      "position": "concludes",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "كسب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1292,7 +1952,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ك",
+      "row": 21,
+      "label": "ك",
+      "text": "صوت يدل على وقف، أو ضغط خفيف."
+     },
+     {
+      "position": "body",
+      "letter": "س",
+      "row": 11,
+      "label": "س",
+      "text": "صوت يدل على حركة متصلة حرة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "كشف": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1319,7 +2009,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ك",
+      "row": 21,
+      "label": "ك",
+      "text": "صوت يدل على وقف، أو ضغط خفيف."
+     },
+     {
+      "position": "body",
+      "letter": "ش",
+      "row": 12,
+      "label": "ش",
+      "text": "صوت يدل على انتشار وتفش."
+     },
+     {
+      "position": "concludes",
+      "letter": "ف",
+      "row": 19,
+      "label": "ف",
+      "text": "صوت يدل على فتح خفيف منضم."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "لعن": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1351,7 +2071,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ل",
+      "row": 22,
+      "label": "ل",
+      "text": "صوت يدل على حركة ثقيلة متصلة لازمة."
+     },
+     {
+      "position": "body",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "نصب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1413,7 +2163,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     },
+     {
+      "position": "body",
+      "letter": "ص",
+      "row": 13,
+      "label": "ص",
+      "text": "صوت يدل على حركة متصلة محددة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "هون": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1460,7 +2240,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ه",
+      "row": 25,
+      "label": "هـ",
+      "text": "صوت يدل على تأرجح خفيف منضبط."
+     },
+     {
+      "position": "body",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "وقع": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1527,7 +2337,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     },
+     {
+      "position": "body",
+      "letter": "ق",
+      "row": 20,
+      "label": "ق",
+      "text": "صوت يدل على قطع، أو وقف شديد."
+     },
+     {
+      "position": "concludes",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "يسر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1614,7 +2454,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     },
+     {
+      "position": "body",
+      "letter": "س",
+      "row": 11,
+      "label": "س",
+      "text": "صوت يدل على حركة متصلة حرة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "أمن": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1691,7 +2561,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "أ",
+      "row": 0,
+      "label": "ء",
+      "text": "صوت خفيف يدل على ظهور متوقف. وهو جزء من صوت (آ)"
+     },
+     {
+      "position": "body",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بشر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1738,7 +2638,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "ش",
+      "row": 12,
+      "label": "ش",
+      "text": "صوت يدل على انتشار وتفش."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بصر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1820,7 +2750,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "ص",
+      "row": 13,
+      "label": "ص",
+      "text": "صوت يدل على حركة متصلة محددة."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "بين": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1897,7 +2857,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "body",
+      "letter": "ي",
+      "row": 28,
+      "label": "ي",
+      "text": "صوت يدل على جهد ممتد زمانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "تبع": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -1964,7 +2954,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ت",
+      "row": 2,
+      "label": "ت",
+      "text": "صوت يدل على دفع خفيف متوقف."
+     },
+     {
+      "position": "body",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     },
+     {
+      "position": "concludes",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "جمع": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2036,7 +3056,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ج",
+      "row": 4,
+      "label": "ج",
+      "text": "صوت يدل على جهد أو شدة."
+     },
+     {
+      "position": "body",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     },
+     {
+      "position": "concludes",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "دعو": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2113,7 +3163,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     },
+     {
+      "position": "body",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     },
+     {
+      "position": "concludes",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "عند": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2165,7 +3245,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ع",
+      "row": 17,
+      "label": "ع",
+      "text": "صوت يدل على عمق أو بُعد في الشيء."
+     },
+     {
+      "position": "body",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     },
+     {
+      "position": "concludes",
+      "letter": "د",
+      "row": 7,
+      "label": "د",
+      "text": "صوت يدل على دفع شديد متوقف."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "مثل": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2217,7 +3327,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     },
+     {
+      "position": "body",
+      "letter": "ث",
+      "row": 3,
+      "label": "ث",
+      "text": "صوت يدل على دفع خفيف ملتصق."
+     },
+     {
+      "position": "concludes",
+      "letter": "ل",
+      "row": 22,
+      "label": "ل",
+      "text": "صوت يدل على حركة ثقيلة متصلة لازمة."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "موت": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2284,7 +3424,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "م",
+      "row": 23,
+      "label": "م",
+      "text": "صوت يدل على جمع متصل."
+     },
+     {
+      "position": "body",
+      "letter": "و",
+      "row": 27,
+      "label": "و",
+      "text": "صوت يدل على ضم ممتد مكانياً."
+     },
+     {
+      "position": "concludes",
+      "letter": "ت",
+      "row": 2,
+      "label": "ت",
+      "text": "صوت يدل على دفع خفيف متوقف."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "نهر": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2306,7 +3476,37 @@
      "verdict": "not_judged"
     }
    ],
-   "collision_with": []
+   "collision_with": [],
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ن",
+      "row": 24,
+      "label": "ن",
+      "text": "صوت يدل على ستر، أو اختباء."
+     },
+     {
+      "position": "body",
+      "letter": "ه",
+      "row": 25,
+      "label": "هـ",
+      "text": "صوت يدل على تأرجح خفيف منضبط."
+     },
+     {
+      "position": "concludes",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   },
   "ضرب": {
    "uses_frozen_at": "2026-09-28T18:19:08",
@@ -2429,7 +3629,37 @@
     "verdict": "partial"
    },
    "collision_with": [],
-   "counts_toward_k": false
+   "counts_toward_k": false,
+   "reading": {
+    "table_version": "1.0.0",
+    "table_sha256": "319c73f4c3868d4e11136921d0f178ca8f89d40eafc4a2cd282992b3cb7ff0d6",
+    "positions": [
+     {
+      "position": "opens",
+      "letter": "ض",
+      "row": 14,
+      "label": "ض",
+      "text": "صوت يدل على دفع شديد جداً، متوقف."
+     },
+     {
+      "position": "body",
+      "letter": "ر",
+      "row": 9,
+      "label": "ر",
+      "text": "صوت يدل على تكرار."
+     },
+     {
+      "position": "concludes",
+      "letter": "ب",
+      "row": 1,
+      "label": "ب",
+      "text": "صوت يدل على جمع مستقر"
+     }
+    ],
+    "partial": false,
+    "refused": false
+   },
+   "reading_recorded_at": "2026-09-28T18:21:00"
   }
  }
 }

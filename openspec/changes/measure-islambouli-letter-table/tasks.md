@@ -53,8 +53,8 @@
 
 ## 7. Generate, judge, compute
 
-- [ ] 7.1 `islambouli/confront.py` (reads the result, never imported back) and `scripts/record_islambouli_verdicts.py` (`worksheet`, `record`, `collisions`) on `harness/verdicts.py`, taking the sanctioned guard context
-- [ ] 7.2 Generate and record the 41 readings with lock version + sha256 and `reading_recorded_at`; commit before judging
+- [x] 7.1 `islambouli/confront.py` (reads the result, never imported back) and `scripts/record_islambouli_verdicts.py` (`worksheet`, `record`, `collisions`) on `harness/verdicts.py`, taking the sanctioned guard context
+- [x] 7.2 Generate and record the 41 readings with lock version + sha256 and `reading_recorded_at`; commit before judging
 - [ ] 7.3 Judge every use under the criterion, including `ضرب`'s `uses_blind` (counted nowhere); each miss reason starts with its class; commit
 - [ ] 7.4 Compute `collision` after the verdicts over all triliteral roots; commit
 
