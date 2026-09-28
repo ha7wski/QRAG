@@ -16,10 +16,10 @@
 
 ## 2. Transcription
 
-- [ ] 2.0 **Gate:** replace `data/source/islambouli_letters_poster.png` with the full image showing the lower banner and footer; record its sha256; stop if it cannot be supplied
-- [ ] 2.1 Add the CSV and lock paths + manifest entries (the poster as a `source/` original with its sha256)
-- [ ] 2.2 Transcribe the 29 rows from the image into `islambouli_letters.csv` (`row`, `label_as_printed`, `text_as_printed`, `text`, `status`, `reading_note`), re-checking every row at 3× crop; row 12 without shadda/tanween and with its `reading_note`
-- [ ] 2.3 Validator: 29 rows 0–28; whitespace-stripped identity per row; status only `transcribed_from_poster`; row 26 label «آ - ى», row 25 «هـ»; no field relating row 0 to row 26
+- [x] 2.0 **Gate:** replace the truncated deposit at `data/source/islambouli_letters_poster.png` with the original (1132×1646, sha256 `e64906b3…abcac0c`); read the title band, banner and footer at 3× on it
+- [x] 2.1 Add the CSV and lock paths + manifest entries (the poster as a `source/` original with its sha256)
+- [x] 2.2 Transcribe the 29 rows from the image into `islambouli_letters.csv` (`row`, `label_as_printed`, `text_as_printed`, `text`, `status`, `reading_note`), re-checking every row at 3× crop; row 12 without shadda/tanween and with its `reading_note`
+- [x] 2.3 Validator: 29 rows 0–28; whitespace-stripped identity per row; status only `transcribed_from_poster`; row 26 label «آ - ى», row 25 «هـ»; no field relating row 0 to row 26
 - [ ] 2.4 Commit the transcription (git ancestry check: 1.5 precedes)
 
 ## 3. System check (before any root)
@@ -30,8 +30,8 @@
 
 ## 4. Freeze
 
-- [ ] 4.1 Read the banner and footer at 3×; write `islambouli_letters.lock.json` v1.0.0: `frozen_on`, sha256 of the CSV bytes, `history[0].source` with authority, witness + sha256, `witness_origin`, `witness_imprint` (banner + footer verbatim, as printed + spaced), `pages: []`, `attribution_basis` naming the imprint
-- [ ] 4.2 Validator: digest match; imprint non-empty with identity check; refuse `attested` and non-empty `pages`; refuse a history reason that cites a root, a use or `k`
+- [ ] 4.1 Write `islambouli_letters.lock.json` v1.0.0: `frozen_on`, sha256 of the CSV bytes, `history[0].source` with authority, witness + sha256, `witness_origin`, `witness_imprint` (title band, banner, footer, top edge — as read in 2.0), `pages: []`, `attribution_basis` naming the imprint
+- [ ] 4.2 Validator: CSV digest match; witness file digest match; imprint entries with identity check, banner non-empty, empty entries noted; refuse `attested` and non-empty `pages`; refuse a history reason that cites a root, a use or `k`
 - [ ] 4.3 Commit the lock
 
 ## 5. Composer, blindness and guard

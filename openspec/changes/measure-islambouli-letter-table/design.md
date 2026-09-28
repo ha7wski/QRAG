@@ -14,27 +14,43 @@ What is on disk:
 
 | Asset | State | Role here |
 |---|---|---|
-| `data/source/islambouli_letters_poster.png` — 998×1348, sha256 `ee3ccf36f16833d8f2aa21d6330bab41c460aafb82b8956b8695c169a02f452d` | untracked, supplied by the user | **the only witness of the table** |
+| `data/source/islambouli_letters_poster.png` — 1132×1646, sha256 `e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c` | supplied by the user | **the only witness of the table** |
 | `concept_witness_set.json` — 40 roots, seed `20260925`, frame 280 (205 + 75) | frozen, **burned** (183 uses read) | frame and procedure reused; roots excluded |
 | `concept_attestation.json` — uses, verdicts, criterion | frozen | criterion inherited verbatim; `ضرب`'s uses reused |
 | `linguistics/lisan/concept/{confront,witness_guard}.py`, `scripts/{validate,record}_concept_*.py` | closed | table-agnostic parts extracted (D8), behaviour pinned byte-for-byte |
 
 Two facts about the image govern the transcription status:
 
-- **The witness names the book and the author — on the full image.** The user reports a red lower
-  banner «من كتاب: علمية اللسان العربي وعالميته — للأستاذ سامر إسلامبولي» and a footer «الإسلام الآن —
-  القراءة المعاصرة». **The file currently on disk (sha256 `ee3ccf36…`, 998×1348) does not show
-  them**: it ends at row 28, with only a portrait fragment in the lower-left corner (checked at 2× on
-  its last 70 pixel rows). The on-disk file is therefore a crop of the witness. **Gate:** before
-  step 2, the full image replaces it as `data/source/islambouli_letters_poster.png` (new sha256
-  recorded). The banner and footer are read at 3× and transcribed verbatim, like every other line.
-  If no image showing them can be supplied, the attribution falls back to the user's statement and
-  R2 says so.
+- **The first deposit was truncated, and the witness was replaced by the original before any
+  transcription.** The image first placed at `data/source/islambouli_letters_poster.png` was a crop
+  of the poster, ending at row 28. On that crop no title, author or book was visible, so a first
+  draft of this note rested the attribution on the user's statement. The user then supplied the
+  original (1132×1646, sha256 `e64906b3…abcac0c`), which replaced the crop before any row was
+  transcribed. **This is why the attribution changes basis**: the original prints the book and the
+  author, and they are transcribed from it.
+- **The witness names the book and the author.** Read at 3× on the original, it carries four
+  printed texts besides the table:
+  - an orange **title band** above the table: «دلالة أصوات الأحرف العربية فيزيائياً», set with kashida
+    stretching;
+  - a red **banner** below it, on two lines: «من كتاب : علمية اللسان العربي وعالميته» /
+    «للأستاذ سامر إسلامبولي»;
+  - a yellow **footer**: «الإسلام الان - القراءة المعاصرة .... طريق الى الله»;
+  - along the top edge, a line of white text cut off by the frame, which **cannot be read** and is
+    not transcribed.
+
+  Three details differ from the user's citation, and the image wins each time. First, the banner
+  carries **no dash** between title and author: they sit on two lines. Second, the footer continues
+  with «.... طريق الى الله», printed in red. Third, the alef in «الان» carries a mark that cannot
+  be told apart as hamza or madda at this resolution, so the alef is transcribed bare, with a note
+  — the same policy as row 12. The kashida in the title is not transcribed: the image cannot show
+  whether it is typed tatweel or justification.
 - **Origin of the image:** supplied by the user, origin unrecorded. The transcribed banner tells us
   which book it cites. It does not tell us where the image came from.
 - **No page of the book has been read.** So no row can be `attested` with a page, and none will be.
 
 ### The user's reading, checked against the image
+
+First checked on the truncated deposit, then **re-read row by row at 3× on the original** before transcription (task 2.2). The two reads agree on every row. The original added the two details marked for rows 0 and 28, which the first pass had missed.
 
 Every row was read against the image, and the doubtful ones at 3× crops. **All 29 rows agree
 letter for letter with the user's reading**, with these differences — the image wins in every case,
@@ -42,7 +58,8 @@ and the user's reading is not stored:
 
 | row | letter | the image | the user's reading |
 |---|---|---|---|
-| 0 | ء | «ظهورمتوقف» and «وهوجزء» printed **fused**; «صوت(آ)» with no space; madda visible on آ | spaced |
+| 0 | ء | «ظهورمتوقف» and «وهوجزء» printed **fused**; a **period**, not a comma, after «متوقف»; «صوت(آ)» with no space; madda visible on آ; no final period | spaced, «،» after متوقف |
+| 28 | ي | a space before the final period: «زمانياً .» | no space |
 | 4, 5, 6 | ج ح خ | «أوشدة», «أوسعة», «أوطراوة» printed fused | spaced |
 | 12 | ش | «وتفش.» — **no shadda visible**; a small mark below the line under ش could be a kasra/tanween or row 13's descender, and cannot be decided at this resolution | «وتفشٍّ» |
 | 18, 20, 21, 24 | غ ق ك ن | a **comma before «أو»**: «غموض، أو غياب», «قطع، أو وقف شديد», «وقف، أو ضغط خفيف», «ستر، أو اختباء» | no comma |
@@ -185,21 +202,23 @@ be `partial`. The partial path stays in code, unreachable on today's data, and i
 ```json
 { "authority": "سامر إسلامبولي، «علمية اللسان العربي وعالميته»",
   "witness": "data/source/islambouli_letters_poster.png",
-  "witness_sha256": "<sha256 of the full image>",
+  "witness_sha256": "e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c",
   "witness_origin": "supplied by the user, origin unrecorded",
   "witness_imprint": [
-    { "position": "lower banner", "text_as_printed": "<verbatim, read at 3×>", "text": "<spaces only>" },
-    { "position": "footer",       "text_as_printed": "<verbatim, read at 3×>", "text": "<spaces only>" }
+    { "position": "title band",  "text_as_printed": "…", "text": "…", "reading_note": "…" },
+    { "position": "banner",      "text_as_printed": "…", "text": "…", "reading_note": "" },
+    { "position": "footer",      "text_as_printed": "…", "text": "…", "reading_note": "…" },
+    { "position": "top edge",    "text_as_printed": "",  "text": "",  "reading_note": "cut off by the frame; unreadable" }
   ],
   "pages": [],
-  "attribution_basis": "title and author printed on the witness, transcribed in witness_imprint" }
+  "attribution_basis": "title and author printed on the witness, transcribed in witness_imprint; the witness was supplied by the user as a reproduction of the book's table" }
 ```
 
 `witness_imprint` is held to the same rules as the table rows: legible marks only, and a
 whitespace-stripped identity check between `text_as_printed` and `text`. It lives in the lock and not
 in the CSV, because the CSV's rows are letters and the composer loads them. The validator requires
-`attribution_basis` to name `witness_imprint` whenever that list is non-empty, and requires each
-imprint string to be non-empty. `pages` stays empty: no page of the book has been read.
+`attribution_basis` to name `witness_imprint`, requires the `banner` entry to be non-empty, and
+accepts an empty text only together with a `reading_note` saying why (the top edge). `pages` stays empty: no page of the book has been read.
 
 The validator refuses: a row status other than `transcribed_from_poster`; any non-empty `pages`
 while that is so; a digest mismatch. **A row changes only to correct a transcription error proved
@@ -423,7 +442,7 @@ re-freeze, no re-judging of the closed 40, no adjustment of either number.
 2. **The poster's origin.** "Supplied by the user, origin unrecorded", in the lock's
    `witness_origin`. The book it cites is known from the transcribed banner.
 
-## Blocking before step 2
+## Resolved blocker
 
-- The on-disk witness does not show the banner or the footer (see Context). The full image must
-  replace it before transcription starts. Steps 0 and 1 do not depend on this.
+- The truncated first deposit was replaced by the original before step 2 (see Context). No row had
+  been transcribed at that point.

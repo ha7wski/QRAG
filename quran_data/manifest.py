@@ -47,6 +47,18 @@ class Entry(NamedTuple):
 
 MANIFEST: dict[str, Entry] = {
     # ── source ────────────────────────────────────────────────────────────
+    "ISLAMBOULI_POSTER_PNG": Entry(
+        bucket="source",
+        what="The poster reproducing Samer Islambouli's letter table, 1132×1646 "
+             "PNG, sha256 e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c. "
+             "Its title band, banner and footer print the table's title, the book "
+             "(«علمية اللسان العربي وعالميته») and the author.",
+        origin="Supplied by the user; origin unrecorded. The original replaced a "
+               "truncated first deposit before any transcription.",
+        producer=None,
+        consumers=("scripts/validate_islambouli_datasets.py",),
+        regenerable=False,
+    ),
     "QURAN_CSV": Entry(
         bucket="source",
         what="6236 verses, undiacritized Arabic plus the surah name (846 KB).",
@@ -253,6 +265,20 @@ MANIFEST: dict[str, Entry] = {
                "re-derive is not a published metric.",
         producer=None,
         consumers=("scripts/validate_concept_datasets.py",),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_LETTERS_CSV": Entry(
+        bucket="references",
+        what="Samer Islambouli's letter table, 29 rows (poster rows 0–28): "
+             "`row`, `label_as_printed`, `text_as_printed`, `text` (identical "
+             "up to whitespace), `status` = transcribed_from_poster, "
+             "`reading_note` (4 KB).",
+        origin="Transcribed by hand from data/source/islambouli_letters_poster.png, "
+               "every row read at 3× on the original image. Nothing is curated: a "
+               "row changes only to correct a transcription error proved against "
+               "the image, through a new lock version.",
+        producer=None,
+        consumers=("scripts/validate_islambouli_datasets.py",),
         regenerable=False,
     ),
     "ISLAMBOULI_WITNESS_SET_JSON": Entry(

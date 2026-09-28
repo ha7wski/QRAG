@@ -269,6 +269,12 @@ def concept_witness_set() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_letters() -> list[dict]:
+    """Samer Islambouli's letter table as transcribed, 29 rows in poster order."""
+    return _csv_rows("ISLAMBOULI_LETTERS_CSV")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_witness_set() -> dict:
     """The second 40-root holdout, for the Islambouli letter table.
 

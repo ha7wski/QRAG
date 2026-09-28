@@ -13,12 +13,21 @@ the data it checks:
   A. the second holdout — replayed from its own seed, through the code that also
      replays the first draw, with the first draw's preconditions asserted
      (`linguistics/lisan/harness/draw.py`).
+  B. the transcription — the witness image is the original, by digest; the table
+     has the poster's 29 rows; every row's `text` equals its `text_as_printed` up
+     to whitespace; no row claims more than `transcribed_from_poster`.
+
+The one risk a transcribed table carries is a wrong copy. Section B makes the
+copy's only permitted liberty — whitespace — mechanically checkable, and the
+image it was copied from identifiable by digest.
 
 Usage:
     python scripts/validate_islambouli_datasets.py     # 0 = clean, 1 = findings
 """
 from __future__ import annotations
 
+import hashlib
+import re
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -27,9 +36,28 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from quran_data import loaders  # noqa: E402
+from quran_data.paths import ISLAMBOULI_POSTER_PNG  # noqa: E402
 from linguistics.lisan.harness import draw  # noqa: E402
 
 LABEL_WITNESS = "islambouli_witness_set.json"
+LABEL_TABLE = "islambouli_letters.csv"
+
+# The original poster. The truncated first deposit had another digest; it is the
+# original the table was transcribed from, and nothing else may stand in for it.
+POSTER_SHA256 = "e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c"
+
+# The poster's letter column, rows 0–28, as printed. Structure of the witness,
+# not content of the table: a missing, duplicated or reordered row is a copy error.
+POSTER_LABELS = (
+    "ء", "ب", "ت", "ث", "ج", "ح", "خ", "د", "ذ", "ر", "ز", "س", "ش", "ص", "ض",
+    "ط", "ظ", "ع", "غ", "ف", "ق", "ك", "ل", "م", "ن", "هـ", "آ - ى", "و", "ي",
+)
+TABLE_COLUMNS = ("row", "label_as_printed", "text_as_printed", "text", "status",
+                 "reading_note")
+# The only status this version admits. `attested` needs a page of the book, and
+# none has been read.
+STATUS = "transcribed_from_poster"
+_WHITESPACE = re.compile(r"\s+")
 SEED = 20260928                          # fixed in design.md §D2, before any draw
 
 
@@ -43,6 +71,8 @@ class Datasets:
     """The inputs every rule reads, as plain data — swapped whole by the tests."""
 
     witness: dict                        # islambouli_witness_set.json
+    table: list[dict]                    # islambouli_letters.csv rows
+    poster_sha256: str                   # digest of the witness image on disk
     first_witness: dict                  # concept_witness_set.json
     morphology: dict[str, dict]
     maqayis_has_asl: frozenset[str]
@@ -51,6 +81,8 @@ class Datasets:
     def load(cls) -> "Datasets":
         return cls(
             witness=loaders.islambouli_witness_set(),
+            table=loaders.islambouli_letters(),
+            poster_sha256=hashlib.sha256(ISLAMBOULI_POSTER_PNG.read_bytes()).hexdigest(),
             first_witness=loaders.concept_witness_set(),
             morphology=loaders.morphology(),
             maqayis_has_asl=frozenset(
@@ -164,12 +196,65 @@ def check_witness_set(data: Datasets) -> tuple[Replay, list[str]]:
     return replay_, findings
 
 
+# ── B. the transcription ─────────────────────────────────────────────────────
+def _strip_ws(text: str) -> str:
+    return _WHITESPACE.sub("", text)
+
+
+def check_table(data: Datasets) -> list[str]:
+    """The copy is the poster's, row for row, and claims nothing it has not read."""
+    findings: list[str] = []
+    if data.poster_sha256 != POSTER_SHA256:
+        findings.append(
+            f"{ISLAMBOULI_POSTER_PNG.name}: sha256 {data.poster_sha256[:12]}…, "
+            f"expected {POSTER_SHA256[:12]}… — the witness on disk is not the "
+            "original the table was transcribed from"
+        )
+
+    rows = data.table
+    if rows and tuple(rows[0].keys()) != TABLE_COLUMNS:
+        findings.append(
+            f"{LABEL_TABLE}: columns are {tuple(rows[0].keys())}, expected "
+            f"{TABLE_COLUMNS}. A further column would be a place to put an "
+            "interpretation of a row; the text is the row."
+        )
+    if len(rows) != len(POSTER_LABELS):
+        findings.append(
+            f"{LABEL_TABLE}: {len(rows)} rows, the poster prints {len(POSTER_LABELS)}"
+        )
+    for i, row in enumerate(rows):
+        where = f"{LABEL_TABLE}: row {_text(row.get('row')) or '?'}"
+        if _text(row.get("row")) != str(i):
+            findings.append(f"{where} sits at position {i} — out of the poster's order")
+        if i < len(POSTER_LABELS) and _text(row.get("label_as_printed")) != POSTER_LABELS[i]:
+            findings.append(
+                f"{where}: label «{_text(row.get('label_as_printed'))}», the poster "
+                f"prints «{POSTER_LABELS[i]}»"
+            )
+        printed = row.get("text_as_printed") or ""
+        spaced = row.get("text") or ""
+        if not _strip_ws(printed):
+            findings.append(f"{where}: `text_as_printed` is empty")
+        if _strip_ws(printed) != _strip_ws(spaced):
+            findings.append(
+                f"{where}: `text` differs from `text_as_printed` by more than "
+                "whitespace. Restoring a space is the one liberty a transcription "
+                "takes; changing a letter or a mark is no longer a copy."
+            )
+        if _text(row.get("status")) != STATUS:
+            findings.append(
+                f"{where}: status «{_text(row.get('status'))}», the only admissible "
+                f"one is «{STATUS}» — no page of the book has been read"
+            )
+    return findings
+
+
 # ── entry points ─────────────────────────────────────────────────────────────
 def validate(data: Datasets | None = None) -> list[str]:
     """Every finding, in section order. Empty == clean."""
     data = data or Datasets.load()
     _replay, witness_findings = check_witness_set(data)
-    return [*witness_findings]
+    return [*witness_findings, *check_table(data)]
 
 
 def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
@@ -188,6 +273,14 @@ def report(findings: list[str], data: Datasets, replay_: Replay) -> None:
               f"asserted; rest {replay_.lower} + {replay_.upper} → {verdict}")
     else:
         print("    draw replay        : could not be replayed — see the findings")
+    rows = data.table
+    noted = [r for r in rows if _text(r.get("reading_note"))]
+    print()
+    print(f"  letter table         : {len(rows)} rows, all «{STATUS}»; "
+          f"{len(noted)} with a reading note")
+    print(f"    witness            : {ISLAMBOULI_POSTER_PNG.name}, sha256 "
+          f"{data.poster_sha256[:12]}… "
+          + ("(the original)" if data.poster_sha256 == POSTER_SHA256 else "(NOT the original)"))
     if not findings:
         print("\n  findings: none — the Islambouli datasets are consistent.")
     else:

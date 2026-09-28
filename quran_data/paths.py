@@ -47,6 +47,9 @@ TRANSLATIONS = DERIVED / "translations"
 
 # ── source: third-party originals ─────────────────────────────────────────
 QURAN_CSV = SOURCE / "quran.csv"
+# The only witness of the Islambouli table: the ORIGINAL poster image (1132×1646).
+# A truncated first deposit was replaced by it before any row was transcribed.
+ISLAMBOULI_POSTER_PNG = SOURCE / "islambouli_letters_poster.png"
 QURAN_CHAKL_CSV = SOURCE / "quran_chakl.csv"
 QAC_MORPHOLOGY_TXT = SOURCE / "quran-morphology.txt"
 TREEBANK_CSV = SOURCE / "treebank" / "quranic-treebank.csv"
@@ -78,6 +81,11 @@ CONCEPT_WITNESS_SET_JSON = REFERENCES / "concept_witness_set.json"
 # 20260928 from the same frame minus the 40 above (whose uses have been read), and
 # committed BEFORE a single row of that table was transcribed.
 ISLAMBOULI_WITNESS_SET_JSON = REFERENCES / "islambouli_witness_set.json"
+# Samer Islambouli's letter table, transcribed from the poster below and never
+# curated: each row is the printed text, plus a copy of it that differs only in
+# whitespace. `status` is `transcribed_from_poster` for every row, because no page
+# of the book has been read.
+ISLAMBOULI_LETTERS_CSV = REFERENCES / "islambouli_letters.csv"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before
 # its numerator — and the `probe` block is appended only afterwards, carrying the

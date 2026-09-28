@@ -24,7 +24,7 @@ is the **input table**, replaced wholesale by a third party's, measured on a **f
   two strata and per-stratum counts (29 + 11), same generator order, new seed fixed in this note.
   Committed, with its replay, **before a single table row is transcribed**.
 - **The Islambouli table, transcribed from the poster** (`data/source/islambouli_letters_poster.png`,
-  sha256 `ee3ccf36…`). 29 rows, each carrying the text exactly as printed and a word-separated form
+  sha256 `e64906b3…abcac0c`, the original — a truncated first deposit was replaced before any transcription). 29 rows, each carrying the text exactly as printed and a word-separated form
   provably identical to it up to spaces. Every row's status is `transcribed_from_poster`; **no row is
   `attested`**, and no page is recorded, because no page of the book has been read.
 - **A system check of the table, before any root.** Each gloss decomposed into (action, intensity,

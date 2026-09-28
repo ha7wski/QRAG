@@ -38,11 +38,15 @@ prevail over the image.
 Every row's `status` SHALL be `transcribed_from_poster`. The value `attested` SHALL NOT be accepted
 by the validator in this version. The lock's source SHALL name the authority (سامر إسلامبولي،
 «علمية اللسان العربي وعالميته»), the witness file and its sha256, `witness_origin` («supplied by the
-user, origin unrecorded»), an **empty** `pages` list, and `witness_imprint`: the poster's lower banner
-and footer, each transcribed verbatim with `text_as_printed` and a `text` equal to it up to whitespace.
-`attribution_basis` SHALL state that title and author are printed on the witness and transcribed in
-`witness_imprint`. The witness file SHALL be the full image showing the banner and footer; a cropped
-image that does not show them SHALL NOT be the recorded witness.
+user, origin unrecorded»), an **empty** `pages` list, and `witness_imprint`: every printed text on the
+poster outside the table — title band, banner, footer, and the cut-off top edge. Each is transcribed
+verbatim, with `text_as_printed` and a `text` equal to it up to whitespace, under the same rule as the
+rows: a mark that cannot be read is left out and named in `reading_note`, and a text that cannot be
+read at all is recorded empty with its note. `attribution_basis` SHALL state that title and author are
+printed on the witness and transcribed in `witness_imprint`, together with the user's statement that
+the witness reproduces the book's table. The recorded witness SHALL be the original image (sha256
+`e64906b3b351539cc600f1bff88c9156b703142f740df5a691fac56feabcac0c`). The truncated first deposit
+SHALL NOT be the recorded witness, and its digest SHALL NOT appear in any dataset.
 
 #### Scenario: A page cannot be recorded without having been read
 
@@ -52,15 +56,16 @@ image that does not show them SHALL NOT be the recorded witness.
 #### Scenario: The attribution rests on the printed imprint
 
 - **WHEN** the lock is read
-- **THEN** `witness_imprint` SHALL hold the banner and the footer, each non-empty, each passing the
-  whitespace-stripped identity check
+- **THEN** `witness_imprint` SHALL hold the title band, the banner, the footer and the top edge, each
+  passing the whitespace-stripped identity check
+- **AND** the banner SHALL be non-empty, and an empty entry SHALL carry a `reading_note`
 - **AND** `attribution_basis` SHALL name `witness_imprint`
 - **AND** the documentation SHALL NOT cite the book with a page
 
-#### Scenario: A cropped witness blocks the transcription
+#### Scenario: The witness on disk is the recorded one
 
-- **WHEN** the recorded witness file does not show the banner and footer
-- **THEN** the transcription step SHALL NOT start
+- **WHEN** the file at the witness path does not hash to the lock's `witness_sha256`
+- **THEN** validation SHALL fail
 
 ### Requirement: The hamza row's relation is recorded as text only
 
