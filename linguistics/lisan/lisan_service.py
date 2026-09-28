@@ -118,15 +118,30 @@ class LisanService:
     hand-built core set and never read `data/`.
     """
 
-    def __init__(self, resolver, core_store=None, maqayis=None):
+    def __init__(self, resolver, core_store=None, maqayis=None, lookup=None):
         self.lex = resolver
         self.cores = core_store or RootCoreStore(resolver=resolver)
+        # The ألفاظ and their counts come from the SAME object «الكلمة في الآيات»
+        # uses, so the two pages cannot report different figures for one root —
+        # see `occurrences`. Injected by the router (the API already builds one at
+        # startup); built on first use otherwise, never at import, because it
+        # opens the lemma and proper-noun indexes.
+        self._lookup = lookup
         # Read-only, and ONLY to tell «Ibn Fāris says nothing» apart from «we
         # have not transcribed him yet» — never to build a core. A core is
         # curated (gloss, axes, polarity are readings of the citation); an aṣl
         # lifted straight out of the CSV would be an uncurated core wearing a
         # curated one's clothes, which is exactly what `_is_curated` refuses.
         self.maqayis = maqayis if maqayis is not None else MaqayisStore()
+
+    @property
+    def lookup(self):
+        """The shared `VerseLookup`, built on demand when none was injected."""
+        if self._lookup is None:
+            from retrieval.verse_lookup import VerseLookup
+
+            self._lookup = VerseLookup(retriever=self.lex)
+        return self._lookup
 
     # ── normalization ─────────────────────────────────────────────────────
     @staticmethod
@@ -285,7 +300,8 @@ class LisanService:
 
     # ── orchestration ─────────────────────────────────────────────────────
     def occurrences(self, root: str) -> dict:
-        """How often the root occurs in the corpus, and in which verses.
+        """How often the root occurs in the corpus, in how many āyāt, and under
+        which written forms — read from the object «دراسة الآية» reads.
 
         The ATTESTED layer of this page, and the reason it is published here at
         all: «تحليل اللسان» leads with what the corpus and Ibn Fāris record, and a
@@ -294,19 +310,24 @@ class LisanService:
         confrontation block, which made an attested fact depend on an
         experimental route staying up.
 
-        `sample=1` because only the counts and the reference list are wanted:
-        `retrieve_by_root` also materialises verse TEXTS for its sample, and the
-        exhaustive vocalized display with highlighting is «دراسة الآية»'s job, not
-        this page's. Zero is not a legal sample (it divides by `k`), so one verse
-        is loaded and dropped.
+        It delegates to `VerseLookup.root_forms`, and that is the whole point: it
+        used to read `morphology.json`'s `forms_found` through the resolver, which
+        is a list of VOCALIZED surfaces and not of ألفاظ — رحم came out as 43 forms
+        with `رَحْمَةً` / `رَحْمَةٍ` / `رَحْمَةُ` listed as three, against the 31 written forms
+        «الكلمة في الآيات» shows for the same root. Two counts of one thing is a
+        bug whichever is right, and the fix is not a second deduplication here: the
+        grouping also strips the proclitics QAC declares and drops occurrences that
+        serve as a grammatical tool, neither of which a fold over `forms_found`
+        could reproduce. So this page stops counting and asks the page that counts.
         """
         if not root:
-            return {"count": 0, "verse_ids": [], "forms": []}
-        found = self.lex.retrieve_by_root(root, sample=1)
+            return {"count": 0, "words": 0, "verse_ids": [], "forms": []}
+        found = self.lookup.root_forms(root)
         return {
-            "count": int(found.get("occurrences_count") or 0),
-            "verse_ids": list(found.get("verse_ids") or []),
-            "forms": list(found.get("forms") or []),
+            "count": int(found["ayat"]),
+            "words": int(found["words"]),
+            "verse_ids": list(found["verse_ids"]),
+            "forms": list(found["forms"]),
         }
 
     def analyze(self, word: str) -> dict:
@@ -342,6 +363,7 @@ class LisanService:
             # The attested layer, published before anything interpretive is
             # composed from it.
             "occurrences": found["count"],
+            "occurrence_words": found["words"],
             "occurrence_verses": found["verse_ids"],
             "forms": found["forms"],
             "letters": identities,

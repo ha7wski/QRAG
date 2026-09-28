@@ -70,6 +70,12 @@ def _ref_key(ref: str) -> tuple[int, int, int]:
     return int(s), int(a), int(w)
 
 
+def _ref_key_verse(ref: str) -> tuple[int, int]:
+    """Recitation order for a `surah:ayah` ref (`_ref_key` wants a word ref)."""
+    s, a = ref.split(":")
+    return int(s), int(a)
+
+
 def _block_key(block: dict, refs: list[str]) -> tuple[int, int, int]:
     """A لفظ block's first occurrence, as a recitation-order sort key.
 
@@ -794,6 +800,45 @@ class VerseLookup:
             "occurrences": self._word_count(emitted_refs),
             "total": self._distinct_verses(forms),
             "forms": forms,
+        }
+
+    # ── the same ألفاظ, without the verses ────────────────────────────────
+    def root_forms(self, root: str) -> dict:
+        """The distinct ألفاظ of ONE root, with the figures «الكلمة في الآيات» shows.
+
+        «تحليل اللسان» prints the same المواضع block, and it must not compute it a
+        second way. `morphology.json`'s `forms_found` — what it used — is a list of
+        VOCALIZED surfaces, so `رَحْمَةً` / `رَحْمَةٍ` / `رَحْمَةُ` are three entries of one
+        written form: the page announced 43 ألفاظ for رحم where this one counts 31,
+        and printed the same word four times in a row. The deeper divergence is not
+        the duplicates: `forms_found` is unfiltered, so an occurrence serving as a
+        grammatical tool (`word_function.json`) stays in its count and is out of the
+        لفظ grouping — two pages disagreeing on the same root, each internally
+        consistent.
+
+        `root` is a CANONICAL QAC root key, the spelling `resolve_roots` / `_ladder`
+        return; this is the per-root half of `lookup` verbatim, verse rows built and
+        then dropped. Built, not skipped: `_form_blocks` drops a block whose verses
+        would not render, so a cheaper path would list ألفاظ «دراسة الآية» does not
+        show — the one thing this method exists to prevent. ~10 ms on رحم.
+        """
+        if not root:
+            return {"root": "", "forms": [], "words": 0, "ayat": 0, "verse_ids": []}
+        blocks, refs = self._form_blocks(root, self._lemma_groups_for_root(root))
+        # Read off the emitted rows, not off `refs`: `ayat` then equals
+        # `len(verse_ids)` by construction, and both describe exactly the blocks
+        # «دراسة الآية» would display for this root.
+        verse_ids = sorted(
+            {f"{r['surah_number']}:{r['aya_number']}"
+             for b in blocks for r in b["verses"]},
+            key=_ref_key_verse,
+        )
+        return {
+            "root": root,
+            "forms": [b["form"] for b in blocks],
+            "words": self._word_count(refs),
+            "ayat": len(verse_ids),
+            "verse_ids": verse_ids,
         }
 
     @staticmethod

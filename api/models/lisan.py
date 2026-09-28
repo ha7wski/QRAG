@@ -176,9 +176,14 @@ class LisanResponse(BaseModel):
     # with highlighting, which is that page's job and not this one's. These used
     # to reach the screen only through the concept engine's confrontation block,
     # which made an attested fact depend on an experimental route staying up.
-    occurrences: int = 0
+    occurrences: int = 0                # distinct āyāt
+    occurrence_words: int = 0           # distinct WORDS — 339 for رحم against 313 āyāt
     occurrence_verses: list[str] = []
-    forms: list[str] = []               # the written forms QAC records for the root
+    # The distinct ألفاظ — WRITTEN forms, proclitics stripped, grammatical-tool
+    # occurrences out — exactly what «الكلمة في الآيات» lists. NOT
+    # `morphology.json`'s `forms_found`, which is vocalized surfaces and counted
+    # `رَحْمَةً` / `رَحْمَةٍ` / `رَحْمَةُ` as three ألفاظ of one written form.
+    forms: list[str] = []
     constrained: bool = False
     letters: list[LetterIdentity] = []
     cores: list[RootCore] = []

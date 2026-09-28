@@ -46,6 +46,10 @@ def _service(request: Request):
 
         svc = LisanService(
             resolver=request.app.state.lexical_retriever,
+            # The one «الكلمة في الآيات» already answers with, so the المواضع
+            # block on this page is the same computation, not a second one that
+            # happens to agree today.
+            lookup=request.app.state.verse_lookup,
         )
         request.app.state.lisan_service = svc
     return svc

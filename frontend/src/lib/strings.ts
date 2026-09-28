@@ -512,9 +512,16 @@ export const S = {
      * links there rather than growing a second copy of it. */
     occurrencesHeading: "المواضع",
     occurrencesNote: `ورودُ الجذر في القرآن كما تُثبِته مدوّنةُ ${iso("QAC")} المُحقَّقة.`,
-    /** «313 آية» / «11 لفظًا» — the two figures, each counted on its own set.
-     *  No label in front of either: the counted noun already says what is
-     *  counted, and «عدد الآيات : 313 آية» says it twice. */
+    /** «339 موضعًا» / «313 آية» / «31 لفظًا» — three figures, each counted on its
+     *  own set and none the sum of another: رحم is 339 words in 313 āyāt written
+     *  as 31 ألفاظ. No label in front of any: the counted noun already says what
+     *  is counted, and «عدد الآيات : 313 آية» says it twice.
+     *
+     *  The same three «الكلمة في الآيات» prints, from the same computation — a
+     *  لفظ there is a WRITTEN form (proclitics stripped, grammatical-tool
+     *  occurrences out), where this page used to show vocalized surfaces and
+     *  count رَحْمَةً / رَحْمَةٍ / رَحْمَةُ as three. */
+    occurrencesWords: (n: number) => count(n, NOUNS.mawdi),
     occurrencesAyat: (n: number) => count(n, NOUNS.aya),
     occurrencesForms: (n: number) => count(n, NOUNS.lafz),
     formsLabel: "الألفاظ :",

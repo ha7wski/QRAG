@@ -175,16 +175,22 @@ export interface LisanResponse {
   root_source: "qac" | "fallback" | null;
   /** The ATTESTED layer, published before anything composed from it.
    *
-   *  `occurrences` counts the Quranic verses the root occurs in,
-   *  `occurrence_verses` is the exhaustive `"s:a"` list, and `forms` the written
-   *  forms QAC records for it. The page prints the figures and a short sample
-   *  and sends the reader to «دراسة الآية» for the vocalized display with
-   *  highlighting — that page's job, not this one's.
+   *  `occurrences` counts the ĀYĀT the root occurs in, `occurrence_words` the
+   *  WORDS (رحم: 339 words in 313 āyāt — neither is derivable from the other),
+   *  `occurrence_verses` is the exhaustive `"s:a"` list, and `forms` the distinct
+   *  ألفاظ — written forms, proclitics stripped, grammatical-tool occurrences
+   *  excluded. All four are «الكلمة في الآيات»'s own figures, produced by the one
+   *  backend computation both pages read (`VerseLookup.root_forms`); `forms` used
+   *  to be `morphology.json`'s vocalized surfaces and listed رَحْمَةً / رَحْمَةٍ / رَحْمَةُ
+   *  as three of 43 against that page's 31. The page prints the figures and a
+   *  short sample and sends the reader to «دراسة الآية» for the vocalized display
+   *  with highlighting — that page's job, not this one's.
    *
    *  They are required, not optional: these facts used to reach the screen only
    *  through the concept engine's confrontation block, which made an attested
    *  datum depend on an experimental route staying up. */
   occurrences: number;
+  occurrence_words: number;
   occurrence_verses: string[];
   forms: string[];
   constrained: boolean;

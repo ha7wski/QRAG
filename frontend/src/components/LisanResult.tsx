@@ -153,6 +153,7 @@ export default function LisanResult({
       <Occurrences
         word={data.word}
         occurrences={data.occurrences}
+        words={data.occurrence_words}
         verses={data.occurrence_verses}
         forms={data.forms}
       />
@@ -284,9 +285,14 @@ function CoresCitation({
 /* ── المواضع — the attested occurrences ─────────────────────────────────── */
 
 /**
- * What the corpus attests for the root: how many āyāt hold it, which written
- * forms QAC records, and a SAMPLE of references — then the way out to the page
- * that shows all of them properly.
+ * What the corpus attests for the root: how many words and how many āyāt hold
+ * it, which ألفاظ it is written as, and a SAMPLE of references — then the way
+ * out to the page that shows all of them properly.
+ *
+ * Every figure here is «الكلمة في الآيات»'s own — one backend computation feeds
+ * both pages (`VerseLookup.root_forms`). They used to be counted separately, and
+ * the separation showed: this section listed رَحْمَةً / رَحْمَةٍ / رَحْمَةُ as three of 43
+ * «ألفاظ» where the other page showed 31 distinct written forms.
  *
  * The sample is a sample and says so with a number, so nothing here pretends to
  * be exhaustive. The exhaustive display — every āya, vocalized, with the matched
@@ -301,11 +307,13 @@ function CoresCitation({
 function Occurrences({
   word,
   occurrences,
+  words,
   verses,
   forms,
 }: {
   word: string;
   occurrences: number;
+  words: number;
   verses: string[];
   forms: string[];
 }) {
@@ -337,6 +345,12 @@ function Occurrences({
       ) : (
         <>
           <div className="mt-3 flex flex-wrap gap-2">
+            {/* مواضع before آيات, as «الكلمة في الآيات» orders them: a word count
+                and an āya count are different questions (رحم is 339 in 313), and
+                the two pages now read them off the same computation. */}
+            <span className="rounded bg-brand-light px-2 py-1 font-arabic text-base text-brand-dark">
+              {S.lexical.occurrencesWords(words)}
+            </span>
             <span className="rounded bg-brand-light px-2 py-1 font-arabic text-base text-brand-dark">
               {S.lexical.occurrencesAyat(occurrences)}
             </span>
