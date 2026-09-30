@@ -59,6 +59,24 @@ MANIFEST: dict[str, Entry] = {
         consumers=("scripts/validate_islambouli_datasets.py",),
         regenerable=False,
     ),
+    "ISLAMBOULI_MAFAHIM_DRB_PNG": Entry(
+        bucket="source",
+        what="Video screenshot, 1888×1004 PNG: Islambouli's ضرب, under «الحالة "
+             "الفيزيائية» and «الحالة الثقافية», programme «مفاهيم».",
+        origin="Supplied by the user; origin unrecorded (no episode reference).",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli_citations.py",),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_MAFAHIM_KTB_PNG": Entry(
+        bucket="source",
+        what="Video screenshot, 1936×998 PNG: Islambouli's كتب, labelled «( مفهوم )», "
+             "programme «مفاهيم».",
+        origin="Supplied by the user; origin unrecorded (no episode reference).",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli_citations.py",),
+        regenerable=False,
+    ),
     "QURAN_CSV": Entry(
         bucket="source",
         what="6236 verses, undiacritized Arabic plus the surah name (846 KB).",
@@ -279,7 +297,8 @@ MANIFEST: dict[str, Entry] = {
                "the image, through a new lock version.",
         producer=None,
         consumers=("scripts/validate_islambouli_datasets.py",
-                   "linguistics/lisan/islambouli/table.py"),
+                   "linguistics/lisan/islambouli/table.py",
+                   "api/routers/lisan.py"),
         regenerable=False,
     ),
     "ISLAMBOULI_LETTERS_LOCK_JSON": Entry(
@@ -295,6 +314,46 @@ MANIFEST: dict[str, Entry] = {
         producer=None,
         consumers=("scripts/validate_islambouli_datasets.py",
                    "linguistics/lisan/islambouli/table.py"),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_WASF_CSV": Entry(
+        bucket="references",
+        what="The closed مصدر → وصف table of the physical-stage assembly: `masdar`, "
+             "`wasf`, `form`, `justification`; 4 entries, ceiling 20.",
+        origin="Enumerated from the first words of the Islambouli rows' "
+               "alternatives and admitted by one morphological criterion (both "
+               "participles share one unvocalized spelling), never by a root.",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli/wasf.py",),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_WASF_LOCK_JSON": Entry(
+        bucket="references",
+        what="The freeze on islambouli_wasf.csv: version, sha256, criterion, "
+             "rejected candidates, and the assembly's segment notes (rows ء ع ض).",
+        origin="Written when the table was frozen, before any root other than the "
+               "two development cases was assembled.",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli/wasf.py",),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_CITATIONS_JSON": Entry(
+        bucket="references",
+        what="Islambouli's published root statements: per entry `root`, `stage` "
+             "(physical | cultural), label and text as printed, `text`, source "
+             "with witness digest; plus the declared development cases.",
+        origin="Transcribed by hand at 2× from the «مفاهيم» screenshots under "
+               "data/source/.",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli_citations.py",),
+        regenerable=False,
+    ),
+    "ISLAMBOULI_CITATIONS_LOCK_JSON": Entry(
+        bucket="references",
+        what="The freeze on islambouli_citations.json: version, sha256, history.",
+        origin="Written when the citations were frozen.",
+        producer=None,
+        consumers=("linguistics/lisan/islambouli_citations.py",),
         regenerable=False,
     ),
     "ISLAMBOULI_LETTERS_GRID_JSON": Entry(

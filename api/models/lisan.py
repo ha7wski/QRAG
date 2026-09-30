@@ -76,6 +76,12 @@ class LetterIdentity(BaseModel):
     being rendered beside the root again, and a substring guard on
     «خشونة»/«خواء» would not even see it. Meaning belongs to a reading, and a
     reading belongs to a core.
+
+    The one exception is `islambouli`: Samer Islambouli's PUBLISHED gloss for the
+    letter, verbatim from `islambouli_letters.csv` (frozen, digest-checked), shown
+    on «تحليل اللسان» as HIS statement with his name under it. It is attributed,
+    never selected and never composed into a reading; "" when the letter has no
+    row or the table no longer matches its lock.
     """
 
     index: int                         # 1-based position in the root
@@ -85,6 +91,7 @@ class LetterIdentity(BaseModel):
     sifat: list[str] = []
     position: str                      # "initial" | "medial" | "final"
     sense_count: int
+    islambouli: str = ""               # Islambouli's gloss, verbatim; "" if none
 
 
 class DiscardedSense(BaseModel):
@@ -158,6 +165,81 @@ class IshtiqaqItem(BaseModel):
     gloss: str
 
 
+# ── Islambouli: the project's junction of his rows, and what HE published ──
+#
+# Two different authors, kept apart in the payload as on the page. The assembly is
+# the PROJECT's mechanical junction of the three rows (`linguistics/lisan/islambouli/
+# assemble.py`); `cited` is Islambouli's own sentence for the root, when he
+# published one, under its label as printed. The gap between them is the result.
+
+class CitedStatement(BaseModel):
+    """A statement Islambouli published for a root, verbatim, with its witness."""
+
+    id: str
+    stage: str                      # physical | cultural (our classification)
+    label: str                      # as printed, not unified: «الحالة الفيزيائية», «مفهوم», …
+    label_as_printed: str
+    text: str
+    reading_note: str = ""
+    source: dict = {}
+
+
+class AssembledPosition(BaseModel):
+    position: str                   # opens | body | concludes
+    letter: str
+    segment: str                    # the row's meaning segment, verbatim
+    alternatives: list[str] = []    # >1 only when the row carries «أو»
+    rendered: str
+    chosen: int | None = None       # set only by a signed personal reading
+
+
+class WordGap(BaseModel):
+    only_assembly: list[str] = []
+    only_cited: list[str] = []
+
+
+class IslambouliAssembly(BaseModel):
+    sentence: str = ""
+    positions: list[AssembledPosition] = []
+    # The author of the alternative choices applied, when a signed reading made
+    # any. Null means every alternative is shown — the only automatic behaviour.
+    author: str | None = None
+    wasf_version: str = ""
+    refused: bool = False
+    refusal_code: str = ""
+    refusal_reason: str = ""
+    cited: CitedStatement | None = None
+    gap: WordGap | None = None
+
+
+class PersonalReading(BaseModel):
+    author: str
+    text: str
+    updated_at: float
+
+
+class CulturalStage(BaseModel):
+    """Never generated. Null on the response when neither source exists."""
+
+    citations: list[CitedStatement] = []
+    personal: PersonalReading | None = None
+
+
+class LisanReadingPut(BaseModel):
+    author: str
+    cultural_text: str = ""
+    # position index (0–2) → alternative index; validated against the assembly.
+    choices: dict[int, int] = {}
+
+
+class LisanReadingResponse(BaseModel):
+    root: str
+    author: str
+    cultural_text: str = ""
+    choices: dict[int, int] = {}
+    updated_at: float
+
+
 class LisanResponse(BaseModel):
     """`constrained` is the fork.
 
@@ -204,6 +286,10 @@ class LisanResponse(BaseModel):
     disclaimer: str
     sources: dict[str, str] = {}
     message: str | None = None          # set when root could not be resolved
+    # Joined in `api/routers/lisan.py`. Absent when a lock fails, the root is
+    # unresolved, or (under a test runner only) the root is a witness root.
+    islambouli_assembly: IslambouliAssembly | None = None
+    cultural_stage: CulturalStage | None = None
 
 
 # ── the physics-first engine: مفهوم from the letters, aṣl afterwards ──────

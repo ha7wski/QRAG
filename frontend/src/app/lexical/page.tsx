@@ -3,38 +3,32 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Type } from "lucide-react";
-import { API_URL, ApiError, lisanConcept, qlisanForm } from "@/lib/api";
-import type { ConceptResponse, LisanResponse } from "@/lib/lisanTypes";
+import { API_URL, ApiError, qlisanForm } from "@/lib/api";
+import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { statusOf, detailOf } from "@/lib/api";
 import { S, forStatus, type FailureKind } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
-import ConceptResult from "@/components/ConceptResult";
 import LisanResult from "@/components/LisanResult";
 
 /**
- * Lisan Analysis — a single Arabic word read letter-by-letter as an interpretive
- * letter-symbolism reading of the lisān (POST /lisan/analyze). Arabic-only.
+ * Lisan Analysis — a single Arabic word: its verified root, the root's letters
+ * with Samer Islambouli's gloss, Ibn Fāris' aṣl, the occurrences and the
+ * morphology (POST /lisan/analyze). Arabic-only.
  *
  * The page fetches and caches the payload; every decision about it belongs to
- * `LisanResult`. In particular the `constrained` fork — a reading per attested
- * aṣl, or the unconstrained inventory with its warning — is rendered there, so
- * this page reads no field of the response except `word` (to decide whether a
- * `?word=` arrival is already on screen).
+ * `LisanResult`, so this page reads no field of the response except `word` (to
+ * decide whether a `?word=` arrival is already on screen).
  *
- * Three independent lanes per run: the letter reading (the page), the
- * deterministic morphology behind the «الصرف والإعراب» section (POST /qlisan/form),
- * and the مفهوم composed from the letters' physics (POST /lisan/concept). The last
- * two are supplementary — their failure costs their panel, never the reading — so
- * both are fired alongside and their rejections swallowed.
+ * Two independent lanes per run: the analysis (the page) and the deterministic
+ * morphology behind the «الصرف والإعراب» section (POST /qlisan/form). The second
+ * is supplementary — its failure costs its section, never the analysis — so it
+ * is fired alongside and its rejection swallowed.
  *
- * The concept is a SECOND ENGINE, not a section of the first: it composes from the
- * root's letters alone and meets Ibn Fāris afterwards, where `/lisan/analyze` reads
- * the letters through him from the start. They are fetched independently for that
- * reason, and the page hands each payload to its own component untouched. That
- * engine is now a CLOSED EXPERIMENT — it measured 0 / 40 — so it renders after the
- * reading rather than before it, under the closure header `ConceptResult` carries.
+ * The closed physics-first engine (POST /lisan/concept, k / 40 = 0) used to
+ * render a panel below the analysis. It is no longer shown and its route is
+ * quarantined — see `api/routers/lisan_concept.py`.
  *
  * `?word=` deep-links into an analysis (Verse Study's «تحليل لساني» button sends
  * the reader here); `useSearchParams` requires the Suspense boundary below.
@@ -59,15 +53,11 @@ function LisanAnalysis() {
     "lexical.sarfi",
     null,
   );
-  const [concept, setConcept] = useCachedState<ConceptResponse | null>(
-    "lexical.concept",
-    null,
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useCachedState<Failure | null>("lexical.error", null);
 
   // Monotonic run id: only the latest run may write state, so two fast Enters
-  // can never leave a reading of one word beside the morphology of another.
+  // can never leave the analysis of one word beside the morphology of another.
   const runSeq = useRef(0);
 
   // Arriving with ?word=: the parameter is an explicit intent, so it wins over
@@ -94,12 +84,10 @@ function LisanAnalysis() {
     setLoading(true);
     setError(null);
     setSarfi(null);
-    setConcept(null);
 
-    // Fired first so the three lanes travel together; awaited last so the reading
-    // is never held up by either.
+    // Fired first so the two lanes travel together; awaited last so the analysis
+    // is never held up by it.
     const morphology = qlisanForm(typed).catch(() => null);
-    const physics = lisanConcept(typed).catch(() => null);
 
     try {
       // Arabic-only: no `lang` in the body.
@@ -139,11 +127,8 @@ function LisanAnalysis() {
       if (seq === runSeq.current) setLoading(false);
     }
 
-    const [resolved, composed] = await Promise.all([morphology, physics]);
-    if (seq === runSeq.current) {
-      setSarfi(resolved);
-      setConcept(composed);
-    }
+    const resolved = await morphology;
+    if (seq === runSeq.current) setSarfi(resolved);
   }
 
   return (
@@ -190,20 +175,13 @@ function LisanAnalysis() {
         <p className="text-sm text-gray-500">{S.lexical.loading}</p>
       )}
 
-      {/* The attested layers first — root, Ibn Fāris' cited aṣl, the occurrences,
-          the morphology — and the closed experiment after them.
-
-          The مفهوم used to come first, so that its comparison panel would sit
-          immediately above the reading it compares itself with. That ordering
-          read as an offer of two engines to choose between; the physics engine
-          measured 0 / 40 and is archived, so it now follows what the page is
-          actually built on, carrying its own closure header. The cost is that
-          `LisanResult`'s disclaimer is no longer the last thing on the page —
-          the closed panel's header is what the reader meets instead, which is
-          the statement that matters more at that point. */}
-      {data && !loading && <LisanResult data={data} sarfi={sarfi} />}
-
-      {concept && !loading && <ConceptResult data={concept} lisan={data} />}
+      {data && !loading && (
+        <LisanResult
+          data={data}
+          sarfi={sarfi}
+          onReadingSaved={() => run(data.word)}
+        />
+      )}
     </div>
   );
 }

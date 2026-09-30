@@ -1,0 +1,71 @@
+{
+ "meta": {
+  "what": "Statements Samer Islambouli published for a root, transcribed from their witness image. Nothing here is generated or inferred; a root absent from this file has no cited stage.",
+  "stages": {
+   "physical": "الحالة الفيزيائية — our classification of a statement assembled from the three letter rows. The label as printed is kept as printed.",
+   "cultural": "الحالة الثقافية — a statement contained in none of the three rows."
+  },
+  "text_rule": "`text` is the statement lines of `text_as_printed` joined by single spaces. Title lines and the label stay in `text_as_printed` only; no word of the statement changes."
+ },
+ "development_cases": [
+  "ضرب",
+  "كتب"
+ ],
+ "development_cases_rule": "Roots used to develop and accept the assembly template. They enter no measurement and must stay disjoint from every witness set.",
+ "citations": [
+  {
+   "id": "drb-physical",
+   "root": "ضرب",
+   "stage": "physical",
+   "label_as_printed": "الحالة الفيزيائية:",
+   "label": "الحالة الفيزيائية",
+   "text_as_printed": "تدل على دفع شديد مكرر\nمنتهٍ بجمع مستقر",
+   "text": "تدل على دفع شديد مكرر منتهٍ بجمع مستقر",
+   "source": {
+    "authority": "سامر إسلامبولي",
+    "programme": "مفاهيم",
+    "witness": "data/source/islambouli_mafahim_drb.png",
+    "witness_sha256": "4f1c006b4d6fdf223077c946a0f0c65ab02e38eb4af0c3dac76625fd128bf5bd",
+    "witness_pixels": "1888×1004",
+    "witness_origin": "supplied by the user as a video screenshot, origin unrecorded (no episode reference)"
+   },
+   "reading_note": ""
+  },
+  {
+   "id": "drb-cultural",
+   "root": "ضرب",
+   "stage": "cultural",
+   "label_as_printed": "الحالة الثقافية:",
+   "label": "الحالة الثقافية",
+   "text_as_printed": "تدل على إيقاع شيءٍ على شيء\nيترك فيه أثراً",
+   "text": "تدل على إيقاع شيءٍ على شيء يترك فيه أثراً",
+   "source": {
+    "authority": "سامر إسلامبولي",
+    "programme": "مفاهيم",
+    "witness": "data/source/islambouli_mafahim_drb.png",
+    "witness_sha256": "4f1c006b4d6fdf223077c946a0f0c65ab02e38eb4af0c3dac76625fd128bf5bd",
+    "witness_pixels": "1888×1004",
+    "witness_origin": "supplied by the user as a video screenshot, origin unrecorded (no episode reference)"
+   },
+   "reading_note": "The kasratan is printed under the first «شيء» only."
+  },
+  {
+   "id": "ktb-physical",
+   "root": "كتب",
+   "stage": "physical",
+   "label_as_printed": "( مفهوم )",
+   "label": "مفهوم",
+   "text_as_printed": "كلمة كتب\nمن خلال تحليل الصوت\n( كاف-تاء-باء )\nكلمة تدل على ضغط ودفع\nمنتهٍ بجمع مستقر\n( مفهوم )",
+   "text": "كلمة تدل على ضغط ودفع منتهٍ بجمع مستقر",
+   "source": {
+    "authority": "سامر إسلامبولي",
+    "programme": "مفاهيم",
+    "witness": "data/source/islambouli_mafahim_ktb.png",
+    "witness_sha256": "4c9bfb96480a1f5976af0e48e5bdd97cb56e8e393f34f5e2bd2572166fb6e65b",
+    "witness_pixels": "1936×998",
+    "witness_origin": "supplied by the user as a video screenshot, origin unrecorded (no episode reference)"
+   },
+   "reading_note": "The screen labels this sentence «مفهوم», not «الحالة الفيزيائية». Filing it under `physical` is OUR classification, because its content is an assembly of rows ك ت ب. `text` keeps only the statement line pair; the title lines «كلمة كتب / من خلال تحليل الصوت / ( كاف-تاء-باء )» and the label are in `text_as_printed`."
+  }
+ ]
+}

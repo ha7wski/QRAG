@@ -48,6 +48,10 @@ from api.routers import lisan as lisan_router  # noqa: E402
 # every startup, and so rebranching Madar is the single `include_router` line the
 # quarantine notice promises rather than an archaeology exercise.
 from api.routers import madar as madar_router  # noqa: E402,F401
+
+# QUARANTINED on the same terms: the closed physics-first engine (k / 40 = 0) no
+# longer has a panel on «تحليل اللسان», so its route is unmounted and 404s.
+from api.routers import lisan_concept as lisan_concept_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import tahlil as tahlil_router  # noqa: E402
@@ -183,6 +187,7 @@ app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)
 # NOT mounted: `madar_router` — quarantined, see linguistics/madar/__init__.py. Rebranching is
 # exactly one line here: `app.include_router(madar_router.router)`.
+# NOT mounted: `lisan_concept_router` — quarantined, see api/routers/lisan_concept.py.
 
 
 @app.get("/health", tags=["health"])

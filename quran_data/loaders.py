@@ -287,6 +287,30 @@ def islambouli_letters_grid() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def islambouli_wasf() -> list[dict]:
+    """The closed مصدر → وصف table of the physical-stage assembly."""
+    return _csv_rows("ISLAMBOULI_WASF_CSV")
+
+
+@functools.lru_cache(maxsize=1)
+def islambouli_wasf_lock() -> dict:
+    """The freeze on the وصف table, with the assembly's segment notes."""
+    return _json("ISLAMBOULI_WASF_LOCK_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def islambouli_citations() -> dict:
+    """Islambouli's published root statements, each with its witness."""
+    return _json("ISLAMBOULI_CITATIONS_JSON")
+
+
+@functools.lru_cache(maxsize=1)
+def islambouli_citations_lock() -> dict:
+    """The freeze on the citations file."""
+    return _json("ISLAMBOULI_CITATIONS_LOCK_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_attestation() -> dict:
     """The Islambouli confrontation record — uses, then verdicts."""
     return _json("ISLAMBOULI_ATTESTATION_JSON")

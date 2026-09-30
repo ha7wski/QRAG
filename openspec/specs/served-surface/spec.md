@@ -11,9 +11,7 @@ have broken them and the obvious audit — it is on `app.state`, it must be used
 dead route forever. This capability ties every mounted route to a real consumer and has a test say
 so, states which routes went and why the write paths behind them stayed, and defines the
 **quarantine** convention for a subsystem that is finished and tested but no longer reached.
-
 ## Requirements
-
 ### Requirement: Every mounted route has a real consumer
 
 A route SHALL be mounted only if something in the shipped product calls it: a frontend page, another
@@ -33,17 +31,16 @@ The surface after this change is exactly what the nine frontend pages call:
 | `GET /surah/{number}`, `GET /surahs` | `SurahReader`, Fassila, QLisan, Tahlīl, Verse Study |
 | `GET /fassila/{surah}`, `GET /fassila/overview` | Fassila tabs |
 | `POST /lisan/analyze` | «تحليل اللسان» page — core-first reading |
-| `POST /lisan/concept` | «تحليل اللسان» page — physics-first مفهوم |
+| `GET /lisan/reading/{root}`, `PUT /lisan/reading/{root}` | «تحليل اللسان» page — signed personal reading |
 | `POST /qlisan/word`, `POST /qlisan/form`, `GET /qlisan/verse/{s}/{a}` | QLisan page, Tahlīl page, «تحليل اللسان» page |
 | `POST /tahlil/word`, `POST /tahlil/review` | Tahlīl page |
 
 `GET /health` is mounted on operational grounds — the frontend banner reads it, and it is the
 documented readiness probe.
 
-`POST /lisan/analyze` and `POST /lisan/concept` are two engines answering the same question by
-opposite routes, and both are called by the same page for the duration of the comparison. Two routes
-on one page is deliberate here and is **not** a precedent for mounting a route whose consumer is a
-future intention: the comparison panel ships in the same change as the route.
+`POST /lisan/concept` (the physics-first engine, a closed experiment at `k / 40 = 0`) is
+**quarantined**: its handler lives in `api/routers/lisan_concept.py`, imported by `api/main.py` but
+not mounted, and `/lexical` no longer renders its panel.
 
 #### Scenario: The mounted surface matches the consumed surface
 
@@ -56,14 +53,14 @@ future intention: the comparison panel ships in the same change as the route.
 - **WHEN** each of the nine pages is exercised after the change
 - **THEN** every request it makes SHALL succeed
 - **AND** its rendered output SHALL be identical to before, apart from `/lexical`'s added concept
-  and comparison panels
+  and Islambouli blocks
 
-#### Scenario: Both lisan routes have a live caller
+#### Scenario: The concept route stays quarantined
 
-- **WHEN** `test_served_surface.py` resolves the callers of `POST /lisan/analyze` and
-  `POST /lisan/concept`
-- **THEN** each SHALL be called by the «تحليل اللسان» page
-- **AND** removing either panel from the frontend SHALL fail the test until its route is unmounted
+- **WHEN** the mounted routes are listed
+- **THEN** `POST /lisan/concept` SHALL NOT be among them
+- **AND** `api/routers/lisan_concept.py` SHALL still import and expose the route, so rebranching is one
+  `include_router` line
 
 ### Requirement: Routes no page calls are removed
 
@@ -203,3 +200,12 @@ as the endpoints they call, so neither side is left pointing at the other's abse
 - **WHEN** `next build` runs after the deletions
 - **THEN** it SHALL succeed with no unresolved import
 - **AND** the Vitest suites SHALL pass
+
+### Requirement: The personal-reading routes are served and called by /lexical
+`GET /lisan/reading/{root}` and `PUT /lisan/reading/{root}` SHALL be mounted.
+The «تحليل اللسان» page SHALL call both, and `test_served_surface.py` SHALL list them among the served routes.
+
+#### Scenario: Both routes have a live caller
+- **WHEN** `test_served_surface.py` resolves the callers of the two personal-reading routes
+- **THEN** each has a caller in `frontend/src/lib/api.ts` used by the `/lexical` page
+

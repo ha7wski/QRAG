@@ -80,6 +80,13 @@ CREATE TABLE IF NOT EXISTS tahlil_review (
     reviewed_at     REAL    NOT NULL,
     PRIMARY KEY (ref, prompt_version, kb_version, letters_version, model_id, generation)
 );
+CREATE TABLE IF NOT EXISTS lisan_readings (
+    root          TEXT PRIMARY KEY,
+    author        TEXT NOT NULL,
+    cultural_text TEXT NOT NULL DEFAULT '',
+    choices       TEXT NOT NULL DEFAULT '{}',
+    updated_at    REAL NOT NULL
+);
 """
 
 # The columns `tahlil_review` must have. A pre-release database still carrying the
@@ -348,6 +355,54 @@ class Store:
         """False until an expert marks THIS rendering — the default the UI must warn about."""
         return self.get_tahlil_review(ref, prompt_version, kb_version, letters_version,
                                       model_id, generation_enabled) is not None
+
+    # ── Personal readings (/lexical) ─────────────────────────────────────
+    # A reader's own, SIGNED reading of a root: a cultural stage in their words
+    # and/or the alternatives they choose in the Islambouli assembly. It is user
+    # content — shown under its author's name, never as Islambouli's, never fed
+    # to a measurement, and never committed (`data/runtime/` is git-ignored).
+    # Validation (non-empty author, real alternatives) is the router's; the
+    # store only refuses an unsigned row.
+    def put_lisan_reading(
+        self, root: str, author: str, cultural_text: str = "", choices: dict | None = None,
+    ) -> dict:
+        """Upsert the signed reading of `root`; returns the stored row."""
+        if not (author or "").strip():
+            raise ValueError("A personal reading must be signed.")
+        now = time.time()
+        encoded = json.dumps({str(k): int(v) for k, v in (choices or {}).items()})
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO lisan_readings (root, author, cultural_text, choices, updated_at) "
+                "VALUES (?, ?, ?, ?, ?) ON CONFLICT(root) DO UPDATE SET "
+                "author=excluded.author, cultural_text=excluded.cultural_text, "
+                "choices=excluded.choices, updated_at=excluded.updated_at",
+                (root, author.strip(), cultural_text.strip(), encoded, now),
+            )
+            self._conn.commit()
+        return self.get_lisan_reading(root) or {}
+
+    def get_lisan_reading(self, root: str) -> dict | None:
+        """The signed reading of `root`, or None."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT root, author, cultural_text, choices, updated_at "
+                "FROM lisan_readings WHERE root=?", (root,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "root": row["root"],
+            "author": row["author"],
+            "cultural_text": row["cultural_text"],
+            "choices": {int(k): int(v) for k, v in json.loads(row["choices"] or "{}").items()},
+            "updated_at": row["updated_at"],
+        }
+
+    def delete_lisan_reading(self, root: str) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM lisan_readings WHERE root=?", (root,))
+            self._conn.commit()
 
     def close(self) -> None:
         with self._lock:

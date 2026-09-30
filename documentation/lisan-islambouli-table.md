@@ -183,3 +183,56 @@ python scripts/record_islambouli_verdicts.py bundle <dir>    # rebuild the blind
 The frozen uses, the readings, every verdict with its reason, and the calibration are committed
 in `data/references/islambouli_attestation.json`. Anyone can redo the judgement from them and
 disagree.
+
+## 6. The physical stage: what a template can and cannot assemble
+
+Islambouli published two root statements on screen (programme «مفاهيم», screenshots under
+`data/source/islambouli_mafahim_*.png`, origin unrecorded). For ضرب, under «الحالة الفيزيائية»:
+«دفع شديد مكرر منتهٍ بجمع مستقر». For كتب, under «مفهوم»: «ضغط ودفع منتهٍ بجمع مستقر».
+They are frozen in `data/references/islambouli_citations.json`.
+
+**The physical stage is NOT a mechanical assembly.** A fixed template
+(`<pos 1> <pos 2 as qualifier> منتهٍ بـ<pos 3>`, `linguistics/lisan/islambouli/assemble.py`)
+was derived by hand before any code, and the result was stated before it ran. It gives:
+
+| root | template | Islambouli |
+|---|---|---|
+| ضرب | دفع شديد جداً، متوقف مكرر منتهٍ بجمع مستقر | دفع شديد مكرر منتهٍ بجمع مستقر |
+| كتب | (وقف، أو ضغط خفيف) دفع خفيف متوقف منتهٍ بجمع مستقر | ضغط ودفع منتهٍ بجمع مستقر |
+
+- **ضرب**: one gap. He drops «جداً، متوقف».
+- **كتب**: four gaps.
+  - He picks ضغط over وقف.
+  - He drops «خفيف».
+  - He joins position 2 with «و» instead of qualifying.
+  - He drops «خفيف متوقف».
+
+His two examples follow two schemas. Which words of a row count, and how rows join, are per-root
+editorial decisions. That is a **third place of interpretation**, after the table and after the
+choice between «أو» alternatives.
+
+The template is kept as it is: the project's junction, labelled on `/lexical` as «تركيبٌ آليٌّ
+للأسطر الثلاثة، من صنع هذا التطبيق — لا تعريفٌ، ولا قولُ إسلامبولي». His sentence is shown above it
+with its printed label, and the word gap is shown below it. The gap is pinned by
+`tests/test_islambouli_assembly.py`.
+
+A rule that would close one gap («no وصف entry → join with و») rests on the single case it was
+read from, and it was refused.
+
+The مصدر → وصف step uses a closed, locked table (`islambouli_wasf.csv`, 4 entries). An entry is
+admitted by one criterion: both participles share one unvocalized spelling.
+
+ضرب and كتب are development cases, disjoint from both holdouts. They count in no measurement.
+
+**«أو» is never decided by the project.** The group is shown whole. A single alternative appears
+only from a reader's **signed** choice (`PUT /lisan/reading/{root}`), labelled as that reader's
+interpretation.
+
+No LLM re-wording exists. The containment veto of `concept/phrasing.py` accepts omission, and
+omission is selection (dropping «وقف» chooses «ضغط»). Any future re-wording is **blocked** until a
+preservation check stands beside containment: every alternative, and every row's head, must
+survive.
+
+The **cultural stage** («إيقاع شيءٍ على شيء يترك فيه أثراً» for ضرب) is contained in no row and is
+never generated. It is shown only as his citation or as a signed personal reading. With neither,
+the section does not exist.

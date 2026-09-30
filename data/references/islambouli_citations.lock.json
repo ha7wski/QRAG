@@ -1,0 +1,16 @@
+{
+ "name": "islambouli-citations-lock",
+ "table": "data/references/islambouli_citations.json",
+ "version": "1.0.0",
+ "frozen_on": "2026-09-28",
+ "sha256": "54e8649f290b834e05bd57bb67a59f27fcaef2f3b5b7277943686f9e33459817",
+ "rule": "A citation changes ONLY to correct a transcription error proved against its witness image, or to add a newly published statement with its own witness. Never to make an assembly match.",
+ "history": [
+  {
+   "version": "1.0.0",
+   "date": "2026-09-28",
+   "sha256": "54e8649f290b834e05bd57bb67a59f27fcaef2f3b5b7277943686f9e33459817",
+   "reason": "First freeze: ضرب (physical, cultural) and كتب (physical), transcribed at 2× from the two screenshots supplied by the user."
+  }
+ ]
+}

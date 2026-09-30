@@ -50,6 +50,11 @@ QURAN_CSV = SOURCE / "quran.csv"
 # The only witness of the Islambouli table: the ORIGINAL poster image (1132×1646).
 # A truncated first deposit was replaced by it before any row was transcribed.
 ISLAMBOULI_POSTER_PNG = SOURCE / "islambouli_letters_poster.png"
+# The two witnesses of Islambouli's cited root statements: video screenshots of
+# the programme «مفاهيم» (ضرب: physical + cultural stage; كتب: labelled «مفهوم»),
+# supplied by the user with no episode reference.
+ISLAMBOULI_MAFAHIM_DRB_PNG = SOURCE / "islambouli_mafahim_drb.png"
+ISLAMBOULI_MAFAHIM_KTB_PNG = SOURCE / "islambouli_mafahim_ktb.png"
 QURAN_CHAKL_CSV = SOURCE / "quran_chakl.csv"
 QAC_MORPHOLOGY_TXT = SOURCE / "quran-morphology.txt"
 TREEBANK_CSV = SOURCE / "treebank" / "quranic-treebank.csv"
@@ -99,6 +104,16 @@ ISLAMBOULI_LETTERS_CSV = REFERENCES / "islambouli_letters.csv"
 # whose first entry carries the witness digest and the poster's printed imprint.
 ISLAMBOULI_LETTERS_LOCK_JSON = REFERENCES / "islambouli_letters.lock.json"
 ISLAMBOULI_LETTERS_GRID_JSON = REFERENCES / "islambouli_letters_grid.json"
+# The closed مصدر → وصف table the physical-stage assembly applies to position 2,
+# admitted by ONE morphological criterion (one unvocalized spelling for both
+# participles), and its lock — which also carries the segment notes, kept out of
+# islambouli_letters.csv because that file's digest is cited by the measurement.
+ISLAMBOULI_WASF_CSV = REFERENCES / "islambouli_wasf.csv"
+ISLAMBOULI_WASF_LOCK_JSON = REFERENCES / "islambouli_wasf.lock.json"
+# Statements Islambouli published for a root (physical / cultural stage), each
+# transcribed from its witness image, and the lock on that file.
+ISLAMBOULI_CITATIONS_JSON = REFERENCES / "islambouli_citations.json"
+ISLAMBOULI_CITATIONS_LOCK_JSON = REFERENCES / "islambouli_citations.lock.json"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before
 # its numerator — and the `probe` block is appended only afterwards, carrying the

@@ -25,8 +25,8 @@ import re
 from fastapi import APIRouter, HTTPException, Request
 
 from api.models.lisan import (
-    ConceptRequest,
-    ConceptResponse,
+    LisanReadingPut,
+    LisanReadingResponse,
     LisanRequest,
     LisanResponse,
 )
@@ -74,166 +74,166 @@ def lisan_analyze(req: LisanRequest, request: Request) -> LisanResponse:
             status_code=422, detail="word must be written in Arabic script"
         )
 
-    return _service(request).analyze(word)
+    payload = _with_islambouli(_service(request).analyze(word))
+    root = payload.get("root")
+    if root:
+        # Additive: an app built without the store (a test, a CLI) still analyses.
+        store = getattr(request.app.state, "store", None)
+        reading = store.get_lisan_reading(root) if store is not None else None
+        payload["islambouli_assembly"] = _islambouli_assembly(root, reading)
+        payload["cultural_stage"] = _cultural_stage(root, reading)
+    return payload
 
 
-# ── the physics-first engine, mounted beside the core-first one ──────────────
-#
-# `POST /lisan/analyze` above is CORE-FIRST and is untouched by this route: the
-# attested aṣl selects among each letter's sourced senses. `POST /lisan/concept`
-# is the inverse — the مفهوم is composed from the tajwīd description of the
-# root's letters and from nothing else, and Ibn Fāris arrives afterwards as the
-# TEST rather than as the input. Two engines, side by side, until the comparison
-# is done; neither is labelled correct anywhere in this file.
-#
-# The orchestration lives HERE rather than in a service under
-# `linguistics/lisan/concept/`, and that is a boundary decision, not laziness. A
-# module inside that package may not reach the aṣl — `tests/test_import_direction.py`
-# enforces it, and a concept module that imported `confront` would inherit
-# everything `confront` reads and be reported as reaching it. So the only place
-# the two halves may legally be joined is a layer above the package. `api/` is
-# that layer: it already imports `linguistics/`, and nothing imports it back.
+def _with_islambouli(payload: dict) -> dict:
+    """Attach Samer Islambouli's gloss to each root letter, verbatim.
 
+    Joined HERE and not in `LisanService`: nothing under `linguistics/lisan/`
+    outside `islambouli/` may import that package (`tests/test_import_direction.py`),
+    and `api/` is the layer allowed to set two engines' outputs side by side. The
+    letter → row mapping is the package's own `row_label` (hamza seats → «ء»,
+    ه → «هـ», ا → «آ - ى»), so the page reads the row the measurement read.
 
-def _confront(root: str):
-    """`confront.confront(root)` — composed blind, then set beside the aṣl.
-
-    Imported inside the function for the same reason `_service` builds lazily:
-    importing at module scope would read the primitive table, the letter sheet,
-    the Maqāyīs CSV and the attestation record at app import time, and
-    `tests/test_served_surface.py` imports the app to count routes.
+    A table that no longer matches its lock is not published in his name: every
+    gloss is left empty rather than failing the analysis it decorates.
     """
-    from linguistics.lisan.concept import confront as confront_mod
+    from linguistics.lisan.islambouli.compose import row_label
+    from linguistics.lisan.islambouli.table import TableNotFrozen, table
 
-    return confront_mod.confront(root)
-
-
-def _hits(hits) -> list[dict]:
-    return [
-        {
-            "primitive": hit.primitive,
-            "feature": hit.feature,
-            "gloss_ar": hit.gloss_ar,
-            "status": hit.status,
-            "coverage": hit.coverage,
-            "declaration_index": hit.declaration_index,
-        }
-        for hit in hits
-    ]
+    try:
+        rows = table().by_label()
+    except TableNotFrozen:
+        return payload
+    for letter in payload.get("letters") or []:
+        label = row_label(letter.get("letter", ""))
+        row = rows.get(label) if label else None
+        letter["islambouli"] = row.text if row else ""
+    return payload
 
 
-def _concept_payload(concept) -> dict:
-    """The composed concept as the wire sees it, field for field.
+def _signed(reading: dict | None):
+    """The ONLY place a choice between alternatives is built: from a stored,
+    signed personal reading. Nothing in the request can reach it."""
+    from linguistics.lisan.islambouli.assemble import SignedChoices
 
-    Nothing is computed here. In particular the realised primitives are NOT
-    regrouped, re-ordered or re-worded on the way out: `sentence` and
-    `realised_primitives` leave exactly as `compose()` produced them, because
-    they are what the record stores and what `k / 40` is measured on. Grouping
-    the nine primitives by position for readability is the PAGE's job (§D6), and
-    it groups what is sent rather than receiving a grouping.
+    if not reading or not reading.get("choices"):
+        return None
+    return SignedChoices(author=reading["author"], choices=dict(reading["choices"]))
+
+
+def _islambouli_assembly(root: str, reading: dict | None) -> dict | None:
+    """The project's junction of the root's three rows, beside what HE published.
+
+    The assembly is not Islambouli's physical stage and the payload never says it
+    is: `cited` carries his own sentence, when one exists, and `gap` names the
+    words that differ. Any frozen table that moved suppresses the whole block —
+    nothing is shown in his name from a table that is no longer his.
     """
-    return {
-        "root": concept.root,
-        "refused": concept.refused,
-        "refusal_code": concept.refusal_code,
-        "refusal_reason": concept.refusal_reason,
-        "positions": [
-            {
-                "position": reading.position,
-                "letter": reading.letter,
-                "sheet_letter": reading.sheet_letter,
-                "makhraj_ar": reading.makhraj_ar,
-                "features": list(reading.features),
-                "ordered": _hits(reading.ordered),
-                "realised": _hits(reading.realised),
-                "carried": _hits(reading.carried),
-                "silent": reading.silent,
-                "silent_reason": reading.silent_reason,
-            }
-            for reading in concept.positions
-        ],
-        "realised_primitives": list(concept.realised_primitives),
-        "sentence": concept.sentence,
-        "sentence_source": concept.sentence_source,
-        "phrasing_rejection": concept.phrasing_rejection,
-        "partial": concept.partial,
-        "silent_letters": list(concept.silent_letters),
-        "lock_version": concept.lock_version,
-    }
-
-
-def _confrontation_payload(report) -> dict:
-    return {
-        "cores": [dict(core) for core in report.cores],
-        "core_status": report.core_status,
-        "occurrences": report.occurrences,
-        "verses": list(report.verses),
-        "uses": [
-            {
-                "gloss": use.gloss,
-                "verse": use.verse,
-                "verdict": use.verdict,
-                "reason": use.reason,
-            }
-            for use in report.uses
-        ],
-        "verdict": report.verdict,
-        "uses_frozen_at": report.uses_frozen_at,
-        "concept_recorded_at": report.concept_recorded_at,
-        "in_witness_set": report.in_witness_set,
-        "counts_toward_k": report.counts_toward_k,
-    }
-
-
-@router.post("/lisan/concept", response_model=ConceptResponse)
-def lisan_concept(req: ConceptRequest, request: Request) -> ConceptResponse:
-    """Compose a root's مفهوم from its letters' physics, then show the aṣl beside it.
-
-    Input validation mirrors `/lisan/analyze` exactly — 422 on empty or
-    non-Arabic input, 200 with `root: null` and an Arabic `message` when nothing
-    resolves — so the two engines behave identically on everything that is not
-    the reading itself. The root resolver is the SAME one, reached through the
-    already-built `LisanService`: two engines resolving a word differently would
-    make the comparison a comparison of two roots.
-
-    A refused root (quadriliteral) is a **200 carrying a refusal**, not a 404.
-    The statement «this rule covers three positions only» is the answer, and a
-    page that received an error would show an empty panel where a reason belongs.
-    """
-    word = (req.word or "").strip()
-    if not word:
-        raise HTTPException(status_code=422, detail="word must not be empty")
-    if not _ARABIC_RE.search(word):
-        raise HTTPException(
-            status_code=422, detail="word must be written in Arabic script"
-        )
-
-    from linguistics.lisan.concept.compose import WINDOW_RESERVATION_AR
-    from linguistics.lisan.lisan_service import DISCLAIMER
-
-    resolved = _service(request).resolve_root(word)
-    root = resolved["root"]
-    if not root:
-        return ConceptResponse(
-            word=word,
-            root=None,
-            root_source=None,
-            metric_reservation=WINDOW_RESERVATION_AR,
-            disclaimer=DISCLAIMER,
-            message="لم يُعرَف لهذه الكلمة جذرٌ في مدوَّنة القرآن.",
-        )
-
-    report = _confront(root)
-    return ConceptResponse(
-        word=word,
-        root=root,
-        root_source=resolved["root_source"],
-        concept=_concept_payload(report.concept),
-        confrontation=_confrontation_payload(report),
-        # Sent on every answer, including the refusals and the roots with no
-        # record. §D11 requires it wherever a coverage verdict is published, and
-        # `confrontation.verdict` is one; sending it only when it happens to look
-        # relevant is how it ends up absent from the response that matters.
-        metric_reservation=WINDOW_RESERVATION_AR,
-        disclaimer=DISCLAIMER,
+    from linguistics.lisan.harness.guard import WitnessRootComposed
+    from linguistics.lisan.islambouli.assemble import InvalidChoice, assemble
+    from linguistics.lisan.islambouli.table import TableNotFrozen
+    from linguistics.lisan.islambouli.wasf import WasfNotFrozen
+    from linguistics.lisan.islambouli_citations import (
+        CitationsNotFrozen,
+        citations,
+        word_gap,
     )
+
+    try:
+        try:
+            a = assemble(root, _signed(reading))
+        except InvalidChoice:
+            # A stored choice the current table no longer supports: show every
+            # alternative rather than guess which one was meant.
+            a = assemble(root)
+        cited = [c for c in citations().for_root(root) if c.stage == "physical"]
+    except (TableNotFrozen, WasfNotFrozen, CitationsNotFrozen):
+        return None
+    except WitnessRootComposed:
+        # Raised only under a test runner, for a root of the Islambouli holdout:
+        # omitting the block is exactly what keeps its reading out of a test.
+        return None
+    out = {
+        "sentence": a.sentence,
+        "positions": [
+            {"position": p.position, "letter": p.letter, "segment": p.segment,
+             "alternatives": list(p.alternatives) if p.is_group else [],
+             "rendered": p.rendered, "chosen": p.chosen}
+            for p in a.positions
+        ],
+        "author": a.author,
+        "wasf_version": a.wasf_version,
+        "refused": a.refused,
+        "refusal_code": a.refusal_code,
+        "refusal_reason": a.refusal_reason,
+        "cited": None,
+        "gap": None,
+    }
+    if cited:
+        c = cited[0]
+        out["cited"] = _cited(c)
+        if a.sentence:
+            out["gap"] = word_gap(a.sentence, c.statement)
+    return out
+
+
+def _cited(c) -> dict:
+    return {"id": c.id, "stage": c.stage, "label": c.label,
+            "label_as_printed": c.label_as_printed, "text": c.text,
+            "reading_note": c.reading_note, "source": c.source}
+
+
+def _cultural_stage(root: str, reading: dict | None) -> dict | None:
+    """Islambouli's cited cultural stage and/or the reader's signed one — or None.
+
+    Never generated and never inferred: with neither source the field is null and
+    the page renders no section at all.
+    """
+    from linguistics.lisan.islambouli_citations import CitationsNotFrozen, citations
+
+    try:
+        cited = [_cited(c) for c in citations().for_root(root) if c.stage == "cultural"]
+    except CitationsNotFrozen:
+        cited = []
+    personal = None
+    if reading and (reading.get("cultural_text") or "").strip():
+        personal = {"author": reading["author"], "text": reading["cultural_text"],
+                    "updated_at": reading["updated_at"]}
+    if not cited and personal is None:
+        return None
+    return {"citations": cited, "personal": personal}
+
+
+@router.get("/lisan/reading/{root}", response_model=LisanReadingResponse | None)
+def lisan_reading_get(root: str, request: Request):
+    """The reader's signed reading of `root`, or null."""
+    return request.app.state.store.get_lisan_reading(root.strip())
+
+
+@router.put("/lisan/reading/{root}", response_model=LisanReadingResponse)
+def lisan_reading_put(root: str, body: LisanReadingPut, request: Request):
+    """Store the reader's SIGNED reading of `root`.
+
+    422 when unsigned, when `root` is not Arabic, or when a choice names a
+    position without an alternative group or an alternative that is not there.
+    """
+    from linguistics.lisan.islambouli.assemble import (
+        InvalidChoice,
+        SignedChoices,
+        assemble,
+    )
+
+    root = root.strip()
+    if not _ARABIC_RE.search(root):
+        raise HTTPException(status_code=422, detail="root must be written in Arabic script")
+    if not body.author.strip():
+        raise HTTPException(status_code=422, detail="a personal reading must be signed")
+    if body.choices:
+        try:
+            a = assemble(root, SignedChoices(author=body.author, choices=body.choices))
+        except InvalidChoice as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if a.refused:
+            raise HTTPException(status_code=422, detail=a.refusal_reason)
+    return request.app.state.store.put_lisan_reading(
+        root, body.author, body.cultural_text, body.choices)

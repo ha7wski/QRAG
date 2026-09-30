@@ -1,0 +1,57 @@
+{
+ "name": "islambouli-wasf-lock",
+ "table": "data/references/islambouli_wasf.csv",
+ "version": "1.0.0",
+ "frozen_on": "2026-09-28",
+ "sha256": "f3491413ecc4bc86487a193a84a1b533c31368f59194782d0466fa6ed34261cd",
+ "max_entries": 20,
+ "criterion": "A word gets an entry only if it is the مصدر of a derived (مزيد) form whose اسم الفاعل and اسم المفعول have ONE unvocalized spelling, so the table never chooses between active and passive. Candidates are only the first words of the alternatives of the 29 Islambouli rows, enumerated from the table and not from any root.",
+ "rule": "An entry changes ONLY when its morphological justification is shown to be wrong, through a new version whose reason names the entry. An entry is never added, removed or changed because a root reads better.",
+ "rejected_candidates": [
+  {
+   "masdar": "اختباء",
+   "form": "افتعال (form VIII, hamzated)",
+   "reason": "مختبئ / مختبأ: the hamza seat differs, so there are two spellings."
+  },
+  {
+   "masdar": "تفشٍّ",
+   "form": "تفعّل (form V, defective)",
+   "reason": "متفشٍّ / متفشّى: two spellings."
+  },
+  {
+   "masdar": "إثارة",
+   "form": "إفعال (form IV, hollow)",
+   "reason": "مثير / مثار: two spellings."
+  },
+  {
+   "masdar": "form I مصادر (دفع، جمع، ضغط، وقف، قطع، …)",
+   "form": "form I",
+   "reason": "The active and passive participles are always spelled differently (دافع / مدفوع), so any entry would choose a voice."
+  }
+ ],
+ "segment_notes": [
+  {
+   "row": 0,
+   "label": "ء",
+   "note": "The only row whose formula varies: «صوت خفيف يدل على …». «خفيف» qualifies the sound, not what it indicates, and is left out of the segment like the rest of the frame. The second sentence («وهو جزء من صوت (آ)») is the hamza relation, kept as text only by the letter-table spec, and is not part of the segment."
+  },
+  {
+   "row": 17,
+   "label": "ع",
+   "note": "«عمق أو بُعد في الشيء»: «في الشيء» probably covers both alternatives, but the mechanical split at «أو» gives it to «بُعد» only. Deciding would take a scope rule written for one row, so none is written."
+  },
+  {
+   "row": 14,
+   "label": "ض",
+   "note": "«دفع شديد جداً، متوقف»: the internal comma is kept verbatim. The segment is not cleaned, even though the comma dangles once a qualifier follows it."
+  }
+ ],
+ "history": [
+  {
+   "version": "1.0.0",
+   "date": "2026-09-28",
+   "sha256": "f3491413ecc4bc86487a193a84a1b533c31368f59194782d0466fa6ed34261cd",
+   "reason": "First freeze: the four entries admitted by the criterion, fixed before any root other than the two declared development cases (ضرب, كتب) was assembled."
+  }
+ ]
+}
