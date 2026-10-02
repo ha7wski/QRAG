@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from quran_data.corpus import verses_by_id  # noqa: E402
-from arabic_text import normalize_root  # noqa: E402
+from arabic_text import normalize_root, normalize_search  # noqa: E402
 from arabic_text import fold_blind, fold_carrier, fold_madda  # noqa: E402
 from quran_data import loaders  # noqa: E402
 
@@ -130,6 +130,9 @@ class LexicalRetriever:
             res = {}
         self.form_to_roots: dict[str, list[str]] = res.get("form_to_roots", {})
         self.lem_to_roots: dict[str, list[str]] = res.get("lem_to_roots", {})
+        # Whole written word (search-normalized) → root(s). Absent from a corpus
+        # built before it existed; the lenient path then behaves as it used to.
+        self.word_to_roots: dict[str, list[str]] = res.get("word_to_roots", {})
         self.verses_by_id = verses_by_id()  # shared, cached {id: verse} lookup
         self._stemmer = None  # lazily loaded only if the fallback is enabled
         self._by_fold: dict[str, str] | None = None  # built on first use
@@ -245,6 +248,21 @@ class LexicalRetriever:
                 roots = [rk]
         return roots
 
+    def resolve_written(self, word: str) -> list[str]:
+        """The root(s) `word` has where the Quran writes it, most frequent first.
+
+        `word_to_roots` pairs every written word with its QAC word, so this is the
+        root the word ACTUALLY carries in its occurrences — not one inferred from
+        segments. It wins over the segment ladder wherever both answer: the ladder
+        read الحق as لحق, فترى as فري, بسم as بسم. A homograph spelling keeps every
+        root it is written with (قل → قول, قلل); «كل» answers كلل alone, since the
+        Quran never writes «كل» as أكل's imperative. [] for a word the Quran does
+        not write, or writes rootless.
+        """
+        # getattr: a retriever built with __new__ (tests) has no such map.
+        table = getattr(self, "word_to_roots", {})
+        return [rk for rk in table.get(normalize_search(word), ()) if rk in self.index]
+
     def resolve_roots_lenient(self, word: str) -> list[str]:
         """Like `resolve_roots`, but when the exact word doesn't resolve, retry
         on clitic-stripped and plene→defective-alif variants — accepting only a
@@ -252,10 +270,15 @@ class LexicalRetriever:
         QAC ladder misses: a leading `ال` (السماوات, الصبر) and a plene alif
         where the mushaf uses a stripped dagger alif (سماوات vs stored سموات).
 
+        A whole word the Quran writes is answered first by `resolve_written`.
+
         Used by the Verse Study "Word in Verses" lookup. The chat query-expansion
         path stays on strict `resolve_roots` on purpose — widening it is a
         metrics-gated P4 decision, not to be coupled to this lookup fix."""
-        roots = self.resolve_roots(word)
+        # A whole word the Quran writes comes first: its root is the one its
+        # occurrences carry (see `resolve_written`). It also reaches conjugated
+        # verbs (يؤمنون, قالوا) that the ladder and the peeling below never could.
+        roots = self.resolve_written(word) or self.resolve_roots(word)
         if roots:
             return roots
         w = normalize_root(word)

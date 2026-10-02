@@ -45,3 +45,6 @@ class VerseLookupResponse(BaseModel):
     #                                 19 of أيي's 353 hold two ألفاظ and would
     #                                 otherwise be counted twice.
     forms: list[VerseLookupForm]    # one block per لفظ, first occurrence first
+    # Only when nothing was found: Quranic words one confusable letter away
+    # (العضيم → العظيم), most frequent first. Offered, never followed.
+    suggestions: list[str] = []

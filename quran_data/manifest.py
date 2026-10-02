@@ -508,8 +508,9 @@ MANIFEST: dict[str, Entry] = {
     ),
     "QAC_RESOLUTION_JSON": Entry(
         bucket="derived",
-        what="`form_to_roots` + `lem_to_roots` (452 KB) — resolves a typed word "
-             "to its root(s).",
+        what="`form_to_roots` + `lem_to_roots` + `word_to_roots` — resolves a "
+             "typed word to its root(s). `word_to_roots` is keyed on the whole "
+             "words the Quran writes (يؤمنون, قالوا), each paired with its QAC word.",
         origin="Chain A.",
         producer="ingestion/qac_morphology.py",
         consumers=("retrieval/lexical_retriever.py",),

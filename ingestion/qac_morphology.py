@@ -27,7 +27,7 @@ Design decisions (fixed):
 
 Outputs:
   - data/derived/morphology.json     : root → {root, forms_found, verses, count}
-  - data/derived/qac_resolution.json : {form_to_roots, lem_to_roots}
+  - data/derived/qac_resolution.json : {form_to_roots, lem_to_roots, word_to_roots}
   - data/derived/lemma_index.json    : root → [{lemma, lemma_display, forms_found,
                                           verses, count}] (a root's occurrences split
                                           per lemma; powers the Verse Study grouping)
@@ -357,6 +357,71 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
     return index, resolution, verse_roots, lemma_index, proper_nouns
 
 
+# The vocative particle: the reading text writes «يا» apart («يا أيها»,
+# «يا آدم»), QAC writes it into the word it calls («يَٰٓأَيُّهَا»).
+_VOCATIVE = ("يا", "ويا")
+
+
+def _aligned_tokens(text_ar: str, n_words: int) -> list[str] | None:
+    """The āya's written words, one per QAC word, or None when they can't be paired.
+
+    Marks (waqf signs) are not words. When the counts differ, a separate vocative
+    «يا» is rejoined to the word after it — that alone pairs 6 229 of 6 236 āyāt.
+    The rest (QAC merging «ها أنتم», «يا ابن أم» differently) are refused rather
+    than guessed: a shifted pairing would give every later word the wrong root.
+    """
+    toks = [t for t in text_ar.split() if normalize_search(t)]
+    if len(toks) == n_words:
+        return toks
+    joined: list[str] = []
+    i = 0
+    while i < len(toks):
+        if toks[i] in _VOCATIVE and i + 1 < len(toks):
+            joined.append(toks[i] + toks[i + 1])
+            i += 2
+        else:
+            joined.append(toks[i])
+            i += 1
+    return joined if len(joined) == n_words else None
+
+
+def build_word_to_roots(verses: list[dict], resolved: dict,
+                        index: dict) -> tuple[dict[str, list[str]], int]:
+    """Whole written word (search-normalized) → its root(s), most frequent first.
+
+    The FORM map is keyed on QAC *segments*: the stem `يومن` is one entry and the
+    suffix `ون` another, so a whole conjugated word — يؤمنون, آمنوا, قالوا — met
+    no key, and the clitic retry peels prefixes and pronouns, never verbal
+    affixes. Thousands of ordinary verbs found nothing. This map is keyed on the
+    words the Quran actually writes, each paired by position with its QAC word
+    and given that word's PRIMARY root from `roots_resolved.json` — so it adds
+    no root decision of its own, and cannot reach a word the Quran does not write.
+
+    A key reached by several roots (a homograph spelling) lists every one,
+    the most frequent first. Rootless words (particles, names) are absent.
+    Returns the map and the number of āyāt left unpaired.
+    """
+    ayah_words = qac.ayah_words()
+    counts: dict[str, Counter] = defaultdict(Counter)
+    unpaired = 0
+    for v in verses:
+        s, a = v["surah_number"], v["ayah_number"]
+        toks = _aligned_tokens(v["text_ar"], len(ayah_words.get((s, a), ())))
+        if toks is None:
+            unpaired += 1
+            continue
+        for w, tok in enumerate(toks, start=1):
+            entry = resolved.get(f"{s}:{a}:{w}")
+            root = entry and entry.get("primary")
+            if root and root in index:
+                counts[normalize_search(tok)][root] += 1
+    word_to_roots = {
+        k: [r for r, _ in sorted(c.items(), key=lambda rc: (-rc[1], rc[0]))]
+        for k, c in sorted(counts.items())
+    }
+    return word_to_roots, unpaired
+
+
 def run(verses: list[dict]) -> tuple[list[dict], dict]:
     """Build the QAC root index, fill each verse's `roots`, and persist outputs.
 
@@ -372,11 +437,17 @@ def run(verses: list[dict]) -> tuple[list[dict], dict]:
     for v in verses:
         v["roots"] = verse_roots.get(v["id"], [])
 
+    resolution["word_to_roots"], unpaired = build_word_to_roots(verses, resolved, index)
+
     _save(index, resolution, lemma_index, proper_nouns, verses)
     n_rootfree = sum(1 for v in verses if not v["roots"])
     print(
         f"  qac-morph  : {len(index)} roots + {len(proper_nouns)} proper nouns "
         f"indexed from QAC ({n_rootfree} verses have no rooted word)"
+    )
+    print(
+        f"  qac-morph  : {len(resolution['word_to_roots'])} written words mapped "
+        f"to their root ({unpaired} āyāt not paired with QAC, skipped)"
     )
     return verses, index
 

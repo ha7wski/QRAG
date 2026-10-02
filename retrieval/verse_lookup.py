@@ -35,13 +35,14 @@ Design (isolated but reuses existing infrastructure):
 from __future__ import annotations
 
 import logging
+from collections import Counter
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from quran_data.corpus import chakl_by_ref, strip_leading_basmala  # noqa: E402
+from quran_data.corpus import chakl_by_ref, load_verses, strip_leading_basmala  # noqa: E402
 from arabic_text import bare, normalize_search  # noqa: E402
 from quran_data import loaders, paths  # noqa: E402
 from retrieval.lexical_retriever import (  # noqa: E402
@@ -159,6 +160,21 @@ def _written_form(token: str, prefix: str) -> str:
     return word
 
 
+# Letters a reader commonly swaps when typing, as they stand AFTER
+# `normalize_search` (which already folds the hamza seats, ة→ه and ى→ي, so
+# those confusions never miss in the first place). Directed: ض offers ظ and د.
+_CONFUSABLE: dict[str, str] = {
+    "ض": "ظد", "ظ": "ضزذ", "ذ": "زظد", "ز": "ذظ", "د": "ذض",
+    "س": "صث", "ص": "س", "ث": "س", "ت": "ط", "ط": "ت",
+    "ه": "ح", "ح": "ه", "ق": "ك", "ك": "ق",
+    # The mushaf's waw-for-alif spellings (الصلوة ↔ الصلاة).
+    "و": "ا", "ا": "و",
+}
+
+# At most this many «هل تقصد» suggestions are offered.
+_MAX_SUGGESTIONS = 3
+
+
 class VerseLookup:
     """Resolve a word to its root(s) and list every verse, vocalized, grouped by
     لفظ — the WRITTEN form of each occurrence (آيات، آياتنا، آياته …), not the
@@ -207,6 +223,10 @@ class VerseLookup:
         # The proclitics QAC declares per word — what makes a لفظ the word minus
         # its و/ف/ب/ل/ك/س/ٱل. Optional and lazy like the two above; see `_prefixes`.
         self._prefix_cache: dict[str, str] | None = None
+        # Every written word of the Quran, search-normalized → its raw spellings
+        # and how often each occurs. Lazy: only a word that finds nothing reads
+        # it (~15k keys, built in ~0.2 s). See `suggest`.
+        self._vocab_cache: dict[str, Counter] | None = None
 
         # Per-root token maps and per-verse display spans, both built on demand:
         # a lookup touches a handful of roots, never all 1656.
@@ -720,6 +740,55 @@ class VerseLookup:
                 return pn
         return None
 
+    # ── «هل تقصد» — a typed word that finds nothing ──────────────────────
+    def _vocab(self) -> dict[str, Counter]:
+        if self._vocab_cache is None:
+            vocab: dict[str, Counter] = {}
+            for v in load_verses():
+                for tok in v["text_ar"].split():
+                    key = normalize_search(tok)
+                    if key:
+                        vocab.setdefault(key, Counter())[tok] += 1
+            self._vocab_cache = vocab
+        return self._vocab_cache
+
+    def _finds_something(self, word: str) -> bool:
+        return bool(self.lex.resolve_roots(word)
+                    or self._resolve_proper_noun(word) is not None
+                    or self.lex.resolve_roots_lenient(word))
+
+    def suggest(self, word: str) -> list[str]:
+        """Words the reader may have meant, for a word that resolved to nothing.
+
+        A candidate is the typed word with ONE confusable letter swapped
+        (`_CONFUSABLE`: العضيم → العظيم), and it is offered only if it is a
+        word the Quran actually writes AND it resolves. Attestation is the real
+        filter: the lenient resolver alone turns almost any string into some
+        root (زلك → زيل), so «it resolves» would suggest noise. Ranked by how
+        often the word occurs; spelled as the corpus most often writes it.
+
+        A word that is itself attested gets no suggestion: it is not a typo,
+        and offering a different word would hide that it failed to resolve.
+        """
+        key = normalize_search(word)
+        vocab = self._vocab()
+        if not key or key in vocab:
+            return []
+        found: dict[str, int] = {}
+        for i, ch in enumerate(key):
+            for alt in _CONFUSABLE.get(ch, ""):
+                spellings = vocab.get(key[:i] + alt + key[i + 1:])
+                if spellings:
+                    shown = spellings.most_common(1)[0][0]
+                    found[shown] = max(found.get(shown, 0), sum(spellings.values()))
+        out: list[str] = []
+        for cand in sorted(found, key=lambda w: -found[w]):
+            if self._finds_something(cand):
+                out.append(cand)
+                if len(out) == _MAX_SUGGESTIONS:
+                    break
+        return out
+
     # ── main entry ────────────────────────────────────────────────────────
     def lookup(self, word: str) -> dict:
         """Return the full Verse Lookup result for `word`, grouped by لفظ.
@@ -733,11 +802,14 @@ class VerseLookup:
         which QAC leaves rootless; those resolve via the proper-noun index, are
         grouped by لفظ the same way, and carry the vocalized name out separately
         in `proper_noun_display` — the root bar's only source for it."""
-        # Resolution order: strict root → proper noun → lenient root. Proper nouns
+        # Resolution order: written word → strict root → proper noun → lenient root. Proper nouns
         # come BEFORE the lenient (clitic-stripping) pass so a name like "لوطًا"
         # resolves to the prophet لوط, not to a spurious root found by peeling its
         # leading ل (which would otherwise give وطأ).
-        roots = self.lex.resolve_roots(word)          # strict, exact QAC ladder
+        # The written word first: the root its Quranic occurrences carry. Then the
+        # strict ladder, for a word the Quran does not write as typed.
+        roots = (self.lex.resolve_written(word)
+                 or self.lex.resolve_roots(word))     # strict, exact QAC ladder
         if not roots:
             pn = self._resolve_proper_noun(word)       # rootless proper noun?
             if pn is not None:
@@ -763,7 +835,8 @@ class VerseLookup:
         if not roots:
             return {"word": word, "root": "", "roots": [], "root_found": False,
                     "is_proper_noun": False, "proper_noun_display": "",
-                    "occurrences": 0, "total": 0, "forms": []}
+                    "occurrences": 0, "total": 0, "forms": [],
+                    "suggestions": self.suggest(word)}
 
         forms: list[dict] = []
         emitted_refs: list[list[str]] = []
