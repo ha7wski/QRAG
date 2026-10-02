@@ -464,7 +464,6 @@ export const S = {
     loadingVerse: "جارٍ تحميل الآية…",
     ayahNumber: "رقم الآية",
     surah: "السورة",
-    surahNumber: (n: number) => `السورة ${n}`,
     ayahLabel: (n: number) => `الآية ${n}`,
     ayahCount: (n: number) => count(n, NOUNS.aya),
     juz: (n: number) => `الجزء ${n}`,

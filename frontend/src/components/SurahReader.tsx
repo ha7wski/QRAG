@@ -289,24 +289,41 @@ export default function SurahReader({ number }: { number: number }) {
     <div className="space-y-6">
       {top}
 
-      <header className="space-y-1 border-b border-gray-200 pb-3">
-        <div className="flex items-center gap-2">
+      {/* The name, centred, with the period and the length under it
+          («مدنية · 286 آية»), flanked by the stepper: the previous surah on the
+          right, the next on the left (document RTL places them). The surah's
+          number is already in the picker above. The period goes through the
+          same map `VerseCard` uses — an unknown value renders nothing. */}
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-gray-200 pb-3 text-sm">
+        <div className="justify-self-start">
+          {number > 1 && (
+            <Link
+              href={`/surah/${number - 1}`}
+              className="flex items-center gap-1 text-brand-dark hover:underline"
+            >
+              <ArrowRight className="h-4 w-4" /> {S.verse.prevSurah}
+            </Link>
+          )}
+        </div>
+        <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-800">
             {data.surah_name_ar || data.surah_name_en}
           </h2>
-          <span className="western-digits text-gray-400">
-            {S.verse.surahNumber(data.surah_number)}
-          </span>
+          <p className="western-digits text-sm text-gray-500">
+            {period ? `${period} · ` : ""}
+            {S.verse.ayahCount(data.ayah_count)}
+          </p>
         </div>
-        {/* This line used to read «The Cow · La Vache · 286 verses · madani».
-            The translated names are dropped rather than translated — the page
-            reads a sūra in Arabic — and the period goes through the same map
-            `VerseCard` uses, an unknown value rendering nothing rather than
-            leaking the machine id. */}
-        <p className="western-digits text-sm text-gray-500">
-          {period ? `${period} · ` : ""}
-          {S.verse.ayahCount(data.ayah_count)}
-        </p>
+        <div className="justify-self-end">
+          {number < 114 && (
+            <Link
+              href={`/surah/${number + 1}`}
+              className="flex items-center gap-1 text-brand-dark hover:underline"
+            >
+              {S.verse.nextSurah} <ArrowLeft className="h-4 w-4" />
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* The Basmala, once, as an opening rather than as part of ayah 1. The
@@ -382,29 +399,6 @@ export default function SurahReader({ number }: { number: number }) {
           </button>
         </div>
       )}
-
-      <nav className="flex items-center justify-between border-t border-gray-200 pt-3 text-sm">
-        {number > 1 ? (
-          <Link
-            href={`/surah/${number - 1}`}
-            className="flex items-center gap-1 text-brand-dark hover:underline"
-          >
-            <ArrowRight className="h-4 w-4" /> {S.verse.prevSurah}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {number < 114 ? (
-          <Link
-            href={`/surah/${number + 1}`}
-            className="flex items-center gap-1 text-brand-dark hover:underline"
-          >
-            {S.verse.nextSurah} <ArrowLeft className="h-4 w-4" />
-          </Link>
-        ) : (
-          <span />
-        )}
-      </nav>
     </div>
   );
 }
