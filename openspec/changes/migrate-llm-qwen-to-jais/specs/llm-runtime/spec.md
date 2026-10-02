@@ -4,8 +4,10 @@
 
 The local model backing `LLM_PROVIDER=ollama` SHALL be read from the `OLLAMA_MODEL`
 environment variable. The code constant `DEFAULT_OLLAMA_MODEL` and the launcher shell
-fallbacks SHALL name the same model as each other, and SHALL apply only when `OLLAMA_MODEL`
-is unset. Changing the model in production SHALL require no code edit.
+fallbacks SHALL name the same model as each other and as `.env.example`, and SHALL apply only
+when `OLLAMA_MODEL` is unset. A change of default model SHALL move `.env`, the code default,
+the launcher fallbacks, the test pins and the runbook in the same commit, so the repository
+never names two different defaults at once.
 
 #### Scenario: Environment variable selects the model
 
@@ -16,14 +18,16 @@ is unset. Changing the model in production SHALL require no code edit.
 #### Scenario: Defaults agree across code and launchers
 
 - **WHEN** `OLLAMA_MODEL` is unset
-- **THEN** `generation/llm_client.py::DEFAULT_OLLAMA_MODEL`, `scripts/run.sh` and
+- **THEN** `llm_client/__init__.py::DEFAULT_OLLAMA_MODEL`, `scripts/run.sh` and
   `local-dev/start.sh` all resolve to the same model tag
 
-#### Scenario: Switching back is one line
+#### Scenario: The default changes in one commit
 
-- **WHEN** the operator restores the previous value of `OLLAMA_MODEL` and restarts the backend
-- **THEN** the previous model serves generation again
-- **AND** no other file has to be reverted
+- **WHEN** the default local model is changed
+- **THEN** `.env`, `.env.example`, `DEFAULT_OLLAMA_MODEL`, the launcher fallbacks, the test
+  pins and the runbook are updated in a single commit
+- **AND** reverting that commit and restarting restores the previous model, provided it is
+  still installed
 
 ### Requirement: The chat template is pinned explicitly
 
@@ -107,20 +111,59 @@ loudly rather than pass silently.
 - **THEN** it is produced by an explicit recording command that spends live model calls
 - **AND** it is never re-baselined as a side effect of running the test suite
 
-### Requirement: The outgoing model stays available until the new one is validated
+#### Scenario: A superseded recording is preserved, not overwritten
 
-The previously configured model SHALL remain installed and selectable until the incoming
-model has been measured on the acceptance criteria that motivated the change. Removal of the
-outgoing model SHALL be a separate, later step.
+- **WHEN** the recording is re-frozen under a new model
+- **THEN** the previous recording is kept on disk beside the active one, under a name that
+  carries its model id, with its `versions.model` unchanged
+- **AND** the replay reads only the active recording
 
-#### Scenario: Rollback is possible during validation
+### Requirement: The outgoing model stays installed for one cycle after the switch
 
-- **WHEN** the incoming model is configured but its acceptance measurement has not been recorded
+The previously configured model SHALL remain installed and selectable for one cycle of use
+after the switch commit. Its removal SHALL be a separate, later step.
+
+#### Scenario: Rollback is possible during the first cycle
+
+- **WHEN** the switch commit has landed and one cycle of use has not yet elapsed
 - **THEN** the outgoing model is still installed
-- **AND** restoring it requires only a configuration change and a restart
+- **AND** reverting the switch commit and restarting is sufficient to serve it again
 
-#### Scenario: The register decision is re-measured
+#### Scenario: Removal is a later step
 
-- **WHEN** the incoming model is proposed as the new default
-- **THEN** the acceptance measurement that the outgoing model failed is repeated against it
-- **AND** the recorded verdict names the model it was measured on
+- **WHEN** the outgoing model is uninstalled
+- **THEN** it happens in a step separate from the switch, after one cycle of use
+
+### Requirement: The shipped configuration is written down
+
+The configuration actually shipped for the local generation model SHALL be recorded in
+`CLAUDE.md` and in the runbook: model tag, quantization, `num_ctx`, `OLLAMA_KEEP_ALIVE`, and
+the sha256 of the weights artifact. Any memory escape hatch applied (a lower quantization, a
+reduced `num_ctx`, a shortened keep-alive) SHALL be stated explicitly. The record describes
+what runs; it is not a quality verdict.
+
+#### Scenario: An escape hatch is visible
+
+- **WHEN** the model ships with Q3_K_M, `num_ctx 2048` or a shortened `OLLAMA_KEEP_ALIVE`
+- **THEN** `CLAUDE.md` and the runbook state that exact value
+- **AND** they say it was applied to fit the memory budget
+
+#### Scenario: The artifact is identified by sha256
+
+- **WHEN** the weights are acquired
+- **THEN** their sha256 is taken from the publisher, or computed at import if none is published
+- **AND** that sha256, not the byte size, is what the runbook records
+
+### Requirement: The committed launcher does not silently run a local model without Metal
+
+`scripts/run.sh` SHALL NOT start a local generation model inside Docker on macOS without a
+loud warning, because Docker Desktop on macOS has no Metal access and the model would run on
+CPU inside the VM.
+
+#### Scenario: Docker-hosted Ollama on macOS
+
+- **WHEN** `scripts/run.sh` runs on `Darwin` and is about to start or use Ollama in a Docker
+  container for the local generation model
+- **THEN** it emits a prominent warning (or stops, unless explicitly overridden) stating that
+  the model will run without Metal
+- **AND** the message names the native alternative
