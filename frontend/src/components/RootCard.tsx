@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp, ListTree, Type } from "lucide-react";
 import type { RootIndexEntry } from "@/lib/types";
 import { NOUNS, S } from "@/lib/strings";
+import { useCachedState } from "@/lib/pageCache";
 import ArabicText from "./ArabicText";
 import Counted from "./Counted";
 
@@ -33,7 +33,9 @@ export default function RootCard({
   entry: RootIndexEntry;
   readingsAvailable: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  // Cached per root, so a card the reader unfolded is still unfolded when they
+  // come back to the index from another tab.
+  const [open, setOpen] = useCachedState(`roots.card.open.${entry.root}`, false);
   const word = encodeURIComponent(entry.root);
   const detailsId = `root-details-${entry.root}`;
 

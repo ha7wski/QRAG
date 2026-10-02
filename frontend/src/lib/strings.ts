@@ -481,6 +481,8 @@ export const S = {
   /** The «سور القرآن» reading page: the picker above the surah, and its failures. */
   reading: {
     pickerLabel: "اختر السورة",
+    /** The picker's placeholder on the main page, shown greyed out. */
+    pickerPlaceholder: "سور القرآن العظيم",
     /** Option text: «2 · البقرة» — Western digits, like every other numeral
      *  in the interface. */
     option: (n: number, name: string) => `${n} · ${name}`,
@@ -488,7 +490,13 @@ export const S = {
     /** The picker failed while the surah itself may still be readable, so the
      *  note invites a retry rather than reporting the page as broken. */
     surahsFailed: "تعذّر تحميل قائمة السور؛ أعد المحاولة.",
-    resuming: "جارٍ فتح آخر ما قرأت…",
+    heading: "سور القرآن",
+    caption:
+      "اقرأ السورة كاملةً بنصّها المشكول، آيةً بعد آية، ثم انتقل إلى ما قبلها أو ما بعدها.",
+    /** The range tabs of a long surah (more than one chunk of āyāt). */
+    rangesLabel: "مقاطع السورة",
+    /** Under the block: the next range, «الآيات 51–100». */
+    nextRange: "الآيات التالية",
   },
 
   health: {

@@ -18,6 +18,53 @@ import RootCard from "@/components/RootCard";
 import ScrollToTop from "@/components/ScrollToTop";
 
 /**
+ * Vertical offsets (px) that put every letter's INK at the same height.
+ *
+ * The letters share a baseline, which is typographically right and visually
+ * wrong here: ج ح خ ع sit their body under the baseline, ث ت ب on it, so in a
+ * strip of isolated letters ج reads as lower than ث. Each glyph's ink box is
+ * measured with the font actually in use and shifted so its centre lands on the
+ * strip's common centre. Empty until the fonts are loaded, and wherever there
+ * is no canvas or font API (SSR, jsdom) — the letters then fall back to the
+ * shared baseline.
+ */
+function useInkOffsets(
+  letters: string[] | undefined,
+  sample: React.RefObject<HTMLElement>,
+): Record<string, number> {
+  const [offsets, setOffsets] = useState<Record<string, number>>({});
+  const key = letters?.join("") ?? "";
+  useEffect(() => {
+    if (!letters?.length || typeof document === "undefined" || !document.fonts) return;
+    let live = true;
+    document.fonts.ready.then(() => {
+      const el = sample.current;
+      const ctx = el && document.createElement("canvas").getContext("2d");
+      if (!live || !el || !ctx) return;
+      const cs = getComputedStyle(el);
+      ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      // Height of each ink box's centre above the baseline.
+      const centre = Object.fromEntries(
+        letters.map((l) => {
+          const m = ctx.measureText(l);
+          return [l, (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2];
+        }),
+      );
+      const values = Object.values(centre);
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      setOffsets(
+        Object.fromEntries(letters.map((l) => [l, Math.round(centre[l] - mean)])),
+      );
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return offsets;
+}
+
+/**
  * «فهرس الجذور» — every Quranic root that is the primary root of at least one
  * word, browsed by first radical (GET /roots, GET /roots/letter/{letter}).
  * Nothing is typed: the reader picks a letter from the strip.
@@ -57,9 +104,20 @@ function RootIndex() {
   const [byLetter, setByLetter] = useCachedState<
     Record<string, RootLetterResponse>
   >("roots.byLetter", {});
+  // The last letter the reader opened. The nav link is a bare `/roots`, so
+  // without this, leaving for another tab and coming back through the nav
+  // landed on an empty index — the search looked lost though its data was
+  // still cached.
+  const [lastLetter, setLastLetter] = useCachedState<string>("roots.lastLetter", "");
   const [lettersError, setLettersError] = useState<Failure | null>(null);
   const [letterError, setLetterError] = useState<Failure | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const glyphSample = useRef<HTMLSpanElement>(null);
+  const inkOffsets = useInkOffsets(
+    letters?.letters.map((g) => g.letter),
+    glyphSample,
+  );
 
   // Only the latest letter request may write state: two fast clicks must not
   // leave the roots of one letter under the heading of another.
@@ -82,6 +140,19 @@ function RootIndex() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A bare `/roots` resumes the last letter. `replace`, not `push`: the hop
+  // must not sit in the history, or Back would bounce straight back here.
+  useEffect(() => {
+    if (!requested && lastLetter) {
+      router.replace(`/roots?letter=${encodeURIComponent(lastLetter)}`, {
+        scroll: false,
+      });
+    } else if (requested && requested !== lastLetter) {
+      setLastLetter(requested);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requested]);
 
   useEffect(() => {
     setLetterError(null);
@@ -134,9 +205,12 @@ function RootIndex() {
       )}
 
       {letters && (
-        <section aria-label={S.roots.lettersLabel} className="space-y-2">
+        <section aria-label={S.roots.lettersLabel} className="space-y-3">
+          <p className="western-digits text-xs italic text-gray-500">
+            {S.roots.total(letters.total)}
+          </p>
           <div className="flex flex-wrap gap-1.5">
-            {letters.letters.map((g) => {
+            {letters.letters.map((g, i) => {
               // Compared on the RESPONSE's label, so `?letter=ء` lights «أ».
               const active = data?.letter === g.letter;
               return (
@@ -147,13 +221,22 @@ function RootIndex() {
                   aria-pressed={active}
                   aria-label={S.roots.letterButton(g.letter, g.count)}
                   disabled={g.count === 0}
-                  className={`flex w-12 flex-col items-center rounded-lg border px-1 py-1 transition disabled:opacity-40 ${
+                  className={`flex w-12 flex-col items-center gap-1 rounded-lg border px-1 pb-1 pt-1.5 transition disabled:opacity-40 ${
                     active
                       ? "border-brand bg-brand text-white"
                       : "border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand-dark"
                   }`}
                 >
-                  <ArabicText className="text-xl !leading-tight">{g.letter}</ArabicText>
+                  {/* A box tall enough for any ascender or descender, so no
+                      glyph reaches the digit; the glyph inside is shifted by
+                      its measured ink offset (see `useInkOffsets`). */}
+                  <span
+                    ref={i === 0 ? glyphSample : undefined}
+                    className="flex h-8 items-center font-arabic text-xl leading-none"
+                    style={{ transform: `translateY(${inkOffsets[g.letter] ?? 0}px)` }}
+                  >
+                    <ArabicText className="!leading-none">{g.letter}</ArabicText>
+                  </span>
                   <span
                     className={`western-digits text-[11px] ${
                       active ? "text-white/80" : "text-gray-400"
@@ -165,13 +248,10 @@ function RootIndex() {
               );
             })}
           </div>
-          <p className="western-digits text-xs text-gray-500">
-            {S.roots.total(letters.total)}
-          </p>
         </section>
       )}
 
-      {!requested && letters && (
+      {!requested && !lastLetter && letters && (
         <p className="text-sm text-gray-500">{S.roots.pickLetter}</p>
       )}
 

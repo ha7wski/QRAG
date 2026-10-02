@@ -9,7 +9,17 @@ import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { SurahMeta, SurahResponse } from "@/lib/types";
 import ArabicText from "@/components/ArabicText";
+import SurahPicker, { SurahsIntro } from "@/components/SurahPicker";
 import { writePosition } from "@/lib/readingPosition";
+
+/** Āyāt per range tab. A surah longer than this reads one range at a time. */
+export const CHUNK_SIZE = 50;
+
+/** The range index holding `ayah`, or 0 when there is none to honour. */
+function chunkOf(ayah: number | null, total: number): number {
+  if (ayah === null || ayah < 1 || ayah > total) return 0;
+  return Math.floor((ayah - 1) / CHUNK_SIZE);
+}
 
 /** How long the scroll must rest before the position is written (ms). */
 const PERSIST_DEBOUNCE_MS = 500;
@@ -23,16 +33,43 @@ function ayahFromHash(): number | null {
   return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
+/** Set once the document's own navigation has been looked at, so a reload is
+ *  acted on at most once per page load — never on a later in-app visit. */
+let reloadSeen = false;
+
+/**
+ * Whether this mount IS the document load of a hard reload of this page. Only
+ * the first `SurahReader` of a page load can be: after any in-app navigation
+ * the navigation entry still says «reload» but describes another URL, or has
+ * already been consumed. Pure, so it is safe in a state initializer.
+ */
+function isReloadOfThisPage(): boolean {
+  if (reloadSeen || typeof window === "undefined") return false;
+  try {
+    const nav = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    return (
+      nav?.type === "reload" &&
+      new URL(nav.name).pathname === window.location.pathname
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The «سور القرآن» reading surface: a surah picker, and below it one whole surah
  * rendered as a continuous vocalized block.
  *
- * ONE component for both `/surah` (resumed) and `/surah/{n}` (addressed), so the
- * two routes cannot drift apart and every deep link already emitted across the
- * app keeps landing on the same page.
+ * Rendered at `/surah/{n}`, the address every deep link across the app
+ * already emits. `/surah` itself is the main page (picker + resume link).
  */
 export default function SurahReader({ number }: { number: number }) {
   const router = useRouter();
+  // A hard reload of `/surah/{n}` returns to the «سور القرآن» main page rather
+  // than reopening the surah. Deep links opened from elsewhere are not reloads.
+  const [reloaded] = useState(isReloadOfThisPage);
   const [data, setData] = useState<SurahResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Failure | null>(null);
@@ -42,19 +79,35 @@ export default function SurahReader({ number }: { number: number }) {
   const [surahs, setSurahs] = useState<SurahMeta[] | null>(null);
   const [surahsFailed, setSurahsFailed] = useState(false);
 
+  // The range tab on screen. Set with the data, from the URL fragment, so a
+  // deep link to āya 200 opens the range that holds it.
+  const [chunk, setChunk] = useState(0);
+
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const rangesRef = useRef<HTMLDivElement | null>(null);
   // Guards the observer: it is attached only once the restore scroll has landed,
   // or the top of the surah would immediately overwrite the stored position.
   const restoredFor = useRef<number | null>(null);
 
   useEffect(() => {
+    reloadSeen = true;
+    if (reloaded) router.replace("/surah");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (reloaded) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
     setData(null);
     restoredFor.current = null;
     getSurah(number)
-      .then((d) => !cancelled && setData(d))
+      .then((d) => {
+        if (cancelled) return;
+        setChunk(chunkOf(ayahFromHash(), d.verses.length));
+        setData(d);
+      })
       .catch(
         (e) =>
           !cancelled &&
@@ -67,7 +120,7 @@ export default function SurahReader({ number }: { number: number }) {
     return () => {
       cancelled = true;
     };
-  }, [number]);
+  }, [number, reloaded]);
 
   // The picker's list, fetched once — it is the same 114 rows for every surah.
   useEffect(() => {
@@ -83,9 +136,11 @@ export default function SurahReader({ number }: { number: number }) {
   // Every way of reaching a surah — picker, stepper, deep link, direct URL —
   // makes it the remembered one. The aya starts at 1 and is refined by the
   // observer as the reader scrolls.
+  // Not on the reload being sent back: it would overwrite the aya the reader
+  // was at, which the main page offers to resume.
   useEffect(() => {
-    writePosition(number, 1);
-  }, [number]);
+    if (!reloaded) writePosition(number, 1);
+  }, [number, reloaded]);
 
   // Restore, then observe. A layout effect so the scroll is applied before the
   // browser paints: the reader sees one frame, at the right place.
@@ -171,23 +226,59 @@ export default function SurahReader({ number }: { number: number }) {
       window.removeEventListener("pagehide", flush);
       flush();
     };
-  }, [data, number, schedule, flush]);
+    // `chunk`: a new range renders new markers, which must be observed.
+  }, [data, number, chunk, schedule, flush]);
+
+  function showChunk(i: number) {
+    setChunk(i);
+    rangesRef.current?.scrollIntoView?.({ behavior: "auto", block: "nearest" });
+  }
+
+  // The page heading and the picker stay on screen whatever the surah's state:
+  // choosing a surah must not take the reader out from under «سور القرآن».
+  const top = (
+    <>
+      <SurahsIntro />
+      <SurahPicker
+        surahs={surahs}
+        failed={surahsFailed}
+        value={number}
+        current={data?.surah_name_ar || data?.surah_name_en || ""}
+        onChoose={(n) => router.push(`/surah/${n}`)}
+      />
+    </>
+  );
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-gray-500">
-        <Loader2 className="h-4 w-4 animate-spin" /> {S.verse.loadingSurah}
+      <div className="space-y-6">
+        {top}
+        <div className="flex items-center gap-2 text-gray-500">
+          <Loader2 className="h-4 w-4 animate-spin" /> {S.verse.loadingSurah}
+        </div>
       </div>
     );
   }
   if (error || !data) {
     return (
-      <FailureNote
-        failure={error ?? { text: S.errors.surahNotFound }}
-        className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
-      />
+      <div className="space-y-6">
+        {top}
+        <FailureNote
+          failure={error ?? { text: S.errors.surahNotFound }}
+          className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
+        />
+      </div>
     );
   }
+
+  // A surah longer than one range reads one range at a time.
+  const chunks = Math.ceil(data.verses.length / CHUNK_SIZE);
+  const shown =
+    chunks > 1
+      ? data.verses.slice(chunk * CHUNK_SIZE, (chunk + 1) * CHUNK_SIZE)
+      : data.verses;
+  const rangeOf = (i: number) =>
+    `${i * CHUNK_SIZE + 1}–${Math.min((i + 1) * CHUNK_SIZE, data.verses.length)}`;
 
   // Mapped, never rendered raw: the corpus emits `makkiyya` / `madani`.
   const period = data.period
@@ -195,46 +286,14 @@ export default function SurahReader({ number }: { number: number }) {
     : undefined;
 
   return (
-    <div className="space-y-5">
-      {/* The picker: jumping to a surah. The stepper at the foot of the page is
-          its complement — continuing from the one just finished. Choosing here
-          navigates, so what is on screen always has a shareable address. */}
-      <div className="flex items-center gap-3">
-        <label htmlFor="surah-picker" className="text-sm text-gray-600">
-          {S.reading.pickerLabel}
-        </label>
-        <select
-          id="surah-picker"
-          value={number}
-          onChange={(e) => router.push(`/surah/${e.target.value}`)}
-          className="western-digits min-w-[240px] rounded-lg border border-gray-300 px-3 py-2 font-arabic text-base focus:border-brand focus:outline-none"
-        >
-          {(surahs ?? []).map((s) => (
-            <option key={s.number} value={s.number}>
-              {S.reading.option(s.number, s.name_ar ?? "")}
-            </option>
-          ))}
-          {/* Until the list arrives (or when it failed), the select still has to
-              show the surah it is on, or it would read as an empty control. */}
-          {!surahs && (
-            <option value={number}>
-              {S.reading.option(
-                number,
-                data.surah_name_ar || data.surah_name_en || "",
-              )}
-            </option>
-          )}
-        </select>
-        {surahsFailed && (
-          <span className="text-sm text-red-700">{S.reading.surahsFailed}</span>
-        )}
-      </div>
+    <div className="space-y-6">
+      {top}
 
       <header className="space-y-1 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-800">
+          <h2 className="text-2xl font-semibold text-gray-800">
             {data.surah_name_ar || data.surah_name_en}
-          </h1>
+          </h2>
           <span className="western-digits text-gray-400">
             {S.verse.surahNumber(data.surah_number)}
           </span>
@@ -260,7 +319,33 @@ export default function SurahReader({ number }: { number: number }) {
         </ArabicText>
       )}
 
-      {/* The whole surah as one continuous block (Arabic only): verses flow
+      {chunks > 1 && (
+        <div
+          ref={rangesRef}
+          role="tablist"
+          aria-label={S.reading.rangesLabel}
+          className="flex flex-wrap gap-1.5"
+        >
+          {Array.from({ length: chunks }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === chunk}
+              onClick={() => showChunk(i)}
+              className={`western-digits rounded-lg border px-3 py-1 text-sm transition ${
+                i === chunk
+                  ? "border-brand bg-brand text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand-dark"
+              }`}
+            >
+              <span dir="ltr">{rangeOf(i)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* The surah (or the range on screen) as one continuous block (Arabic only): verses flow
           together, each followed by its ayah number, and the page scrolls to
           the end. */}
       <div
@@ -268,7 +353,7 @@ export default function SurahReader({ number }: { number: number }) {
         className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
       >
         <ArabicText className="block text-justify text-3xl leading-[2.6] text-gray-900">
-          {data.verses.map((v) => (
+          {shown.map((v) => (
             <span key={v.id}>
               {v.text_ar_tashkil || v.text_ar}
               {/* The marker carries the aya's address: `id` for the fragment
@@ -284,6 +369,19 @@ export default function SurahReader({ number }: { number: number }) {
           ))}
         </ArabicText>
       </div>
+
+      {chunks > 1 && chunk < chunks - 1 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => showChunk(chunk + 1)}
+            className="western-digits flex items-center gap-1 text-sm text-brand-dark hover:underline"
+          >
+            {S.reading.nextRange} <span dir="ltr">({rangeOf(chunk + 1)})</span>
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <nav className="flex items-center justify-between border-t border-gray-200 pt-3 text-sm">
         {number > 1 ? (

@@ -1,32 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { S } from "@/lib/strings";
-import { readPosition, resumeHref } from "@/lib/readingPosition";
+import { getSurahs } from "@/lib/api";
+import type { SurahMeta } from "@/lib/types";
+import SurahPicker, { SurahsIntro } from "@/components/SurahPicker";
 
 /**
- * The «سور القرآن» entry point: resume where the reader left off.
- *
- * A CLIENT component, and it must be — a server-side `redirect()` cannot read
- * the stored position, which lives in the browser. `replace` rather than `push`
- * keeps the hop out of the back history, so Back from a resumed surah returns
- * to the page the reader came from instead of bouncing through here.
- *
- * It renders NO surah of its own: painting one before the hop would flash the
- * wrong text. A neutral loading state is the whole page.
+ * The «سور القرآن» main page: a heading, what the page is for, and the surah
+ * picker. It never navigates by itself — a reload of `/surah/{n}` lands here
+ * (see `SurahReader`), so an automatic resume would make it unreachable.
  */
-export default function SurahResumePage() {
+export default function SurahIndexPage() {
   const router = useRouter();
+  const [surahs, setSurahs] = useState<SurahMeta[] | null>(null);
+  const [surahsFailed, setSurahsFailed] = useState(false);
 
   useEffect(() => {
-    router.replace(resumeHref(readPosition()));
-  }, [router]);
+    let cancelled = false;
+    getSurahs()
+      .then((list) => !cancelled && setSurahs(list))
+      .catch(() => !cancelled && setSurahsFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
-    <div className="flex items-center gap-2 text-gray-500">
-      <Loader2 className="h-4 w-4 animate-spin" /> {S.reading.resuming}
+    <div className="space-y-6">
+      <SurahsIntro />
+
+      <SurahPicker
+        surahs={surahs}
+        failed={surahsFailed}
+        value=""
+        onChoose={(n) => router.push(`/surah/${n}`)}
+      />
     </div>
   );
 }

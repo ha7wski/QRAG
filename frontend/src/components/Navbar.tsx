@@ -21,7 +21,7 @@ import { S } from "@/lib/strings";
 // navigation (design D11), so it is reachable by direct URL only — which is why
 // it is still Arabized and re-directioned like every other route.
 //
-// `/surah` is the resume entry point; `isActive` uses `startsWith`, so it also
+// `/surah` is the reading main page (picker + resume link); `isActive` uses `startsWith`, so it also
 // highlights on `/surah/{n}`. `BookOpen` is the brand's and no entry may carry
 // it, nor may two entries share an icon: `ScrollText` is the reading mark.
 // «التحليل النحوي» (`/tahlil`) left the app: its page is deleted and its routes
