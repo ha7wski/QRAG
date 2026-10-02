@@ -2,10 +2,12 @@
 
 ### Requirement: The similar tab has two modes
 
-The `similar` tab SHALL offer two modes behind a two-way switch at the top of the tab:
-«بعبارة» — the existing phrase search over all 6 236 verses (`GET /search`), unchanged — and
-«داخل سورة» — the intra-surah similarity view defined by the `surah-internal-similarity`
-capability. The tab SHALL open on «بعبارة».
+The `similar` tab SHALL offer two modes behind a two-way switch at the top of the tab, in this
+order: «المتشابهات داخل السورة» (labelled «داخل سورة» elsewhere in this change) — the intra-surah
+similarity view defined by the `surah-internal-similarity` capability — first, then «المتشابهات من
+عبارة» (labelled «بعبارة» elsewhere in this change) — the
+existing phrase search over all 6 236 verses (`GET /search`), unchanged. The tab SHALL open on
+«بعبارة».
 
 Each mode SHALL keep its own state (query and results for «بعبارة»; selected surah, selected ayah
 and results for «داخل سورة») while the other is shown, and across a switch to another tab and back,

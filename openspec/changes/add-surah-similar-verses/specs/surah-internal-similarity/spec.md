@@ -239,26 +239,27 @@ with the Basmala stripped, like every other verse the API returns.
 
 The Verse Study `similar` tab's «داخل سورة» mode SHALL let the reader pick a surah by its Arabic name
 (the shared surah picker), then render that surah's groups, strongest first, each verse vocalized and
-numbered. Selecting a verse — from a group or from a full ayah selector — SHALL show its close verses
-in the same surah, ranked, each with its shared content roots displayed as Arabic root chips.
+numbered, each group framed in green and numbered (1, 2, 3 …) in a green disc on its right. Selecting a verse of a
+group SHALL show its close verses in the same surah, ranked, each with its shared content roots
+displayed as Arabic root chips. There is no ayah selector: a verse in no group is not offered.
 
 No numeric score SHALL be shown; the ranking order carries it. No consecutive verse SHALL be shown as
 close. The surah's `unscored` verses SHALL be named in a one-line note, and a scored verse with no
 close verse SHALL say so, rather than render an empty list.
 
-#### Scenario: Pick a surah, then a verse
+#### Scenario: Pick a surah, then a verse of a group
 
-- **WHEN** the reader selects surah 12 and then ayah 4
-- **THEN** the groups of surah 12 are shown
-- **AND** the ranked close verses of 12:4 within surah 12 are shown with their shared roots
+- **WHEN** the reader selects surah 55 and then a refrain verse inside its group
+- **THEN** the groups of surah 55 are shown, each numbered in a green disc
+- **AND** the ranked close verses of that verse within surah 55 are shown with their shared roots
 
-#### Scenario: An unscored verse is explained
+#### Scenario: Unscored verses are named, not offered
 
-- **WHEN** the reader selects ayah 1 of surah 2
-- **THEN** the panel SHALL say that this verse is not compared (it carries no content word), and
-  SHALL show no neighbour list
+- **WHEN** the reader selects surah 2
+- **THEN** a one-line note SHALL name ayah 1 as not compared (it carries no content word), and no
+  control SHALL offer it for selection
 
 #### Scenario: A verse with no close verse is explained
 
-- **WHEN** the reader selects a scored verse whose neighbour list is empty
+- **WHEN** the anchor view of a scored verse with an empty neighbour list is rendered
 - **THEN** the panel SHALL say that no verse of the surah is close to it in both meaning and syntax

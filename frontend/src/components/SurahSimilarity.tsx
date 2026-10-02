@@ -16,7 +16,6 @@ import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import ArabicText from "@/components/ArabicText";
 import FailureNote, { type Failure } from "@/components/FailureNote";
-import SelectBox from "@/components/SelectBox";
 import SurahPicker from "@/components/SurahPicker";
 
 /** The anchor panel's id — a group verse scrolls it into view when picked. */
@@ -25,9 +24,9 @@ const ANCHOR_PANEL_ID = "surah-similar-anchor";
 /**
  * «داخل سورة» — the intra-surah similarity view of «الآيات المتشابهات».
  *
- * Pick a surah → its groups of mutually close verses, strongest first. Pick a
- * verse (from a group or from the ayah selector) → its close verses in the same
- * surah, ranked, each with the content roots it shares with the selected verse.
+ * Pick a surah → its groups of mutually close verses, strongest first, each
+ * framed in green and numbered (1, 2, 3 …) in a green disc beside it. Pick a verse of a group → its close verses in the
+ * same surah, ranked, each with the content roots it shares with it.
  *
  * Everything shown is read from a precomputed dataset (`GET /surah/{n}/similar`):
  * «close» there means the same meaning or subject AND nearly the same syntax,
@@ -66,10 +65,9 @@ export default function SurahSimilarity({
     null,
   );
   // Fetched anchors of the CURRENT surah, keyed by ayah number.
-  const [anchors, setAnchors] = useCachedState<Record<number, AyahSimilarityResponse>>(
-    "verse-study.similar.surah.anchors",
-    {},
-  );
+  const [anchors, setAnchors] = useCachedState<
+    Record<number, AyahSimilarityResponse>
+  >("verse-study.similar.surah.anchors", {});
   const [ayahError, setAyahError] = useCachedState<Failure | null>(
     "verse-study.similar.surah.ayahError",
     null,
@@ -99,7 +97,10 @@ export default function SurahSimilarity({
       if (seq === surahSeq.current) setData(res);
     } catch (e) {
       if (seq === surahSeq.current)
-        setError({ text: forStatus(statusOf(e), "surah"), detail: detailOf(e) });
+        setError({
+          text: forStatus(statusOf(e), "surah"),
+          detail: detailOf(e),
+        });
     } finally {
       if (seq === surahSeq.current) setLoading(false);
     }
@@ -111,10 +112,14 @@ export default function SurahSimilarity({
     setAyahLoading(true);
     try {
       const res = await getAyahSimilarity(s, a);
-      if (seq === ayahSeq.current) setAnchors((prev) => ({ ...prev, [a]: res }));
+      if (seq === ayahSeq.current)
+        setAnchors((prev) => ({ ...prev, [a]: res }));
     } catch (e) {
       if (seq === ayahSeq.current)
-        setAyahError({ text: forStatus(statusOf(e), "verse"), detail: detailOf(e) });
+        setAyahError({
+          text: forStatus(statusOf(e), "verse"),
+          detail: detailOf(e),
+        });
     } finally {
       if (seq === ayahSeq.current) setAyahLoading(false);
     }
@@ -166,7 +171,9 @@ export default function SurahSimilarity({
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-500">{S.verseStudy.surahSimilar.caption}</p>
+      <p className="text-sm text-gray-500">
+        {S.verseStudy.surahSimilar.caption}
+      </p>
 
       <SurahPicker
         surahs={surahs.length ? surahs : null}
@@ -209,63 +216,48 @@ export default function SurahSimilarity({
                 {S.verseStudy.surahSimilar.noGroups}
               </div>
             ) : (
-              data.groups.map((g) => (
-                <ul
-                  key={g.ayahs.join(",")}
-                  data-testid="surah-similar-group"
-                  className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white"
-                >
-                  {g.verses.map((v) => (
-                    <li key={v.id}>
-                      {/* A group verse SELECTS that verse — its close verses
+              data.groups.map((g, i) => (
+                /* The group's number in a green disc on the reading side (right,
+                   under the document's RTL), then the green-framed card. */
+                <div key={g.ayahs.join(",")} className="flex items-start gap-3">
+                  <span
+                    data-testid="surah-similar-group-number"
+                    aria-hidden="true"
+                    className="western-digits mt-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white"
+                  >
+                    {i + 1}
+                  </span>
+                  <ul
+                    data-testid="surah-similar-group"
+                    className="min-w-0 flex-1 divide-y divide-gray-100 overflow-hidden rounded-lg border-2 border-brand bg-white"
+                  >
+                    {g.verses.map((v) => (
+                      <li key={v.id}>
+                        {/* A group verse SELECTS that verse — its close verses
                           then open in the panel below. */}
-                      <button
-                        type="button"
-                        onClick={() => chooseAyah(v.ayah_number, true)}
-                        aria-pressed={ayah === v.ayah_number}
-                        title={S.verseStudy.surahSimilar.selectAyah}
-                        className={`block w-full px-4 py-3 text-start transition hover:bg-brand-light/50 ${
-                          ayah === v.ayah_number ? "bg-brand-light/60" : ""
-                        }`}
-                      >
-                        <VerseText verse={v} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                        <button
+                          type="button"
+                          onClick={() => chooseAyah(v.ayah_number, true)}
+                          aria-pressed={ayah === v.ayah_number}
+                          title={S.verseStudy.surahSimilar.selectAyah}
+                          className={`block w-full px-4 py-3 text-start transition hover:bg-brand-light/50 ${
+                            ayah === v.ayah_number ? "bg-brand-light/60" : ""
+                          }`}
+                        >
+                          <VerseText verse={v} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))
             )}
           </section>
 
           {/* The verse panel, after the groups (D11: groups render first): the
-              ayah selector, then the selected verse and its close verses. A
-              group verse picked above scrolls down to it. */}
+              verse picked in a group, then its close verses. Picking scrolls
+              down to it. */}
           <section id={ANCHOR_PANEL_ID} className="scroll-mt-4 space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <label htmlFor="surah-similar-ayah" className="text-lg text-gray-700">
-                {S.verseStudy.surahSimilar.ayahLabel}
-              </label>
-              <SelectBox
-                id="surah-similar-ayah"
-                value={ayah ?? ""}
-                onChange={(e) => e.target.value && chooseAyah(Number(e.target.value))}
-                className={`western-digits w-40 py-1.5 font-arabic text-base ${
-                  ayah === null ? "text-gray-400" : "text-gray-900"
-                }`}
-              >
-                {ayah === null && (
-                  <option value="" disabled>
-                    {S.verseStudy.surahSimilar.ayahPlaceholder}
-                  </option>
-                )}
-                {Array.from({ length: data.ayah_count }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n} className="text-gray-900">
-                    {S.verseStudy.surahSimilar.ayahOption(n)}
-                  </option>
-                ))}
-              </SelectBox>
-            </div>
-
             {ayahError && (
               <FailureNote
                 failure={ayahError}
@@ -351,7 +343,10 @@ function AnchorPanel({
                 data-testid="surah-similar-neighbour"
                 className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand"
               >
-                <VerseCardButton verse={n.verse} openInContext={openInContext} />
+                <VerseCardButton
+                  verse={n.verse}
+                  openInContext={openInContext}
+                />
                 {n.roots.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 px-4 py-2">
                     <span className="font-arabic text-xs text-gray-500">

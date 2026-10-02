@@ -305,8 +305,8 @@ export const S = {
      * closeness. Arabic only — no English mode name is ever rendered.
      */
     similarModes: {
-      phrase: "بعبارة",
-      surah: "داخل سورة",
+      phrase: "المتشابهات من عبارة",
+      surah: "المتشابهات داخل السورة",
       groupLabel: "طريقة البحث",
     },
     /**
@@ -324,9 +324,6 @@ export const S = {
         ayahs.length === 1
           ? `لا تُقارَن الآية ${ayahs[0]} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`
           : `لا تُقارَن الآيات ${ayahs.join("، ")} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`,
-      ayahLabel: "الآية",
-      ayahPlaceholder: "اختر آية",
-      ayahOption: (n: number) => `الآية ${n}`,
       closeHeading: "الآيات القريبة منها في السورة",
       /** The selected verse is itself unscored: nothing was compared. */
       unscoredAnchor: "لا تُقارَن هذه الآية بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.",

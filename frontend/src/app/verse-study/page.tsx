@@ -835,8 +835,8 @@ function SimilarTab({
   }
 
   const options: [SimilarMode, string][] = [
-    ["phrase", S.verseStudy.similarModes.phrase],
     ["surah", S.verseStudy.similarModes.surah],
+    ["phrase", S.verseStudy.similarModes.phrase],
   ];
 
   return (

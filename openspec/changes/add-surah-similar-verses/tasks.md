@@ -68,8 +68,8 @@
 
 - [x] 6.1 Add the client function and types in `frontend/src/lib/api.ts`
 - [x] 6.2 Add the Arabic strings (mode labels «بعبارة» / «داخل سورة», unscored note, «no close verse in meaning and syntax» note, empty-groups message) to `lib/strings.ts`
-- [x] 6.3 Add the two-way mode switch to the `similar` tab, «بعبارة» default, phrase panel untouched
-- [x] 6.4 Create the «داخل سورة» component in `frontend/src/components/`: surah select, groups, ayah selector, ranked close verses with root chips, no numeric score, no consecutive verse; state under `verse-study.similar.surah.*` via `useCachedState`
+- [x] 6.3 Add the two-way mode switch to the `similar` tab, «بعبارة» default, phrase panel untouched — *revised 2026-10-02 (user): the surah mode is labelled «المتشابهات داخل السورة» and comes first, the phrase mode «المتشابهات من عبارة»*
+- [x] 6.4 Create the «داخل سورة» component in `frontend/src/components/`: surah select, groups (each framed in green and numbered in a green disc), ranked close verses with root chips, no numeric score, no consecutive verse; state under `verse-study.similar.surah.*` via `useCachedState` — *the ayah selector was removed 2026-10-02 (user): a verse is picked inside a group*
 - [x] 6.5 Route verse-card activation to the «الآية في سياقها» tab like the phrase results
 - [x] 6.6 Vitest: mode switch keeps both states; unscored vs no-close-verse messages; `npx tsc --noEmit -p tsconfig.test.json` green
 
