@@ -20,6 +20,7 @@ import type {
   QlisanWordResponse,
   SurahMeta,
 } from "@/lib/types";
+import SelectBox from "@/components/SelectBox";
 
 /**
  * QLisan — per-word, four-level analysis of a single Quran word.
@@ -153,18 +154,18 @@ export default function QlisanPage() {
           hand-reversed inside `justify-end`, which document RTL would have
           flipped a second time (design D4). */}
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <SelectBox
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
           aria-label={S.verse.surah}
-          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+          className="min-w-[220px] py-2 text-lg"
         >
           {surahs.map((s) => (
             <option key={s.number} value={s.number}>
               {s.number}. {s.name_ar}
             </option>
           ))}
-        </select>
+        </SelectBox>
         <div className="flex items-center gap-1">
           <input
             value={ayah}

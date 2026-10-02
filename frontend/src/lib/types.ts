@@ -59,6 +59,9 @@ export interface VerseLookupResponse {
   occurrences?: number; // WORDS carrying the root; 0 for a rootless proper noun
   total: number; // distinct āyāt across all form blocks
   forms: VerseLookupForm[]; // one block per written form, first-occurrence order
+  // Only when nothing was found: Quranic words one confusable letter away
+  // (العضيم → العظيم), most frequent first. Offered, never followed.
+  suggestions?: string[];
 }
 
 export interface SearchResponse {

@@ -43,6 +43,7 @@ import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
+import SelectBox from "@/components/SelectBox";
 
 // Context shown around the chosen verse in the "Find Verse context" tab:
 // 3 before + 3 after (same surah).
@@ -405,6 +406,12 @@ function WordInVerses({
     "verse-study.word.error",
     null,
   );
+  // Set when the box holds more than one word: the lookup takes ONE word, and
+  // sending a phrase only came back as «not found», which blamed the word.
+  const [multiWord, setMultiWord] = useCachedState(
+    "verse-study.word.multiWord",
+    false,
+  );
   // Collapsed sets; empty = all open (as before). A block is keyed
   // `${root}:${form}` and a surah card `${root}:${form}:${surah}` — the root is
   // part of the key because homographs can spell one لفظ under two roots, which
@@ -431,6 +438,13 @@ function WordInVerses({
   async function run(explicit?: string) {
     const w = (explicit ?? word).trim();
     if (!w || loading) return;
+    if (/\s/.test(w)) {
+      setData(null);
+      setError(null);
+      setMultiWord(true);
+      return;
+    }
+    setMultiWord(false);
     setLoading(true);
     setError(null);
     setCollapsedSurahs(new Set());
@@ -568,6 +582,16 @@ function WordInVerses({
         />
       )}
 
+      {multiWord && (
+        <div
+          role="status"
+          lang="ar"
+          className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
+        >
+          {S.verseStudy.oneWordOnly}
+        </div>
+      )}
+
       {loading && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -580,9 +604,29 @@ function WordInVerses({
           {!data.root_found ? (
             <div
               lang="ar"
-              className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
+              className="space-y-2 rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
-              لم يُعثر على هذه الكلمة في الجذور المعروفة
+              <p>{S.verseStudy.notFound}</p>
+              {/* A suggestion is offered, never followed: searching it is the
+                  reader's choice, so a real typo is never silently papered over. */}
+              {(data.suggestions?.length ?? 0) > 0 && (
+                <p className="flex flex-wrap items-center gap-2">
+                  <span>{S.verseStudy.didYouMean}</span>
+                  {data.suggestions!.map((sug) => (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={() => {
+                        setWord(sug);
+                        run(sug);
+                      }}
+                      className="rounded-lg border border-amber-300 bg-white px-3 py-0.5 text-brand-dark hover:border-brand"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </p>
+              )}
             </div>
           ) : (
             <>
@@ -870,7 +914,7 @@ function SimilarVerses() {
       <div className="font-arabic text-xl text-gray-800" lang="ar">
         {query.trim() ? (
           <>
-            ما هي الآيات القريبة في المعنى من{" "}
+            ما هي الآيات القريبة في المعنى والتركيب اللغوي من{" "}
             <span dir="auto" className="font-bold text-brand-dark">
               &laquo;{query.trim()}&raquo;
             </span>{" "}
@@ -878,7 +922,7 @@ function SimilarVerses() {
           </>
         ) : (
           <span className="text-gray-400">
-            ما هي الآيات القريبة في المعنى من «…» ؟
+            ما هي الآيات القريبة في المعنى والتركيب اللغوي من «…» ؟
           </span>
         )}
       </div>
@@ -1056,6 +1100,12 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
   const [surahs, setSurahs] = useCachedState<SurahMeta[]>("surahs.list", []);
   const [surah, setSurah] = useCachedState("verse-study.context.surah", 1);
   const [ayah, setAyah] = useCachedState("verse-study.context.ayah", 1);
+  // What the āya box HOLDS. Empty by default: the 1 is only a grey placeholder,
+  // gone as soon as the box is focused, and an empty box searches āya 1. `ayah`
+  // is never empty; the box is set explicitly wherever `ayah` changes from
+  // outside it (a target verse, a shorter surah).
+  const showAyah = (n: number) => (n === 1 ? "" : String(n));
+  const [ayahText, setAyahText] = useState(() => showAyah(ayah));
   const [result, setResult] = useCachedState<VerseDetail | null>(
     "verse-study.context.result",
     null,
@@ -1087,6 +1137,7 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
     if (!target) return;
     setSurah(target.surah);
     setAyah(target.ayah);
+    setAyahText(showAyah(target.ayah));
     lookup(target.surah, target.ayah);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target?.nonce]);
@@ -1099,7 +1150,22 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
   function onSurahChange(n: number) {
     setSurah(n);
     const count = surahs.find((s) => s.number === n)?.ayah_count ?? 286;
-    if (ayah > count) setAyah(count); // keep the ayah within the new surah
+    if (ayah > count) {
+      setAyah(count); // keep the ayah within the new surah
+      setAyahText(showAyah(count));
+    }
+  }
+
+  function onAyahInput(text: string) {
+    const digits = text.replace(/\D/g, "");
+    if (!digits) {
+      setAyahText("");
+      setAyah(1);
+      return;
+    }
+    const n = Math.min(maxAyah, Math.max(1, Number(digits)));
+    setAyahText(String(n));
+    setAyah(n);
   }
 
   async function lookup(s = surah, a = ayah) {
@@ -1130,35 +1196,32 @@ function FindVerseContext({ target }: { target: ContextTarget | null }) {
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Surah picker — Arabic names. */}
-        <select
+        <SelectBox
           value={surah}
           onChange={(e) => onSurahChange(Number(e.target.value))}
           aria-label={S.verse.surah}
-          className="min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-lg focus:border-brand focus:outline-none"
+          className="min-w-[220px] py-2 text-lg"
         >
           {surahs.map((s) => (
             <option key={s.number} value={s.number}>
               {s.number}. {s.name_ar}
             </option>
           ))}
-        </select>
+        </SelectBox>
 
-        {/* Ayah number. */}
-        <input
-          value={ayah}
-          onChange={(e) => setAyah(Math.max(1, Number(e.target.value) || 1))}
-          onKeyDown={(e) => e.key === "Enter" && lookup()}
-          type="number"
-          min={1}
-          max={maxAyah}
-          aria-label={S.verse.ayahNumber}
-          // `text-center` to match the two sibling āya boxes: this was the only
-          // one aligning to the start, which after the flip means the right edge.
-          className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-brand focus:outline-none"
-        />
+        {/* The surah's length, then the āya box at the left end (RTL). */}
         <span className="western-digits text-sm text-gray-400">
           <span dir="ltr">/ {maxAyah}</span>
         </span>
+        <input
+          value={ayahText}
+          onChange={(e) => onAyahInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && lookup()}
+          inputMode="numeric"
+          placeholder="1"
+          aria-label={S.verse.ayahNumber}
+          className="western-digits w-16 rounded-lg border border-gray-300 px-2 py-2 text-center placeholder:text-gray-400 focus:border-brand focus:outline-none focus:placeholder:text-transparent"
+        />
 
         <button
           onClick={() => lookup()}

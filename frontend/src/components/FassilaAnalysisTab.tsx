@@ -10,6 +10,7 @@ import { count, NOUNS } from "@/lib/strings";
 import FassilaBars from "@/components/FassilaBars";
 import FassilaLine from "@/components/FassilaLine";
 import FassilaTile from "@/components/FassilaTile";
+import SelectBox from "@/components/SelectBox";
 
 /**
  * Tab 1 — "تحليل الفواصل": one sūra's fawāṣil read two ways, a frequency
@@ -62,18 +63,18 @@ export default function FassilaAnalysisTab() {
         >
           <ChevronRight className="h-4 w-4" />
         </button>
-        <select
+        <SelectBox
           id="surah"
           value={surah}
           onChange={(e) => setSurah(Number(e.target.value))}
-          className="min-w-[240px] rounded-lg border border-gray-300 px-3 py-2 font-arabic text-base focus:border-brand focus:outline-none"
+          className="min-w-[240px] py-2 font-arabic text-base"
         >
           {surahs.map((s) => (
             <option key={s.number} value={s.number}>
               {s.number} · {s.name_ar} — {count(s.ayah_count, NOUNS.aya)}
             </option>
           ))}
-        </select>
+        </SelectBox>
         <button
           type="button"
           aria-label="السورة التالية"

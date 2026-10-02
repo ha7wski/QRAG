@@ -229,12 +229,18 @@ export const S = {
   },
 
   verseStudy: {
+    /** Nothing found for the typed word. */
+    notFound: "لم يُعثر على هذه الكلمة في الجذور المعروفة",
+    /** The box held a phrase: the lookup reads one word. */
+    oneWordOnly: "اكتب كلمةً واحدةً فقط، لا عبارة — فالبحث يتتبّع جذرَ كلمةٍ واحدة.",
+    /** Lead-in of the «هل تقصد» suggestions — each one a button. */
+    didYouMean: "هل تقصد:",
     heading: "دراسة الآيات",
     caption: "اكتب كلمةً عربيّةً واحدةً — فترى كلَّ آيةٍ ورد فيها جذرها، مشكولةً.",
     tabs: {
       word: "الكلمة في الآيات",
       /** «النظائر» is rejected: it names a different discipline (design D21). */
-      similar: "الآيات القريبة في المعنى",
+      similar: "الآيات المتشابهات",
       context: "الآية في سياقها",
     },
     search: "بحث",
@@ -253,7 +259,7 @@ export const S = {
     questionWord: (word: string) =>
       `ما هي الآيات والسور التي وردت فيها ${iso(`«${word}»`)} ؟`,
     questionPhrase: (q: string) =>
-      `ما هي الآيات القريبة في المعنى من ${iso(`«${q}»`)} ؟`,
+      `ما هي الآيات القريبة في المعنى والتركيب اللغوي من ${iso(`«${q}»`)} ؟`,
     similarNote: `بحثٌ بالجذر واللفظ في ${iso(6236)} آية، مرتَّبٌ بحسب القرب في المعنى — يُعيد أقرب المواضع.`,
     nearest: (n: number) => `أقرب ${count(n, NOUNS.aya)}`,
     contextCaption: "اختر السورة والآية لقراءتها في سياقها — مع الآيات الثلاث قبلها وبعدها.",

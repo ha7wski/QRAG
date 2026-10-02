@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { S } from "@/lib/strings";
 import type { SurahMeta } from "@/lib/types";
+import SelectBox from "@/components/SelectBox";
 
 /**
  * The «سور القرآن» page heading and its caption. Shared by the main page and
@@ -18,9 +18,7 @@ export function SurahsIntro() {
 }
 
 /**
- * The surah picker, one control for both pages. The native arrow is replaced
- * by our own chevron: the browser's sits flush against the box edge and does
- * not take padding. `end-3` puts it on the inline end, the left in RTL.
+ * The surah picker, one control for both pages (its arrow is `SelectBox`'s).
  *
  * `value` is the open surah, or "" on the main page (a placeholder option is
  * then shown). `current` names the open surah while the list is missing, so
@@ -44,35 +42,29 @@ export default function SurahPicker({
       <label htmlFor="surah-picker" className="text-lg text-gray-700">
         {S.reading.pickerLabel}
       </label>
-      <div className="relative">
-        <select
-          id="surah-picker"
-          value={value}
-          disabled={!surahs && value === ""}
-          onChange={(e) => e.target.value && onChoose(Number(e.target.value))}
-          className={`western-digits w-52 appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pe-10 ps-3 font-arabic text-base focus:border-brand focus:outline-none ${
-            value === "" ? "text-gray-400" : "text-gray-900"
-          }`}
-        >
-          {value === "" && (
-            <option value="" disabled>
-              {surahs ? S.reading.pickerPlaceholder : S.reading.loadingSurahs}
-            </option>
-          )}
-          {(surahs ?? []).map((s) => (
-            <option key={s.number} value={s.number} className="text-gray-900">
-              {S.reading.option(s.number, s.name_ar ?? "")}
-            </option>
-          ))}
-          {!surahs && value !== "" && (
-            <option value={value}>{S.reading.option(value, current ?? "")}</option>
-          )}
-        </select>
-        <ChevronDown
-          aria-hidden
-          className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
-        />
-      </div>
+      <SelectBox
+        id="surah-picker"
+        value={value}
+        disabled={!surahs && value === ""}
+        onChange={(e) => e.target.value && onChoose(Number(e.target.value))}
+        className={`western-digits w-52 py-1.5 font-arabic text-base ${
+          value === "" ? "text-gray-400" : "text-gray-900"
+        }`}
+      >
+        {value === "" && (
+          <option value="" disabled>
+            {surahs ? S.reading.pickerPlaceholder : S.reading.loadingSurahs}
+          </option>
+        )}
+        {(surahs ?? []).map((s) => (
+          <option key={s.number} value={s.number} className="text-gray-900">
+            {S.reading.option(s.number, s.name_ar ?? "")}
+          </option>
+        ))}
+        {!surahs && value !== "" && (
+          <option value={value}>{S.reading.option(value, current ?? "")}</option>
+        )}
+      </SelectBox>
       {failed && <span className="text-sm text-red-700">{S.reading.surahsFailed}</span>}
     </div>
   );
