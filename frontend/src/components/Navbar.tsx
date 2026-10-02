@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   BookOpen,
+  ListOrdered,
   ListTree,
   Menu,
   MessageSquare,
@@ -21,15 +22,18 @@ import { S } from "@/lib/strings";
 // it is still Arabized and re-directioned like every other route.
 //
 // `/surah` is the resume entry point; `isActive` uses `startsWith`, so it also
-// highlights on `/surah/{n}`. `ScrollText` is the reading mark: `BookOpen` is
-// taken twice over (the brand, and «التحليل النحوي»), and no two entries may
-// share an icon.
+// highlights on `/surah/{n}`. `BookOpen` is the brand's and no entry may carry
+// it, nor may two entries share an icon: `ScrollText` is the reading mark.
+// «التحليل النحوي» (`/tahlil`) left the app: its page is deleted and its routes
+// are quarantined (api/main.py). «فهرس الجذور» comes before «تحليل لساني عربي»,
+// the browsing entry before the page its cards link into;
+// `ListOrdered` because `ListTree` is already Verse Study's.
 const links = [
   { href: "/chat", label: S.nav.chat, icon: MessageSquare },
   { href: "/surah", label: S.nav.surahs, icon: ScrollText },
   { href: "/verse-study", label: S.nav.verseStudy, icon: ListTree },
+  { href: "/roots", label: S.nav.roots, icon: ListOrdered },
   { href: "/lexical", label: S.nav.lexical, icon: Type },
-  { href: "/tahlil", label: S.nav.tahlil, icon: BookOpen },
   { href: "/fassila", label: S.nav.fassila, icon: Activity },
 ];
 

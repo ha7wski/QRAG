@@ -110,6 +110,13 @@ def row_label(letter: str) -> str | None:
     return folded if folded in labels else None
 
 
+def _radical_count(n: int) -> str:
+    """«ذو أربعة أحرف» — the refusal is printed on the page as is, so it is Arabic."""
+    words = {0: "بلا حرف", 1: "ذو حرفٍ واحد", 2: "ذو حرفين", 4: "ذو أربعة أحرف",
+             5: "ذو خمسة أحرف", 6: "ذو ستة أحرف"}
+    return words.get(n, f"ذو {n} أحرف")
+
+
 def compose(root: str) -> Reading:
     witness_guard.check((root or "").strip())
     root = (root or "").strip()
@@ -119,8 +126,8 @@ def compose(root: str) -> Reading:
             root=root, table_version=t.version, table_sha256=t.sha256, positions=(),
             refused=True, refusal_code=REFUSAL_NOT_TRILITERAL,
             refusal_reason=(
-                f"«{root}» has {len(root)} radicals. The positional rule has three "
-                "positions and is not stretched to fit another count."
+                f"الجذر «{root}» {_radical_count(len(root))}، والقاعدة الموضعية ثلاثة "
+                "مواضع لا تُمَدّ إلى عددٍ آخر."
             ),
         )
     rows = t.by_label()

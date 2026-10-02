@@ -6,6 +6,8 @@ import type {
   QlisanFormResponse,
   QlisanVerseResponse,
   QlisanWordResponse,
+  RootLetterResponse,
+  RootLettersResponse,
   SearchResponse,
   SurahMeta,
   SurahResponse,
@@ -15,10 +17,6 @@ import type {
 } from "./types";
 import type { FassilaOverviewResponse, FassilaResponse } from "./fassilaTypes";
 import type { LisanReading } from "./lisanTypes";
-import type {
-  TahlilReviewResponse,
-  TahlilWordResponse,
-} from "./tahlilTypes";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -173,6 +171,25 @@ export async function getSurahs(): Promise<SurahMeta[]> {
   return res.json();
 }
 
+// ── Root index («فهرس الجذور») ─────────────────────────────────────────
+/** The 28 letter groups, in hijāʾī order, each with its number of roots. */
+export async function fetchRootLetters(): Promise<RootLettersResponse> {
+  const res = await fetch(`${API_URL}/roots`);
+  if (!res.ok) throw new ApiError(`Root index failed: ${res.status}`, res.status);
+  return res.json();
+}
+
+/** One letter group's roots, in full. The backend accepts the group label or
+ *  any letter folding into it (ا / ء / إ … → «أ»); an unknown letter is a 404. */
+export async function fetchRootsByLetter(
+  letter: string,
+): Promise<RootLetterResponse> {
+  const res = await fetch(`${API_URL}/roots/letter/${encodeURIComponent(letter)}`);
+  if (res.status === 404) throw new ApiError(`Unknown root letter: ${letter}`, res.status);
+  if (!res.ok) throw new ApiError(`Root letter failed: ${res.status}`, res.status);
+  return res.json();
+}
+
 // ── Fāṣila (rhyme-letter analysis) ────────────────────────────────────
 export async function getFassila(surah: number): Promise<FassilaResponse> {
   const res = await fetch(`${API_URL}/fassila/${surah}`);
@@ -267,41 +284,5 @@ export async function streamChat(
 export async function health(): Promise<HealthStatus> {
   const res = await fetch(`${API_URL}/health`);
   if (!res.ok) throw new ApiError(`Health check failed: ${res.status}`, res.status);
-  return res.json();
-}
-
-// ── Tahlil (per-word five-block analysis with generated تعليل) ─────────
-// Same thin-fetch convention as the QLisan client. The badge vocabulary rides on the
-// response and is rendered from there — the page holds no Arabic badge strings of its own.
-export async function tahlilWord(
-  surah: number,
-  ayah: number,
-  word: number,
-): Promise<TahlilWordResponse> {
-  const res = await fetch(`${API_URL}/tahlil/word`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ surah, ayah, word }),
-  });
-  if (res.status === 404)
-    throw new ApiError(`Word ${surah}:${ayah}:${word} not found`, res.status);
-  if (!res.ok) throw new ApiError(`Tahlil word failed: ${res.status}`, res.status);
-  return res.json();
-}
-
-// Mark a generated analysis as reviewed by an expert (task 10.6). The mention «غير
-// مُحقَّق» disappears only once this succeeds — it is tied to the stored flag, never to a
-// local toggle, so a reload cannot silently un-review or re-review a word.
-export async function tahlilReview(
-  ref: string,
-  reviewer = "",
-  note = "",
-): Promise<TahlilReviewResponse> {
-  const res = await fetch(`${API_URL}/tahlil/review`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ref, reviewer, note }),
-  });
-  if (!res.ok) throw new ApiError(`Tahlil review failed: ${res.status}`, res.status);
   return res.json();
 }

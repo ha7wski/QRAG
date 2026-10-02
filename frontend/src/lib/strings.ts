@@ -101,6 +101,7 @@ export const NOUNS = {
   asl: { one: "أصل", two: "أصلين", few: "أصول", many: "أصلًا" },
   lafz: { one: "لفظ", two: "لفظين", few: "ألفاظ", many: "لفظًا" },
   mawdi: { one: "موضع", two: "موضعين", few: "مواضع", many: "موضعًا" },
+  root: { one: "جذر", two: "جذرين", few: "جذور", many: "جذرًا" },
   /**
    * Noun + adjective as one form. The adjective agrees with the number too
    * («فواصل مميّزة», «فاصلتين مميّزتين»), so storing the bare noun and
@@ -158,10 +159,10 @@ export const S = {
   nav: {
     chat: "محاورة القرآن",
     surahs: "سور القرآن",
-    verseStudy: "دراسة الآية",
-    fassila: "الفواصل",
-    lexical: "تحليل اللسان",
-    tahlil: "التحليل النحوي",
+    verseStudy: "دراسة الآيات",
+    fassila: "فواصل الآيات والسور",
+    lexical: "تحليل لساني عربي",
+    roots: "فهرس الجذور",
     /** Not in the navigation — the page keeps its name for its heading and deep links. */
     qlisan: "بطاقة الكلمة",
     openMenu: "فتح القائمة",
@@ -186,12 +187,12 @@ export const S = {
         cta: "ابدأ محاورة",
       },
       verseStudy: {
-        title: "دراسة الآية",
+        title: "دراسة الآيات",
         desc: "اكتب كلمةً عربيّةً واحدةً، فترى كلَّ آيةٍ ورد فيها جذرها في القرآن كلِّه، مشكولةً، والكلمةُ مميَّزةٌ في موضعها.",
         cta: "ادرس كلمة",
       },
       lexical: {
-        title: "تحليل اللسان",
+        title: "تحليل لساني عربي",
         desc: "اطلب اللفظ بجذره، فترى مواضعه في القرآن وما يحمله من وجوه المعنى باختلاف السياق.",
         cta: "حلِّل كلمة",
       },
@@ -228,7 +229,7 @@ export const S = {
   },
 
   verseStudy: {
-    heading: "دراسة الآية",
+    heading: "دراسة الآيات",
     caption: "اكتب كلمةً عربيّةً واحدةً — فترى كلَّ آيةٍ ورد فيها جذرها، مشكولةً.",
     tabs: {
       word: "الكلمة في الآيات",
@@ -303,15 +304,8 @@ export const S = {
     loadVerse: "اعرض الآية",
   },
 
-  tahlil: {
-    heading: "التحليل النحوي",
-    caption:
-      "اختر آيةً، ثم اضغط كلمةً لترى تحليلها في خمسة أبواب — الحروف، صرفي، نحوي، دلالي، تركيب. وكلُّ دعوى تحمل شارةَ مصدرها والدليلَ الذي تقوم عليه؛ والشارةُ تُخبر من أين جاءت العبارة، لا أنّها صحيحة.",
-    loadVerse: "اعرض الآية",
-  },
-
   lexical: {
-    heading: "تحليل اللسان",
+    heading: "تحليل لساني عربي",
     /**
      * The sections in the order the page renders them: the verified root, its
      * letters with Samer Islambouli's gloss — named as HIS — then the
@@ -370,7 +364,7 @@ export const S = {
      *  rather than trailed off, so the reader knows what is not on screen. */
     occurrencesSampleLabel: "من مواضعه :",
     occurrencesMore: (n: number) => `و${count(n, NOUNS.aya)} أخرى`,
-    occurrencesLink: "اعرض المواضع كاملةً، مشكولةً، في «دراسة الآية»",
+    occurrencesLink: "اعرض المواضع كاملةً، مشكولةً، في «دراسة الآيات»",
     /** A root QAC records with no occurrence — the state is stated, not blank. */
     noOccurrences: "لم يُسجَّل لهذا الجذر موضعٌ في المدوّنة.",
 
@@ -420,6 +414,44 @@ export const S = {
 
   },
 
+  /**
+   * «فهرس الجذور» — the root inventory, browsed by first radical.
+   *
+   * The reading on each card is the project's mechanical assembly, shown under
+   * `S.lexical.assemblyLabel` and refused with `S.lexical.assemblyRefused` —
+   * read from there, not retyped, so the index and `/lexical` cannot word the
+   * same disclaimer two ways. Islambouli's own sentence and the cultural stage
+   * have no string here because the page never shows them.
+   */
+  roots: {
+    heading: "فهرس الجذور",
+    caption:
+      "جذورُ القرآن مرتَّبةً على حروف المعجم، لا يُكتب فيها شيء: لكلِّ جذرٍ مواضعُه وآياتُه وسورُه، وتركيبٌ آليٌّ لحروفه الثلاثة.",
+    /** The whole inventory, under the strip: «1654 جذرًا في القرآن». */
+    total: (n: number) => `${count(n, NOUNS.root)} في القرآن`,
+    lettersLabel: "حروف المعجم",
+    /** The accessible name of one strip button — the visible face is the
+     *  letter over its digit, which a screen reader would read as two words. */
+    letterButton: (letter: string, n: number) => `${letter} — ${count(n, NOUNS.root)}`,
+    pickLetter: "اختر حرفًا لترى الجذور التي تبدأ به.",
+    loading: "جارٍ تحميل الجذور…",
+    noRoots: "لا جذرَ في القرآن يبدأ بهذا الحرف.",
+    /** «ب — 81 جذرًا». */
+    groupHeading: (letter: string, n: number) => `${letter} — ${count(n, NOUNS.root)}`,
+    /** One notice for the page when the letter or وصف table fails its lock:
+     *  the figures are still served, the readings are not. */
+    readingsUnavailable:
+      "جدولُ الحروف أو جدولُ الوصف لا يطابق نسختَه المقفلة، فلا تُعرض التراكيب الآليّة في هذه الصفحة؛ أمّا الجذور وأعدادها فمعروضةٌ كما هي.",
+    surahsLabel: "السور :",
+    /** The root's distinct written forms — the Quran's words that come from it. */
+    formsLabel: "المواضع :",
+    /** The fold control's accessible name. */
+    expandCard: (root: string) => `اعرض تفاصيل الجذر ${root}`,
+    collapseCard: (root: string) => `أخفِ تفاصيل الجذر ${root}`,
+    openVerseStudy: "الكلمة في الآيات",
+    openLexical: "تحليل لساني",
+  },
+
   /** Shared verse chrome. */
   verse: {
     loadingSurah: "جارٍ تحميل السورة…",
@@ -436,7 +468,7 @@ export const S = {
     nextSurah: "السورة التالية",
     prevAyah: "الآية السابقة",
     nextAyah: "الآية التالية",
-    backToStudy: "رجوع إلى دراسة الآية",
+    backToStudy: "رجوع إلى دراسة الآيات",
     /**
      * Backend `period` values, mapped rather than rendered raw. The keys are the
      * transliterations the corpus actually emits — `makkiyya` (4613 verses) and
@@ -488,6 +520,8 @@ export const S = {
     wordNotFound: "لا وجود لهذه الكلمة في هذا الموضع.",
     surahNotFound: "لا وجود لهذه السورة.",
     surahListFailed: "تعذّر تحميل قائمة السور.",
+    rootLetterNotFound: "ليس هذا من حروف المعجم.",
+    rootIndexFailed: "تعذّر تحميل فهرس الجذور.",
     analysisFailed: "تعذّر التحليل.",
     searchFailed: "تعذّر البحث.",
     unavailable: "الخدمةُ غير متاحة مؤقّتًا.",
@@ -510,6 +544,7 @@ export type FailureKind =
   | "word"
   | "surah"
   | "surahList"
+  | "rootIndex"
   | "analysis"
   | "search"
   | "chat"
@@ -528,10 +563,12 @@ export function forStatus(status: number | undefined, kind?: FailureKind): strin
   if (status === 404) {
     if (kind === "word") return S.errors.wordNotFound;
     if (kind === "surah") return S.errors.surahNotFound;
+    if (kind === "rootIndex") return S.errors.rootLetterNotFound;
     return S.errors.verseNotFound;
   }
   if (status === 503) return S.errors.unavailable;
   if (kind === "surahList") return S.errors.surahListFailed;
+  if (kind === "rootIndex") return S.errors.rootIndexFailed;
   if (kind === "analysis") return S.errors.analysisFailed;
   if (kind === "search") return S.errors.searchFailed;
   // A chat turn needs no sentence of its own: a failure there is either an

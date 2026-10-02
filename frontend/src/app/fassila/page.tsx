@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FassilaAnalysisTab from "@/components/FassilaAnalysisTab";
 import FassilaComparisonTab from "@/components/FassilaComparisonTab";
+import { S } from "@/lib/strings";
 
 type Tab = "analysis" | "comparison";
 
@@ -12,7 +13,7 @@ const TABS: [Tab, string][] = [
 ];
 
 /**
- * "الفواصل" — the pausal rhyme-letter of the Qurʾān, read at two scales:
+ * «فواصل الآيات والسور» — the pausal rhyme-letter of the Qurʾān, read at two scales:
  * within one sūra (tab 1) and across all 114 (tab 2).
  *
  * The page is entirely in Arabic and RTL. Derivation lives server-side in
@@ -41,7 +42,7 @@ export default function FassilaPage() {
     <div className="space-y-6">
       <header>
         <h1 className="font-arabic text-2xl font-semibold text-gray-800">
-          الفواصل في القرآن الكريم
+          {S.nav.fassila}
         </h1>
         <p className="western-digits mt-1 text-sm text-gray-500">
           الفاصلة: آخر حرف من كل آية وقفًا · مع استبعاد الحروف المقطّعة · 114 سورة

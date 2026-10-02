@@ -246,3 +246,50 @@ export interface FeedbackStats {
   down: number;
   total: number;
 }
+
+// ── Root index («فهرس الجذور», GET /roots, GET /roots/letter/{letter}) ──
+// One letter group of the strip. The 28 groups arrive in hijāʾī order; the
+// hamza carriers and the bare alif are one group labelled «أ».
+export interface RootLetterGroup {
+  letter: string;
+  count: number;
+}
+
+export interface RootLettersResponse {
+  total: number;
+  letters: RootLetterGroup[];
+}
+
+/**
+ * One root of a letter group. `words` / `ayat` / `verse_ids` are
+ * `VerseLookup.root_forms` verbatim — the figures «الكلمة في الآيات» and
+ * «تحليل اللسان» already show — and `surahs` / `surah_list` are derived from
+ * those refs, so all three are DISTINCT counts.
+ *
+ * `reading` is the project's mechanical assembly of the three letters, computed
+ * with no signed choice (every «أو» alternative stays bracketed); it is never
+ * Islambouli's own sentence. Exactly one of `reading` / `reading_refusal` is set
+ * when readings are available; both are null when they are not.
+ */
+export interface RootIndexEntry {
+  root: string;
+  words: number;
+  ayat: number;
+  surahs: number;
+  /** Distinct "surah:ayah" refs, in canonical order. */
+  verse_ids: string[];
+  surah_list: { number: number; name_ar: string }[];
+  /** النظائر: the root's distinct written forms, in `root_forms` order. */
+  forms: string[];
+  reading: string | null;
+  reading_refusal: string | null;
+}
+
+export interface RootLetterResponse {
+  letter: string;
+  count: number;
+  /** False when the letter or وصف table failed its lock: no root carries a
+   *  reading, and the page shows one notice instead. */
+  readings_available: boolean;
+  roots: RootIndexEntry[];
+}

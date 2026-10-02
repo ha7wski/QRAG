@@ -44,6 +44,11 @@ it is not a substitute for scholarly interpretation (tafsir).
   classical makhraj/ṣifāt). Arabic-only, no LLM, and interpretive by
   construction — the disclaimer travels in the response. Backed by
   `POST /lisan/analyze`.
+- **Root Index (فهرس الجذور)** — browse every root that occurs in the Quran
+  (1 654), grouped by first radical in hijāʾī order. Each root lists its
+  distinct āyāt and sūras, with the same counts as Verse Study, plus the app's
+  mechanical assembly of its three letters, labelled as the app's. No LLM.
+  Backed by `GET /roots` + `GET /roots/letter/{letter}`.
 - **Find Verse context & surah reading** — jump straight to any verse (surah
   picker + ayah number) with its surrounding context, and read a full surah as
   one continuous Arabic block. Verses deep-link via `/verse/{surah}/{ayah}` and

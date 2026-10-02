@@ -53,8 +53,13 @@ from api.routers import madar as madar_router  # noqa: E402,F401
 # longer has a panel on «تحليل اللسان», so its route is unmounted and 404s.
 from api.routers import lisan_concept as lisan_concept_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
+from api.routers import roots as roots_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
-from api.routers import tahlil as tahlil_router  # noqa: E402
+# QUARANTINED on the same terms: «التحليل النحوي» left the navigation and its
+# /tahlil page was deleted, so /tahlil/word and /tahlil/review have no consumer.
+# The engine and its tests stay; rebranching is one `include_router` line plus
+# restoring the page from git.
+from api.routers import tahlil as tahlil_router  # noqa: E402,F401
 from api.routers import verse as verse_router  # noqa: E402
 from api.routers import verse_lookup as verse_lookup_router  # noqa: E402
 
@@ -179,8 +184,8 @@ app.add_middleware(RequestLoggingMiddleware)
 app.include_router(chat_router.router)
 app.include_router(search_router.router)
 app.include_router(lisan_router.router)
+app.include_router(roots_router.router)
 app.include_router(qlisan_router.router)
-app.include_router(tahlil_router.router)
 app.include_router(verse_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
@@ -188,6 +193,7 @@ app.include_router(feedback_router.router)
 # NOT mounted: `madar_router` — quarantined, see linguistics/madar/__init__.py. Rebranching is
 # exactly one line here: `app.include_router(madar_router.router)`.
 # NOT mounted: `lisan_concept_router` — quarantined, see api/routers/lisan_concept.py.
+# NOT mounted: `tahlil_router` — quarantined with the deleted /tahlil page.
 
 
 @app.get("/health", tags=["health"])

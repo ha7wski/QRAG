@@ -155,8 +155,8 @@ def assemble(root: str, signed: SignedChoices | None = None) -> Assembly:
     if reading.partial:
         return Assembly(root=reading.root, sentence="", positions=(), wasf_version=version,
                         refused=True, refusal_code=REFUSAL_SILENT,
-                        refusal_reason=f"No row for {', '.join(reading.silent_letters)}: "
-                                       "a partial sentence is never assembled.")
+                        refusal_reason=f"لا سطرَ في الجدول للحرف {'، '.join(reading.silent_letters)}، "
+                                       "ولا تُركَّب جملةٌ ناقصة.")
     choices = dict(signed.choices) if signed else {}
     positions = []
     for index, p in enumerate(reading.positions):
@@ -164,7 +164,7 @@ def assemble(root: str, signed: SignedChoices | None = None) -> Assembly:
         if not seg:
             return Assembly(root=reading.root, sentence="", positions=(), wasf_version=version,
                             refused=True, refusal_code=REFUSAL_NO_FORMULA,
-                            refusal_reason=f"Row «{p.label}» has no «{FORMULA}».")
+                            refusal_reason=f"سطر «{p.label}» لا يتضمّن «{FORMULA}».")
         positions.append(_position(index, p.letter, seg, None))
     for index, alt in choices.items():
         if not 0 <= index < len(positions) or not positions[index].is_group:
