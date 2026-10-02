@@ -27,6 +27,7 @@ The surface after this change is exactly what the nine frontend pages call:
 | `GET /health` | `HealthBanner` |
 | `GET /search` | Verse Study → «آيات مشابهة» |
 | `POST /verse-lookup` | Verse Study → «الكلمة في الآيات» |
+| `GET /surah/{number}/similar` | Verse Study → «الآيات المتشابهات», mode «داخل سورة» |
 | `GET /verse/{surah}/{ayah}` | Verse Study, `/verse/[surah]/[ayah]` |
 | `GET /surah/{number}`, `GET /surahs` | `SurahReader`, Fassila, QLisan, Verse Study |
 | `GET /fassila/{surah}`, `GET /fassila/overview` | Fassila tabs |
@@ -66,6 +67,12 @@ maqayis_store.py` is no longer on a served request path through it.
 - **THEN** `POST /lisan/concept`, `POST /tahlil/word` and `POST /tahlil/review` SHALL NOT be among them
 - **AND** `api/routers/lisan_concept.py` SHALL still import and expose the route, so that rebranching
   is one `include_router` line
+
+#### Scenario: The intra-surah similarity route has its consumer
+
+- **WHEN** the mounted routes are compared against the endpoints the frontend calls
+- **THEN** `GET /surah/{number}/similar` SHALL be in both sets
+- **AND** removing the «داخل سورة» mode without unmounting the route SHALL fail that comparison
 
 ### Requirement: Routes no page calls are removed
 
