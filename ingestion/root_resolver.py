@@ -385,12 +385,22 @@ def check(resolver: "RootResolver", resolved: dict, stats: dict) -> list[str]:
     if ref_vs_tb:
         errors.append(f"{ref_vs_tb} words whose resolved root belongs to neither source")
 
-    # spelling was restored, not folded away
-    hamzated = {rec["primary"] for rec in resolved.values()
-                if set("ءأإآؤئ") & set(rec["primary"])}
-    if len(hamzated) != 139:
-        errors.append(f"{len(hamzated)} hamzated roots in the output, expected 139 "
-                      "(the reference source carries 139)")
+    # spelling was restored, not folded away: every hamzated root the reference
+    # carries (139) is in the output — unless a recorded verdict deliberately
+    # makes a hamza-less spelling primary and keeps it as an alternate (طمأن →
+    # طمن, Ibn Fāris' trilateral base). A count would not say which one was lost.
+    def has_hamza(r: str) -> bool:
+        return bool(set("ءأإآؤئ") & set(r))
+
+    hamzated = {rec["primary"] for rec in resolved.values() if has_hamza(rec["primary"])}
+    reference_hamzated = {r for roots in resolver.ref.values() for r in roots if has_hamza(r)}
+    demoted = {alt for fam in resolver.arb.families.values()
+               if not has_hamza(fam["primary"])
+               for alt in fam.get("alternates", []) if has_hamza(alt)}
+    lost = reference_hamzated - hamzated - demoted
+    if lost:
+        errors.append(f"{len(lost)} hamzated reference roots missing from the output "
+                      f"with no verdict demoting them (e.g. {sorted(lost)[:3]})")
     # rule 1 must return a REFERENCE spelling, never the treebank's stripped one
     bad_spelling = [ref for ref, rec in resolved.items()
                     if rec["rule"] == 1 and rec["primary"] not in resolver.ref.get(ref, [])]

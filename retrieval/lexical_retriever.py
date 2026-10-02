@@ -17,6 +17,8 @@ off, out-of-corpus words simply return no match.
 """
 from __future__ import annotations
 
+from collections import Counter
+
 import os
 import sys
 from pathlib import Path
@@ -213,8 +215,15 @@ class LexicalRetriever:
         roots: list[str] = []
 
         def add(rk: str) -> None:
-            if rk and rk in self.index and rk not in roots:
-                roots.append(rk)
+            if not rk or rk not in self.index:
+                return
+            # An alternate-only root (count 0: نوس, طمأن) opens the primary its
+            # words are counted under, whichever step of the ladder reached it.
+            targets = ([rk] if self.index[rk].get("count")
+                       else self._alternate_primaries().get(rk) or [rk])
+            for t in targets:
+                if t not in roots:
+                    roots.append(t)
 
         form_folded, lem_folded = self._madda_maps()
         add(self._canon(w))                                              # 1. root key
@@ -261,7 +270,43 @@ class LexicalRetriever:
         """
         # getattr: a retriever built with __new__ (tests) has no such map.
         table = getattr(self, "word_to_roots", {})
-        return [rk for rk in table.get(normalize_search(word), ()) if rk in self.index]
+        key = normalize_search(word)
+        if not key:
+            return []
+        # The conjunction و/ف is a separate word in meaning but glued in writing:
+        # «اطمأنوا» is only ever written «واطمأنوا», and «فاطمأنوا» nowhere. The
+        # exact spelling first; then with, then without, the conjunction — every
+        # candidate is still a word the Quran writes.
+        bases = [key] + [key[1:] for c in "وف" if key.startswith(c) and len(key) > 3]
+        candidates = bases + [c + b for b in bases for c in "وف"]
+        for cand in candidates:
+            roots = [rk for rk in table.get(cand, ()) if rk in self.index]
+            if roots:
+                return roots
+        return []
+
+    def _alternate_primaries(self) -> dict[str, list[str]]:
+        """Alternate-only root → the primary root(s) its words are counted under.
+
+        A contested word keeps both readings (ٱلنَّاس: primary أنس, alternate نوس;
+        since 2026-10-02 تطمئن: primary طمن, alternate طمأن), and the alternate has
+        an index entry of its own with `count` 0. Typing that alternate used to
+        open it as a root in its own right; it now opens the primary.
+        Built lazily from `roots_resolved.json`; absent → no redirection.
+        """
+        cache = getattr(self, "_alt_cache", None)
+        if cache is None:
+            counts: dict[str, Counter] = {}
+            try:
+                resolved = loaders.roots_resolved()
+            except loaders.DatasetMissing:
+                resolved = {}
+            for rec in resolved.values():
+                for alt in rec.get("alternates", ()):
+                    counts.setdefault(alt, Counter())[rec["primary"]] += 1
+            cache = {alt: [p for p, _ in c.most_common()] for alt, c in counts.items()}
+            self._alt_cache = cache
+        return cache
 
     def resolve_roots_lenient(self, word: str) -> list[str]:
         """Like `resolve_roots`, but when the exact word doesn't resolve, retry

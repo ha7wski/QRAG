@@ -131,13 +131,13 @@
    "root_A": "طمأن",
    "root_B": "طمن",
    "words": 13,
-   "primary": "طمأن",
+   "primary": "طمن",
    "alternates": [
-    "طمن"
+    "طمأن"
    ],
    "rule": 0,
-   "authority": "Maqāyīs al-Lugha (Ibn Fāris), data/raw/maqayis/maqayis_shamela.txt, entry (طمن): «الطاء والميم والنون أصيل بزيادة همزة. يقال اطمأن المكان يطمئن طمأنينة» — Ibn Fāris gives the trilateral ETYMOLOGICAL base with an added hamza; QAC records the surface root طمأن. The two describe different layers and do not contradict, so the reference spelling stays primary and the lexical base is kept as an alternate.",
-   "note": "changing the primary here would change the radicals mizan.py walks"
+   "authority": "Maqāyīs al-Lugha (Ibn Fāris), data/raw/maqayis/maqayis_shamela.txt, entry (طمن): «الطاء والميم والنون أصيل بزيادة همزة. يقال اطمأن المكان يطمئن طمأنينة» — Ibn Fāris gives the trilateral base طمن, the hamza being an addition; QAC records the surface root طمأن. Decided by the project owner (2026-10-02): the trilateral aṣl is primary, the QAC spelling is kept as an alternate.",
+   "note": "changing the primary here changes the radicals mizan.py walks (ط-م-ن, three, not four)"
   },
   {
    "root_A": "مسح",
