@@ -7,9 +7,7 @@ and comes from one typed dictionary, with a named set of exemptions (identifiers
 references, technical detail lines, values in their own script). Covers page names,
 navigation, tabs, buttons, placeholders and accessible names, status and failure messages,
 document metadata, counted-noun agreement, and the numeral policy.
-
 ## Requirements
-
 ### Requirement: Every user-facing string is Arabic
 
 The web interface SHALL render every string addressed to the user in Arabic. This
@@ -158,11 +156,14 @@ realignment.
 | — (application) | «القرآن بالقرآن» | brand |
 | `/chat` | «محاورة القرآن» | yes |
 | `/surah` | «سور القرآن» | yes |
-| `/verse-study` | «دراسة الآية» | yes |
-| `/lexical` | «تحليل اللسان» | yes |
-| `/tahlil` | «التحليل النحوي» | yes |
-| `/fassila` | «الفواصل» | yes |
+| `/verse-study` | «دراسة الآيات» | yes |
+| `/lexical` | «تحليل لساني عربي» | yes |
+| `/roots` | «فهرس الجذور» | yes |
+| `/fassila` | «فواصل الآيات والسور» | yes |
 | `/qlisan` | «بطاقة الكلمة» | **no** |
+
+`/tahlil` («التحليل النحوي») is no longer a page: it left the navigation and was deleted, and its
+routes are quarantined (see `served-surface`).
 
 `/surah/{number}` is the same page as `/surah`, addressed at a particular sūra; it carries
 the same Arabic name and is not a separate entry.
@@ -283,3 +284,4 @@ SHALL keep Western digits via the existing `.western-digits` class.
 - **THEN** its digit form is the result of an explicit choice — `toArabicDigits()` for a
   reading number, the Western-digit class for an analytical one
 - **AND** never the incidental result of the font feature reacting to the document language.
+

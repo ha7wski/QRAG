@@ -68,7 +68,8 @@ opened from a top bar whose menu control sits at the right.
 
 - **WHEN** the navigation renders its items
 - **THEN** it shows exactly six entries, top to bottom: «محاورة القرآن»، «سور القرآن»،
-  «دراسة الآية»، «تحليل اللسان»، «التحليل النحوي»، «الفواصل»
+  «دراسة الآيات»، «فهرس الجذور»، «تحليل لساني عربي»، «فواصل الآيات والسور»
+- **AND** no entry points to `/tahlil`
 - **AND** no entry points to `/qlisan`
 - **AND** each item's icon and Arabic label read right-to-left within the row.
 
