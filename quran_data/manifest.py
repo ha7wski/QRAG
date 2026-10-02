@@ -698,6 +698,44 @@ MANIFEST: dict[str, Entry] = {
         regenerable=True,
         rebuild="python indexing/build_index.py",
     ),
+    "SURAH_SIMILARITY_JSON": Entry(
+        bucket="derived",
+        what="Intra-surah verse similarity, schema 1 (~3 MB): per surah its "
+             "`unscored` ayahs, its `groups` of mutually close verses and, per "
+             "ayah, at most K=10 neighbours of the SAME surah that pass both the "
+             "syntactic gate (QAC word signatures, `syn ≥ σ`) and the semantic "
+             "gate (cross-encoder + E5 cosine + tool-filtered root coverage, "
+             "`sem ≥ τ_sem`), each with its signals and shared content roots. "
+             "Consecutive ayahs are never stored. The `build` header records the "
+             "models, K, M, weights, thresholds, the signature used and the "
+             "gold-set sha256.",
+        origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
+               "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
+               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature: segment "
+               "POS tags + stem features, no treebank role), WORD_FUNCTION_JSON "
+               "(tool filter) and "
+               "BAAI/bge-reranker-v2-m3. Needs the backend STOPPED: embedded "
+               "Qdrant takes an exclusive lock.",
+        producer="scripts/build_surah_similarity.py",
+        consumers=("retrieval/surah_similarity.py", "api/routers/surah_similarity.py",
+                   "scripts/eval_surah_similarity.py"),
+        regenerable=True,
+        rebuild="python scripts/build_surah_similarity.py  (backend stopped; add "
+                "--no-gold on a clone without the local-only tests/eval/ gold set)",
+    ),
+    "SURAH_SIMILARITY_CHECKPOINT_DIR": Entry(
+        bucket="derived",
+        what="Per-surah resume markers of the similarity build — not a dataset. "
+             "Each file is reused only when its digest — header parameters, "
+             "derived inputs, verse vectors and the builder's own source — "
+             "matches the running build; a torn or stale file is rebuilt. "
+             "Deleting the directory costs a full rebuild.",
+        origin="Written by the similarity builder as it progresses.",
+        producer="scripts/build_surah_similarity.py",
+        consumers=("scripts/build_surah_similarity.py",),
+        regenerable=True,
+        rebuild="python scripts/build_surah_similarity.py  (backend stopped)",
+    ),
     "BUILD_INDEX_CHECKPOINT": Entry(
         bucket="derived",
         what="Resume marker for the embedding run — not a dataset. Deleting it "

@@ -155,6 +155,38 @@ def alignment_overrides() -> dict:
     return _json("OVERRIDES_JSON")
 
 
+# ── offline similarity ────────────────────────────────────────────────────
+
+SURAH_SIMILARITY_SCHEMA = 1
+
+
+class UnknownSchema(ValueError):
+    """A dataset written under a schema version this code does not read."""
+
+
+@functools.lru_cache(maxsize=1)
+def surah_similarity() -> dict:
+    """The intra-surah similarity lookup (design D10, schema 1).
+
+    `{"schema": 1, "build": {...}, "surahs": {"<n>": {"unscored": [int],
+    "groups": [{"ayahs", "strength"}], "neighbours": {"<ayah>": [{"a", "s",
+    "sem", "syn", "ce", "dense", "cov", "roots"}]}}}}`.
+
+    Refuses a file whose `schema` it does not know, with the rebuild command:
+    a reader that guessed at a newer layout would serve a wrong answer rather
+    than no answer.
+    """
+    data = _json("SURAH_SIMILARITY_JSON")
+    found = data.get("schema") if isinstance(data, dict) else None
+    if found != SURAH_SIMILARITY_SCHEMA:
+        raise UnknownSchema(
+            f"SURAH_SIMILARITY_JSON ({paths.SURAH_SIMILARITY_JSON}) has schema "
+            f"{found!r}, expected {SURAH_SIMILARITY_SCHEMA}. Rebuild it with:\n"
+            f"    {MANIFEST['SURAH_SIMILARITY_JSON'].rebuild}"
+        )
+    return data
+
+
 # ── references: curated scholarship ───────────────────────────────────────
 
 @functools.lru_cache(maxsize=1)

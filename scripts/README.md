@@ -115,6 +115,38 @@ Embeds every verse (`intfloat/multilingual-e5-large-instruct`, 1024-dim, cosine)
 into Qdrant and builds the BM25 sparse index. The first run downloads the
 embedding model and can take 10–30 minutes depending on hardware.
 
+### Build the intra-surah similarity («داخل سورة»)
+
+```bash
+python scripts/build_surah_similarity.py --dry-run        # syntax gate only: no Qdrant, no model, ~10 s
+python scripts/build_surah_similarity.py                  # full build, resumes per surah
+python scripts/build_surah_similarity.py --surahs 55,108  # checkpoint a few surahs (dev)
+python scripts/build_surah_similarity.py --fresh          # ignore existing checkpoints
+python scripts/eval_surah_similarity.py                   # measure it against the gold set
+```
+
+Writes `data/derived/surah_similarity.json`, the static lookup behind
+`GET /surah/{number}/similar`: for every verse, at most 10 verses of the SAME
+surah that pass both a syntactic gate (QAC word signatures) and a semantic gate
+(`bge-reranker-v2-m3` + the E5 vectors + tool-filtered root coverage), and the
+surah's groups of mutually close verses. Consecutive verses are never stored.
+**Stop the backend first**: the build reads the verse vectors out of the
+embedded Qdrant, which holds an exclusive lock — the script checks that lock and
+refuses to start while it is held. It also loads the ~1.1 GB cross-encoder for
+the run; nothing stays resident at serve time. Per-surah checkpoints live in
+`data/derived/.surah_similarity_checkpoint/` and are reused only when the build
+parameters, the derived inputs, the verse vectors and the builder's own source
+all match (a torn or stale checkpoint is rebuilt); after changing code the
+builder imports from elsewhere, pass `--fresh`. The final file is written once
+all 114 surahs are done.
+
+The header records the sha256 of the gold set the parameters were frozen
+against (`tests/eval/surah_similarity_gold.json`, local-only). Without that file
+the build refuses unless given `--no-gold` — so on a fresh clone of the repo,
+which has no `tests/`, run `python scripts/build_surah_similarity.py --no-gold`
+(header `gold_sha256: null`) — and `eval_surah_similarity.py`
+refuses to report against a gold file whose digest differs from the header.
+
 ### Smoke-test hybrid search
 
 ```bash
@@ -221,6 +253,8 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/draw_islambouli_witness_set.py` | Draw the Islambouli measurement's 40-root holdout once (seed 20260928) through the shared harness; `--check` replays it |
 | `scripts/record_islambouli_verdicts.py` | The Islambouli recording path: `bundle` (the blind uses-writers' input), `generate`, `worksheet`, `record`, `collisions` |
 | `scripts/validate_islambouli_datasets.py` | Validate the Islambouli holdout, transcription, system-check grid, lock and record, and print `k / 40` beside the closed engine's with R1–R6 |
+| `scripts/build_surah_similarity.py` | Build `data/derived/surah_similarity.json` (intra-surah close verses + groups). Backend stopped; `--dry-run` needs neither Qdrant nor a model |
+| `scripts/eval_surah_similarity.py` | Report recall@10, per-stage losses and stored negatives of that build against the local gold set |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference

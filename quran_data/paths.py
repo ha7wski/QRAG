@@ -152,6 +152,12 @@ WORD_PREFIXES_JSON = DERIVED / "word_prefixes.json"
 OVERRIDES_JSON = DERIVED / "overrides.json"
 QLISAN_ALIGNMENT_AUDIT_JSON = DERIVED / "qlisan_alignment_audit.json"
 BM25_INDEX_PKL = DERIVED / "bm25_index.pkl"
+# The intra-surah similarity lookup behind GET /surah/{number}/similar, built
+# offline (backend stopped: it reads the embedded Qdrant) by
+# `scripts/build_surah_similarity.py`. Its per-surah resume markers live beside it,
+# in a hidden directory, for the same reason as BUILD_INDEX_CHECKPOINT below.
+SURAH_SIMILARITY_JSON = DERIVED / "surah_similarity.json"
+SURAH_SIMILARITY_CHECKPOINT_DIR = DERIVED / ".surah_similarity_checkpoint"
 # Not a dataset — the resumable marker `build_index.py` writes so an interrupted
 # embedding run picks up where it stopped. It lives with what it tracks.
 BUILD_INDEX_CHECKPOINT = DERIVED / ".checkpoint"

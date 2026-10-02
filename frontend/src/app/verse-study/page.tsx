@@ -44,6 +44,7 @@ import FailureNote, { type Failure } from "@/components/FailureNote";
 import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
 import SelectBox from "@/components/SelectBox";
+import SurahSimilarity from "@/components/SurahSimilarity";
 
 // Context shown around the chosen verse in the "Find Verse context" tab:
 // 3 before + 3 after (same surah).
@@ -174,7 +175,7 @@ function VerseStudy() {
         <WordInVerses openInContext={openInContext} requested={requestedWord} />
       </div>
       <div className={tab === "similar" ? "" : "hidden"}>
-        <SimilarVerses />
+        <SimilarTab openInContext={openInContext} />
       </div>
       <div className={tab === "context" ? "" : "hidden"}>
         <FindVerseContext target={contextTarget} />
@@ -802,6 +803,90 @@ function WordInVerses({
               })}
             </>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The two modes of the similar tab: the phrase search over the whole Quran,
+ *  and the precomputed closeness of the verses of one surah. */
+type SimilarMode = "phrase" | "surah";
+
+/** Tab 2's shell — a two-way switch over the two modes. The phrase panel is
+ *  rendered exactly as before, only wrapped. Both panels stay mounted once
+ *  shown (hidden with CSS, like the tabs), so a switch keeps each one's state;
+ *  their durable state is cached as well, so it survives leaving the page. The
+ *  surah panel mounts on first use, so a reader who never opens it pays nothing. */
+function SimilarTab({
+  openInContext,
+}: {
+  openInContext: (surah: number, ayah: number) => void;
+}) {
+  const [mode, setMode] = useCachedState<SimilarMode>(
+    "verse-study.similar.mode",
+    "phrase",
+  );
+  const [surahMounted, setSurahMounted] = useState(mode === "surah");
+
+  function choose(m: SimilarMode) {
+    if (m === "surah") setSurahMounted(true);
+    setMode(m);
+  }
+
+  const options: [SimilarMode, string][] = [
+    ["phrase", S.verseStudy.similarModes.phrase],
+    ["surah", S.verseStudy.similarModes.surah],
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Same track-and-pill radio group as the ordering control: the modes are
+          exclusive, and `aria-checked` tells a screen reader which is in force.
+          Radio keyboard model: one Tab stop (the checked mode), and the arrow
+          keys move AND select. With two modes every arrow simply toggles, which
+          also sidesteps which way Left/Right mean under `dir="rtl"`. */}
+      <div
+        role="radiogroup"
+        aria-label={S.verseStudy.similarModes.groupLabel}
+        className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1"
+      >
+        {options.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="radio"
+            aria-checked={mode === key}
+            tabIndex={mode === key ? 0 : -1}
+            onClick={() => choose(key)}
+            onKeyDown={(e) => {
+              if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key))
+                return;
+              e.preventDefault();
+              const other = options.find(([k]) => k !== mode)![0];
+              choose(other);
+              const radios = e.currentTarget.parentElement?.querySelectorAll<HTMLElement>(
+                '[role="radio"]',
+              );
+              radios?.[options.findIndex(([k]) => k === other)]?.focus();
+            }}
+            className={`rounded-md px-4 py-1 font-arabic text-base transition ${
+              mode === key
+                ? "bg-white font-semibold text-brand-dark shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className={mode === "phrase" ? "" : "hidden"}>
+        <SimilarVerses />
+      </div>
+      {surahMounted && (
+        <div className={mode === "surah" ? "" : "hidden"}>
+          <SurahSimilarity openInContext={openInContext} />
         </div>
       )}
     </div>

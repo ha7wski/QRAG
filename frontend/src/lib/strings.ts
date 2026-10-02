@@ -299,6 +299,43 @@ export const S = {
     sortDesc: "الأكثر آياتٍ",
     sortAsc: "الأقلّ آياتٍ",
     sortGroupLabel: "الترتيب",
+    /**
+     * The two modes of «الآيات المتشابهات». «بعبارة» is the phrase search over the
+     * whole Quran, unchanged; «داخل سورة» reads the precomputed intra-surah
+     * closeness. Arabic only — no English mode name is ever rendered.
+     */
+    similarModes: {
+      phrase: "بعبارة",
+      surah: "داخل سورة",
+      groupLabel: "طريقة البحث",
+    },
+    /**
+     * «داخل سورة». «قريبة» always means BOTH conditions the dataset enforces:
+     * the same meaning or subject AND nearly the same syntax — so the empty
+     * states say «في المعنى والتركيب معًا», never just «في المعنى».
+     */
+    surahSimilar: {
+      caption:
+        "اختر سورةً فترى مجموعاتِ آياتها المتقاربة في المعنى والتركيب معًا، ثم اختر آيةً منها فترى أقربَ آيات السورة إليها.",
+      groupsHeading: "مجموعات الآيات المتقاربة",
+      noGroups: "ليس في هذه السورة مجموعةٌ من الآيات تتقارب في المعنى والتركيب معًا.",
+      /** One line naming the surah's verses that carry no content word. */
+      unscoredNote: (ayahs: number[]) =>
+        ayahs.length === 1
+          ? `لا تُقارَن الآية ${ayahs[0]} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`
+          : `لا تُقارَن الآيات ${ayahs.join("، ")} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`,
+      ayahLabel: "الآية",
+      ayahPlaceholder: "اختر آية",
+      ayahOption: (n: number) => `الآية ${n}`,
+      closeHeading: "الآيات القريبة منها في السورة",
+      /** The selected verse is itself unscored: nothing was compared. */
+      unscoredAnchor: "لا تُقارَن هذه الآية بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.",
+      /** Scored, but nothing in the surah passes both gates. */
+      noClose: "لا آيةَ في هذه السورة قريبةٌ من هذه الآية في المعنى والتركيب معًا.",
+      sharedRoots: "الجذور المشتركة :",
+      selectAyah: "اختر هذه الآية",
+      loading: "جارٍ التحميل…",
+    },
   },
 
   qlisan: {

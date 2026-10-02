@@ -171,6 +171,86 @@ export async function getSurahs(): Promise<SurahMeta[]> {
   return res.json();
 }
 
+// ── Intra-surah similarity («داخل سورة») ──────────────────────────────
+// Served from a precomputed dataset: no model runs on these routes. Two verses
+// are «close» only when they pass BOTH the semantic and the syntactic gate, and
+// consecutive verses are never stored — so the client renders what it receives.
+
+/** One group of mutually close verses, verses in ayah order. */
+export interface SurahSimilarityGroup {
+  ayahs: number[];
+  /** Ranking only — never rendered. */
+  strength: number;
+  verses: Verse[];
+}
+
+/** `GET /surah/{n}/similar` — the surah view. */
+export interface SurahSimilarityResponse {
+  surah_number: number;
+  surah_name_ar: string;
+  ayah_count: number;
+  /** Verses carrying no content word: never compared. */
+  unscored: number[];
+  /** Strongest first. */
+  groups: SurahSimilarityGroup[];
+}
+
+/** One close verse of an anchor, with the content roots the two share. */
+export interface SimilarNeighbour {
+  verse: Verse;
+  /** Ranking only — never rendered. */
+  score: number;
+  roots: string[];
+}
+
+/** `GET /surah/{n}/similar?ayah=a` — one verse's close verses, ranked. */
+export interface AyahSimilarityResponse {
+  surah_number: number;
+  surah_name_ar: string;
+  ayah_count: number;
+  anchor: Verse;
+  /** True when the anchor carries no content word (then `neighbours` is empty). */
+  unscored: boolean;
+  neighbours: SimilarNeighbour[];
+}
+
+/**
+ * The failure of a similarity request. Its 503 detail is the dataset's rebuild
+ * command, so it is kept in the (English, subordinate) message rather than
+ * dropped: it is the one actionable line a missing dataset produces.
+ */
+async function similarityError(res: Response, what: string): Promise<ApiError> {
+  let detail = "";
+  try {
+    const body = await res.json();
+    if (typeof body?.detail === "string") detail = body.detail;
+  } catch {
+    // Not JSON — the status alone is all there is.
+  }
+  return new ApiError(
+    detail ? `${what}: ${res.status} — ${detail}` : `${what}: ${res.status}`,
+    res.status,
+  );
+}
+
+export async function getSurahSimilarity(
+  surah: number,
+): Promise<SurahSimilarityResponse> {
+  const res = await fetch(`${API_URL}/surah/${surah}/similar`);
+  if (!res.ok) throw await similarityError(res, `Surah similarity failed`);
+  return res.json();
+}
+
+export async function getAyahSimilarity(
+  surah: number,
+  ayah: number,
+): Promise<AyahSimilarityResponse> {
+  const params = new URLSearchParams({ ayah: String(ayah) });
+  const res = await fetch(`${API_URL}/surah/${surah}/similar?${params.toString()}`);
+  if (!res.ok) throw await similarityError(res, `Ayah similarity failed`);
+  return res.json();
+}
+
 // ── Root index («فهرس الجذور») ─────────────────────────────────────────
 /** The 28 letter groups, in hijāʾī order, each with its number of roots. */
 export async function fetchRootLetters(): Promise<RootLettersResponse> {

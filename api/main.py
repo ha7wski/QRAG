@@ -55,6 +55,7 @@ from api.routers import lisan_concept as lisan_concept_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import roots as roots_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
+from api.routers import surah_similarity as surah_similarity_router  # noqa: E402
 # QUARANTINED on the same terms: «التحليل النحوي» left the navigation and its
 # /tahlil page was deleted, so /tahlil/word and /tahlil/review have no consumer.
 # The engine and its tests stay; rebranching is one `include_router` line plus
@@ -187,6 +188,9 @@ app.include_router(lisan_router.router)
 app.include_router(roots_router.router)
 app.include_router(qlisan_router.router)
 app.include_router(verse_router.router)
+# GET /surah/{number}/similar — no conflict with GET /surah/{number}: one more
+# path segment, so neither pattern can match the other's URL.
+app.include_router(surah_similarity_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)
