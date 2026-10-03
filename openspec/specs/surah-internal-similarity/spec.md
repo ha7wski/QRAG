@@ -248,18 +248,19 @@ with the Basmala stripped, like every other verse the API returns.
 The Verse Study `similar` tab's «داخل سورة» mode SHALL let the reader pick a surah by its Arabic name
 (the shared surah picker), then render that surah's groups, strongest first, each verse vocalized and
 numbered, each group framed in green and numbered (1, 2, 3 …) in a green disc on its right. Selecting a verse of a
-group SHALL show its close verses in the same surah, ranked, each with its shared content roots
-displayed as Arabic root chips. There is no ayah selector: a verse in no group is not offered.
+group SHALL show that verse; its close verses within the same surah SHALL NOT be listed (the group
+already shows the verses that echo it — decided by the user, 2026-10-03), and what follows it is its
+close verses in the rest of the Quran (`quran-wide-similarity`). There is no ayah selector: a verse in
+no group is not offered.
 
 No numeric score SHALL be shown; the ranking order carries it. No consecutive verse SHALL be shown as
-close. The surah's `unscored` verses SHALL be named in a one-line note, and a scored verse with no
-close verse SHALL say so, rather than render an empty list.
+close. The surah's `unscored` verses SHALL be named in a one-line note.
 
 #### Scenario: Pick a surah, then a verse of a group
 
 - **WHEN** the reader selects surah 55 and then a refrain verse inside its group
 - **THEN** the groups of surah 55 are shown, each numbered in a green disc
-- **AND** the ranked close verses of that verse within surah 55 are shown with their shared roots
+- **AND** the picked verse is shown, with no list of its close verses within surah 55
 
 #### Scenario: Unscored verses are named, not offered
 
@@ -267,8 +268,4 @@ close verse SHALL say so, rather than render an empty list.
 - **THEN** a one-line note SHALL name ayah 1 as not compared (it carries no content word), and no
   control SHALL offer it for selection
 
-#### Scenario: A verse with no close verse is explained
-
-- **WHEN** the anchor view of a scored verse with an empty neighbour list is rendered
-- **THEN** the panel SHALL say that no verse of the surah is close to it in both meaning and syntax
 

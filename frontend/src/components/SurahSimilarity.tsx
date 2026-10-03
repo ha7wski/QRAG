@@ -28,11 +28,11 @@ const ANCHOR_PANEL_ID = "surah-similar-anchor";
  * «داخل سورة» — the intra-surah similarity view of «الآيات المتشابهات».
  *
  * Pick a surah → its groups of mutually close verses, strongest first, each
- * framed in green and numbered (1, 2, 3 …) in a green disc beside it. Pick a verse of a group → its close verses in the
- * same surah, ranked, each with the content roots it shares with it — and below
- * them, its close verses in the REST of the Quran (`GET /verse/{s}/{a}/similar`).
- * The two lists are requested in parallel and fail apart: a slow or missing
- * Quran-wide answer never delays or hides the intra-surah one.
+ * framed in green and numbered (1, 2, 3 …) in a green disc beside it. Pick a verse of a group → the verse, then
+ * its close verses in the REST of the Quran (`GET /verse/{s}/{a}/similar`),
+ * ranked, each with the content roots it shares with it. Its same-surah
+ * neighbours are not listed (the group already shows them); the intra request
+ * still supplies the verse card, and the two requests fail apart.
  *
  * Everything shown is read from a precomputed dataset (`GET /surah/{n}/similar`):
  * «close» there means the same meaning or subject AND nearly the same syntax,
@@ -319,7 +319,8 @@ export default function SurahSimilarity({
           </section>
 
           {/* The verse panel, after the groups (D11: groups render first): the
-              verse picked in a group, then its close verses. Picking scrolls
+              verse picked in a group, then its close verses in the rest of the
+              Quran. Picking scrolls
               down to it. */}
           <section id={ANCHOR_PANEL_ID} className="scroll-mt-4 space-y-4">
             {ayahError && (
@@ -335,7 +336,7 @@ export default function SurahSimilarity({
               <AnchorPanel result={anchor} openInContext={openInContext} />
             )}
 
-            {/* Below the intra list (or its empty note), never waiting on it. */}
+            {/* Below the picked verse, never waiting on the intra request. */}
             {showQuran && (
               <section
                 data-testid="quran-similar-section"
@@ -420,9 +421,9 @@ function VerseText({
   );
 }
 
-/** The selected verse, then its close verses or the sentence saying why there
- *  are none. The two empty cases are worded apart on purpose: «not compared»
- *  (no content word) is not «compared, and nothing is close». */
+/** The selected verse — its close verses are those of «في سائر القرآن» below;
+ *  the same-surah list is no longer shown. An unscored verse says why nothing
+ *  follows it. */
 function AnchorPanel({
   result,
   openInContext,
@@ -430,42 +431,17 @@ function AnchorPanel({
   result: AyahSimilarityResponse;
   openInContext: (surah: number, ayah: number) => void;
 }) {
-  const a = result.anchor;
   return (
     <div className="space-y-4">
-      <VerseCardButton verse={a} openInContext={openInContext} highlighted />
+      <VerseCardButton verse={result.anchor} openInContext={openInContext} highlighted />
 
-      {result.unscored ? (
+      {result.unscored && (
         <div
           role="status"
           lang="ar"
           className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
         >
           {S.verseStudy.surahSimilar.unscoredAnchor}
-        </div>
-      ) : result.neighbours.length === 0 ? (
-        <div
-          role="status"
-          lang="ar"
-          className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
-        >
-          {S.verseStudy.surahSimilar.noClose}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <h3 className="font-arabic text-lg font-semibold text-gray-800">
-            {S.verseStudy.surahSimilar.closeHeading}
-          </h3>
-          <ol className="space-y-3">
-            {result.neighbours.map((n) => (
-              <NeighbourCard
-                key={n.verse.id}
-                neighbour={n}
-                openInContext={openInContext}
-                testId="surah-similar-neighbour"
-              />
-            ))}
-          </ol>
         </div>
       )}
     </div>

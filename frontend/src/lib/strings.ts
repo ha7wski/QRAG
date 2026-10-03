@@ -324,13 +324,10 @@ export const S = {
         ayahs.length === 1
           ? `لا تُقارَن الآية ${ayahs[0]} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`
           : `لا تُقارَن الآيات ${ayahs.join("، ")} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`,
-      closeHeading: "الآيات القريبة منها في السورة",
       /** The selected verse is itself unscored: nothing was compared. */
       unscoredAnchor: "لا تُقارَن هذه الآية بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.",
-      /** Scored, but nothing in the surah passes both gates. */
-      noClose: "لا آيةَ في هذه السورة قريبةٌ من هذه الآية في المعنى والتركيب معًا.",
       sharedRoots: "الجذور المشتركة :",
-      /** The second list of the verse panel: close verses in OTHER surahs. */
+      /** The verse panel's list: close verses in OTHER surahs. */
       quranHeading: "الآيات المتشابهات في سائر القرآن",
       /** Scored, but nothing elsewhere in the Quran passes both gates. */
       noQuranClose: "لا آية في سائر القرآن تقاربها في المعنى والتركيب معًا",

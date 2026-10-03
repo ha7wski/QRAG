@@ -5,7 +5,7 @@
 Answer, for a verse picked in «المتشابهات داخل السورة», «where else in the Quran is this said, built
 the same way?» — its close verses in the OTHER surahs, under the intra-surah definition unchanged
 (meaning-or-subject AND near syntax). Computed once, offline, into a derived dataset measured against
-a cross-surah gold set frozen beforehand, and served model-free under the intra-surah list.
+a cross-surah gold set frozen beforehand, and served model-free under the picked verse.
 
 ## Requirements
 ### Requirement: Cross-surah closeness uses the intra-surah definition unchanged
@@ -165,28 +165,28 @@ an empty list with `unscored: false`; neither is an error.
 ### Requirement: The anchor panel lists the verse's close verses in the rest of the Quran
 
 In the Verse Study «المتشابهات داخل السورة» mode, selecting a verse of a group SHALL show, **below**
-its close verses within the surah (or below the sentence saying there are none), a section headed
+the picked verse (its same-surah close verses are not listed), a section headed
 «الآيات المتشابهات في سائر القرآن» listing its cross-surah close verses in rank order. Each card SHALL
 show the verse vocalized, its surah's Arabic name and its ayah number, and the shared content roots as
 Arabic root chips. No numeric score SHALL be shown. Activating a card SHALL open the verse in «الآية في
 سياقها».
 
-The two lists SHALL be requested independently: the intra-surah list SHALL render without waiting for
-the cross-surah answer, and a failure of one SHALL be shown in its own section without hiding the
-other. A scored verse with no cross-surah close verse SHALL say so in a sentence rather than render an
+The verse card (from the intra-surah request) and the cross-surah section SHALL be requested
+independently: the card SHALL render without waiting for the cross-surah answer, and a failure of one
+SHALL be shown in its own place without hiding the other. A scored verse with no cross-surah close verse SHALL say so in a sentence rather than render an
 empty list. The fetched answers SHALL be cached under `verse-study.similar.surah.*`, so returning to a
 verse already picked issues no request.
 
-#### Scenario: Pick a verse, see both lists
+#### Scenario: Pick a verse, see its close verses elsewhere
 
 - **WHEN** the reader picks surah 3 and then 3:116 inside a group
-- **THEN** its close verses in surah 3 are shown first
-- **AND** below them, «الآيات المتشابهات في سائر القرآن» lists 58:17 with its surah name «المجادلة»
+- **THEN** the verse 3:116 is shown, with no list of its close verses in surah 3
+- **AND** below it, «الآيات المتشابهات في سائر القرآن» lists 58:17 with its surah name «المجادلة»
 
 #### Scenario: The cross-surah request fails
 
 - **WHEN** `GET /verse/{s}/{a}/similar` answers 503
-- **THEN** the intra-surah list SHALL still be shown
+- **THEN** the picked verse SHALL still be shown
 - **AND** the cross-surah section SHALL show the failure note in its place
 
 #### Scenario: No cross-surah close verse
