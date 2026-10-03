@@ -53,6 +53,7 @@ from api.routers import madar as madar_router  # noqa: E402,F401
 # longer has a panel on «تحليل اللسان», so its route is unmounted and 404s.
 from api.routers import lisan_concept as lisan_concept_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
+from api.routers import quran_similarity as quran_similarity_router  # noqa: E402
 from api.routers import roots as roots_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
 from api.routers import surah_similarity as surah_similarity_router  # noqa: E402
@@ -191,6 +192,9 @@ app.include_router(verse_router.router)
 # GET /surah/{number}/similar — no conflict with GET /surah/{number}: one more
 # path segment, so neither pattern can match the other's URL.
 app.include_router(surah_similarity_router.router)
+# GET /verse/{surah}/{ayah}/similar — likewise one segment past GET
+# /verse/{surah}/{ayah}, and a separate dataset so the intra view survives without it.
+app.include_router(quran_similarity_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)

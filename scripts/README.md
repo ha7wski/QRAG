@@ -147,6 +147,38 @@ which has no `tests/`, run `python scripts/build_surah_similarity.py --no-gold`
 (header `gold_sha256: null`) — and `eval_surah_similarity.py`
 refuses to report against a gold file whose digest differs from the header.
 
+### Build the cross-surah similarity («في سائر القرآن»)
+
+```bash
+python scripts/build_quran_similarity.py --syntax-only    # syntax stage only: no lock, no Qdrant, no model, ~2 s
+python scripts/build_quran_similarity.py --dry-run        # every stage up to the cross-encoder (backend stopped)
+python scripts/build_quran_similarity.py                  # full build, resumes per anchor surah
+python scripts/build_quran_similarity.py --surahs 3,58    # checkpoint a few anchor surahs (dev)
+python scripts/build_quran_similarity.py --fresh          # ignore existing checkpoints
+python scripts/eval_quran_similarity.py                   # measure it against the gold set
+```
+
+Writes `data/derived/quran_similarity.json`, the static lookup behind
+`GET /verse/{surah}/{ayah}/similar`: for every verse, at most 10 verses of the
+OTHER surahs that pass the same two gates as the intra-surah build, with the
+same frozen parameters — its helpers and constants are imported from
+`build_surah_similarity.py`, not copied. Only the population differs: the
+~19 M cross-surah pairs, which the syntactic gate reaches through two exact
+pre-filters (length window, multiset bag distance) before the same Levenshtein,
+and a dense percentile ranked over all cross-surah pairs. **Stop the backend
+first**, as for the intra build (embedded Qdrant lock, ~1.1 GB cross-encoder);
+`--syntax-only` is the one mode that needs neither and can run beside the
+backend. `--dry-run` reads the vectors, so it needs the lock too, and stops
+before the cross-encoder loads. Checkpoints live in
+`data/derived/.quran_similarity_checkpoint/`, one per anchor surah (the surah of
+a pair's lower verse), reused only when the parameters, the derived inputs, the
+verse vectors and both builders' sources all match; `--surahs` limits which
+anchor surahs are cross-encoded, but the syntactic and dense stages always run
+over the whole population, because the candidate cap is per verse. The final
+file is written once all 114 are done. Gold set:
+`tests/eval/quran_similarity_gold.json` (local-only); `--no-gold` and the
+evaluation's digest refusal work as for the intra build.
+
 ### Smoke-test hybrid search
 
 ```bash
@@ -255,6 +287,8 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/validate_islambouli_datasets.py` | Validate the Islambouli holdout, transcription, system-check grid, lock and record, and print `k / 40` beside the closed engine's with R1–R6 |
 | `scripts/build_surah_similarity.py` | Build `data/derived/surah_similarity.json` (intra-surah close verses + groups). Backend stopped; `--dry-run` needs neither Qdrant nor a model |
 | `scripts/eval_surah_similarity.py` | Report recall@10, per-stage losses and stored negatives of that build against the local gold set |
+| `scripts/build_quran_similarity.py` | Build `data/derived/quran_similarity.json` (cross-surah close verses). Backend stopped; `--syntax-only` needs neither Qdrant nor a model |
+| `scripts/eval_quran_similarity.py` | Report recall@10, per-stage losses (pre-filters included) and stored negatives of that build against the local gold set |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference

@@ -187,6 +187,31 @@ def surah_similarity() -> dict:
     return data
 
 
+QURAN_SIMILARITY_SCHEMA = 1
+
+
+@functools.lru_cache(maxsize=1)
+def quran_similarity() -> dict:
+    """The cross-surah similarity lookup (design D7, schema 1).
+
+    `{"schema": 1, "build": {...}, "unscored": ["<s:a>"], "neighbours":
+    {"<s:a>": [{"r", "s", "sem", "syn", "ce", "dense", "cov", "roots"}]}}`,
+    a neighbour possibly carrying `"verbatim": true`.
+
+    A separate file from `surah_similarity()` so a missing cross-surah build
+    leaves the intra-surah view answering. Same schema refusal, same reason.
+    """
+    data = _json("QURAN_SIMILARITY_JSON")
+    found = data.get("schema") if isinstance(data, dict) else None
+    if found != QURAN_SIMILARITY_SCHEMA:
+        raise UnknownSchema(
+            f"QURAN_SIMILARITY_JSON ({paths.QURAN_SIMILARITY_JSON}) has schema "
+            f"{found!r}, expected {QURAN_SIMILARITY_SCHEMA}. Rebuild it with:\n"
+            f"    {MANIFEST['QURAN_SIMILARITY_JSON'].rebuild}"
+        )
+    return data
+
+
 # ── references: curated scholarship ───────────────────────────────────────
 
 @functools.lru_cache(maxsize=1)

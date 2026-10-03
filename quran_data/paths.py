@@ -158,6 +158,12 @@ BM25_INDEX_PKL = DERIVED / "bm25_index.pkl"
 # in a hidden directory, for the same reason as BUILD_INDEX_CHECKPOINT below.
 SURAH_SIMILARITY_JSON = DERIVED / "surah_similarity.json"
 SURAH_SIMILARITY_CHECKPOINT_DIR = DERIVED / ".surah_similarity_checkpoint"
+# The cross-surah counterpart behind GET /verse/{surah}/{ayah}/similar: every
+# verse's close verses in OTHER surahs, built offline the same way (backend
+# stopped) by `scripts/build_quran_similarity.py`, which reuses the intra build's
+# helpers and parameters. A separate file so the two datasets fail apart.
+QURAN_SIMILARITY_JSON = DERIVED / "quran_similarity.json"
+QURAN_SIMILARITY_CHECKPOINT_DIR = DERIVED / ".quran_similarity_checkpoint"
 # Not a dataset — the resumable marker `build_index.py` writes so an interrupted
 # embedding run picks up where it stopped. It lives with what it tracks.
 BUILD_INDEX_CHECKPOINT = DERIVED / ".checkpoint"

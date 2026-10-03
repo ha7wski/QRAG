@@ -251,6 +251,28 @@ export async function getAyahSimilarity(
   return res.json();
 }
 
+// ── Quran-wide similarity («في سائر القرآن») ───────────────────────────
+// The same definition of «close» as the intra-surah view, applied across
+// surahs: a separate precomputed dataset, so its failure never touches the
+// intra view. Every neighbour is in ANOTHER surah, hence its own surah name.
+
+/** `GET /verse/{s}/{a}/similar` — one verse's close verses elsewhere in the Quran, ranked. */
+export interface VerseQuranSimilarityResponse {
+  anchor: Verse;
+  /** True when the anchor carries no content word (then `neighbours` is empty). */
+  unscored: boolean;
+  neighbours: SimilarNeighbour[];
+}
+
+export async function getVerseQuranSimilarity(
+  surah: number,
+  ayah: number,
+): Promise<VerseQuranSimilarityResponse> {
+  const res = await fetch(`${API_URL}/verse/${surah}/${ayah}/similar`);
+  if (!res.ok) throw await similarityError(res, `Quran-wide similarity failed`);
+  return res.json();
+}
+
 // ── Root index («فهرس الجذور») ─────────────────────────────────────────
 /** The 28 letter groups, in hijāʾī order, each with its number of roots. */
 export async function fetchRootLetters(): Promise<RootLettersResponse> {

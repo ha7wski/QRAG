@@ -736,6 +736,45 @@ MANIFEST: dict[str, Entry] = {
         regenerable=True,
         rebuild="python scripts/build_surah_similarity.py  (backend stopped)",
     ),
+    "QURAN_SIMILARITY_JSON": Entry(
+        bucket="derived",
+        what="Cross-surah verse similarity, schema 1 (est. <= 3 MB): the "
+             "`unscored` verse refs and, per verse ref (`s:a`), at most K=10 "
+             "neighbours from OTHER surahs that pass the same syntactic gate "
+             "(`syn >= sigma`), semantic gate (`sem >= tau_sem`, dense percentile-"
+             "ranked over the cross-surah population) and shared-content-root "
+             "rule as the intra-surah build, each with its signals and shared "
+             "roots. Only verses with at least one neighbour carry a list. The "
+             "`build` header records scope, models, K, M, weights, thresholds, "
+             "the signature used and the gold-set sha256.",
+        origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
+               "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
+               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature), "
+               "WORD_FUNCTION_JSON (tool filter) and BAAI/bge-reranker-v2-m3, "
+               "with the parameters and pure helpers imported from "
+               "scripts/build_surah_similarity.py. Needs the backend STOPPED: "
+               "embedded Qdrant takes an exclusive lock.",
+        producer="scripts/build_quran_similarity.py",
+        consumers=("retrieval/quran_similarity.py", "api/routers/quran_similarity.py",
+                   "scripts/eval_quran_similarity.py"),
+        regenerable=True,
+        rebuild="python scripts/build_quran_similarity.py  (backend stopped; add "
+                "--no-gold on a clone without the local-only tests/eval/ gold set)",
+    ),
+    "QURAN_SIMILARITY_CHECKPOINT_DIR": Entry(
+        bucket="derived",
+        what="Per-anchor-surah resume markers of the cross-surah similarity "
+             "build — not a dataset. Each file holds the cross-encoded, gated "
+             "pairs whose lower verse lies in one surah, and is reused only when "
+             "its digest — header parameters, derived inputs, verse vectors and "
+             "both builders' sources — matches the running build; a torn or "
+             "stale file is rebuilt. Deleting the directory costs a full rebuild.",
+        origin="Written by the cross-surah similarity builder as it progresses.",
+        producer="scripts/build_quran_similarity.py",
+        consumers=("scripts/build_quran_similarity.py",),
+        regenerable=True,
+        rebuild="python scripts/build_quran_similarity.py  (backend stopped)",
+    ),
     "BUILD_INDEX_CHECKPOINT": Entry(
         bucket="derived",
         what="Resume marker for the embedding run — not a dataset. Deleting it "
