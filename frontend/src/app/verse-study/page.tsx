@@ -45,6 +45,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import VerseContextCard from "@/components/VerseContextCard";
 import SelectBox from "@/components/SelectBox";
 import SurahSimilarity from "@/components/SurahSimilarity";
+import QuranSimilarityMap from "@/components/QuranSimilarityMap";
 
 // Context shown around the chosen verse in the "Find Verse context" tab:
 // 3 before + 3 after (same surah).
@@ -809,15 +810,17 @@ function WordInVerses({
   );
 }
 
-/** The two modes of the similar tab: the phrase search over the whole Quran,
- *  and the precomputed closeness of the verses of one surah. */
-type SimilarMode = "phrase" | "surah";
+/** The three modes of the similar tab: the phrase search over the whole Quran,
+ *  the precomputed closeness of the verses of one surah, and the surah × surah
+ *  map of the close verse pairs across surahs. */
+type SimilarMode = "phrase" | "surah" | "quran";
 
-/** Tab 2's shell — a two-way switch over the two modes. The phrase panel is
- *  rendered exactly as before, only wrapped. Both panels stay mounted once
+/** Tab 2's shell — a three-way switch over the modes. The phrase panel is
+ *  rendered exactly as before, only wrapped. Every panel stays mounted once
  *  shown (hidden with CSS, like the tabs), so a switch keeps each one's state;
  *  their durable state is cached as well, so it survives leaving the page. The
- *  surah panel mounts on first use, so a reader who never opens it pays nothing. */
+ *  surah and map panels mount on first use, so a reader who never opens one
+ *  pays nothing — and the map's matrix is requested only then. */
 function SimilarTab({
   openInContext,
 }: {
@@ -828,14 +831,18 @@ function SimilarTab({
     "phrase",
   );
   const [surahMounted, setSurahMounted] = useState(mode === "surah");
+  const [quranMounted, setQuranMounted] = useState(mode === "quran");
 
   function choose(m: SimilarMode) {
     if (m === "surah") setSurahMounted(true);
+    if (m === "quran") setQuranMounted(true);
     setMode(m);
   }
 
+  // Reading order: داخل السورة · في سائر القرآن · من عبارة.
   const options: [SimilarMode, string][] = [
     ["surah", S.verseStudy.similarModes.surah],
+    ["quran", S.verseStudy.similarModes.quran],
     ["phrase", S.verseStudy.similarModes.phrase],
   ];
 
@@ -844,12 +851,13 @@ function SimilarTab({
       {/* Same track-and-pill radio group as the ordering control: the modes are
           exclusive, and `aria-checked` tells a screen reader which is in force.
           Radio keyboard model: one Tab stop (the checked mode), and the arrow
-          keys move AND select. With two modes every arrow simply toggles, which
-          also sidesteps which way Left/Right mean under `dir="rtl"`. */}
+          keys move AND select, wrapping at the ends. Under the document's RTL
+          the next mode sits to the LEFT, so Left/Down step forward and
+          Right/Up step back. */}
       <div
         role="radiogroup"
         aria-label={S.verseStudy.similarModes.groupLabel}
-        className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1"
+        className="inline-flex flex-wrap items-center gap-1 rounded-lg bg-gray-100 p-1"
       >
         {options.map(([key, label]) => (
           <button
@@ -860,15 +868,21 @@ function SimilarTab({
             tabIndex={mode === key ? 0 : -1}
             onClick={() => choose(key)}
             onKeyDown={(e) => {
-              if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key))
-                return;
+              const step =
+                e.key === "ArrowLeft" || e.key === "ArrowDown"
+                  ? 1
+                  : e.key === "ArrowRight" || e.key === "ArrowUp"
+                    ? -1
+                    : 0;
+              if (step === 0) return;
               e.preventDefault();
-              const other = options.find(([k]) => k !== mode)![0];
-              choose(other);
+              const at = options.findIndex(([k]) => k === mode);
+              const next = (at + step + options.length) % options.length;
+              choose(options[next][0]);
               const radios = e.currentTarget.parentElement?.querySelectorAll<HTMLElement>(
                 '[role="radio"]',
               );
-              radios?.[options.findIndex(([k]) => k === other)]?.focus();
+              radios?.[next]?.focus();
             }}
             className={`rounded-md px-4 py-1 font-arabic text-base transition ${
               mode === key
@@ -887,6 +901,11 @@ function SimilarTab({
       {surahMounted && (
         <div className={mode === "surah" ? "" : "hidden"}>
           <SurahSimilarity openInContext={openInContext} />
+        </div>
+      )}
+      {quranMounted && (
+        <div className={mode === "quran" ? "" : "hidden"}>
+          <QuranSimilarityMap openInContext={openInContext} />
         </div>
       )}
     </div>

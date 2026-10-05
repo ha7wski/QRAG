@@ -102,6 +102,8 @@ export const NOUNS = {
   lafz: { one: "لفظ", two: "لفظين", few: "ألفاظ", many: "لفظًا" },
   mawdi: { one: "موضع", two: "موضعين", few: "مواضع", many: "موضعًا" },
   root: { one: "جذر", two: "جذرين", few: "جذور", many: "جذرًا" },
+  /** A pair — of surahs or of verses, the phrase names which. */
+  zawj: { one: "زوج", two: "زوجين", few: "أزواج", many: "زوجًا" },
   /**
    * Noun + adjective as one form. The adjective agrees with the number too
    * («فواصل مميّزة», «فاصلتين مميّزتين»), so storing the bare noun and
@@ -307,6 +309,7 @@ export const S = {
     similarModes: {
       phrase: "المتشابهات من عبارة",
       surah: "المتشابهات داخل السورة",
+      quran: "الآيات المتشابهات في سائر القرآن",
       groupLabel: "طريقة البحث",
     },
     /**
@@ -333,6 +336,45 @@ export const S = {
       noQuranClose: "لا آية في سائر القرآن تقاربها في المعنى والتركيب معًا",
       selectAyah: "اختر هذه الآية",
       loading: "جارٍ التحميل…",
+    },
+    /**
+     * «في سائر القرآن» — the surah × surah map. A cell counts the close verse
+     * PAIRS between two surahs («قريبة» keeps its two conditions: meaning or
+     * subject AND syntax). Every figure is read from the route, never written
+     * here.
+     */
+    quranMap: {
+      /** The one-line totals under the chart: surah pairs, verse pairs, surahs. */
+      caption: (cells: number, pairs: number, surahs: number) =>
+        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات المتقاربة في المعنى والتركيب معًا، في ${count(surahs, NOUNS.surah)}.`,
+      hint: "اختر خانةً من الجدول لترى أزواج آياتها.",
+      chartLabel: "جدول السور المتقاربة الآيات",
+      legendTitle: "عدد أزواج الآيات :",
+      legendEmpty: "لا شيء",
+      /** The last log bin, open-ended. */
+      legendAtLeast: (n: number) => `${n} فأكثر`,
+      /**
+       * One cell, named in full: the tooltip and the list heading both read it,
+       * so a cell is described the same way wherever it appears. The verses of
+       * each side say when one verse drives a cell (53 × 55 is one verse of
+       * al-Najm against the refrain of ar-Raḥmān).
+       */
+      cell: (
+        nameA: string,
+        nameB: string,
+        pairs: number,
+        versesA: number,
+        versesB: number,
+      ) =>
+        `سورة ${nameA} × سورة ${nameB} : ${count(pairs, NOUNS.zawj)} (${count(versesA, NOUNS.aya)} × ${count(versesB, NOUNS.aya)})`,
+      /** The cell list's heading prefix. */
+      pairsHeading: "أزواج الآيات المتقاربة",
+      /** An empty matrix: the dataset holds no cross-surah pair at all. */
+      noPairs: "لا آيةَ في سورةٍ تقارب آيةً من سورةٍ أخرى في المعنى والتركيب معًا.",
+      /** A cell the route answers empty — the matrix was stale. */
+      noCellPairs: "لا زوجَ من الآيات المتقاربة بين هاتين السورتين.",
+      /** Re-issues a failed matrix request. */
+      retry: "أعد المحاولة",
     },
   },
 

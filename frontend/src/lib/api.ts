@@ -273,6 +273,69 @@ export async function getVerseQuranSimilarity(
   return res.json();
 }
 
+// ── Surah × surah map («الآيات المتشابهات في سائر القرآن») ──────────────
+// The same cross-surah dataset, aggregated per pair of surahs: a cell counts
+// the close verse pairs between two surahs. Read at request time, no model.
+
+/** A surah as the matrix names it. */
+export interface QuranSimilaritySurah {
+  number: number;
+  name_ar: string;
+}
+
+/** One non-empty cell, `a < b`: its pair count and the verses of each side. */
+export interface QuranSimilarityCell {
+  a: number;
+  b: number;
+  pairs: number;
+  verses_a: number;
+  verses_b: number;
+}
+
+/** `GET /quran-similarity/matrix` — all 114 surahs, the non-empty cells only. */
+export interface QuranSimilarityMatrix {
+  surahs: QuranSimilaritySurah[];
+  cells: QuranSimilarityCell[];
+  total_pairs: number;
+  max_pairs: number;
+}
+
+/** One close pair of a cell: `u` in surah `a`, `v` in surah `b`. */
+export interface QuranSimilarityPair {
+  u: Verse;
+  v: Verse;
+  /** Ranking only — never rendered. */
+  score: number;
+  roots: string[];
+}
+
+/** `GET /quran-similarity/pairs/{a}/{b}` — one cell's pairs, strongest first. */
+export interface QuranSimilarityPairs {
+  a: number;
+  b: number;
+  surah_name_a: string;
+  surah_name_b: string;
+  /** Distinct verses of each side taking part (0 for an empty cell). */
+  verses_a: number;
+  verses_b: number;
+  pairs: QuranSimilarityPair[];
+}
+
+export async function getQuranSimilarityMatrix(): Promise<QuranSimilarityMatrix> {
+  const res = await fetch(`${API_URL}/quran-similarity/matrix`);
+  if (!res.ok) throw await similarityError(res, `Similarity matrix failed`);
+  return res.json();
+}
+
+export async function getQuranSimilarityPairs(
+  a: number,
+  b: number,
+): Promise<QuranSimilarityPairs> {
+  const res = await fetch(`${API_URL}/quran-similarity/pairs/${a}/${b}`);
+  if (!res.ok) throw await similarityError(res, `Similarity pairs failed`);
+  return res.json();
+}
+
 // ── Root index («فهرس الجذور») ─────────────────────────────────────────
 /** The 28 letter groups, in hijāʾī order, each with its number of roots. */
 export async function fetchRootLetters(): Promise<RootLettersResponse> {
