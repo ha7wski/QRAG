@@ -29,6 +29,7 @@ The surface after this change is exactly what the nine frontend pages call:
 | `POST /verse-lookup` | Verse Study → «الكلمة في الآيات» |
 | `GET /surah/{number}/similar` | Verse Study → «الآيات المتشابهات», mode «داخل سورة» |
 | `GET /verse/{surah}/{ayah}/similar` | Verse Study → «الآيات المتشابهات», mode «داخل سورة», section «في سائر القرآن» |
+| `GET /quran-similarity/matrix`, `GET /quran-similarity/pairs/{a}/{b}` | Verse Study → «الآيات المتشابهات», mode «الآيات المتشابهات في سائر القرآن» |
 | `GET /verse/{surah}/{ayah}` | Verse Study, `/verse/[surah]/[ayah]` |
 | `GET /surah/{number}`, `GET /surahs` | `SurahReader`, Fassila, QLisan, Verse Study |
 | `GET /fassila/{surah}`, `GET /fassila/overview` | Fassila tabs |
@@ -80,6 +81,11 @@ maqayis_store.py` is no longer on a served request path through it.
 - **WHEN** the mounted routes are compared against the endpoints the frontend calls
 - **THEN** `GET /verse/{surah}/{ayah}/similar` SHALL be in both sets
 - **AND** removing the «في سائر القرآن» section without unmounting the route SHALL fail that comparison
+
+#### Scenario: The matrix routes have their consumer
+
+- **WHEN** the mounted routes are compared against the endpoints the frontend calls
+- **THEN** `GET /quran-similarity/matrix` and `GET /quran-similarity/pairs/{a}/{b}` SHALL be in both sets
 
 ### Requirement: Routes no page calls are removed
 

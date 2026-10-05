@@ -42,16 +42,24 @@ sys.path.insert(0, str(ROOT))
 from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
-STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "candidate_cap",
-          "semantic_gate", "no_shared_root", "top_k", "stored")
+STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "short_exact",
+          "candidate_cap", "semantic_gate", "no_shared_root", "top_k", "relative_cut", "stored")
 PREFILTER_STAGES = ("length_window", "bag_bound")
 CANDIDATE_STAGES = ("syntax_gate", "candidate_cap")
 
-# tasks.md §1.2, copied as numbers so a miss is printed as a miss.
-TARGET_RECALL = 0.70
+# The first build's targets (add-quran-wide-similar-verses tasks.md §1.2), still
+# printed; candidate loss is reported against them for continuity.
 TARGET_CANDIDATE_LOSS = 0.20
-TARGET_NEG_TOP3 = 4
-TARGET_PREFILTER_LOSS = 0
+# tighten-cross-surah-similarity design.md D6 (T1–T5), copied as numbers so a miss
+# is printed as a miss. They apply to the FIRST sample (the pairs with no `sample`
+# key) except T3/T4, which read the second sample against the baseline the
+# previous build scored on it (tasks.md §1.4, measured before the rebuild).
+TARGET_RECALL = 0.65               # T1
+TARGET_NEG_TOP3 = 4                # T2
+V2_SAMPLE = "v2-syntax-survivors"
+V2_BASELINE_NEG_STORED = 2         # T3: stored ≤ half of this
+V2_BASELINE_POS_STORED = 7         # T4: stored ≥ 80 % of this
+TARGET_PREFILTER_LOSS = 0          # T5
 
 
 def parse_ref(raw: str) -> tuple[int, int]:
@@ -92,7 +100,9 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
     def diag_of(p: dict) -> dict:
         return diag.get((p["a"], p["b"])) or diag.get((p["b"], p["a"])) or {}
 
-    positives = [p for p in gold["pairs"] if p["label"] == "positive"]
+    first = [p for p in gold["pairs"] if "sample" not in p]
+    second = [p for p in gold["pairs"] if p.get("sample") == V2_SAMPLE]
+    positives = [p for p in first if p["label"] == "positive"]
     pos_rows = []
     for p in positives:
         rank = best_rank(lists, p["a"], p["b"], words)
@@ -109,7 +119,7 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
     prefilter_loss = sum(stage_loss.get(s, 0) for s in PREFILTER_STAGES)
 
     neg = defaultdict(lambda: {"pairs": 0, "stored": 0, "top3": 0, "refs": []})
-    for p in gold["pairs"]:
+    for p in first:
         if p["label"] == "positive":
             continue
         row = neg[p["label"]]
@@ -123,6 +133,29 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
 
     neg_top3 = sum(v["top3"] for v in neg.values())
     n = len(positives)
+
+    # The second sample: stored or not (either direction, verbatim class included),
+    # and the stage where a pair stopped.
+    v2 = {"positive": {"pairs": 0, "stored": 0, "refs": []},
+          "negative": {"pairs": 0, "stored": 0, "refs": []}}
+    v2_stages: dict[str, Counter] = {"positive": Counter(), "negative": Counter()}
+    for p in second:
+        kind = "positive" if p["label"] == "positive" else "negative"
+        row = v2[kind]
+        row["pairs"] += 1
+        # Positives are credited as T1 credits them (verbatim class included);
+        # negatives are counted as T2 counts them (the pair itself listed).
+        if kind == "positive":
+            rank = best_rank(lists, p["a"], p["b"], words)
+        else:
+            ranks = [x for x in (rank_in(lists, p["a"], p["b"]), rank_in(lists, p["b"], p["a"])) if x]
+            rank = min(ranks) if ranks else None
+        v2_stages[kind][diag_of(p).get("stage", "unknown") if rank is None else "stored"] += 1
+        if rank is not None:
+            row["stored"] += 1
+            row["refs"].append(f"{p['a']}/{p['b']} rank {rank}")
+    neg_cap = None if V2_BASELINE_NEG_STORED is None else V2_BASELINE_NEG_STORED / 2
+    pos_floor = None if V2_BASELINE_POS_STORED is None else 0.8 * V2_BASELINE_POS_STORED
     return {
         "K": k,
         "positives": n,
@@ -134,11 +167,14 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
         "negatives": {kind: dict(v) for kind, v in sorted(neg.items())},
         "negatives_in_top3": neg_top3,
         "positive_rows": pos_rows,
+        "second_sample": {kind: {**v, "stages": dict(v2_stages[kind])} for kind, v in v2.items()},
+        "candidate_loss_ok": (candidate_loss / n if n else 0.0) <= TARGET_CANDIDATE_LOSS,
         "targets": {
-            "recall": (recalled / n if n else 0.0) >= TARGET_RECALL,
-            "candidate_loss": (candidate_loss / n if n else 0.0) <= TARGET_CANDIDATE_LOSS,
-            "neg_top3": neg_top3 <= TARGET_NEG_TOP3,
-            "prefilter_loss": prefilter_loss == TARGET_PREFILTER_LOSS,
+            "T1 recall": (recalled / n if n else 0.0) >= TARGET_RECALL,
+            "T2 neg_top3": neg_top3 <= TARGET_NEG_TOP3,
+            "T3 v2 negatives": None if neg_cap is None else v2["negative"]["stored"] <= neg_cap,
+            "T4 v2 positives": None if pos_floor is None else v2["positive"]["stored"] >= pos_floor,
+            "T5 prefilter_loss": prefilter_loss == TARGET_PREFILTER_LOSS,
         },
     }
 
@@ -174,25 +210,34 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     t = report["targets"]
-    mark = lambda ok: "PASS" if ok else "MISS"  # noqa: E731
+    mark = lambda ok: "—" if ok is None else "PASS" if ok else "MISS"  # noqa: E731
     n = report["positives"]
     print(f"Gold sha256 {digest[:12]}… = header ✓   K = {report['K']}   scope = "
           f"{data['build'].get('scope')}")
-    print(f"recall@{report['K']} of positives: {report['recalled']}/{n} = {report['recall']:.3f}  "
-          f"(target ≥ {TARGET_RECALL}) {mark(t['recall'])}")
-    print(f"positives lost at candidate generation (syntax gate + cap): "
-          f"{report['candidate_loss']}/{n} (target ≤ {TARGET_CANDIDATE_LOSS:.0%}) "
-          f"{mark(t['candidate_loss'])}")
-    print(f"positives lost at the pre-filters (length window + bag bound): "
-          f"{report['prefilter_loss']} (target = 0) {mark(t['prefilter_loss'])}")
-    print("positives lost by stage: " + (", ".join(
+    print(f"T1 recall@{report['K']} of first-sample positives: {report['recalled']}/{n} = "
+          f"{report['recall']:.3f}  (target ≥ {TARGET_RECALL}) {mark(t['T1 recall'])}")
+    print(f"   positives lost at candidate generation (syntax gate + cap): "
+          f"{report['candidate_loss']}/{n} (first build's target ≤ {TARGET_CANDIDATE_LOSS:.0%}) "
+          f"{mark(report['candidate_loss_ok'])}")
+    print("   positives lost by stage: " + (", ".join(
         f"{s} {report['lost_by_stage'][s]}" for s in (*STAGES, "unknown")
         if report["lost_by_stage"].get(s)) or "none"))
-    print(f"negatives in a top-3 (either direction): {report['negatives_in_top3']} "
-          f"(target ≤ {TARGET_NEG_TOP3}) {mark(t['neg_top3'])}")
+    print(f"T2 first-sample negatives in a top-3 (either direction): {report['negatives_in_top3']} "
+          f"(target ≤ {TARGET_NEG_TOP3}) {mark(t['T2 neg_top3'])}")
     for kind, v in report["negatives"].items():
-        print(f"  {kind}: {v['stored']}/{v['pairs']} stored, {v['top3']} in a top-3"
+        print(f"   {kind}: {v['stored']}/{v['pairs']} stored, {v['top3']} in a top-3"
               + (f" — {'; '.join(v['refs'])}" if v["refs"] else ""))
+    v2 = report["second_sample"]
+    print(f"T3 second-sample negatives stored: {v2['negative']['stored']}/{v2['negative']['pairs']} "
+          f"(target ≤ half of the baseline {V2_BASELINE_NEG_STORED}) {mark(t['T3 v2 negatives'])}")
+    print(f"T4 second-sample positives stored: {v2['positive']['stored']}/{v2['positive']['pairs']} "
+          f"(target ≥ 80 % of the baseline {V2_BASELINE_POS_STORED}) {mark(t['T4 v2 positives'])}")
+    for kind in ("positive", "negative"):
+        st = v2[kind]["stages"]
+        print(f"   {kind}s by stage: " + (", ".join(f"{k_} {st[k_]}" for k_ in sorted(st)) or "none")
+              + (f" — stored: {'; '.join(v2[kind]['refs'])}" if v2[kind]["refs"] else ""))
+    print(f"T5 positives lost at the pre-filters (length window + bag bound): "
+          f"{report['prefilter_loss']} (target = 0) {mark(t['T5 prefilter_loss'])}")
     print("\nPositives (best rank either direction; stage where a miss was lost):")
     for row in report["positive_rows"]:
         sig = " ".join(f"{k}={row[k]}" for k in ("syn", "dense", "cov", "ce", "sem")

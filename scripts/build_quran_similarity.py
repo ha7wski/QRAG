@@ -21,10 +21,19 @@ intra-surah definition unchanged and only changes the population:
     multiset bag distance): each is a lower bound `d ≤ lev`, evaluated through
     the very float expression `syn_similarity` uses, so a pruned pair provably
     scores below σ. Survivors are scored by the intra `syn_similarity` itself.
-  * D4 — dense is the cosine's average-rank percentile among ALL cross-surah
-    scored pairs (one global population, so it is symmetric).
+  * D4 — dense is the cosine's average-rank percentile among the cross-surah
+    pairs that pass the syntactic gate (one global population, so it is
+    symmetric). It used to be ranked among ALL 19 M cross-surah pairs, where
+    every candidate sits near the top (590 of 605 stored pairs had dense ≥ 0.95)
+    and dense became a constant +0.3 in `sem` — change
+    `tighten-cross-surah-similarity`, design D1.
   * D5 — `cap_pairs(M)`, the symmetrised cross-encoder, the semantic gate, the
     shared-root rule, `score = sem × syn`, `select_neighbours(K)`.
+  * Two rules of the cross-surah population only (tighten-cross-surah-similarity
+    D2, D3): a pair whose LONGER signature has ≤ `SHORT_EXACT_MAX_LEN` elements
+    passes the syntactic gate only with `syn = 1` (`passes_short_rule`), and each
+    verse's list keeps a neighbour only when its score is ≥ `RHO` × the list's best
+    (`relative_cut`). The intra build is untouched.
   * D7 — the file layout, schema 1.
 
 Needs the backend STOPPED: the verse vectors are read out of the embedded Qdrant,
@@ -72,7 +81,12 @@ from build_surah_similarity import (  # noqa: E402 — D1: the definition, impor
 
 SCHEMA = loaders.QURAN_SIMILARITY_SCHEMA
 SCOPE = "cross-surah"
-DENSE_POPULATION = "cross-surah"
+# Frozen in openspec/changes/tighten-cross-surah-similarity/design.md BEFORE the
+# gold set's second sample was labelled and before any rebuild — decisions to
+# record there, never tuning knobs.
+DENSE_POPULATION = "syntax-survivors"   # D1
+SHORT_EXACT_MAX_LEN = 3                 # D2
+RHO = 0.5                               # D3
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
 REBUILD = "python scripts/build_quran_similarity.py"
 # The intra header keys this build must share verbatim (spec «The parameters are
@@ -123,6 +137,30 @@ def prefilter_stage(a: Sequence, b: Sequence) -> str | None:
     if not passes_syntax(syn_upper_bound(bag_distance(Counter(a), Counter(b)), len(a), len(b))):
         return "bag_bound"
     return None
+
+
+def passes_short_rule(la: int, lb: int, syn: float,
+                      max_len: int = SHORT_EXACT_MAX_LEN) -> bool:
+    """D2: a pair whose longer signature has ≤ `max_len` elements needs `syn = 1`.
+
+    With three words one edit is the whole difference between a shared frame and
+    a shared construction. `syn_similarity` returns exactly 1.0 iff lev = 0.
+    Applied AFTER `σ`, so the pre-filters (lower bounds for the `σ` gate) stay exact.
+    """
+    return max(la, lb) > max_len or syn == 1.0
+
+
+def relative_cut(lists: dict[int, list[dict]], rho: float = RHO) -> dict[int, list[dict]]:
+    """D3: each list keeps the entries scoring ≥ `rho` × its best (stored, rounded) score.
+
+    Per list: a pair cut from u's list stays wherever v's list keeps it. Lists are
+    score-descending, so the best is the first entry; order is preserved.
+    """
+    out = {}
+    for v, lst in lists.items():
+        best = lst[0]["s"] if lst else 0.0
+        out[v] = [e for e in lst if e["s"] >= rho * best]
+    return out
 
 
 def length_windows(max_len: int) -> list[tuple[int, int]]:
@@ -215,13 +253,15 @@ class SyntaxIndex:
         """Every cross-surah pair `(i, j)`, `i` in `surah`, `j` in a LATER surah.
 
         Each unordered cross-surah pair is examined exactly once (by the anchor
-        surah of its lower verse). Returns `[(i, j, syn)]` passing the gate,
-        sorted, and the per-stage counts.
+        surah of its lower verse). Returns `[(i, j, syn)]` passing the gate AND
+        the short-pair rule (D2), sorted, and the per-stage counts (each count is
+        the number of pairs still in after that stage).
         """
         import numpy as np
 
         out: list[tuple[int, int, float]] = []
-        stats = {"examined": 0, "length_window": 0, "bag_bound": 0, "syntax_gate": 0}
+        stats = {"examined": 0, "length_window": 0, "bag_bound": 0, "syntax_gate": 0,
+                 "short_exact": 0}
         anchors = [i for i in self.scored if self.surah_of[i] == surah]
         for i in anchors:
             stats["examined"] += self.scored_after.get(surah, 0)
@@ -247,8 +287,10 @@ class SyntaxIndex:
             for j in kept.tolist():
                 s = syn_similarity(a, self.seqs[j])
                 if passes_syntax(s):
-                    out.append((i, j, s))
-        stats["syntax_gate"] = len(out)
+                    stats["syntax_gate"] += 1
+                    if passes_short_rule(len(a), len(self.seqs[j]), s):
+                        out.append((i, j, s))
+        stats["short_exact"] = len(out)
         return out, stats
 
 
@@ -305,45 +347,29 @@ def _after(sizes: Counter, surah: int) -> int:
 #  D4 — dense over the cross-surah population
 # ═══════════════════════════════════════════════════════════════════════════
 
-def dense_stage(vectors: dict, refs: list[tuple[int, int]], scored: list[int],
-                wanted: set[tuple[int, int]], block: int = 256
+def dense_stage(vectors: dict, refs: list[tuple[int, int]], population: set[tuple[int, int]],
+                wanted: set[tuple[int, int]]
                 ) -> tuple[dict[tuple[int, int], float], dict[tuple[int, int], float], int]:
-    """`(cos_of, dense_of, n_population)` for the `wanted` pairs.
+    """`(cos_of, dense_of, n_population)` for the `wanted` pairs (D4, design D1).
 
-    One matrix product per row block over the scored verses (in global order,
-    hence grouped by surah); the population is each row's cross-surah upper
-    triangle, i.e. every column from the next surah onward. The cosine of a
-    wanted pair is read out of the SAME product as its population entry, so a
-    pair's value is bit-identical to the one it is ranked among.
+    The population is `population`: the cross-surah pairs that pass the syntactic
+    gate — the candidates the semantic gate actually decides between. A wanted pair
+    outside it (a gold pair the gate dropped) is ranked against the same population.
+    Every cosine, population and wanted alike, comes out of the same per-pair dot
+    product, so a pair's value is bit-identical to the one it is ranked among.
     """
     import numpy as np
 
-    X = np.stack([np.asarray(vectors[refs[i]], dtype="float64") for i in scored])
-    surahs = np.asarray([refs[i][0] for i in scored], dtype="int32")
-    pos = {g: p for p, g in enumerate(scored)}
-    # first scored position of a later surah, per row
-    nxt = np.searchsorted(surahs, surahs, side="right")
-    n_pop = int(sum(len(scored) - int(x) for x in nxt))
-    pop = np.empty(n_pop, dtype="float64")
-    by_row: dict[int, list[tuple[int, int]]] = defaultdict(list)
-    for i, j in wanted:
-        by_row[pos[i]].append((pos[j], (i, j)))
+    pairs = sorted(population | wanted)
     cos_of: dict[tuple[int, int], float] = {}
-    filled = 0
-    for r0 in range(0, len(scored), block):
-        G = X[r0:r0 + block] @ X.T
-        for r in range(G.shape[0]):
-            p = r0 + r
-            row = G[r, int(nxt[p]):]
-            pop[filled:filled + len(row)] = row
-            filled += len(row)
-            for q, key in by_row.get(p, ()):
-                cos_of[key] = float(G[r, q])
-    assert filled == n_pop
-    pop.sort()
-    keys = sorted(cos_of)
+    for i, j in pairs:
+        a = np.asarray(vectors[refs[i]], dtype="float64")
+        b = np.asarray(vectors[refs[j]], dtype="float64")
+        cos_of[(i, j)] = float(a @ b)
+    pop = np.sort(np.asarray([cos_of[p] for p in population], dtype="float64"))
+    keys = sorted(wanted)
     dense_of = dict(zip(keys, percentile_in(pop, [cos_of[k] for k in keys])))
-    return cos_of, dense_of, n_pop
+    return {k: cos_of[k] for k in keys}, dense_of, len(population)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -372,6 +398,8 @@ def header(gold_sha: str | None) -> dict:
         "signature": SIGNATURE,
         "dense_on_verbatim": DENSE_ON_VERBATIM,
         "dense_population": DENSE_POPULATION,
+        "short_exact_max_len": SHORT_EXACT_MAX_LEN,
+        "rho": RHO,
         "require_shared_root": REQUIRE_SHARED_ROOT,
         # D1: the intra builder's digest of the parameters both builds share
         "intra_params_sha256": intra.params_digest(shared),
@@ -438,7 +466,7 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
 
     `kept` holds the capped pairs `(i, j)` with `i` in `surah`; `gold` the gold
     rows whose lower verse is in it. The `stage` of a gold row stops at
-    `passed` — whether it is then `stored` or lost at `top_k` depends on the
+    `passed` — whether it is then `stored`, cut at `relative_cut` or lost at `top_k` depends on the
     other surahs and is settled at assembly.
     """
     corpus: Corpus = ctx["corpus"]
@@ -500,6 +528,8 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
             row["stage"] = "syntax_gate"
         elif dropped_by:
             row["stage"] = dropped_by
+        elif not passes_short_rule(len(a_sig), len(b_sig), syn):
+            row["stage"] = "short_exact"
         elif p not in survivors:
             # syn ≥ σ and the scalar pre-filter keeps the pair, yet the vectorised
             # path dropped it: a pre-filter defect, counted as one so the eval's
@@ -529,7 +559,8 @@ def assemble(corpus: Corpus, done: dict[int, dict], head: dict) -> dict:
     # «score desc, then (surah, ayah) asc». WHICH K are kept on a tied score follows
     # the imported intra rule, nearest index first (D5 records it; D1 forbids a
     # cross-only variant of the helper).
-    lists = select_neighbours(stored, corpus.scored)
+    full = select_neighbours(stored, corpus.scored)
+    lists = relative_cut(full)        # design D3, after top-K
     neighbours = {}
     for i in sorted(lists):
         if lists[i]:
@@ -537,12 +568,19 @@ def assemble(corpus: Corpus, done: dict[int, dict], head: dict) -> dict:
                 {"r": ref_str(corpus.refs[e["a"]]), **{k: v for k, v in e.items() if k != "a"}}
                 for e in lists[i]]
     listed = {ref: {e["r"] for e in lst} for ref, lst in neighbours.items()}
+    top_k = {ref_str(corpus.refs[i]): {ref_str(corpus.refs[e["a"]]) for e in lst}
+             for i, lst in full.items()}
+
+    def holds(table: dict, row: dict) -> bool:
+        return row["b"] in table.get(row["a"], ()) or row["a"] in table.get(row["b"], ())
+
     gold_rows = []
     for s in sorted(done):
         for row in done[s]["diagnostics"]:
             if row["stage"] == "passed":
-                ok = row["b"] in listed.get(row["a"], ()) or row["a"] in listed.get(row["b"], ())
-                row = {**row, "stage": "stored" if ok else "top_k"}
+                stage = ("stored" if holds(listed, row)
+                         else "relative_cut" if holds(top_k, row) else "top_k")
+                row = {**row, "stage": stage}
             gold_rows.append(row)
     return {
         "schema": SCHEMA,
@@ -562,11 +600,13 @@ def print_syntax_stats(stats: dict[int, dict], elapsed: float, per_surah: bool) 
         if per_surah:
             print(f"  anchor surah {s:3d}: {st['examined']:8d} pairs → {st['length_window']:7d} "
                   f"length window → {st['bag_bound']:6d} bag bound → {st['syntax_gate']:5d} "
-                  f"syntax gate [{st['elapsed']:.1f}s]")
+                  f"syntax gate → {st['short_exact']:5d} short-pair rule [{st['elapsed']:.1f}s]")
     print(f"SYNTAX: {int(total['examined'])} cross-surah scored pairs → "
           f"{int(total['length_window'])} in the length window → {int(total['bag_bound'])} "
           f"past the bag bound → {int(total['syntax_gate'])} pass the syntax gate "
-          f"(σ = {SIGMA:.4f}) — {elapsed:.1f}s wall, {total['elapsed']:.1f}s summed over workers")
+          f"(σ = {SIGMA:.4f}) → {int(total['short_exact'])} pass the short-pair rule "
+          f"(≤ {SHORT_EXACT_MAX_LEN} elements: syn = 1) — {elapsed:.1f}s wall, "
+          f"{total['elapsed']:.1f}s summed over workers")
     return total
 
 
@@ -649,12 +689,12 @@ def main(argv: list[str] | None = None) -> int:
         scored = set(corpus.scored)
         wanted = set(survivors) | {(g["i"], g["j"]) for g in gold
                                    if g["i"] in scored and g["j"] in scored}
-        _, dense_of, n_pop = dense_stage(vectors, corpus.refs, corpus.scored, wanted)
+        _, dense_of, n_pop = dense_stage(vectors, corpus.refs, set(survivors), wanted)
         signals = {p: (None if corpus.verbatim(*p) else dense_of[p], corpus.cov(*p))
                    for p in survivors}
         kept = cap_pairs(signals, M)
         n_verbatim = sum(1 for d, _ in signals.values() if d is None)
-        print(f"DENSE: percentile over {n_pop} cross-surah scored pairs; {n_verbatim} verbatim "
+        print(f"DENSE: percentile over the {n_pop} syntax survivors; {n_verbatim} verbatim "
               f"survivor pair(s) rank on coverage alone [{time.time() - t1:.1f}s]")
         print(f"CAP (M = {M}): {len(survivors)} syntax survivors → {len(kept)} pairs kept → "
               f"{2 * len(kept)} cross-encoder predictions (both directions)")
