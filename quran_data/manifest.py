@@ -775,6 +775,28 @@ MANIFEST: dict[str, Entry] = {
         regenerable=True,
         rebuild="python scripts/build_quran_similarity.py  (backend stopped)",
     ),
+    "QURAN_PASSAGES_JSON": Entry(
+        bucket="derived",
+        what="Cross-surah shared passages, schema 1: one entry per pair of "
+             "verses of DIFFERENT surahs whose best Smith-Waterman local "
+             "alignment (match +2, mismatch -1, gap -1) of their token "
+             "sequences -- one token per QAC word, the stem segment's lemma, "
+             "else the bare surface -- has k >= 6 matched words, k >= 0.75 x "
+             "the longer aligned span and >= 3 matched content words. Each "
+             "entry holds both refs (lower surah first), both aligned 1-based "
+             "word spans, k and the matched content roots. The `build` header "
+             "records the token rule, the scores, the thresholds and the "
+             "gold-set sha256.",
+        origin="Built from QAC_MORPHOLOGY_TXT (lemmas, stems, ROOT features) and "
+               "ROOTS_RESOLVED_JSON (canonical roots). No model and no Qdrant: "
+               "it may run with the backend up.",
+        producer="scripts/build_quran_passages.py",
+        consumers=("retrieval/quran_passages.py", "api/routers/quran_passages.py",
+                   "scripts/eval_quran_passages.py"),
+        regenerable=True,
+        rebuild="python scripts/build_quran_passages.py  (add --no-gold on a clone "
+                "without the local-only tests/eval/ gold set)",
+    ),
     "BUILD_INDEX_CHECKPOINT": Entry(
         bucket="derived",
         what="Resume marker for the embedding run — not a dataset. Deleting it "

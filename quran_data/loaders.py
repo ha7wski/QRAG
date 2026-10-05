@@ -212,6 +212,31 @@ def quran_similarity() -> dict:
     return data
 
 
+QURAN_PASSAGES_SCHEMA = 1
+
+
+@functools.lru_cache(maxsize=1)
+def quran_passages() -> dict:
+    """The cross-surah shared passages (add-shared-passages design D5, schema 1).
+
+    `{"schema": 1, "build": {...}, "passages": [{"a": "<s:a>", "b": "<s:a>",
+    "wa": [i1, i2], "wb": [j1, j2], "k": int, "roots": [str]}]}`, `a` in the
+    lower surah, sorted by `(a, b)`; word spans are 1-based and inclusive.
+
+    A separate file from `quran_similarity()`: the two relations fail apart.
+    Same schema refusal, same reason.
+    """
+    data = _json("QURAN_PASSAGES_JSON")
+    found = data.get("schema") if isinstance(data, dict) else None
+    if found != QURAN_PASSAGES_SCHEMA:
+        raise UnknownSchema(
+            f"QURAN_PASSAGES_JSON ({paths.QURAN_PASSAGES_JSON}) has schema "
+            f"{found!r}, expected {QURAN_PASSAGES_SCHEMA}. Rebuild it with:\n"
+            f"    {MANIFEST['QURAN_PASSAGES_JSON'].rebuild}"
+        )
+    return data
+
+
 # ── references: curated scholarship ───────────────────────────────────────
 
 @functools.lru_cache(maxsize=1)

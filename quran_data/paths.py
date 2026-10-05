@@ -164,6 +164,11 @@ SURAH_SIMILARITY_CHECKPOINT_DIR = DERIVED / ".surah_similarity_checkpoint"
 # helpers and parameters. A separate file so the two datasets fail apart.
 QURAN_SIMILARITY_JSON = DERIVED / "quran_similarity.json"
 QURAN_SIMILARITY_CHECKPOINT_DIR = DERIVED / ".quran_similarity_checkpoint"
+# The shared-passage relation behind GET /quran-passages/*: for each pair of
+# verses of different surahs, the best local alignment of their QAC lemma
+# sequences when it passes the acceptance rule. Built model-free by
+# `scripts/build_quran_passages.py` (no Qdrant, so the backend may stay up).
+QURAN_PASSAGES_JSON = DERIVED / "quran_passages.json"
 # Not a dataset — the resumable marker `build_index.py` writes so an interrupted
 # embedding run picks up where it stopped. It lives with what it tracks.
 BUILD_INDEX_CHECKPOINT = DERIVED / ".checkpoint"

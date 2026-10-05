@@ -25,18 +25,53 @@ export function LoadingLine() {
   );
 }
 
+/**
+ * The vocalized text, with `span` — half-open CHARACTER offsets into
+ * `text_ar_tashkil`, as the shared-passage route computes them — wrapped in a
+ * `<mark>`. The offsets address the vocalized text only: a verse that falls back
+ * to `text_ar`, or a span outside the text, is rendered unmarked rather than
+ * marked at the wrong place.
+ */
+function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] }) {
+  const text = verse.text_ar_tashkil || verse.text_ar;
+  if (!span || !verse.text_ar_tashkil) return <>{text}</>;
+  const [start, end] = span;
+  const valid =
+    Number.isInteger(start) &&
+    Number.isInteger(end) &&
+    start >= 0 &&
+    start < end &&
+    end <= text.length;
+  if (!valid) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, start)}
+      <mark
+        data-testid="passage-mark"
+        className="rounded-sm bg-brand-light text-brand-dark"
+      >
+        {text.slice(start, end)}
+      </mark>
+      {text.slice(end)}
+    </>
+  );
+}
+
 /** A vocalized verse with its number badge — and its surah's name when the
- *  verse may come from another surah than the one on screen. */
+ *  verse may come from another surah than the one on screen. `span`, when
+ *  given, marks a passage of the verse (see `MarkedText`). */
 export function VerseText({
   verse,
   withSurah = false,
+  span,
 }: {
   verse: Verse;
   withSurah?: boolean;
+  span?: [number, number];
 }) {
   return (
     <ArabicText className="block text-2xl leading-loose text-gray-900">
-      {verse.text_ar_tashkil || verse.text_ar}{" "}
+      <MarkedText verse={verse} span={span} />{" "}
       <span className="western-digits align-middle text-sm text-gray-400">
         ﴿{withSurah ? `${verse.surah_name_ar} ${verse.ayah_number}` : verse.ayah_number}﴾
       </span>
@@ -50,11 +85,14 @@ export function VerseCardButton({
   openInContext,
   highlighted = false,
   withSurah = false,
+  span,
 }: {
   verse: Verse;
   openInContext: (surah: number, ayah: number) => void;
   highlighted?: boolean;
   withSurah?: boolean;
+  /** A passage to mark in the verse's vocalized text. */
+  span?: [number, number];
 }) {
   return (
     <button
@@ -65,7 +103,7 @@ export function VerseCardButton({
         highlighted ? "rounded-lg border border-brand/40 bg-brand-light/40" : ""
       }`}
     >
-      <VerseText verse={verse} withSurah={withSurah} />
+      <VerseText verse={verse} withSurah={withSurah} span={span} />
     </button>
   );
 }

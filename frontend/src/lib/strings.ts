@@ -124,6 +124,13 @@ export const NOUNS = {
   },
   /** A «وجه» of a letter: one member of its sense bundle. */
   wajh: { one: "وجه", two: "وجهين", few: "وجوه", many: "وجهًا" },
+  /** The words two verses share in a passage — noun + adjective, as above. */
+  kalimaMushtaraka: {
+    one: "كلمة مشتركة",
+    two: "كلمتين مشتركتين",
+    few: "كلمات مشتركة",
+    many: "كلمة مشتركة",
+  },
   minute: { one: "دقيقة", two: "دقيقتين", few: "دقائق", many: "دقيقة" },
   hour: { one: "ساعة", two: "ساعتين", few: "ساعات", many: "ساعة" },
   day: { one: "يوم", two: "يومين", few: "أيام", many: "يومًا" },
@@ -375,6 +382,35 @@ export const S = {
       noCellPairs: "لا زوجَ من الآيات المتقاربة بين هاتين السورتين.",
       /** Re-issues a failed matrix request. */
       retry: "أعد المحاولة",
+    },
+    /**
+     * The two relations the surah × surah map can draw. «الآيات المتشابهات» is
+     * closeness (meaning AND syntax, whole verses); «المقاطع المشتركة» is shared
+     * WORDING — a passage of at least six words that comes back in another surah.
+     */
+    quranRelations: {
+      similar: "الآيات المتشابهات",
+      passages: "المقاطع المشتركة",
+      groupLabel: "العلاقة بين الآيات",
+    },
+    /**
+     * «المقاطع المشتركة» — the same chart, another relation. A cell counts the
+     * verse PAIRS sharing a passage; the tooltip, legend and hint are the map's
+     * own (`quranMap`), since they name pairs and nothing more.
+     */
+    quranPassages: {
+      /** The one-line totals under the chart: surah pairs, verse pairs, surahs. */
+      caption: (cells: number, pairs: number, surahs: number) =>
+        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات يشترك كلٌّ منها في مقطعٍ من ستّ كلماتٍ فأكثر، في ${count(surahs, NOUNS.surah)}.`,
+      chartLabel: "جدول السور المشتركة المقاطع",
+      /** The cell list's heading prefix. */
+      pairsHeading: "أزواج الآيات المشتركة في مقطع",
+      /** The matched words of one pair, under its two verses. */
+      words: (n: number) => count(n, NOUNS.kalimaMushtaraka),
+      /** An empty matrix: the dataset holds no shared passage at all. */
+      noPairs: "لا آيةَ في سورةٍ تشترك مع آيةٍ من سورةٍ أخرى في مقطعٍ واحد.",
+      /** A cell the route answers empty — the matrix was stale. */
+      noCellPairs: "لا زوجَ من الآيات المشتركة في مقطعٍ بين هاتين السورتين.",
     },
   },
 

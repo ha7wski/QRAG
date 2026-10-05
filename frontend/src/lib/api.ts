@@ -336,6 +336,54 @@ export async function getQuranSimilarityPairs(
   return res.json();
 }
 
+// ── Shared passages («المقاطع المشتركة») ────────────────────────────────
+// A second cross-surah relation, beside closeness: two verses of different
+// surahs sharing a passage of wording (a local alignment of their words, no
+// model). Its own precomputed dataset, so its failure never touches the
+// similarity map. The matrix has the similarity map's shape exactly.
+
+/** `GET /quran-passages/matrix` — all 114 surahs, the non-empty cells only. */
+export type QuranPassagesMatrix = QuranSimilarityMatrix;
+
+/** One shared passage of a cell: `u` in surah `a`, `v` in surah `b`. */
+export interface QuranPassagePair {
+  u: Verse;
+  v: Verse;
+  /** Matched words of the passage. */
+  words: number;
+  /** Half-open CHARACTER offsets of the passage in `u.text_ar_tashkil`. */
+  span_u: [number, number];
+  /** Half-open CHARACTER offsets of the passage in `v.text_ar_tashkil`. */
+  span_v: [number, number];
+}
+
+/** `GET /quran-passages/pairs/{a}/{b}` — one cell's passages, longest first. */
+export interface QuranPassagesPairs {
+  a: number;
+  b: number;
+  surah_name_a: string;
+  surah_name_b: string;
+  /** Distinct verses of each side taking part (0 for an empty cell). */
+  verses_a: number;
+  verses_b: number;
+  pairs: QuranPassagePair[];
+}
+
+export async function getQuranPassagesMatrix(): Promise<QuranPassagesMatrix> {
+  const res = await fetch(`${API_URL}/quran-passages/matrix`);
+  if (!res.ok) throw await similarityError(res, `Passage matrix failed`);
+  return res.json();
+}
+
+export async function getQuranPassagesPairs(
+  a: number,
+  b: number,
+): Promise<QuranPassagesPairs> {
+  const res = await fetch(`${API_URL}/quran-passages/pairs/${a}/${b}`);
+  if (!res.ok) throw await similarityError(res, `Passage pairs failed`);
+  return res.json();
+}
+
 // ── Root index («فهرس الجذور») ─────────────────────────────────────────
 /** The 28 letter groups, in hijāʾī order, each with its number of roots. */
 export async function fetchRootLetters(): Promise<RootLettersResponse> {
