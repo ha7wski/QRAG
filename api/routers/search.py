@@ -37,6 +37,20 @@ MIN_RESULTS = 3
 # the whole context. floor = weight kept for a zero-coverage verse (0 = coverage
 # fully gates; 1 = coverage ignored). Only bites when the query has >1 root.
 COVERAGE_FLOOR = float(os.getenv("SEARCH_COVERAGE_FLOOR", "0.25"))
+# Arabic dense candidates (change `arabic-retrieval-models`, C-rrf): how many the
+# channel contributes, and the RRF constant that orders the pool when it does.
+DENSE_AR_POOL = int(os.getenv("SEARCH_DENSE_AR_POOL", "16"))
+RRF_K = 60
+
+
+def _rrf_pool(lists: list[list[str]], cap: int) -> list[str]:
+    """Order the union of ranked id lists by Σ 1/(RRF_K + rank), capped. Ties keep
+    first-insertion order (root → BM25 → dense), as in the measured configuration."""
+    fused: dict[str, float] = {}
+    for ids in lists:
+        for rank, vid in enumerate(ids):
+            fused[vid] = fused.get(vid, 0.0) + 1.0 / (RRF_K + rank)
+    return sorted(fused, key=lambda v: fused[v], reverse=True)[:cap]
 
 
 @router.get("/search", response_model=SearchResponse)
@@ -72,29 +86,53 @@ def search(
             for k in ("surah_number", "period", "juz")
         )
 
-    pool: list[dict] = []
-    seen: set[str] = set()
-    if similar is not None:
-        for r in (similar.candidates_for(q, filters=filters or None) or [])[:ROOT_POOL]:
-            if r["id"] not in seen:
-                seen.add(r["id"])
-                pool.append(r)
-    n_root = len(pool)
+    root_cands = (
+        (similar.candidates_for(q, filters=filters or None) or [])[:ROOT_POOL]
+        if similar is not None else []
+    )
     # Clean the BM25 query: drop function words so it can't match a verse via a
     # shared particle (e.g. لمّا pulling كلا لمّا يقض / فعّال لما يريد). Falls back
     # to the raw query when the query is all function words / non-Arabic.
     bm25_q = " ".join(similar.content_terms(q)) if similar is not None else ""
     bm25_q = bm25_q or q
-    for vid, _score in engine.retriever.hybrid.bm25.search(bm25_q, top_k=BM25_POOL):
-        if vid in seen:
-            continue
-        rec = engine.retriever._full(vid)
-        if rec is None or (filters and not _passes(rec)):
-            continue
-        seen.add(vid)
-        pool.append({**rec, "score": 0.0})
-    candidates = pool[:RERANK_POOL_MAX]
-    mode = f"union(root={n_root}+bm25={len(pool) - n_root})"
+    bm25_hits = engine.retriever.hybrid.bm25.search(bm25_q, top_k=BM25_POOL)
+    # Optional Arabic dense channel (SEARCH_DENSE_AR_ENABLED, off by default): None
+    # when off; [] when it abstains — both leave the original pool untouched.
+    dense = getattr(request.app.state, "search_dense_ar", None)
+    dense_ids = dense(q, DENSE_AR_POOL, filters or None) if dense is not None else []
+
+    if dense_ids:
+        # C-rrf: the three lists fused by rank, then capped (same rerank cost).
+        root_by_id = {r["id"]: r for r in root_cands}
+        bm25_ids = []
+        for vid, _score in bm25_hits:
+            rec = engine.retriever._full(vid)
+            if rec is not None and not (filters and not _passes(rec)):
+                bm25_ids.append(vid)
+        order = _rrf_pool([list(root_by_id), bm25_ids, dense_ids], RERANK_POOL_MAX)
+        candidates = [
+            root_by_id[v] if v in root_by_id else {**engine.retriever._full(v), "score": 0.0}
+            for v in order
+        ]
+        mode = f"rrf(root={len(root_by_id)}+bm25={len(bm25_ids)}+dense={len(dense_ids)})"
+    else:
+        pool: list[dict] = []
+        seen: set[str] = set()
+        for r in root_cands:
+            if r["id"] not in seen:
+                seen.add(r["id"])
+                pool.append(r)
+        n_root = len(pool)
+        for vid, _score in bm25_hits:
+            if vid in seen:
+                continue
+            rec = engine.retriever._full(vid)
+            if rec is None or (filters and not _passes(rec)):
+                continue
+            seen.add(vid)
+            pool.append({**rec, "score": 0.0})
+        candidates = pool[:RERANK_POOL_MAX]
+        mode = f"union(root={n_root}+bm25={len(pool) - n_root})"
 
     # Comparison stage: rerank the candidate pool by cross-encoder relevance and
     # drop the low-relevance tail (threshold), else keep the pool order.

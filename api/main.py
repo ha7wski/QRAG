@@ -158,6 +158,15 @@ async def lifespan(app: FastAPI):
     app.state.search_reranker_provider = LazyReranker(
         enabled=os.getenv("SEARCH_RERANK_ENABLED", "0") == "1"
     )
+    # Optional Arabic dense candidates for GET /search (SEARCH_DENSE_AR_ENABLED, off
+    # by default; change `arabic-retrieval-models`). It borrows the chat engine's
+    # embedder and Qdrant client — one E5 in the process, built by whichever path
+    # needs it first — and reads its own collection (QDRANT_COLLECTION_AR).
+    app.state.search_dense_ar = None
+    if os.getenv("SEARCH_DENSE_AR_ENABLED", "0") == "1":
+        from retrieval.dense_ar_channel import DenseArChannel
+
+        app.state.search_dense_ar = DenseArChannel(app.state.engine.retriever.hybrid)
     # Durable session history + feedback (SQLite).
     app.state.store = Store()
     logger.info(
