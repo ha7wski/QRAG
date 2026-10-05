@@ -53,7 +53,6 @@ from api.routers import madar as madar_router  # noqa: E402,F401
 # longer has a panel on «تحليل اللسان», so its route is unmounted and 404s.
 from api.routers import lisan_concept as lisan_concept_router  # noqa: E402,F401
 from api.routers import qlisan as qlisan_router  # noqa: E402
-from api.routers import quran_passages as quran_passages_router  # noqa: E402
 from api.routers import quran_similarity as quran_similarity_router  # noqa: E402
 from api.routers import roots as roots_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
@@ -195,10 +194,9 @@ app.include_router(verse_router.router)
 app.include_router(surah_similarity_router.router)
 # GET /verse/{surah}/{ayah}/similar — likewise one segment past GET
 # /verse/{surah}/{ayah}, and a separate dataset so the intra view survives without it.
+# It also serves the surah × surah map, over the unified close-verses relation;
+# GET /quran-passages/* is gone with its router (change `unify-close-verses`).
 app.include_router(quran_similarity_router.router)
-# GET /quran-passages/* — the shared-passage map: its own dataset, so it fails
-# apart from the similarity map above.
-app.include_router(quran_passages_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
 app.include_router(feedback_router.router)

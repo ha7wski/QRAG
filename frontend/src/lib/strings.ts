@@ -337,25 +337,30 @@ export const S = {
       /** The selected verse is itself unscored: nothing was compared. */
       unscoredAnchor: "لا تُقارَن هذه الآية بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.",
       sharedRoots: "الجذور المشتركة :",
+      /** The matched words of a close pair's common part, under its verses —
+       *  shared by the verse panel and the surah × surah map. */
+      sharedWords: (n: number) => count(n, NOUNS.kalimaMushtaraka),
       /** The verse panel's list: close verses in OTHER surahs. */
       quranHeading: "الآيات المتشابهات في سائر القرآن",
-      /** Scored, but nothing elsewhere in the Quran passes both gates. */
-      noQuranClose: "لا آية في سائر القرآن تقاربها في المعنى والتركيب معًا",
+      /** Scored, but no verse elsewhere in the Quran is close to it or shares a
+       *  passage with it. */
+      noQuranClose: "لا توجد في سائر القرآن آية تشابهها أو تشاركها مقطعًا",
       selectAyah: "اختر هذه الآية",
       loading: "جارٍ التحميل…",
     },
     /**
      * «في سائر القرآن» — the surah × surah map. A cell counts the close verse
-     * PAIRS between two surahs («قريبة» keeps its two conditions: meaning or
-     * subject AND syntax). Every figure is read from the route, never written
-     * here.
+     * PAIRS between two surahs, in the unified sense: two verses close in
+     * meaning AND syntax, OR sharing a passage of wording — so the wording here
+     * says «متشابهة», never the narrower «متقاربة في المعنى والتركيب معًا».
+     * Every figure is read from the route, never written here.
      */
     quranMap: {
       /** The one-line totals under the chart: surah pairs, verse pairs, surahs. */
       caption: (cells: number, pairs: number, surahs: number) =>
-        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات المتقاربة في المعنى والتركيب معًا، في ${count(surahs, NOUNS.surah)}.`,
+        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات المتشابهة أو المشتركة في مقطع، في ${count(surahs, NOUNS.surah)}.`,
       hint: "اختر خانةً من الجدول لترى أزواج آياتها.",
-      chartLabel: "جدول السور المتقاربة الآيات",
+      chartLabel: "جدول السور المتشابهة الآيات",
       legendTitle: "عدد أزواج الآيات :",
       legendEmpty: "لا شيء",
       /** The last log bin, open-ended. */
@@ -375,42 +380,13 @@ export const S = {
       ) =>
         `سورة ${nameA} × سورة ${nameB} : ${count(pairs, NOUNS.zawj)} (${count(versesA, NOUNS.aya)} × ${count(versesB, NOUNS.aya)})`,
       /** The cell list's heading prefix. */
-      pairsHeading: "أزواج الآيات المتقاربة",
+      pairsHeading: "أزواج الآيات المتشابهة",
       /** An empty matrix: the dataset holds no cross-surah pair at all. */
-      noPairs: "لا آيةَ في سورةٍ تقارب آيةً من سورةٍ أخرى في المعنى والتركيب معًا.",
+      noPairs: "لا آيةَ في سورةٍ تشابه آيةً من سورةٍ أخرى أو تشاركها مقطعًا.",
       /** A cell the route answers empty — the matrix was stale. */
-      noCellPairs: "لا زوجَ من الآيات المتقاربة بين هاتين السورتين.",
+      noCellPairs: "لا زوجَ من الآيات المتشابهة بين هاتين السورتين.",
       /** Re-issues a failed matrix request. */
       retry: "أعد المحاولة",
-    },
-    /**
-     * The two relations the surah × surah map can draw. «الآيات المتشابهات» is
-     * closeness (meaning AND syntax, whole verses); «المقاطع المشتركة» is shared
-     * WORDING — a passage of at least six words that comes back in another surah.
-     */
-    quranRelations: {
-      similar: "الآيات المتشابهات",
-      passages: "المقاطع المشتركة",
-      groupLabel: "العلاقة بين الآيات",
-    },
-    /**
-     * «المقاطع المشتركة» — the same chart, another relation. A cell counts the
-     * verse PAIRS sharing a passage; the tooltip, legend and hint are the map's
-     * own (`quranMap`), since they name pairs and nothing more.
-     */
-    quranPassages: {
-      /** The one-line totals under the chart: surah pairs, verse pairs, surahs. */
-      caption: (cells: number, pairs: number, surahs: number) =>
-        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات يشترك كلٌّ منها في مقطعٍ من ستّ كلماتٍ فأكثر، في ${count(surahs, NOUNS.surah)}.`,
-      chartLabel: "جدول السور المشتركة المقاطع",
-      /** The cell list's heading prefix. */
-      pairsHeading: "أزواج الآيات المشتركة في مقطع",
-      /** The matched words of one pair, under its two verses. */
-      words: (n: number) => count(n, NOUNS.kalimaMushtaraka),
-      /** An empty matrix: the dataset holds no shared passage at all. */
-      noPairs: "لا آيةَ في سورةٍ تشترك مع آيةٍ من سورةٍ أخرى في مقطعٍ واحد.",
-      /** A cell the route answers empty — the matrix was stale. */
-      noCellPairs: "لا زوجَ من الآيات المشتركة في مقطعٍ بين هاتين السورتين.",
     },
   },
 

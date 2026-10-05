@@ -237,6 +237,32 @@ def quran_passages() -> dict:
     return data
 
 
+QURAN_CLOSE_VERSES_SCHEMA = 1
+
+
+@functools.lru_cache(maxsize=1)
+def quran_close_verses() -> dict:
+    """The unified cross-surah relation (unify-close-verses design D6, schema 1).
+
+    `{"schema": 1, "build": {...}, "unscored": ["<s:a>"], "pairs": [{"a", "b",
+    "score", "sim", "pas", "from", "roots", "k"?, "wa"?, "wb"?, "ca"?, "cb"?}]}`,
+    `a` in the lower surah, sorted by `(a, b)`; the five common-part fields are
+    present together or absent together.
+
+    Composed from `quran_similarity()` and `quran_passages()`, which stay its
+    inputs. Same schema refusal, same reason.
+    """
+    data = _json("QURAN_CLOSE_VERSES_JSON")
+    found = data.get("schema") if isinstance(data, dict) else None
+    if found != QURAN_CLOSE_VERSES_SCHEMA:
+        raise UnknownSchema(
+            f"QURAN_CLOSE_VERSES_JSON ({paths.QURAN_CLOSE_VERSES_JSON}) has schema "
+            f"{found!r}, expected {QURAN_CLOSE_VERSES_SCHEMA}. Rebuild it with:\n"
+            f"    {MANIFEST['QURAN_CLOSE_VERSES_JSON'].rebuild}"
+        )
+    return data
+
+
 # ── references: curated scholarship ───────────────────────────────────────
 
 @functools.lru_cache(maxsize=1)

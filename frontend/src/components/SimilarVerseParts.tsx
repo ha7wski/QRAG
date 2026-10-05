@@ -6,11 +6,12 @@ import { S } from "@/lib/strings";
 import ArabicText from "@/components/ArabicText";
 
 /**
- * The verse and root-chip markup the «الآيات المتشابهات» views share: the
- * intra-surah mode (`SurahSimilarity`) and the surah × surah map
- * (`QuranSimilarityMap`) render a close verse the same way, so the markup lives
- * here once rather than being copied into each. No score is ever rendered — the
- * order of the list carries the ranking.
+ * The verse, common-part and root-chip markup the «الآيات المتشابهات» views
+ * share: the intra-surah mode (`SurahSimilarity`) and the surah × surah map
+ * (`QuranSimilarityMap`) render a close verse — and the part it shares with its
+ * pair, `<mark>`ed with its word count — the same way, so the markup lives here
+ * once rather than being copied into each. No score is ever rendered — the order
+ * of the list carries the ranking.
  */
 
 /** The spinner line under a pending similarity request. */
@@ -26,13 +27,13 @@ export function LoadingLine() {
 }
 
 /**
- * The vocalized text, with `span` — half-open CHARACTER offsets into
- * `text_ar_tashkil`, as the shared-passage route computes them — wrapped in a
- * `<mark>`. The offsets address the vocalized text only: a verse that falls back
- * to `text_ar`, or a span outside the text, is rendered unmarked rather than
- * marked at the wrong place.
+ * The vocalized text, with `span` — the common part of a close pair, as
+ * half-open CHARACTER offsets into the DISPLAYED `text_ar_tashkil` (Basmala
+ * stripped), computed by the build — wrapped in a `<mark>`. The offsets address
+ * the vocalized text only: a verse that falls back to `text_ar`, or a span
+ * outside the text, is rendered unmarked rather than marked at the wrong place.
  */
-function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] }) {
+function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] | null }) {
   const text = verse.text_ar_tashkil || verse.text_ar;
   if (!span || !verse.text_ar_tashkil) return <>{text}</>;
   const [start, end] = span;
@@ -47,7 +48,7 @@ function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] }) 
     <>
       {text.slice(0, start)}
       <mark
-        data-testid="passage-mark"
+        data-testid="common-part"
         className="rounded-sm bg-brand-light text-brand-dark"
       >
         {text.slice(start, end)}
@@ -59,7 +60,7 @@ function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] }) 
 
 /** A vocalized verse with its number badge — and its surah's name when the
  *  verse may come from another surah than the one on screen. `span`, when
- *  given, marks a passage of the verse (see `MarkedText`). */
+ *  given, marks the verse's common part with its pair (see `MarkedText`). */
 export function VerseText({
   verse,
   withSurah = false,
@@ -67,7 +68,7 @@ export function VerseText({
 }: {
   verse: Verse;
   withSurah?: boolean;
-  span?: [number, number];
+  span?: [number, number] | null;
 }) {
   return (
     <ArabicText className="block text-2xl leading-loose text-gray-900">
@@ -91,8 +92,8 @@ export function VerseCardButton({
   openInContext: (surah: number, ayah: number) => void;
   highlighted?: boolean;
   withSurah?: boolean;
-  /** A passage to mark in the verse's vocalized text. */
-  span?: [number, number];
+  /** The common part to mark in the verse's vocalized text. */
+  span?: [number, number] | null;
 }) {
   return (
     <button
@@ -105,6 +106,21 @@ export function VerseCardButton({
     >
       <VerseText verse={verse} withSurah={withSurah} span={span} />
     </button>
+  );
+}
+
+/** «N كلمات مشتركة» — the matched words of a close pair's common part, under
+ *  its verse(s). Renders nothing when the pair has no common part. */
+export function SharedWords({ words }: { words: number | null | undefined }) {
+  if (words == null) return null;
+  return (
+    <div
+      lang="ar"
+      data-testid="shared-words"
+      className="western-digits border-t border-gray-100 px-4 py-2 font-arabic text-sm text-gray-600"
+    >
+      {S.verseStudy.surahSimilar.sharedWords(words)}
+    </div>
   );
 }
 

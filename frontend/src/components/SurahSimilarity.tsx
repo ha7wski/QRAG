@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   type AyahSimilarityResponse,
-  type SimilarNeighbour,
+  type QuranNeighbour,
   type SurahSimilarityResponse,
   type VerseQuranSimilarityResponse,
   detailOf,
@@ -21,6 +21,7 @@ import SurahPicker from "@/components/SurahPicker";
 import {
   LoadingLine,
   RootChips,
+  SharedWords,
   VerseCardButton,
   VerseText,
 } from "@/components/SimilarVerseParts";
@@ -34,7 +35,9 @@ const ANCHOR_PANEL_ID = "surah-similar-anchor";
  * Pick a surah → its groups of mutually close verses, strongest first, each
  * framed in green and numbered (1, 2, 3 …) in a green disc beside it. Pick a verse of a group → the verse, then
  * its close verses in the REST of the Quran (`GET /verse/{s}/{a}/similar`),
- * ranked, each with the content roots it shares with it. Its same-surah
+ * ranked, each with the part it shares with it `<mark>`ed and counted when it
+ * has one, and the content roots the two share. The picked verse itself is
+ * never marked: its common part differs with every neighbour. Its same-surah
  * neighbours are not listed (the group already shows them); the intra request
  * still supplies the verse card, and the two requests fail apart.
  *
@@ -422,15 +425,17 @@ function AnchorPanel({
   );
 }
 
-/** One ranked close verse: the verse (opens «الآية في سياقها»), then the content
- *  roots it shares with the anchor. No score — the order carries the ranking. */
+/** One ranked close verse elsewhere in the Quran: the verse (opens «الآية في
+ *  سياقها») with its common part with the anchor marked — `span` addresses THIS
+ *  verse's text — then that part's word count and the content roots the two
+ *  share. No score — the order carries the ranking. */
 function NeighbourCard({
   neighbour: n,
   openInContext,
   withSurah = false,
   testId,
 }: {
-  neighbour: SimilarNeighbour;
+  neighbour: QuranNeighbour;
   openInContext: (surah: number, ayah: number) => void;
   withSurah?: boolean;
   testId: string;
@@ -444,7 +449,9 @@ function NeighbourCard({
         verse={n.verse}
         openInContext={openInContext}
         withSurah={withSurah}
+        span={n.span}
       />
+      <SharedWords words={n.words} />
       <RootChips roots={n.roots} />
     </li>
   );

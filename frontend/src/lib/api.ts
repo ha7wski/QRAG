@@ -251,17 +251,36 @@ export async function getAyahSimilarity(
   return res.json();
 }
 
-// ── Quran-wide similarity («في سائر القرآن») ───────────────────────────
-// The same definition of «close» as the intra-surah view, applied across
-// surahs: a separate precomputed dataset, so its failure never touches the
-// intra view. Every neighbour is in ANOTHER surah, hence its own surah name.
+// ── Quran-wide close verses («في سائر القرآن») ─────────────────────────
+// The unified cross-surah relation: a pair is close when the verses are close in
+// meaning and syntax OR share a passage of wording, ranked by one score over
+// both. A separate precomputed dataset, so its failure never touches the intra
+// view. Every neighbour is in ANOTHER surah, hence its own surah name.
 
-/** `GET /verse/{s}/{a}/similar` — one verse's close verses elsewhere in the Quran, ranked. */
+/**
+ * One close verse of an anchor elsewhere in the Quran. Distinct from the
+ * intra-surah `SimilarNeighbour`: it may carry the COMMON PART the two verses
+ * share — `words` and `span` are both null when it has none.
+ */
+export interface QuranNeighbour {
+  verse: Verse;
+  /** Ranking only — never rendered. */
+  score: number;
+  roots: string[];
+  /** Matched words of the common part, or null. */
+  words: number | null;
+  /** Half-open CHARACTER offsets of the common part in the NEIGHBOUR's
+   *  `text_ar_tashkil`, or null. */
+  span: [number, number] | null;
+}
+
+/** `GET /verse/{s}/{a}/similar` — one verse's close verses elsewhere in the
+ *  Quran, ranked; every pair of the relation holding it (no cap). */
 export interface VerseQuranSimilarityResponse {
   anchor: Verse;
   /** True when the anchor carries no content word (then `neighbours` is empty). */
   unscored: boolean;
-  neighbours: SimilarNeighbour[];
+  neighbours: QuranNeighbour[];
 }
 
 export async function getVerseQuranSimilarity(
@@ -300,13 +319,21 @@ export interface QuranSimilarityMatrix {
   max_pairs: number;
 }
 
-/** One close pair of a cell: `u` in surah `a`, `v` in surah `b`. */
+/** One close pair of a cell: `u` in surah `a`, `v` in surah `b`. `words`,
+ *  `span_u` and `span_v` describe the pair's common part and are null together
+ *  when it has none. */
 export interface QuranSimilarityPair {
   u: Verse;
   v: Verse;
   /** Ranking only — never rendered. */
   score: number;
   roots: string[];
+  /** Matched words of the common part, or null. */
+  words: number | null;
+  /** Half-open CHARACTER offsets of the common part in `u.text_ar_tashkil`, or null. */
+  span_u: [number, number] | null;
+  /** Half-open CHARACTER offsets of the common part in `v.text_ar_tashkil`, or null. */
+  span_v: [number, number] | null;
 }
 
 /** `GET /quran-similarity/pairs/{a}/{b}` — one cell's pairs, strongest first. */
@@ -333,54 +360,6 @@ export async function getQuranSimilarityPairs(
 ): Promise<QuranSimilarityPairs> {
   const res = await fetch(`${API_URL}/quran-similarity/pairs/${a}/${b}`);
   if (!res.ok) throw await similarityError(res, `Similarity pairs failed`);
-  return res.json();
-}
-
-// ── Shared passages («المقاطع المشتركة») ────────────────────────────────
-// A second cross-surah relation, beside closeness: two verses of different
-// surahs sharing a passage of wording (a local alignment of their words, no
-// model). Its own precomputed dataset, so its failure never touches the
-// similarity map. The matrix has the similarity map's shape exactly.
-
-/** `GET /quran-passages/matrix` — all 114 surahs, the non-empty cells only. */
-export type QuranPassagesMatrix = QuranSimilarityMatrix;
-
-/** One shared passage of a cell: `u` in surah `a`, `v` in surah `b`. */
-export interface QuranPassagePair {
-  u: Verse;
-  v: Verse;
-  /** Matched words of the passage. */
-  words: number;
-  /** Half-open CHARACTER offsets of the passage in `u.text_ar_tashkil`. */
-  span_u: [number, number];
-  /** Half-open CHARACTER offsets of the passage in `v.text_ar_tashkil`. */
-  span_v: [number, number];
-}
-
-/** `GET /quran-passages/pairs/{a}/{b}` — one cell's passages, longest first. */
-export interface QuranPassagesPairs {
-  a: number;
-  b: number;
-  surah_name_a: string;
-  surah_name_b: string;
-  /** Distinct verses of each side taking part (0 for an empty cell). */
-  verses_a: number;
-  verses_b: number;
-  pairs: QuranPassagePair[];
-}
-
-export async function getQuranPassagesMatrix(): Promise<QuranPassagesMatrix> {
-  const res = await fetch(`${API_URL}/quran-passages/matrix`);
-  if (!res.ok) throw await similarityError(res, `Passage matrix failed`);
-  return res.json();
-}
-
-export async function getQuranPassagesPairs(
-  a: number,
-  b: number,
-): Promise<QuranPassagesPairs> {
-  const res = await fetch(`${API_URL}/quran-passages/pairs/${a}/${b}`);
-  if (!res.ok) throw await similarityError(res, `Passage pairs failed`);
   return res.json();
 }
 

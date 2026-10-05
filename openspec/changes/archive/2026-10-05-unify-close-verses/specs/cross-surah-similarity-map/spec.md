@@ -1,8 +1,5 @@
-# cross-surah-similarity-map Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-cross-surah-similarity-map. Update Purpose after archive.
-## Requirements
 ### Requirement: A cell counts the close verse pairs between two surahs
 
 The system SHALL aggregate the unified close-verses dataset (`quran_close_verses.json`, capability
@@ -134,4 +131,3 @@ the latest selection SHALL apply its answer.
 
 - **WHEN** the reader clicks cell X, then cell Y before X's answer arrives
 - **THEN** the list SHALL end on Y's pairs
-

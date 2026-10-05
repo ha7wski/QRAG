@@ -36,34 +36,6 @@ pass.
 - **THEN** every passage SHALL join two different surahs, have `k ≥ 6`, `k ≥ 0.75 ×` its longer span
   and ≥ 3 matched positions joining two content words (words carrying a root)
 
-### Requirement: Model-free routes serve the passage map and a cell's passages
-
-`GET /quran-passages/matrix` SHALL return all 114 surah names, the non-empty cells `a < b` with their
-pair and verse counts, `total_pairs` and `max_pairs`. `GET /quran-passages/pairs/{a}/{b}` SHALL return
-both surah names, the verse counts and the pairs, `u` in the lower surah, ordered by matched words
-descending then `(u, v)`, each with `words` and the passage's half-open character span in each verse's
-`text_ar_tashkil`. `a == b` SHALL be a 422 before any read, an empty cell a 200 with no pairs, `(b, a)`
-the same answer as `(a, b)`, and a missing or unreadable dataset a 503 naming
-`python scripts/build_quran_passages.py`.
-
-#### Scenario: The span marks the passage in the displayed text
-
-- **WHEN** the pairs of cell (28, 36) are requested
-- **THEN** the 28:20/36:20 pair SHALL carry spans whose text, in each verse's `text_ar_tashkil`, starts
-  with «وَجَاءَ» and ends with «قَالَ»
-
-### Requirement: The map switches between the two relations
-
-The cross-surah map mode SHALL offer a switch «الآيات المتشابهات» / «المقاطع المشتركة», the first by
-default. With the second, the chart SHALL show the passage matrix under the same rules, and a picked
-cell SHALL list its pairs with each verse's passage highlighted and the matched word count; a verse
-SHALL open «الآية في سياقها».
-
-#### Scenario: Picking a passage cell
-
-- **WHEN** the reader switches to «المقاطع المشتركة» and picks cell (28, 36)
-- **THEN** the list SHALL show 28:20 and 36:20 with «وَجَاءَ … قَالَ» highlighted in both
-
 ### Requirement: Measured against a gold set drafted blind
 
 A gold set of cross-surah pairs SHALL be drafted from the verse texts before the build runs on the

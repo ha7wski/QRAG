@@ -1,39 +1,36 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { KeyboardEvent } from "react";
 import {
-  type QuranPassagePair,
   type QuranSimilarityCell,
   type QuranSimilarityMatrix,
-  type QuranSimilarityPair,
+  type QuranSimilarityPairs,
   detailOf,
-  getQuranPassagesMatrix,
-  getQuranPassagesPairs,
   getQuranSimilarityMatrix,
   getQuranSimilarityPairs,
   statusOf,
 } from "@/lib/api";
-import type { Verse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import {
   LoadingLine,
   RootChips,
+  SharedWords,
   VerseCardButton,
 } from "@/components/SimilarVerseParts";
 
 /**
  * «الآيات المتشابهات في سائر القرآن» — the surah × surah map.
  *
- * Every cell (A, B) counts the close verse PAIRS between surah A and surah B in
- * the cross-surah dataset (`GET /quran-similarity/matrix`); picking a cell lists
- * those pairs below the chart (`GET /quran-similarity/pairs/{a}/{b}`), each verse
- * opening «الآية في سياقها». Load-bearing choices, easy to "tidy" into wrong ones:
+ * Every cell (A, B) counts the close verse PAIRS between surah A and surah B
+ * in the unified close-verses dataset (`GET /quran-similarity/matrix`); picking
+ * a cell lists those pairs below the chart (`GET /quran-similarity/pairs/{a}/{b}`),
+ * each verse opening «الآية في سياقها». Load-bearing choices, easy to "tidy" into wrong ones:
  *
  *   the axes are DERIVED: only the surahs that appear in at least one cell get a
- *       row and a column (96 on the current dataset), in mushaf order. The route
+ *       row and a column (about a hundred), in mushaf order. The route
  *       still sends all 114 names; it is the chart that drops the empty ones, so a
  *       rebuilt dataset re-derives its axes and nothing here is hard-coded.
  *   the square is MIRRORED: (A, B) and (B, A) are both drawn, so a pair is found
@@ -43,25 +40,22 @@ import {
  *       on the left and the first row at the bottom; the x-axis reads left to
  *       right, the y-axis bottom to top. Column names sit along the bottom, row
  *       names on the left, and the box opens scrolled to that corner.
- *   the scale is LOG-BINNED (1, 2, 3–4, 5–8, 9–16, 17+): one cell holds 31 pairs
- *       and most hold 1–2, so a linear scale would wash every small cell into the
+ *   the scale is LOG-BINNED (1, 2, 3–4, 5–8, 9–16, 17+): the darkest cells
+ *       hold dozens of pairs and most hold 1–2, so a linear scale would wash every small cell into the
  *       background. Colour carries magnitude only — the tooltip and the list
  *       heading give the exact count. An EMPTY cell is the card's background, not
  *       the lightest step: «no pair» must not read as «few pairs».
  *   no score is rendered anywhere: the order of the list carries the ranking.
  *
- * TWO relations share this chart, behind a switch above it (similarity by
- * default): «الآيات المتشابهات» (close verses, the routes above) and «المقاطع
- * المشتركة» — verse pairs sharing a passage of wording (`GET /quran-passages/
- * matrix` and `/pairs/{a}/{b}`, same matrix shape). Axes, bins, tooltip and
- * keyboard rules are the same code for both; a passage pair is listed with the
- * passage `<mark>`ed in each verse (character spans from the route) and its
- * matched word count.
+ * ONE relation, the unified close verses: a pair is in it when its verses are
+ * close in meaning and syntax OR share a passage of wording (there is no
+ * relation switch any more). A listed pair shows its COMMON PART `<mark>`ed in
+ * both verses (character spans from the route) with «N كلمات مشتركة» under it,
+ * and the plain verses when it has none.
  *
- * Durable state lives under `verse-study.similar.quran.*` — the similarity map's
- * original keys, `…quran.passages.*` for the passages, `…quran.relation` for the
- * switch — so leaving the mode or the page and coming back shows the same
- * relation and cell with no request.
+ * Durable state lives under `verse-study.similar.quran.*` (matrix, cell,
+ * cells), so leaving the mode or the page and coming back shows the same cell
+ * with no request.
  */
 
 /**
@@ -86,7 +80,7 @@ const BIN_FLOORS = [1, 2, 3, 5, 9, 17];
 /** The inert diagonal: a neutral grey, never on the ramp. */
 const DIAGONAL = "#e5e7eb";
 
-/** Cell side, in px. 96 surahs × 12 px ≈ 1 150 px: wider than the page, hence
+/** Cell side, in px. ~100 surahs × 12 px ≈ 1 200 px: wider than the page, hence
  *  the chart's own scroll container. */
 const C = 12;
 /** Room for a surah name: the row-label column and the column-label band. */
@@ -104,86 +98,7 @@ const keyOf = (a: number, b: number) => `${Math.min(a, b)}:${Math.max(a, b)}`;
 
 type CellRef = { a: number; b: number };
 
-/** What both relations' cell answers have in common: the panel reads no more. */
-type CellPairs<P> = {
-  a: number;
-  b: number;
-  surah_name_a: string;
-  surah_name_b: string;
-  verses_a: number;
-  verses_b: number;
-  pairs: P[];
-};
-
-/**
- * One relation the map can draw. The chart, the selection, the request
- * discipline and the cache are the SAME code for both — only the routes, the
- * wording and a pair's card differ, so the two maps cannot drift apart in how
- * they behave.
- */
-type Relation<P extends { u: Verse; v: Verse }> = {
-  /** `verse-study.similar.quran.<cacheKey>.*` — `""` keeps the similarity
-   *  map's original keys, so its state survives this change untouched. */
-  cacheKey: string;
-  getMatrix: () => Promise<QuranSimilarityMatrix>;
-  getPairs: (a: number, b: number) => Promise<CellPairs<P>>;
-  caption: (cells: number, pairs: number, surahs: number) => string;
-  chartLabel: string;
-  pairsHeading: string;
-  noPairs: string;
-  noCellPairs: string;
-  renderPair: (p: P, openInContext: (surah: number, ayah: number) => void) => ReactNode;
-};
-
-const SIMILAR: Relation<QuranSimilarityPair> = {
-  cacheKey: "",
-  getMatrix: getQuranSimilarityMatrix,
-  getPairs: getQuranSimilarityPairs,
-  caption: S.verseStudy.quranMap.caption,
-  chartLabel: S.verseStudy.quranMap.chartLabel,
-  pairsHeading: S.verseStudy.quranMap.pairsHeading,
-  noPairs: S.verseStudy.quranMap.noPairs,
-  noCellPairs: S.verseStudy.quranMap.noCellPairs,
-  renderPair: (p, openInContext) => (
-    <>
-      <VerseCardButton verse={p.u} openInContext={openInContext} withSurah />
-      <div className="border-t border-dashed border-gray-200">
-        <VerseCardButton verse={p.v} openInContext={openInContext} withSurah />
-      </div>
-      <RootChips roots={p.roots} />
-    </>
-  ),
-};
-
-const PASSAGES: Relation<QuranPassagePair> = {
-  cacheKey: "passages.",
-  getMatrix: getQuranPassagesMatrix,
-  getPairs: getQuranPassagesPairs,
-  caption: S.verseStudy.quranPassages.caption,
-  chartLabel: S.verseStudy.quranPassages.chartLabel,
-  pairsHeading: S.verseStudy.quranPassages.pairsHeading,
-  noPairs: S.verseStudy.quranPassages.noPairs,
-  noCellPairs: S.verseStudy.quranPassages.noCellPairs,
-  // Both verses with the passage marked, then the matched word count. The
-  // spans are character offsets into `text_ar_tashkil`, computed by the route.
-  renderPair: (p, openInContext) => (
-    <>
-      <VerseCardButton verse={p.u} openInContext={openInContext} withSurah span={p.span_u} />
-      <div className="border-t border-dashed border-gray-200">
-        <VerseCardButton verse={p.v} openInContext={openInContext} withSurah span={p.span_v} />
-      </div>
-      <div
-        lang="ar"
-        data-testid="quran-map-pair-words"
-        className="western-digits border-t border-gray-100 px-4 py-2 font-arabic text-sm text-gray-600"
-      >
-        {S.verseStudy.quranPassages.words(p.words)}
-      </div>
-    </>
-  ),
-};
-
-type RelationKey = "similar" | "passages";
+const LIST_ID = "quran-map-pairs";
 
 export default function QuranSimilarityMap({
   openInContext,
@@ -191,117 +106,18 @@ export default function QuranSimilarityMap({
   /** Opens a verse in «الآية في سياقها» — the page's own handler. */
   openInContext: (surah: number, ayah: number) => void;
 }) {
-  const [relation, setRelation] = useCachedState<RelationKey>(
-    "verse-study.similar.quran.relation",
-    "similar",
-  );
-  // Each relation mounts on first use and then stays mounted, hidden: its
-  // matrix is requested only once it is shown, and switching back and forth
-  // re-requests nothing (its durable state is cached besides).
-  const [similarMounted, setSimilarMounted] = useState(relation === "similar");
-  const [passagesMounted, setPassagesMounted] = useState(relation === "passages");
-
-  function choose(r: RelationKey) {
-    if (r === "similar") setSimilarMounted(true);
-    if (r === "passages") setPassagesMounted(true);
-    setRelation(r);
-  }
-
-  const options: [RelationKey, string][] = [
-    ["similar", S.verseStudy.quranRelations.similar],
-    ["passages", S.verseStudy.quranRelations.passages],
-  ];
-
-  return (
-    <div className="space-y-6">
-      {/* The page's track-and-pill radio group, with the same keyboard model:
-          one Tab stop, arrows move AND select, wrapping; under RTL the next
-          option sits to the LEFT. */}
-      <div
-        role="radiogroup"
-        aria-label={S.verseStudy.quranRelations.groupLabel}
-        className="inline-flex flex-wrap items-center gap-1 rounded-lg bg-gray-100 p-1"
-      >
-        {options.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            role="radio"
-            aria-checked={relation === key}
-            tabIndex={relation === key ? 0 : -1}
-            onClick={() => choose(key)}
-            onKeyDown={(e) => {
-              const step =
-                e.key === "ArrowLeft" || e.key === "ArrowDown"
-                  ? 1
-                  : e.key === "ArrowRight" || e.key === "ArrowUp"
-                    ? -1
-                    : 0;
-              if (step === 0) return;
-              e.preventDefault();
-              const at = options.findIndex(([k]) => k === relation);
-              const next = (at + step + options.length) % options.length;
-              choose(options[next][0]);
-              const radios = e.currentTarget.parentElement?.querySelectorAll<HTMLElement>(
-                '[role="radio"]',
-              );
-              radios?.[next]?.focus();
-            }}
-            className={`rounded-md px-3 py-1 font-arabic text-sm transition ${
-              relation === key
-                ? "bg-white font-semibold text-brand-dark shadow-sm"
-                : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {similarMounted && (
-        <div
-          data-testid="quran-map-relation-similar"
-          className={relation === "similar" ? "" : "hidden"}
-        >
-          <RelationPanel relation={SIMILAR} listId="quran-map-pairs" openInContext={openInContext} />
-        </div>
-      )}
-      {passagesMounted && (
-        <div
-          data-testid="quran-map-relation-passages"
-          className={relation === "passages" ? "" : "hidden"}
-        >
-          <RelationPanel
-            relation={PASSAGES}
-            listId="quran-map-passages"
-            openInContext={openInContext}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RelationPanel<P extends { u: Verse; v: Verse }>({
-  relation,
-  listId,
-  openInContext,
-}: {
-  relation: Relation<P>;
-  /** The cell list's id — picking a cell scrolls it into view. */
-  listId: string;
-  openInContext: (surah: number, ayah: number) => void;
-}) {
-  const prefix = `verse-study.similar.quran.${relation.cacheKey}`;
   const [matrix, setMatrix] = useCachedState<QuranSimilarityMatrix | null>(
-    `${prefix}matrix`,
+    "verse-study.similar.quran.matrix",
     null,
   );
   // The selected cell, `a < b`.
-  const [selected, setSelected] = useCachedState<CellRef | null>(`${prefix}cell`, null);
+  const [selected, setSelected] = useCachedState<CellRef | null>(
+    "verse-study.similar.quran.cell",
+    null,
+  );
   // Fetched cells, keyed "a:b" with a < b.
-  const [cells, setCells] = useCachedState<Record<string, CellPairs<P>>>(
-    `${prefix}cells`,
+  const [cells, setCells] = useCachedState<Record<string, QuranSimilarityPairs>>(
+    "verse-study.similar.quran.cells",
     {},
   );
   // Transient — never cached (a cached `true` restores a spinner that never stops).
@@ -321,7 +137,7 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
     setMatrixError(null);
     setMatrixLoading(true);
     try {
-      const res = await relation.getMatrix();
+      const res = await getQuranSimilarityMatrix();
       if (seq === matrixSeq.current) setMatrix(res);
     } catch (e) {
       if (seq === matrixSeq.current)
@@ -335,7 +151,7 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
     const seq = ++cellSeq.current;
     setCellLoading(true);
     try {
-      const res = await relation.getPairs(a, b);
+      const res = await getQuranSimilarityPairs(a, b);
       if (seq === cellSeq.current)
         setCells((prev) => ({ ...prev, [keyOf(a, b)]: res }));
     } catch (e) {
@@ -366,7 +182,7 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
       return;
     setSelected({ a, b });
     setCellError(null);
-    const list = document.getElementById(listId);
+    const list = document.getElementById(LIST_ID);
     if (list && typeof list.scrollIntoView === "function")
       list.scrollIntoView({ behavior: "smooth", block: "start" });
     if (cells[keyOf(a, b)]) {
@@ -415,29 +231,22 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
               data-testid="quran-map-empty"
               className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
-              {relation.noPairs}
+              {S.verseStudy.quranMap.noPairs}
             </div>
           ) : (
-            <Heatmap
-              matrix={matrix}
-              caption={relation.caption}
-              chartLabel={relation.chartLabel}
-              names={names}
-              selected={selected}
-              onChoose={choose}
-            />
+            <Heatmap matrix={matrix} names={names} selected={selected} onChoose={choose} />
           )}
         </>
       )}
 
-      <section id={listId} className="scroll-mt-4 space-y-3">
+      <section id={LIST_ID} className="scroll-mt-4 space-y-3">
         {selected && (
           <h3
             lang="ar"
             data-testid="quran-map-pairs-heading"
             className="western-digits font-arabic text-lg font-semibold text-gray-800"
           >
-            {relation.pairsHeading}
+            {S.verseStudy.quranMap.pairsHeading}
             {" — "}
             {S.verseStudy.quranMap.cell(
               pairs?.surah_name_a ?? names.get(selected.a) ?? String(selected.a),
@@ -467,7 +276,7 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
               data-testid="quran-map-cell-empty"
               className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
             >
-              {relation.noCellPairs}
+              {S.verseStudy.quranMap.noCellPairs}
             </div>
           ) : (
             <ol className="space-y-3">
@@ -477,7 +286,25 @@ function RelationPanel<P extends { u: Verse; v: Verse }>({
                   data-testid="quran-map-pair"
                   className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand"
                 >
-                  {relation.renderPair(p, openInContext)}
+                  {/* Both verses, each with the common part marked when the pair
+                      has one (spans into `text_ar_tashkil`, from the route), then
+                      its word count, then the shared roots. */}
+                  <VerseCardButton
+                    verse={p.u}
+                    openInContext={openInContext}
+                    withSurah
+                    span={p.span_u}
+                  />
+                  <div className="border-t border-dashed border-gray-200">
+                    <VerseCardButton
+                      verse={p.v}
+                      openInContext={openInContext}
+                      withSurah
+                      span={p.span_v}
+                    />
+                  </div>
+                  <SharedWords words={p.words} />
+                  <RootChips roots={p.roots} />
                 </li>
               ))}
             </ol>
@@ -496,16 +323,11 @@ type Drawn = { row: number; col: number; cell: QuranSimilarityCell };
  */
 function Heatmap({
   matrix,
-  caption,
-  chartLabel,
   names,
   selected,
   onChoose,
 }: {
   matrix: QuranSimilarityMatrix;
-  /** The relation's totals line and the chart's accessible name. */
-  caption: (cells: number, pairs: number, surahs: number) => string;
-  chartLabel: string;
   names: Map<number, string>;
   selected: CellRef | null;
   onChoose: (a: number, b: number) => void;
@@ -523,7 +345,7 @@ function Heatmap({
   // Both instances of every cell, in row order then column order: the DOM
   // order IS the tab order, so the keyboard walks the matrix row by row, each
   // row from its lowest surah (at the left) — through the
-  // upper triangle only, one stop per cell (286, not 572, on the current dataset).
+  // upper triangle only, one stop per cell, not two.
   const drawn = useMemo(() => {
     const out: Drawn[] = [];
     for (const cell of matrix.cells) {
@@ -578,7 +400,7 @@ function Heatmap({
   return (
     <div className="space-y-3">
       <p lang="ar" data-testid="quran-map-caption" className="western-digits text-sm text-gray-600">
-        {caption(matrix.cells.length, matrix.total_pairs, N)}
+        {S.verseStudy.quranMap.caption(matrix.cells.length, matrix.total_pairs, N)}
       </p>
 
       <Legend />
@@ -668,12 +490,12 @@ function Heatmap({
           >
             <svg
               role="group"
-              aria-label={chartLabel}
+              aria-label={S.verseStudy.quranMap.chartLabel}
               width={size}
               height={size}
               style={{ display: "block" }}
             >
-              {/* The hovered row and column, as faint bands: on a 96 × 96 grid
+              {/* The hovered row and column, as faint bands: on a ~100 × 100 grid
                   the eye needs a guide back to both names. */}
               {hot && hotRow !== undefined && hotCol !== undefined && (
                 <g aria-hidden="true" pointerEvents="none">
