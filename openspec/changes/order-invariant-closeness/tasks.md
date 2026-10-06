@@ -39,24 +39,24 @@
 
 ## 8. Gold protocol (D10) — BEFORE any version-2 code
 
-- [ ] 8.1 Write the definition text (Arabic + English) and put it in the header of the three gold files; relabel them in a FRESH context (definition + verse texts only, no system output): `neg_scattered` split into permuted blocks (positive) / scattered (negative), every changed label with its reason; bump versions; update the digests the eval scripts refuse
-- [ ] 8.2 `scripts/draw_closeness_blind_sample.py`: seeded, model-free draw of 60 cross-surah pairs sharing ≥ 3 content lemmas, 20 per `lex` bin `[0.3,0.5)` / `[0.5,0.7)` / `[0.7,1]`, no gate; label in a fresh context; commit `tests/eval/closeness_blind_v2.json`
-- [ ] 8.3 `scripts/eval_closeness_blind.py`: positives stored (either direction) / negatives stored over the cross-surah and close-verses datasets; refuses a digest mismatch; targets ≥ 0.65 / ≤ 0.25 printed
+- [x] 8.1 Write the definition text (Arabic + English) and put it in the header of the three gold files; relabel them in a FRESH context (definition + verse texts only, no system output): `neg_scattered` split into permuted blocks (positive) / scattered (negative), every changed label with its reason; bump versions; update the digests the eval scripts refuse
+- [x] 8.2 `scripts/draw_closeness_blind_sample.py`: seeded, model-free draw of 60 cross-surah pairs sharing ≥ 3 content lemmas, 20 per `lex` bin `[0.3,0.5)` / `[0.5,0.7)` / `[0.7,1]`, no gate; label in a fresh context; commit `tests/eval/closeness_blind_v2.json`
+- [x] 8.3 `scripts/eval_closeness_blind.py`: positives stored (either direction) / negatives stored over the cross-surah and close-verses datasets; refuses a digest mismatch; targets ≥ 0.65 / ≤ 0.25 printed
 
 ## 9. Core version 2 (`scripts/closeness_core.py`, TDD)
 
-- [ ] 9.1 D2 tie-break: anchors (token unique in both verses), `δ = median(q − p)`, penalty `10⁻³·|(q−p)−δ|/max(n)`; tests: 2:255/3:2 content edges pair the OPENING «لا», step-1 pinned pairs unchanged
-- [ ] 9.2 D4 coarse element: `coarse_element(segments)`; tests: 43:83/70:42 equal signatures, رَبِّكُمْ/رَبِّهِمْ one element, PASS kept, case/mood dropped; 55:13/55:25 still equal
-- [ ] 9.3 D4 block re-ordering + `syn = max(plain, A·B′, A′·B)`; tests: pure block permutation → 1, substitution costs 1/n, symmetric, bounded, no edge → plain Levenshtein; 2:173/16:115 ≥ σ
-- [ ] 9.4 D5 bounds: length + coarse bag only (bigram bound removed); property test over random signatures AND random block re-orderings
-- [ ] 9.5 D6 largest accepted region with the full tie order and A-orientation; exact pruning; tests: 28:20/36:20 (1..7), 2:3/14:31 found, 2:255/3:2 k = 7, 2:164/45:5 accepted sub-window, short formula rejected, brute-force equality on small random cases
+- [x] 9.1 D2 tie-break: anchors (token unique in both verses), `δ = median(q − p)`, penalty `10⁻³·|(q−p)−δ|/max(n)`; tests: 2:255/3:2 content edges pair the OPENING «لا», step-1 pinned pairs unchanged
+- [x] 9.2 D4 coarse element: `coarse_element(segments)`; tests: 43:83/70:42 equal signatures, رَبِّكُمْ/رَبِّهِمْ one element, PASS kept, case/mood dropped; 55:13/55:25 still equal
+- [x] 9.3 D4 block re-ordering + `syn = max(plain, A·B′, A′·B)`; tests: pure block permutation → 1, substitution costs 1/n, symmetric, bounded, no edge → plain Levenshtein; 2:173/16:115 ≥ σ
+- [x] 9.4 D5 bounds: length + coarse bag only (bigram bound removed); property test over random signatures AND random block re-orderings
+- [x] 9.5 D6 largest accepted region with the full tie order and A-orientation; exact pruning; tests: 28:20/36:20 (1..7), 2:3/14:31 found, 2:255/3:2 k = 7, 2:164/45:5 accepted sub-window, short formula rejected, brute-force equality on small random cases
 
 ## 10. Builds, version 2
 
-- [ ] 10.1 `build_surah_similarity.py`: signature = coarse elements from the core; `syn` with re-ordering needs the edges → the intra syntax stage computes the matching for the pairs it scores (candidate generation unchanged); header names (D8)
-- [ ] 10.2 `build_quran_similarity.py`: pre-filters = length + coarse bag (drop the bigram stage from stats/diagnostics/eval), syntax stage with the core's `syn`; header names; blind-sample digest in the header
-- [ ] 10.3 `build_quran_passages.py`: largest accepted region from the core; header names
-- [ ] 10.4 `build_quran_close_verses.py`: D2 tie-break through the core; blind-sample digest in the header
+- [x] 10.1 `build_surah_similarity.py`: signature = coarse elements from the core; `syn` with re-ordering needs the edges → the intra syntax stage computes the matching for the pairs it scores (candidate generation unchanged); header names (D8)
+- [x] 10.2 `build_quran_similarity.py`: pre-filters = length + coarse bag (drop the bigram stage from stats/diagnostics/eval), syntax stage with the core's `syn`; header names; blind-sample digest in the header
+- [x] 10.3 `build_quran_passages.py`: largest accepted region from the core; header names
+- [x] 10.4 `build_quran_close_verses.py`: D2 tie-break through the core; blind-sample digest in the header
 - [ ] 10.5 Tests of the four builds and the eval scripts follow; `python -m pytest -q` green; frontend checks green
 
 ## 11. Rebuild and measure, version 2 (backend stopped)

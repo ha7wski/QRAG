@@ -219,6 +219,17 @@ negatives stored ≤ 0.25**.
    a digest mismatch.
 4. Nothing is changed after the build; a miss is recorded as the result.
 
+*Done 2026-10-06, before any version-2 build.* Blind sample: 60 pairs drawn from 221 848 (every pair
+scored by `lex`; 1 979 / 297 / 163 in the three bins), labelled 42 positive / 18 negative. Relabel:
+passages 2 changes (6:102/40:62 → positive; 2:106/35:1 → `neg_short_formula`, أَنَّ ≠ إِنَّ), cross 20
+(3:10/58:17 → positive; 19 positives → `neg_same_syntax_diff_subject`), intra 10 (positives →
+`neg_same_syntax_diff_subject`). The 29 flips all come from the definition's «same material» clause:
+the old gold held parallel formulas with NO shared lemma as positives (81:1/82:1, 77:8/77:10, 94:2/94:4,
+oath moulds). **User decision (2026-10-06): material is required** — consistent with the structural
+rule «≥ 1 shared content root» the relation has carried since its first build (the baseline's
+`no_shared_root` losses were exactly such pairs). Labeller conventions recorded in each file's
+reasons; a substituted proper name counts as a slot fill, not as different material.
+
 ## Risks / Trade-offs
 
 - [The coarse element is lenient: more syntax survivors → more cross-encoder pairs] → the cap M and
