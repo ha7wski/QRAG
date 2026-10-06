@@ -237,17 +237,21 @@ def quran_passages() -> dict:
     return data
 
 
-QURAN_CLOSE_VERSES_SCHEMA = 1
+QURAN_CLOSE_VERSES_SCHEMA = 2
 
 
 @functools.lru_cache(maxsize=1)
 def quran_close_verses() -> dict:
-    """The unified cross-surah relation (unify-close-verses design D6, schema 1).
+    """The unified cross-surah relation (unify-close-verses D6; common part schema 2,
+    order-invariant-common-words D5).
 
-    `{"schema": 1, "build": {...}, "unscored": ["<s:a>"], "pairs": [{"a", "b",
-    "score", "sim", "pas", "from", "roots", "k"?, "wa"?, "wb"?, "ca"?, "cb"?}]}`,
-    `a` in the lower surah, sorted by `(a, b)`; the five common-part fields are
-    present together or absent together.
+    `{"schema": 2, "build": {...}, "unscored": ["<s:a>"], "pairs": [{"a", "b",
+    "score", "sim", "pas", "from", "roots", "k"?, "wa"?, "wb"?, "m"?, "ca"?,
+    "cb"?}]}`, `a` in the lower surah, sorted by `(a, b)`. `k` / `wa` / `wb` (the
+    passage's own figures) are present exactly when `"passage" in from`; the
+    common part — `m` (`[[p, q, "lemma"|"root"]]`) and `ca` / `cb` (lists of
+    half-open `[s, e]` spans in the displayed text) — is present together or
+    absent together. A schema-1 file is refused with its rebuild command.
 
     Composed from `quran_similarity()` and `quran_passages()`, which stay its
     inputs. Same schema refusal, same reason.

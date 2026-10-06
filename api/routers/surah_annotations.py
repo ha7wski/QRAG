@@ -10,12 +10,13 @@ and measured — this route reads, it never computes:
     loader and `retrieval.quran_close_verses.surah_partners`) — every pair
     holding a verse of the surah, split by RELATION, never by a threshold:
     `similarity` in `from` → `whole` (orange marker), `from == ["passage"]` →
-    `passage` (orange words, through the stored span).
+    `passage` (orange words, through the stored spans).
 
 Each annotated ayah lists its group partners and its cross partners; every
 partner verse travels once in `verses`, through `verse_from_record`, so the
-bubble never fetches. Spans are oriented to the ayah's side (`span_self`) and
-checked against the displayed `text_ar_tashkil` of the verse they index.
+bubble never fetches. Span lists are oriented to the ayah's side (`spans_self`)
+and each span is checked against the displayed `text_ar_tashkil` of the verse it
+indexes.
 
 Errors: surah outside 1..114 → 422 (path validation); either dataset missing,
 of an unknown schema or malformed, naming a verse the corpus does not hold, or
@@ -94,8 +95,8 @@ def get_surah_annotations(
                 ref=other.id,
                 score=p["score"],
                 words=p["words"],
-                span_self=cross._placed(selves[ayah], p["span_self"]),
-                span_other=cross._placed(other, p["span_other"]),
+                spans_self=cross._placed(selves[ayah], p["spans_self"]),
+                spans_other=cross._placed(other, p["spans_other"]),
             )
             (whole if "similarity" in p["from"] else passage).append(partner)
         group = sorted(groups.get(ayah, ()))

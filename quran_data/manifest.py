@@ -588,7 +588,7 @@ MANIFEST: dict[str, Entry] = {
                "markers, unioned with the treebank's `role_ar` (حرف استفهام, حرف "
                "شرط). Neither layer sees every case on its own.",
         producer="ingestion/qac_treebank.py",
-        consumers=("retrieval/verse_lookup.py",),
+        consumers=("retrieval/verse_lookup.py", "scripts/build_quran_close_verses.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -797,20 +797,23 @@ MANIFEST: dict[str, Entry] = {
     ),
     "QURAN_CLOSE_VERSES_JSON": Entry(
         bucket="derived",
-        what="The unified cross-surah relation «close verses», schema 1: the "
+        what="The unified cross-surah relation «close verses», schema 2: the "
              "UNION of the pairs QURAN_SIMILARITY_JSON stores and the pairs "
              "QURAN_PASSAGES_JSON holds. Each pair: both refs (lower surah "
              "first), sim (the similarity score sem x syn -- stored, or computed "
              "ungated for a passage-only pair), pas (passage words / words of "
              "the shorter verse, 0 without a passage), score = 1 - (1-sim)(1-pas), "
-             "`from`, the shared content roots and, when it has one, its common "
-             "part: k, the word spans and the half-open character spans in each "
-             "verse's displayed text_ar_tashkil (Basmala stripped). The header "
-             "records the rules, the sha256 of both input files and of both "
-             "gold sets.",
+             "`from`, the shared content roots, the passage's own k / wa / wb on "
+             "a passage pair and, when it has one, its common part: the "
+             "order-invariant matching of the two verses' content words (m = "
+             "[[p, q, lemma|root]]) and, per verse, a list of half-open character "
+             "spans (one per run of coloured words) in its displayed "
+             "text_ar_tashkil (Basmala stripped). The header records the rules, "
+             "the sha256 of both input files and of both gold sets.",
         origin="Composed from QURAN_SIMILARITY_JSON and QURAN_PASSAGES_JSON, with "
                "the verse vectors (embedded Qdrant), the cross-encoder, the QAC "
-               "morphology and WORD_INDEX_JSON for the spans. Build order: "
+               "morphology, WORD_FUNCTION_JSON (tool occurrences are not content "
+               "words) and WORD_INDEX_JSON for the spans. Build order: "
                "build_quran_similarity.py -> build_quran_passages.py -> "
                "build_quran_close_verses.py. Needs the backend STOPPED: embedded "
                "Qdrant takes an exclusive lock.",

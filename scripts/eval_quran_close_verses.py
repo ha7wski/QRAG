@@ -13,8 +13,8 @@ Reads `data/derived/quran_close_verses.json` (through its loader), the two gold 
   * the AUC of `score`, of `sim` and of `pas` over the positives present against the
     negatives present (ties count ½), each with its counts;
   * U1 — AUC(score) ≥ 0.80;
-  * U2 — 28:20/36:20 present with `pas > 0`, its common part reading «وَجَاءَ … قَالَ» in
-    both verses (the character spans sliced out of each verse's DISPLAYED text);
+  * U2 — 28:20/36:20 present with `pas > 0`, its common part ONE run per verse reading
+    «وَجَاءَ … قَالَ» (the character spans sliced out of each verse's DISPLAYED text);
   * U3 — 26:203/37:54 with `pas = 0`, in the lower half of cell (26, 37)'s list;
   * U4 — `len(pairs) = |S ∪ W|`, recomputed from the two input datasets.
 
@@ -210,15 +210,21 @@ def input_union(similarity: dict, passages: dict) -> set[tuple[str, str]]:
 
 
 def common_part_reads(text_a: str, text_b: str, pair: dict) -> dict:
-    """U2's check: both slices start with «وَجَاءَ» and end with «قَالَ», under `bare()`."""
-    if not all(f in pair for f in ("ca", "cb")):
-        return {"slice_a": None, "slice_b": None, "ok": False}
-    sa = text_a[pair["ca"][0]:pair["ca"][1]]
-    sb = text_b[pair["cb"][0]:pair["cb"][1]]
+    """U2's check: ONE run per verse, starting with «وَجَاءَ» and ending with «قَالَ» under `bare()`.
+
+    Schema 2 stores `ca` / `cb` as lists of half-open spans, one per run of coloured
+    words (order-invariant-common-words D5); the slice shown is the first run's start
+    to the last run's end, and the passage must be a single run in each verse.
+    """
+    if not all(pair.get(f) for f in ("ca", "cb")):
+        return {"slice_a": None, "slice_b": None, "runs": None, "ok": False}
+    ca, cb = pair["ca"], pair["cb"]
+    sa = text_a[ca[0][0]:ca[-1][1]]
+    sb = text_b[cb[0][0]:cb[-1][1]]
     start, end = bare(U2_START), bare(U2_END)
-    ok = all(bare(s).strip().startswith(start) and bare(s).strip().endswith(end)
-             for s in (sa, sb))
-    return {"slice_a": sa, "slice_b": sb, "ok": ok}
+    ok = len(ca) == 1 and len(cb) == 1 and all(
+        bare(s).strip().startswith(start) and bare(s).strip().endswith(end) for s in (sa, sb))
+    return {"slice_a": sa, "slice_b": sb, "runs": [len(ca), len(cb)], "ok": ok}
 
 
 def displayed_text(ref: str) -> str:

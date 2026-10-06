@@ -4,10 +4,11 @@ build_quran_close_verses.py — the offline «close verses» build.
 
 Composes the two cross-surah relations into ONE and writes it to
 `data/derived/quran_close_verses.json`, which `GET /quran-similarity/*` and
-`GET /verse/{surah}/{ayah}/similar` serve without loading any model. The design
-is `openspec/changes/unify-close-verses/design.md`; every value below was frozen
-there (D1–D6) before this build first ran on the corpus — decisions to record
-there, never tuning knobs:
+`GET /surah/{number}/annotations` serve without loading any model. The design
+is `openspec/changes/unify-close-verses/design.md`, its common part replaced by
+`openspec/changes/order-invariant-common-words/design.md`; every value below was
+frozen there before this build ran on the corpus — decisions to record there,
+never tuning knobs:
 
   * D1 — the pair set is the UNION `S ∪ W` of the pairs `quran_similarity.json`
     stores in either verse's list (S) and the passages `quran_passages.json`
@@ -23,15 +24,42 @@ there, never tuning knobs:
   * D3 — `pas = k / min(n_a, n_b)` for a pair of W (`n` = the passage build's
     QAC word count), 0 for any other pair.
   * D4 — `score = 1 − (1 − sim)(1 − pas)`, rounded to 4 decimals.
-  * D5 — the common part: the stored passage for W; for S \\ W the best
-    Smith–Waterman alignment (IMPORTED from the passage build) when
-    `k ≥ MARK_MIN`, `k ≥ MARK_DENSITY ×` the longer aligned span and
-    ≥ `MARK_CONTENT_MIN` matched content positions. Display only: it never
-    changes `pas`. Stored as word spans AND as half-open character spans into
-    each verse's DISPLAYED `text_ar_tashkil` (Basmala stripped).
-  * D6 — the file layout, schema 1, byte-identical across builds.
+  * D5 — the common part (order-invariant-common-words D1–D5), computed the
+    same way for EVERY pair, passage or not. Display only: it never changes the
+    pair set, `sim`, `pas` or `score`.
+      - content word: the passage build's `content` flag (the word carries a
+        root) AND its `s:a:w` is not a grammatical tool in `word_function.json`;
+      - the matching: a maximum-weight one-to-one matching of the two verses'
+        content words (`scipy.optimize.linear_sum_assignment`, maximize), edge
+        weight `W_LEMMA` for the same passage-build token, `W_ROOT` for the same
+        resolved primary root under another token, no edge otherwise, each
+        minus `TIE_BREAK × |p/n_a − q/n_b|` (relative place, n = QAC word
+        count), so order only ever breaks an exact tie; edges of weight > 0 kept;
+      - bridged function words: the unmatched words strictly between two
+        matched pairs `(p, q) < (p', q')` that run in the same order on both
+        sides with no matched pair between them on both sides at once, when
+        the two sequences of unmatched in-between tokens are identical —
+        coloured, never counted;
+      - a common part needs ≥ `MARK_MIN` matched words.
+    Stored as `m` (`[[p, q, "lemma"|"root"]]`, sorted by `p`, `p` in the
+    lower-surah verse) and, per verse, `ca` / `cb`: one half-open character
+    span per RUN of consecutive coloured words, in the DISPLAYED
+    `text_ar_tashkil` (Basmala stripped). The passage's own `k` / `wa` / `wb`
+    stay on passage pairs only — `pas` reads `k` — and are not the display.
+  * D6 — the file layout, schema 2, byte-identical across builds.
 
-Two points D2/D4 leave open, settled here and recorded in the header:
+order-invariant-common-words D3 was AMENDED during implementation (design.md
+D3, spec «Every pair carries its common part»): its first wording («consecutive
+among A's matched words and among B's») could not produce its own outcome — the
+«مِنْ» of 28:20 / 36:20 coloured, one run per verse — because the displaced
+«رَجُل» is matched between «مِنْ»'s neighbours on one side. The bridge therefore
+skips matched words when it compares the in-between sequences, and asks only
+that no matched pair sits between the two on BOTH sides. It colours everything
+the first wording did; on today's 2 403 common parts it adds bridged words to 65
+(one to three function words each, identical on both sides: «مِن», «ما», «عَلَى»,
+«لا»…), e.g. «وَمِمَّا» of 2:3 with «مِمَّا» of 14:31.
+
+Two points unify-close-verses D2/D4 leave open, settled here and recorded in the header:
 
   * `score` is computed from the UNROUNDED `sim` and `pas`, then rounded; `sim`
     and `pas` are stored rounded too. So `score` may differ in its last digit
@@ -71,7 +99,6 @@ from quran_data import loaders, paths  # noqa: E402
 
 import build_quran_passages as passages_build  # noqa: E402
 import build_quran_similarity as similarity_build  # noqa: E402
-from build_quran_passages import DENSITY, smith_waterman  # noqa: E402 — D5, imported
 from build_quran_similarity import (  # noqa: E402 — D2: the definition, imported
     RERANKER_MODEL, CrossEncoderScorer, dense_stage, load_vectors, qdrant_lock_held, rnd,
     sem_score, syn_similarity, syntax_stage,
@@ -79,10 +106,11 @@ from build_quran_similarity import (  # noqa: E402 — D2: the definition, impor
 
 SCHEMA = loaders.QURAN_CLOSE_VERSES_SCHEMA
 SCOPE = "cross-surah"
-# Frozen in openspec/changes/unify-close-verses/design.md (D5).
+# Frozen in openspec/changes/order-invariant-common-words/design.md (D2, D4).
 MARK_MIN = 2
-MARK_CONTENT_MIN = 1
-MARK_DENSITY = DENSITY          # the passage relation's own density, imported
+W_LEMMA, W_ROOT = 1.0, 0.5
+TIE_BREAK = 1e-3
+LEMMA, ROOT_ONLY = "lemma", "root"
 FROM_SIMILARITY, FROM_PASSAGE = "similarity", "passage"
 REBUILD = "python scripts/build_quran_close_verses.py"
 BUILD_ORDER = (f"{similarity_build.REBUILD}  →  {passages_build.REBUILD}  →  {REBUILD}"
@@ -94,9 +122,24 @@ SIM_RULE = ("sem x syn: the stored s for a pair quran_similarity.json stores (th
             "cosine's percentile among the syntax survivors, ignored between verbatim verses")
 PAS_RULE = ("k / min(n_a, n_b) for a pair quran_passages.json holds, n = QAC word count; "
             "0 otherwise")
-MARK_RULE = ("the stored passage; else the best Smith-Waterman alignment when k >= mark_min, "
-             "k >= mark_density x the longer aligned span and >= mark_content_min matched "
-             "positions join two content words; display only, never in pas")
+MARK_RULE = ("the order-invariant matching of the two verses' content words when it joins "
+             ">= mark_min words, for every pair (passage or not): m = [[p, q, lemma|root]] "
+             "sorted by p, and per verse one half-open character span per run of "
+             "consecutive coloured words (matched or bridged) in the displayed "
+             "text_ar_tashkil, Basmala stripped; display only, never in sim, pas or score")
+CONTENT_WORD_RULE = ("the word carries a root (the passage build's content flag) and its "
+                     "s:a:w is not a grammatical tool in word_function.json")
+MATCHING_RULE = ("maximum-weight one-to-one matching (scipy linear_sum_assignment, maximize) "
+                 "of content words: weight 1 for the same passage-build lemma token, 0.5 for "
+                 "the same resolved primary root under another token, no edge otherwise; "
+                 "edges of weight > 0 kept")
+TIE_RULE = ("every weight minus tie_break x |p/n_a - q/n_b|, p and q 1-based, n = QAC word "
+            "count: among equal partners the nearest relative place wins")
+BRIDGE_RULE = ("the unmatched words strictly between two matched pairs (p, q) < (p', q') in "
+               "the same order on both sides, with no matched pair (r, s) such that "
+               "p < r < p' and q < s < q', are coloured on both sides when their token "
+               "sequences are identical; bridged words are not counted; matched words between "
+               "them on one side only are skipped (D3 as amended)")
 
 
 class StaleInput(Exception):
@@ -176,20 +219,93 @@ def ungated_sim(ce: float, dense: float, cov: float, syn: float, verbatim: bool)
     return sem_score(ce, None if verbatim else dense, cov) * syn
 
 
-def mark(al, content_a: Sequence[bool], content_b: Sequence[bool]) -> dict | None:
-    """D5: the common part `{k, wa, wb}` of a pair without a passage, or None.
+def content_flags(content: Sequence[bool], surah: int, ayah: int,
+                  tools) -> tuple[bool, ...]:
+    """D1: carries a root AND is not a grammatical-tool occurrence (`word_function.json`)."""
+    return tuple(bool(c) and f"{surah}:{ayah}:{w}" not in tools
+                 for w, c in enumerate(content, start=1))
 
-    `al` is `smith_waterman`'s best alignment (1-based inclusive spans) or None;
-    `content_*` say which words of each verse carry a root.
+
+def match_words(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
+                content_a: Sequence[bool], content_b: Sequence[bool]
+                ) -> list[tuple[int, int, str]]:
+    """D2: the order-invariant matching, `[(p, q, "lemma"|"root")]` sorted by `p`.
+
+    Positions are 1-based QAC word numbers. Same token → `W_LEMMA`; another token
+    under the same (non-null) resolved root → `W_ROOT`; else no edge. Every edge
+    loses `TIE_BREAK × |p/n_a − q/n_b|`, which is below half the smallest weight
+    gap, so it never trades a heavier matching for a better-placed one.
     """
-    if al is None or al.k < MARK_MIN:
+    ia = [p for p in range(1, len(tok_a) + 1) if content_a[p - 1]]
+    ib = [q for q in range(1, len(tok_b) + 1) if content_b[q - 1]]
+    if not ia or not ib:
+        return []
+    import numpy as np
+    from scipy.optimize import linear_sum_assignment
+
+    na, nb = len(tok_a), len(tok_b)
+    weight = np.zeros((len(ia), len(ib)))
+    kind: dict[tuple[int, int], str] = {}
+    for x, p in enumerate(ia):
+        for y, q in enumerate(ib):
+            if tok_a[p - 1] == tok_b[q - 1]:
+                w, k = W_LEMMA, LEMMA
+            elif roots_a[p - 1] is not None and roots_a[p - 1] == roots_b[q - 1]:
+                w, k = W_ROOT, ROOT_ONLY
+            else:
+                continue
+            weight[x, y] = w - TIE_BREAK * abs(p / na - q / nb)
+            kind[(x, y)] = k
+    rows, cols = linear_sum_assignment(weight, maximize=True)
+    return sorted((ia[x], ib[y], kind[(x, y)]) for x, y in zip(rows.tolist(), cols.tolist())
+                  if weight[x, y] > 0)
+
+
+def bridge_words(m: Sequence, tok_a: Sequence, tok_b: Sequence) -> tuple[set[int], set[int]]:
+    """D3: the function words coloured between matched words, `(words of a, words of b)`.
+
+    For two matched pairs `(p, q)`, `(p', q')` with `p < p'` and `q < q'` and no
+    matched pair `(r, s)` such that `p < r < p'` AND `q < s < q'`, the UNMATCHED
+    words strictly between them are coloured on both sides when their token
+    sequences are identical (and not empty).
+    """
+    pairs = sorted((p, q) for p, q, *_ in m)
+    used_a, used_b = {p for p, _ in pairs}, {q for _, q in pairs}
+    out_a: set[int] = set()
+    out_b: set[int] = set()
+    for x, (p, q) in enumerate(pairs):
+        for p2, q2 in pairs[x + 1:]:
+            if q2 <= q or any(p < r < p2 and q < t < q2 for r, t in pairs):
+                continue
+            ua = [w for w in range(p + 1, p2) if w not in used_a]
+            ub = [w for w in range(q + 1, q2) if w not in used_b]
+            if ua and [tok_a[w - 1] for w in ua] == [tok_b[w - 1] for w in ub]:
+                out_a.update(ua)
+                out_b.update(ub)
+    return out_a, out_b
+
+
+def coloured_runs(words) -> list[list[int]]:
+    """`[[first, last], …]` of the runs of consecutive word numbers, ascending."""
+    runs: list[list[int]] = []
+    for w in sorted(words):
+        if runs and w == runs[-1][1] + 1:
+            runs[-1][1] = w
+        else:
+            runs.append([w, w])
+    return runs
+
+
+def common_part(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
+                content_a: Sequence[bool], content_b: Sequence[bool]) -> dict | None:
+    """D2–D4: `{m, runs_a, runs_b}` when ≥ `MARK_MIN` words match, else None."""
+    m = match_words(tok_a, tok_b, roots_a, roots_b, content_a, content_b)
+    if len(m) < MARK_MIN:
         return None
-    if al.k < MARK_DENSITY * max(al.i2 - al.i1 + 1, al.j2 - al.j1 + 1):
-        return None
-    content = sum(1 for p, q in al.matches if content_a[p - 1] and content_b[q - 1])
-    if content < MARK_CONTENT_MIN:
-        return None
-    return {"k": al.k, "wa": [al.i1, al.i2], "wb": [al.j1, al.j2]}
+    br_a, br_b = bridge_words(m, tok_a, tok_b)
+    return {"m": m,
+            "runs_a": coloured_runs({p for p, _, _ in m} | br_a),
+            "runs_b": coloured_runs({q for _, q, _ in m} | br_b)}
 
 
 def char_span(word_index: dict, raw: str, shown: str, surah: int, ayah: int,
@@ -218,6 +334,15 @@ def char_span(word_index: dict, raw: str, shown: str, surah: int, ayah: int,
     return [start, end]
 
 
+def run_char_spans(word_index: dict, raw: str, shown: str, surah: int, ayah: int,
+                   runs: Sequence[Sequence[int]]) -> list[list[int]]:
+    """D5: one half-open character span per run, through `char_span` (its rebase and checks)."""
+    spans = [char_span(word_index, raw, shown, surah, ayah, run) for run in runs]
+    if any(e1 > s2 for (_, e1), (s2, _) in zip(spans, spans[1:])):
+        raise StaleInput(f"{surah}:{ayah}: the spans {spans} overlap or are out of order")
+    return spans
+
+
 def dense_mismatches(stored: dict[tuple[str, str], dict],
                      dense_of: dict[tuple[str, str], float]) -> list[str]:
     """D2's integrity check: the S pairs whose recomputed dense ≠ the stored one (4 decimals)."""
@@ -237,14 +362,20 @@ def unscored_of(sim_unscored: Sequence[str], pairs: Sequence[dict]) -> list[str]
 
 
 def pair_record(key: tuple[str, str], frm: list[str], sim: float, pas: float,
-                roots: Sequence[str], part: dict | None,
-                ca: list[int] | None, cb: list[int] | None) -> dict:
-    """One stored pair, in the D6 key order; the five common-part fields together or none."""
+                roots: Sequence[str], passage: dict | None, part: dict | None,
+                ca: list | None = None, cb: list | None = None) -> dict:
+    """One stored pair, in the D6 key order.
+
+    `k` / `wa` / `wb` come from `passage` (a passage pair), `m` / `ca` / `cb` from
+    `part` and its spans — each group together or not at all.
+    """
     rec = {"a": key[0], "b": key[1], "score": rnd(combined_score(sim, pas)),
            "sim": rnd(sim), "pas": rnd(pas), "from": list(frm), "roots": list(roots)}
+    if passage is not None:
+        rec.update({"k": passage["k"], "wa": list(passage["wa"]), "wb": list(passage["wb"])})
     if part is not None:
-        rec.update({"k": part["k"], "wa": list(part["wa"]), "wb": list(part["wb"]),
-                    "ca": list(ca), "cb": list(cb)})
+        rec.update({"m": [[p, q, k] for p, q, k in part["m"]],
+                    "ca": [list(x) for x in ca], "cb": [list(x) for x in cb]})
     return rec
 
 
@@ -262,11 +393,13 @@ def dumps(data: dict) -> str:
 
 def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, int], float],
             vectors: dict, scorer, texts: Sequence[str], word_index: dict,
-            displayed: Callable[[int, int], tuple[str, str]]) -> tuple[list[dict], list[str], dict]:
+            displayed: Callable[[int, int], tuple[str, str]], *, tools
+            ) -> tuple[list[dict], list[str], dict]:
     """`(pairs, unscored, stats)` — raises `StaleInput` before anything is written.
 
     `sc` is the similarity build's `Corpus` (refs, index, seqs, roots, verbatim,
-    cov), `pc` the passage build's (refs, index, seqs, content); `survivors` the
+    cov), `pc` the passage build's (refs, index, seqs, content, roots); `tools`
+    the grammatical-tool occurrences (`word_function.json`); `survivors` the
     re-derived syntax survivors keyed on `sc` indexes; `scorer.symmetric` the
     cross-encoder, called ONCE and only after every check has passed; `texts`
     the cross-encoder texts by `sc` index; `displayed(s, a)` → `(raw chakl row,
@@ -314,22 +447,19 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
     # model loads, so every refusal comes first.
     t0 = time.time()
     parts: dict[tuple[str, str], dict] = {}
-    marked = 0
     for key in union:
-        if key in W:
-            p = W[key]
-            parts[key] = {"k": p["k"], "wa": p["wa"], "wb": p["wb"]}
-            continue
         i, j = pidx(key)
-        part = mark(smith_waterman(pc.seqs[i], pc.seqs[j]), pc.content[i], pc.content[j])
+        ra, rb = parse_ref(key[0]), parse_ref(key[1])
+        part = common_part(pc.seqs[i], pc.seqs[j], pc.roots[i], pc.roots[j],
+                           content_flags(pc.content[i], *ra, tools),
+                           content_flags(pc.content[j], *rb, tools))
         if part is not None:
             parts[key] = part
-            marked += 1
-    spans: dict[tuple[str, str], tuple[list[int], list[int]]] = {}
+    spans: dict[tuple[str, str], tuple[list, list]] = {}
     for key, part in parts.items():
         ra, rb = parse_ref(key[0]), parse_ref(key[1])
-        spans[key] = (char_span(word_index, *displayed(*ra), *ra, part["wa"]),
-                      char_span(word_index, *displayed(*rb), *rb, part["wb"]))
+        spans[key] = (run_char_spans(word_index, *displayed(*ra), *ra, part["runs_a"]),
+                      run_char_spans(word_index, *displayed(*rb), *rb, part["runs_b"]))
     # D3 — pas, from the passage build's own word counts.
     pas: dict[tuple[str, str], float] = {}
     for key in union:
@@ -338,7 +468,15 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
             pas[key] = pas_of(W[key]["k"], len(pc.seqs[pi]), len(pc.seqs[pj]))
         else:
             pas[key] = 0.0
-    stats.update({"marked_s_only": marked, "parts_s": round(time.time() - t0, 1)})
+    stats.update({
+        "parts": len(parts),
+        "parts_s_only": sum(1 for k in parts if k not in W),
+        "passages_without_part": sum(1 for k in W if k not in parts),
+        "matched_words": sum(len(p["m"]) for p in parts.values()),
+        "root_edges": sum(1 for p in parts.values() for e in p["m"] if e[2] == ROOT_ONLY),
+        "multi_run": sum(1 for p in parts.values()
+                         if len(p["runs_a"]) > 1 or len(p["runs_b"]) > 1),
+        "parts_s": round(time.time() - t0, 1)})
 
     # D2 — W \ S cross-encoded in a call of their own, then sim with no gate.
     t0 = time.time()
@@ -360,7 +498,8 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
                               syn_similarity(sc.seqs[i], sc.seqs[j]), verbatim)
             roots = sorted(sc.roots[i] & sc.roots[j])
         ca, cb = spans.get(key, (None, None))
-        pairs.append(pair_record(key, frm, sim, pas[key], roots, parts.get(key), ca, cb))
+        pairs.append(pair_record(key, frm, sim, pas[key], roots, W.get(key), parts.get(key),
+                                 ca, cb))
     stats["verbatim_w_only"] = n_verbatim
     return pairs, unscored_of(sim_data["unscored"], pairs), stats
 
@@ -394,9 +533,13 @@ def header(input_digests: dict, gold: dict) -> dict:
         "sim": SIM_RULE,
         "pas": PAS_RULE,
         "common_part": MARK_RULE,
+        "content_word": CONTENT_WORD_RULE,
+        "matching": MATCHING_RULE,
+        "match_weights": {LEMMA: W_LEMMA, ROOT_ONLY: W_ROOT},
+        "tie_break_rule": TIE_RULE,
+        "tie_break": TIE_BREAK,
+        "bridge": BRIDGE_RULE,
         "mark_min": MARK_MIN,
-        "mark_content_min": MARK_CONTENT_MIN,
-        "mark_density": MARK_DENSITY,
         "reranker": RERANKER_MODEL,
         "embedder": similarity_build.header(None)["embedder"],
         "inputs": input_digests,
@@ -483,6 +626,7 @@ def main(argv: list[str] | None = None) -> int:
               for v in verses_by_id().values()}
     texts = [by_ref[r] for r in sc.refs]
     word_index = loaders.word_index()
+    tools = loaders.word_function()
     chakl = chakl_by_ref()
 
     def displayed(s: int, a: int) -> tuple[str, str]:
@@ -492,12 +636,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  inputs ready [{time.time() - t0:.1f}s]")
     try:
         pairs, unscored, stats = compose(sim_data, pas_data, sc, pc, survivors, vectors,
-                                         LazyScorer(), texts, word_index, displayed)
+                                         LazyScorer(), texts, word_index, displayed,
+                                         tools=tools)
     except StaleInput as exc:
         sys.exit(f"REFUSED — nothing written. {exc}\nRebuild in this order:\n    {BUILD_ORDER}")
 
     by_from = Counter(tuple(p["from"]) for p in pairs)
-    with_part = sum(1 for p in pairs if "k" in p)
     print(f"DENSE: percentile over {stats['survivors']} syntax survivors; check passed on "
           f"{by_from[(FROM_SIMILARITY,)] + by_from[(FROM_SIMILARITY, FROM_PASSAGE)]} stored "
           f"pairs [{stats['dense_s']}s]")
@@ -505,9 +649,11 @@ def main(argv: list[str] | None = None) -> int:
           f"predictions; {stats['verbatim_w_only']} verbatim [{stats['ce_s']}s]")
     print(f"PAIRS: {len(pairs)} — similarity only {by_from[(FROM_SIMILARITY,)]}, passage only "
           f"{by_from[(FROM_PASSAGE,)]}, both {by_from[(FROM_SIMILARITY, FROM_PASSAGE)]}")
-    print(f"COMMON PART: {with_part} pairs ({with_part - stats['marked_s_only']} passages, "
-          f"{stats['marked_s_only']} marked alignments of similarity-only pairs) "
-          f"[{stats['parts_s']}s]; unscored verses: {len(unscored)}")
+    print(f"COMMON PART: {stats['parts']} pairs ({stats['parts_s_only']} without a passage; "
+          f"{stats['passages_without_part']} passage pair(s) without one), "
+          f"{stats['matched_words']} matched words, {stats['root_edges']} root-only edges, "
+          f"{stats['multi_run']} pairs in several runs [{stats['parts_s']}s]; "
+          f"unscored verses: {len(unscored)}")
 
     out = paths.QURAN_CLOSE_VERSES_JSON
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -168,7 +168,7 @@ export default function CloseVersesBubble({
             {cross.map(({ partner, verse }) => (
               <li key={partner.ref}>
                 <div className="px-4 py-3">
-                  <VerseText verse={verse} withSurah span={partner.span_other} />
+                  <VerseText verse={verse} withSurah spans={partner.spans_other ?? []} />
                 </div>
                 <SharedWords words={partner.words} />
               </li>

@@ -12,7 +12,7 @@ any more.
 The relation is answered once, offline, by `scripts/build_quran_close_verses.py`
 — the union of the whole-verse similarity pairs and the shared-passage pairs,
 each with its combined score and, when it has one, its common part already
-placed as character spans in each verse's DISPLAYED `text_ar_tashkil` (Basmala
+placed as lists of character spans in each verse's DISPLAYED `text_ar_tashkil` (Basmala
 stripped). Placing them at build time is what keeps `word_index.json` (64 MB
 resident) off the request path: this module reads one small file.
 
@@ -22,12 +22,24 @@ the project but `quran_data`. The dataset is reached through
 attribute), never at import: a backend without the file must still start, and a
 request against it must become a 503 carrying the rebuild command.
 
-Shape (D6, schema 1):
+Shape (D6, schema 2 — change `order-invariant-common-words`, D5):
 
     unscored = ["<s:a>", ...]          # no content root, and no pair → not compared
     pairs    = [{"a": "<s:a>", "b": "<s:a>",       # a in the LOWER surah
                  "score", "sim", "pas", "from": [...], "roots": [str],
-                 "k", "wa", "wb", "ca", "cb"}]     # the common part: all five or none
+                 "k", "wa", "wb",                  # the PASSAGE's own figures: present
+                                                   # exactly when "passage" in from
+                 "m": [[p, q, "lemma"|"root"], ...],   # the common part: the matched
+                 "ca": [[s, e], ...],                  # words (p in a, q in b, sorted
+                 "cb": [[s, e], ...]}]                 # by p) and one char span per
+                                                       # coloured run in each verse;
+                                                       # all three or none
+
+The common part is the order-invariant matching of the two verses' content
+words, not one contiguous span: a verse may carry several runs, so every view
+serves a LIST of spans (`spans_u` / `spans_v`, `spans`, `spans_self` /
+`spans_other`), and `words` is `len(m)` — the matched content words, never the
+passage's `k`. `k` / `wa` / `wb` are validated (`pas` reads `k`) but not served.
 
 The relation is a PAIR SET, so the per-verse list is every pair holding the
 verse — not capped at K: a cap would make the panel disagree with the map.
@@ -50,7 +62,13 @@ from quran_data import loaders  # noqa: E402
 REBUILD = "python scripts/build_quran_close_verses.py"
 
 _FROM = ("similarity", "passage")
-_COMMON = ("k", "wa", "wb", "ca", "cb")
+_COMMON = ("m", "ca", "cb")
+_PASSAGE = ("k", "wa", "wb")
+_KINDS = ("lemma", "root")
+# D4 / spec `close-verses`: a pair carries a common part only when the matching
+# joins at least 2 words. A shape rule of the contract, like `_KINDS`; the build
+# records the same figure as `mark_min` in its header.
+_MARK_MIN = 2
 _SURAHS = range(1, 115)
 
 
@@ -167,18 +185,84 @@ def _chars(value, name: str) -> tuple[int, int]:
     return start, end
 
 
-def _common(p: dict) -> dict | None:
-    """The common part — `{k, wa, wb, ca, cb}` — or None; the five travel together."""
+def _spans(value, name: str, matched: int) -> tuple[tuple[int, int], ...]:
+    """A non-empty list of half-open spans, one per coloured run, strictly apart.
+
+    Two runs are separated by at least one plain word, so a span that starts
+    where the previous one ends is one run written as two: refused, like an
+    overlap. Every run holds at least one matched word (a bridged word lies
+    between two matched ones, D3), so a verse cannot have more runs than `m`
+    has matches.
+    """
+    if not isinstance(value, list) or not value:
+        raise TypeError(f"{name} {value!r} is not a non-empty list of [start, end] spans")
+    spans = tuple(_chars(span, name) for span in value)
+    for (_, end), (start, _) in zip(spans, spans[1:]):
+        if start <= end:
+            raise ValueError(f"{name} {value!r} is not ascending with a gap between runs")
+    if len(spans) > matched:
+        raise ValueError(f"{name} holds {len(spans)} runs for {matched} matched words; "
+                         f"every run holds at least one matched word")
+    return spans
+
+
+def _matches(value) -> tuple[tuple[int, int, str], ...]:
+    """`m`: `[[p, q, "lemma"|"root"], ...]`, ≥ `_MARK_MIN` long, sorted by `p`, one-to-one.
+
+    `p` / `q` are 1-based word numbers in `a` / `b`; a word appears in at most
+    one pair on each side (the matching is one-to-one, D2).
+    """
+    if not isinstance(value, list) or len(value) < _MARK_MIN:
+        raise TypeError(f"m {value!r} is not a list of at least {_MARK_MIN} [p, q, kind] "
+                        f"triples (D4: fewer matched words is no common part)")
+    out = []
+    for entry in value:
+        if not isinstance(entry, list) or len(entry) != 3:
+            raise TypeError(f"m entry {entry!r} is not a [p, q, kind] triple")
+        p, q, kind = _int(entry[0], "m.p", 1), _int(entry[1], "m.q", 1), entry[2]
+        if kind not in _KINDS:
+            raise ValueError(f"m entry {entry!r}: kind is not one of {list(_KINDS)!r}")
+        out.append((p, q, kind))
+    ps, qs = [e[0] for e in out], [e[1] for e in out]
+    if any(x >= y for x, y in zip(ps, ps[1:])):
+        raise ValueError(f"m {value!r} is not sorted by p with each p once")
+    if len(set(qs)) != len(qs):
+        raise ValueError(f"m {value!r} matches a word of b twice; the matching is one-to-one")
+    return tuple(out)
+
+
+def _passage(p: dict, frm: tuple[str, ...]) -> None:
+    """`k` / `wa` / `wb` — the passage's own figures — present exactly when it is one."""
+    present = [f for f in _PASSAGE if f in p]
+    if "passage" in frm:
+        if len(present) != len(_PASSAGE):
+            raise ValueError(f"a passage pair lacks {[f for f in _PASSAGE if f not in p]}")
+        _int(p["k"], "k", 1)
+        _words(p["wa"], "wa")
+        _words(p["wb"], "wb")
+    elif present:
+        raise ValueError(f"{present} are the passage's figures, yet the pair is not a passage")
+
+
+def _common(p: dict, frm: tuple[str, ...]) -> dict | None:
+    """The common part — `{m, ca, cb}` — or None; the three travel together.
+
+    A passage pair always has one (D4: its alignment holds ≥ 3 content matches,
+    all of which the matching can take), so a passage without it is a broken
+    build — served, it would colour nothing and show no marker.
+    """
     present = [f for f in _COMMON if f in p]
     if not present:
+        if "passage" in frm:
+            raise ValueError("a passage pair lacks its common part (m / ca / cb); "
+                             "D4: a passage always has one")
         return None
     if len(present) != len(_COMMON):
         missing = [f for f in _COMMON if f not in p]
         raise ValueError(f"common part has {present} but lacks {missing}; "
-                         f"the five fields are present together or absent together")
-    return {"k": _int(p["k"], "k", 1), "wa": _words(p["wa"], "wa"),
-            "wb": _words(p["wb"], "wb"), "ca": _chars(p["ca"], "ca"),
-            "cb": _chars(p["cb"], "cb")}
+                         f"the three fields are present together or absent together")
+    m = _matches(p["m"])
+    return {"m": m, "ca": _spans(p["ca"], "ca", len(m)), "cb": _spans(p["cb"], "cb", len(m))}
 
 
 # ── the aggregate ─────────────────────────────────────────────────────────
@@ -212,9 +296,11 @@ def _aggregate(data: dict) -> dict:
                 raise ValueError(f"{p['a']} / {p['b']} is listed twice; one entry per pair")
             _score(p["sim"], "sim")
             _score(p["pas"], "pas")
+            frm = _from(p["from"])
+            _passage(p, frm)
             pairs[(u, v)] = {"score": _score(p["score"], "score"),
-                             "roots": _roots(p["roots"]), "common": _common(p),
-                             "from": _from(p["from"])}
+                             "roots": _roots(p["roots"]), "common": _common(p, frm),
+                             "from": frm}
         except _MALFORMED as exc:
             raise _malformed(f"pairs[{n}]", exc) from exc
 
@@ -277,23 +363,38 @@ def _verse(ref: tuple[int, int]) -> dict:
     return {"surah": ref[0], "ayah": ref[1]}
 
 
+def _side(common: dict | None, field: str) -> list[list[int]] | None:
+    """One side's spans as FRESH lists (the aggregate is shared), or None."""
+    return [list(span) for span in common[field]] if common else None
+
+
+def _count(common: dict | None) -> int | None:
+    """The matched content words — `len(m)`; bridged function words do not count (D3)."""
+    return len(common["m"]) if common else None
+
+
 def _pair(u: tuple, v: tuple, p: dict) -> dict:
-    """One served pair: `words`, `span_u`, `span_v` from the common part, or all None."""
+    """One served pair: `words`, `spans_u`, `spans_v` from the common part, or all None."""
     common = p["common"]
     return {
         "u": _verse(u), "v": _verse(v), "score": p["score"], "roots": list(p["roots"]),
-        "words": common["k"] if common else None,
-        "span_u": list(common["ca"]) if common else None,
-        "span_v": list(common["cb"]) if common else None,
+        "words": _count(common),
+        "spans_u": _side(common, "ca"),
+        "spans_v": _side(common, "cb"),
     }
+
+
+def _oriented(pair: tuple, anchor: tuple) -> tuple[str, str]:
+    """`(this verse's field, the partner's field)` — `ca` belongs to the pair's `u`."""
+    return ("ca", "cb") if pair[0] == anchor else ("cb", "ca")
 
 
 def ayah_view(data: dict, surah: int, ayah: int) -> dict:
     """One verse's close verses in the other surahs: EVERY pair holding it.
 
     Returns `{"unscored": bool, "neighbours": [{"surah", "ayah", "score",
-    "roots", "words", "span"}]}`, ordered by score descending then
-    `(surah, ayah)`; `span` is the common part's character span in the
+    "roots", "words", "spans"}]}`, ordered by score descending then
+    `(surah, ayah)`; `spans` is the common part's list of character spans in the
     NEIGHBOUR's displayed text, `words` its matched word count — both None when
     the pair has no common part. Not capped: the list is exactly the map's pairs
     holding this verse.
@@ -314,13 +415,11 @@ def ayah_view(data: dict, surah: int, ayah: int) -> dict:
     for other, pair in agg["by_ref"].get(anchor, []):
         p = agg["pairs"][pair]
         common = p["common"]
-        span = None
-        if common:
-            span = list(common["cb"] if pair[0] == anchor else common["ca"])
+        _, theirs = _oriented(pair, anchor)
         neighbours.append({
             "surah": other[0], "ayah": other[1], "score": p["score"],
-            "roots": list(p["roots"]), "words": common["k"] if common else None,
-            "span": span,
+            "roots": list(p["roots"]), "words": _count(common),
+            "spans": _side(common, theirs),
         })
     return {"unscored": False, "neighbours": neighbours}
 
@@ -328,13 +427,13 @@ def ayah_view(data: dict, surah: int, ayah: int) -> dict:
 def surah_partners(data: dict, surah: int) -> dict[int, list[dict]]:
     """Every pair holding a verse of `surah`, grouped by that verse's ayah.
 
-    `{ayah: [{"surah", "ayah", "score", "from", "words", "span_self",
-    "span_other"}]}` — only the ayahs holding at least one pair, each list in the
+    `{ayah: [{"surah", "ayah", "score", "from", "words", "spans_self",
+    "spans_other"}]}` — only the ayahs holding at least one pair, each list in the
     served order of `ayah_view` (score descending, then the partner's
     `(surah, ayah)`). `from` is the pair's relation list (`["similarity"]`,
-    `["passage"]` or both); `span_self` is the common part's character span in
-    THIS verse's displayed text, `span_other` in the partner's, `words` its
-    matched word count — all three None when the pair has no common part.
+    `["passage"]` or both); `spans_self` is the common part's list of character
+    spans in THIS verse's displayed text, `spans_other` in the partner's, `words`
+    its matched word count — all three None when the pair has no common part.
 
     Behind GET /surah/{number}/annotations, which needs a whole surah at once
     and the relation of each pair (the reading page decides marker vs words by
@@ -348,13 +447,13 @@ def surah_partners(data: dict, surah: int) -> dict[int, list[dict]]:
         for other, pair in agg["by_ref"][anchor]:
             p = agg["pairs"][pair]
             common = p["common"]
-            mine, theirs = ("ca", "cb") if pair[0] == anchor else ("cb", "ca")
+            mine, theirs = _oriented(pair, anchor)
             partners.append({
                 "surah": other[0], "ayah": other[1], "score": p["score"],
                 "from": list(p["from"]),
-                "words": common["k"] if common else None,
-                "span_self": list(common[mine]) if common else None,
-                "span_other": list(common[theirs]) if common else None,
+                "words": _count(common),
+                "spans_self": _side(common, mine),
+                "spans_other": _side(common, theirs),
             })
         out[anchor[1]] = partners
     return out
@@ -363,8 +462,9 @@ def surah_partners(data: dict, surah: int) -> dict[int, list[dict]]:
 def pair_set(data: dict) -> list[dict]:
     """Every pair, `u` in the lower-numbered surah, ordered by `(u, v)`.
 
-    `[{"u": {"surah", "ayah"}, "v": {...}, "score", "roots", "words", "span_u",
-    "span_v"}]`. Raises `MalformedEntry` when the dataset is not in the D6 shape.
+    `[{"u": {"surah", "ayah"}, "v": {...}, "score", "roots", "words", "spans_u",
+    "spans_v"}]` — `spans_u` indexes `u`'s displayed text, `spans_v` `v`'s.
+    Raises `MalformedEntry` when the dataset is not in the D6 shape.
     """
     pairs = _aggregated(data)["pairs"]
     return [_pair(u, v, pairs[(u, v)]) for u, v in sorted(pairs)]

@@ -11,7 +11,7 @@ union of whole-verse similarity and shared passages (change
 `unify-close-verses`, D6–D7) — through the pure reader
 `retrieval/quran_close_verses.py`. No model is loaded, no Qdrant query is made,
 and `word_index.json` is not read: the cross-encoder, the E5 vectors, the
-alignments and the common part's character spans were all spent once, offline,
+matching and the common part's character spans were all spent once, offline,
 by `scripts/build_quran_close_verses.py`.
 
 A separate dataset from `GET /surah/{number}/similar`, so the two fail apart:
@@ -19,8 +19,9 @@ without this file the intra-surah view still answers.
 
 Verse records and surah names are read the way `GET /surah/{number}` reads them
 (`app.state.engine.retriever`), and every verse goes through
-`verse_from_record`. The spans index into that verse's served
-`text_ar_tashkil`; one that does not fit it means the dataset is stale.
+`verse_from_record`. The spans — a LIST per verse, one per run of coloured
+words — index into that verse's served `text_ar_tashkil`; any one that does not
+fit it means the dataset is stale.
 
 Errors: dataset missing, of an unknown schema, malformed, naming a verse the
 corpus does not hold, or placing a span outside a verse's text → 503 whose
@@ -85,18 +86,24 @@ def _record(retriever, surah: int, ayah: int) -> dict:
     return record
 
 
-def _placed(verse: Verse, span: list[int] | None) -> list[int] | None:
-    """`span`, checked against the verse's served text — a span past its end is stale.
+def _placed(verse: Verse, spans: list[list[int]] | None) -> list[list[int]] | None:
+    """`spans`, EACH checked against the verse's served text — one past its end is stale.
 
     The build already refuses such a span (D5); this keeps a file built against
     another corpus from reaching the client as a highlight on the wrong words.
+    Every span of the list is checked, not only the last: the reader guarantees
+    them ascending, but the check must not rest on that.
     """
-    if span is not None and not span[1] <= len(verse.text_ar_tashkil or ""):
-        raise _stale(
-            f"quran_close_verses.json places a common part at {span} in {verse.id}, "
-            f"whose displayed text is {len(verse.text_ar_tashkil or '')} characters long"
-        )
-    return span
+    if spans is None:
+        return None
+    length = len(verse.text_ar_tashkil or "")
+    for span in spans:
+        if not span[1] <= length:
+            raise _stale(
+                f"quran_close_verses.json places a common part at {span} in {verse.id}, "
+                f"whose displayed text is {length} characters long"
+            )
+    return spans
 
 
 # ── the surah × surah map ─────────────────────────────────────────────────
@@ -119,10 +126,10 @@ def get_quran_similarity_matrix(request: Request) -> QuranSimilarityMatrixRespon
     # stale dataset is reported here already.
     for pair in _aggregate(reader.pair_set):
         for side in ("u", "v"):
-            ref, span = pair[side], pair[f"span_{side}"]
+            ref, spans = pair[side], pair[f"spans_{side}"]
             record = _record(retriever, ref["surah"], ref["ayah"])
-            if span is not None:
-                _placed(verse_from_record(record), span)
+            if spans is not None:
+                _placed(verse_from_record(record), spans)
     return QuranSimilarityMatrixResponse(
         # The source GET /surahs reads, so the two never name a surah differently.
         surahs=[SurahName(number=s["number"], name_ar=s.get("name_ar", ""))
@@ -163,7 +170,7 @@ def get_quran_similarity_pairs(
         v = verse_from_record(_record(retriever, p["v"]["surah"], p["v"]["ayah"]))
         served.append(SimilarPair(
             u=u, v=v, score=p["score"], roots=p["roots"], words=p["words"],
-            span_u=_placed(u, p["span_u"]), span_v=_placed(v, p["span_v"]),
+            spans_u=_placed(u, p["spans_u"]), spans_v=_placed(v, p["spans_v"]),
         ))
     return QuranSimilarityCellResponse(
         a=lo,
