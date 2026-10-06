@@ -1,16 +1,43 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { getSurah, getSurahs, statusOf, detailOf } from "@/lib/api";
+import {
+  getSurah,
+  getSurahAnnotations,
+  getSurahs,
+  statusOf,
+  detailOf,
+  type AyahAnnotation,
+  type SurahAnnotations,
+} from "@/lib/api";
 import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import type { SurahMeta, SurahResponse } from "@/lib/types";
 import ArabicText from "@/components/ArabicText";
 import SurahPicker, { SurahsIntro } from "@/components/SurahPicker";
 import { writePosition } from "@/lib/readingPosition";
+import {
+  isAnnotated,
+  markerCue,
+  passageSpans,
+  readAnnotationsOn,
+  splitMarked,
+  writeAnnotationsOn,
+} from "@/lib/annotations";
+import CloseVersesBubble, { BUBBLE_TRIGGER_ATTR } from "@/components/CloseVersesBubble";
 
 /** Āyāt per range tab. A surah longer than this reads one range at a time. */
 export const CHUNK_SIZE = 50;
@@ -31,6 +58,26 @@ function ayahFromHash(): number | null {
   if (!m) return null;
   const n = Number(m[1]);
   return Number.isInteger(n) && n >= 1 ? n : null;
+}
+
+/** The marker's classes, unannotated — the page as it is with the switch off. */
+const MARKER_CLASS =
+  "western-digits mx-1.5 align-middle text-xl font-semibold text-brand-dark";
+
+/** Annotations fetched this session, per sūra: turning the switch off and on,
+ *  or coming back to a sūra, never refetches. Written only from an effect's
+ *  promise, so it is never filled during a server render. */
+const annotationCache = new Map<number, SurahAnnotations>();
+
+/** Whether a click ended a text selection rather than meaning «open» — a reader
+ *  selecting coloured words must not get a bubble for it. */
+function isSelecting(): boolean {
+  try {
+    const sel = window.getSelection?.();
+    return !!sel && !sel.isCollapsed && sel.toString().length > 0;
+  } catch {
+    return false;
+  }
 }
 
 /** Set once the document's own navigation has been looked at, so a reload is
@@ -83,11 +130,24 @@ export default function SurahReader({ number }: { number: number }) {
   // deep link to āya 200 opens the range that holds it.
   const [chunk, setChunk] = useState(0);
 
+  // The closeness annotations: off by default, the choice remembered per
+  // browser. Read after mount so the server render and the first client render
+  // agree (both off).
+  const [annotationsOn, setAnnotationsOn] = useState(false);
+  const [annotations, setAnnotations] = useState<SurahAnnotations | null>(null);
+  const [annotationsFailed, setAnnotationsFailed] = useState(false);
+  // One open bubble at most: the āya, and the element it is anchored on.
+  const [open, setOpen] = useState<{ ayah: number; anchor: HTMLElement } | null>(null);
+
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const rangesRef = useRef<HTMLDivElement | null>(null);
   // Guards the observer: it is attached only once the restore scroll has landed,
   // or the top of the surah would immediately overwrite the stored position.
   const restoredFor = useRef<number | null>(null);
+  // The āya a deep link (or reload) scrolled to, kept until the reader moves:
+  // annotations landing after that scroll reflow the text above it (padded
+  // markers), so the restore is re-applied once they render.
+  const restoredAyah = useRef<number | null>(null);
 
   useEffect(() => {
     reloadSeen = true;
@@ -102,6 +162,7 @@ export default function SurahReader({ number }: { number: number }) {
     setError(null);
     setData(null);
     restoredFor.current = null;
+    restoredAyah.current = null;
     getSurah(number)
       .then((d) => {
         if (cancelled) return;
@@ -121,6 +182,78 @@ export default function SurahReader({ number }: { number: number }) {
       cancelled = true;
     };
   }, [number, reloaded]);
+
+  useEffect(() => {
+    setAnnotationsOn(readAnnotationsOn());
+  }, []);
+
+  // Fetched only while the switch is on; once per sūra per session.
+  useEffect(() => {
+    setOpen(null);
+    if (!annotationsOn || reloaded) return;
+    const cached = annotationCache.get(number);
+    setAnnotationsFailed(false);
+    if (cached) {
+      setAnnotations(cached);
+      return;
+    }
+    setAnnotations(null);
+    let cancelled = false;
+    getSurahAnnotations(number)
+      .then((a) => {
+        annotationCache.set(number, a);
+        if (!cancelled) setAnnotations(a);
+      })
+      .catch(() => !cancelled && setAnnotationsFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [annotationsOn, number, reloaded]);
+
+  // A new range unmounts the anchor of an open bubble.
+  useEffect(() => setOpen(null), [chunk]);
+
+  const byAyah = useMemo(() => {
+    const m = new Map<number, AyahAnnotation>();
+    if (annotationsOn && annotations && annotations.surah === number) {
+      for (const e of annotations.ayahs) if (isAnnotated(e)) m.set(e.ayah, e);
+    }
+    return m;
+  }, [annotationsOn, annotations, number]);
+
+  const closeBubble = useCallback(() => setOpen(null), []);
+
+  function toggleAnnotations() {
+    const next = !annotationsOn;
+    setAnnotationsOn(next);
+    writeAnnotationsOn(next);
+  }
+
+  // The props that make an annotated marker or word open its bubble: a click
+  // (never a mousedown, so a selection drag does not open it) or Enter/Space.
+  // A marker is named for what it opens; a word keeps its own text as its name.
+  function triggerProps(ayah: number, named: boolean) {
+    const activate = (el: HTMLElement) =>
+      setOpen((cur) => (cur?.ayah === ayah ? null : { ayah, anchor: el }));
+    return {
+      role: "button",
+      tabIndex: 0,
+      "aria-haspopup": "dialog" as const,
+      "aria-expanded": open?.ayah === ayah,
+      "aria-label": named ? S.reading.annotations.openFor(ayah) : undefined,
+      [BUBBLE_TRIGGER_ATTR]: "",
+      onClick: (e: ReactMouseEvent<HTMLElement>) => {
+        if (isSelecting()) return;
+        activate(e.currentTarget);
+      },
+      onKeyDown: (e: ReactKeyboardEvent<HTMLElement>) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          activate(e.currentTarget);
+        }
+      },
+    };
+  }
 
   // The picker's list, fetched once — it is the same 114 rows for every surah.
   useEffect(() => {
@@ -145,7 +278,9 @@ export default function SurahReader({ number }: { number: number }) {
   // Restore, then observe. A layout effect so the scroll is applied before the
   // browser paints: the reader sees one frame, at the right place.
   useLayoutEffect(() => {
-    if (!data || restoredFor.current === number) return;
+    // Not while the loading line still stands in for the text: the marker is
+    // not in the DOM yet, and consuming the restore then would lose it.
+    if (!data || loading || restoredFor.current === number) return;
     const wanted = ayahFromHash();
     // Out of range (a hand-edited fragment, or a surah shorter than the stored
     // position) falls back to the top rather than scrolling nowhere.
@@ -153,9 +288,32 @@ export default function SurahReader({ number }: { number: number }) {
       document
         .getElementById(`ayah-${wanted}`)
         ?.scrollIntoView({ behavior: "auto", block: "center" });
+      restoredAyah.current = wanted;
     }
     restoredFor.current = number;
-  }, [data, number]);
+  }, [data, loading, number]);
+
+  // Once the reader scrolls on their own, the restored āya is theirs to leave.
+  useEffect(() => {
+    const release = () => {
+      restoredAyah.current = null;
+    };
+    const events = ["wheel", "touchstart", "keydown", "mousedown"] as const;
+    for (const e of events) window.addEventListener(e, release, { passive: true });
+    return () => {
+      for (const e of events) window.removeEventListener(e, release);
+    };
+  }, []);
+
+  // Annotations rendered after the restore: re-centre the restored āya once.
+  useLayoutEffect(() => {
+    const wanted = restoredAyah.current;
+    if (byAyah.size === 0 || wanted === null || restoredFor.current !== number) return;
+    document
+      .getElementById(`ayah-${wanted}`)
+      ?.scrollIntoView({ behavior: "auto", block: "center" });
+    restoredAyah.current = null;
+  }, [byAyah, number]);
 
   // The position is persisted on a debounce, never on every intersection:
   // `localStorage` writes are synchronous and would otherwise land in the
@@ -187,7 +345,7 @@ export default function SurahReader({ number }: { number: number }) {
   // restore scroll has landed — an observer firing during the restore would
   // report the top of the surah and overwrite the position being restored.
   useEffect(() => {
-    if (!data || restoredFor.current !== number) return;
+    if (!data || loading || restoredFor.current !== number) return;
     const markers = Array.from(
       bodyRef.current?.querySelectorAll<HTMLElement>("[data-ayah]") ?? [],
     );
@@ -227,7 +385,7 @@ export default function SurahReader({ number }: { number: number }) {
       flush();
     };
     // `chunk`: a new range renders new markers, which must be observed.
-  }, [data, number, chunk, schedule, flush]);
+  }, [data, loading, number, chunk, schedule, flush]);
 
   function showChunk(i: number) {
     setChunk(i);
@@ -362,6 +520,58 @@ export default function SurahReader({ number }: { number: number }) {
         </div>
       )}
 
+      {/* The closeness annotations: the switch, and while it is on the legend
+          (or why there is nothing to show). */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-arabic text-sm text-gray-700">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={annotationsOn}
+          onClick={toggleAnnotations}
+          className="flex items-center gap-2"
+        >
+          <span
+            aria-hidden
+            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition ${
+              annotationsOn ? "bg-brand" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                annotationsOn ? "right-0.5" : "right-[1.125rem]"
+              }`}
+            />
+          </span>
+          {S.reading.annotations.toggle}
+        </button>
+        {annotationsOn && !annotationsFailed && (
+          <ul aria-label={S.reading.annotations.legendLabel} className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="inline-block h-4 w-6 rounded-sm bg-emerald-100" />
+              {S.reading.annotations.legendGroup}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="inline-block h-4 w-6 rounded-sm bg-orange-100" />
+              {S.reading.annotations.legendPassage}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="inline-block h-4 w-6 rounded-md bg-white ring-2 ring-orange-400" />
+              {S.reading.annotations.legendQuran}
+            </li>
+          </ul>
+        )}
+        {annotationsOn && !annotationsFailed && !annotations && (
+          <span className="flex items-center gap-1 text-gray-500">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {S.reading.annotations.loading}
+          </span>
+        )}
+        {annotationsOn && annotationsFailed && (
+          <p role="status" className="rounded bg-amber-50 px-3 py-1 text-amber-800">
+            {S.reading.annotations.unavailable}
+          </p>
+        )}
+      </div>
+
       {/* The surah (or the range on screen) as one continuous block (Arabic only): verses flow
           together, each followed by its ayah number, and the page scrolls to
           the end. */}
@@ -370,22 +580,88 @@ export default function SurahReader({ number }: { number: number }) {
         className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
       >
         <ArabicText className="block text-justify text-3xl leading-[2.6] text-gray-900">
-          {shown.map((v) => (
-            <span key={v.id}>
-              {v.text_ar_tashkil || v.text_ar}
-              {/* The marker carries the aya's address: `id` for the fragment
-                  scroll, `data-ayah` for the observer that tracks reading. */}
-              <span
-                id={`ayah-${v.ayah_number}`}
-                data-ayah={v.ayah_number}
-                className="western-digits mx-1.5 align-middle text-xl font-semibold text-brand-dark"
-              >
-                ﴿{v.ayah_number}﴾
-              </span>{" "}
-            </span>
-          ))}
+          {shown.map((v) => {
+            const text = v.text_ar_tashkil || v.text_ar;
+            const entry = byAyah.get(v.ayah_number);
+            if (!entry) {
+              // Unannotated — and, with the switch off, every āya: exactly the
+              // page as it is without annotations.
+              return (
+                <span key={v.id}>
+                  {text}
+                  {/* The marker carries the aya's address: `id` for the fragment
+                      scroll, `data-ayah` for the observer that tracks reading. */}
+                  <span
+                    id={`ayah-${v.ayah_number}`}
+                    data-ayah={v.ayah_number}
+                    className={MARKER_CLASS}
+                  >
+                    ﴿{v.ayah_number}﴾
+                  </span>{" "}
+                </span>
+              );
+            }
+            // Spans address the vocalized text only; on the fallback the
+            // passage cue moves to the marker (`markerCue`).
+            const vocalized = !!v.text_ar_tashkil;
+            const cue = markerCue(entry, vocalized);
+            const segments = splitMarked(text, passageSpans(entry, vocalized));
+            const body = segments.map((seg) =>
+                  seg.marked ? (
+                    <mark
+                      key={seg.start}
+                      data-cue="passage"
+                      {...triggerProps(v.ayah_number, false)}
+                      className="cursor-pointer rounded-sm bg-orange-100 text-inherit focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    >
+                      {seg.text}
+                    </mark>
+                  ) : (
+                    <Fragment key={seg.start}>{seg.text}</Fragment>
+                  ),
+            );
+            return (
+              <span key={v.id}>
+                {/* Close inside the sūra: the whole āya text turns green (its
+                    orange passage words, if any, stay orange on top). */}
+                {cue.green ? (
+                  <span
+                    data-cue="group"
+                    className="rounded-sm bg-emerald-100 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]"
+                  >
+                    {body}
+                  </span>
+                ) : (
+                  body
+                )}
+                <span
+                  id={`ayah-${v.ayah_number}`}
+                  data-ayah={v.ayah_number}
+                  data-cue-group={cue.green || undefined}
+                  data-cue-quran={cue.orange || undefined}
+                  {...triggerProps(v.ayah_number, true)}
+                  className={`${MARKER_CLASS} cursor-pointer rounded-md px-1 focus:outline-none focus-visible:underline ${
+                    cue.orange ? "ring-2 ring-orange-400" : ""
+                  }`}
+                >
+                  ﴿{v.ayah_number}﴾
+                </span>{" "}
+              </span>
+            );
+          })}
         </ArabicText>
       </div>
+
+      {open && byAyah.get(open.ayah) && annotations && (
+        <CloseVersesBubble
+          key={open.ayah}
+          surah={number}
+          entry={byAyah.get(open.ayah)!}
+          verses={annotations.verses}
+          anchor={open.anchor}
+          onClose={closeBubble}
+        />
+      )}
 
       {chunks > 1 && chunk < chunks - 1 && (
         <div className="flex justify-end">

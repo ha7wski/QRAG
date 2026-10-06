@@ -195,25 +195,6 @@ export interface SurahSimilarityResponse {
   groups: SurahSimilarityGroup[];
 }
 
-/** One close verse of an anchor, with the content roots the two share. */
-export interface SimilarNeighbour {
-  verse: Verse;
-  /** Ranking only — never rendered. */
-  score: number;
-  roots: string[];
-}
-
-/** `GET /surah/{n}/similar?ayah=a` — one verse's close verses, ranked. */
-export interface AyahSimilarityResponse {
-  surah_number: number;
-  surah_name_ar: string;
-  ayah_count: number;
-  anchor: Verse;
-  /** True when the anchor carries no content word (then `neighbours` is empty). */
-  unscored: boolean;
-  neighbours: SimilarNeighbour[];
-}
-
 /**
  * The failure of a similarity request. Its 503 detail is the dataset's rebuild
  * command, so it is kept in the (English, subordinate) message rather than
@@ -241,58 +222,56 @@ export async function getSurahSimilarity(
   return res.json();
 }
 
-export async function getAyahSimilarity(
-  surah: number,
-  ayah: number,
-): Promise<AyahSimilarityResponse> {
-  const params = new URLSearchParams({ ayah: String(ayah) });
-  const res = await fetch(`${API_URL}/surah/${surah}/similar?${params.toString()}`);
-  if (!res.ok) throw await similarityError(res, `Ayah similarity failed`);
-  return res.json();
-}
+// ── Reading annotations («سور القرآن») ────────────────────────────────
+// The same two datasets, per sūra and per āya, for the reading page's opt-in
+// closeness annotations. A static lookup: no model, nothing computed per request.
 
-// ── Quran-wide close verses («في سائر القرآن») ─────────────────────────
-// The unified cross-surah relation: a pair is close when the verses are close in
-// meaning and syntax OR share a passage of wording, ranked by one score over
-// both. A separate precomputed dataset, so its failure never touches the intra
-// view. Every neighbour is in ANOTHER surah, hence its own surah name.
-
-/**
- * One close verse of an anchor elsewhere in the Quran. Distinct from the
- * intra-surah `SimilarNeighbour`: it may carry the COMMON PART the two verses
- * share — `words` and `span` are both null when it has none.
- */
-export interface QuranNeighbour {
-  verse: Verse;
+/** One partner of an āya's cross-sūra pair, as seen from that āya. `words`,
+ *  `span_self` and `span_other` describe the pair's common part and are null
+ *  together when it has none; a passage-only partner always has them. */
+export interface AnnotationPartner {
+  /** `"s:a"` — a key of `SurahAnnotations.verses`. */
+  ref: string;
   /** Ranking only — never rendered. */
   score: number;
-  roots: string[];
   /** Matched words of the common part, or null. */
   words: number | null;
-  /** Half-open CHARACTER offsets of the common part in the NEIGHBOUR's
-   *  `text_ar_tashkil`, or null. */
-  span: [number, number] | null;
+  /** Half-open CHARACTER offsets of the common part in THIS āya's `text_ar_tashkil`. */
+  span_self: [number, number] | null;
+  /** The same in the partner's `text_ar_tashkil`. */
+  span_other: [number, number] | null;
 }
 
-/** `GET /verse/{s}/{a}/similar` — one verse's close verses elsewhere in the
- *  Quran, ranked; every pair of the relation holding it (no cap). */
-export interface VerseQuranSimilarityResponse {
-  anchor: Verse;
-  /** True when the anchor carries no content word (then `neighbours` is empty). */
-  unscored: boolean;
-  neighbours: QuranNeighbour[];
+/** One annotated āya. */
+export interface AyahAnnotation {
+  ayah: number;
+  /** The other members of its intra-sūra group(s), mushaf order; [] if none. */
+  group: number[];
+  /** Cross pairs of the whole-verse relation (`from` contains `similarity`). */
+  whole: AnnotationPartner[];
+  /** Cross pairs that are a shared passage only (`from == ["passage"]`). */
+  passage: AnnotationPartner[];
 }
 
-export async function getVerseQuranSimilarity(
-  surah: number,
-  ayah: number,
-): Promise<VerseQuranSimilarityResponse> {
-  const res = await fetch(`${API_URL}/verse/${surah}/${ayah}/similar`);
-  if (!res.ok) throw await similarityError(res, `Quran-wide similarity failed`);
+/** `GET /surah/{n}/annotations` — annotated āyāt only, ayah ascending, and a
+ *  record for every partner verse (group and cross), keyed `"s:a"`. */
+export interface SurahAnnotations {
+  surah: number;
+  ayahs: AyahAnnotation[];
+  verses: Record<string, Verse>;
+}
+
+export async function getSurahAnnotations(surah: number): Promise<SurahAnnotations> {
+  const res = await fetch(`${API_URL}/surah/${surah}/annotations`);
+  if (!res.ok) throw await similarityError(res, `Surah annotations failed`);
   return res.json();
 }
 
-// ── Surah × surah map («الآيات المتشابهات في سائر القرآن») ──────────────
+// (The per-verse routes — the `ayah` parameter of `GET /surah/{n}/similar` and
+// `GET /verse/{s}/{a}/similar` — went with the picked-verse panel of
+// «المتقاربات داخل السورة»; the latter is quarantined server-side.)
+
+// ── Surah × surah map («الآيات المتقاربات في سائر القرآن») ──────────────
 // The same cross-surah dataset, aggregated per pair of surahs: a cell counts
 // the close verse pairs between two surahs. Read at request time, no model.
 

@@ -1,8 +1,10 @@
-"""GET /verse/{surah}/{ayah}/similar — close verses in the other surahs, model-free.
+"""The surah × surah map, model-free: GET /quran-similarity/matrix (the
+per-surah-pair counts) and GET /quran-similarity/pairs/{a}/{b} (one cell's verse
+pairs).
 
-Also the surah × surah map over the same dataset: GET /quran-similarity/matrix
-(the per-surah-pair counts) and GET /quran-similarity/pairs/{a}/{b} (one cell's
-verse pairs) — see the section at the end of this module.
+The per-verse view, GET /verse/{surah}/{ayah}/similar, is QUARANTINED in
+`api/routers/verse_quran_similarity.py` (imported, not mounted): the panel that
+read it was removed at the user's request. It reuses this module's helpers.
 
 Served from `data/derived/quran_close_verses.json` — the unified relation, the
 union of whole-verse similarity and shared passages (change
@@ -10,37 +12,30 @@ union of whole-verse similarity and shared passages (change
 `retrieval/quran_close_verses.py`. No model is loaded, no Qdrant query is made,
 and `word_index.json` is not read: the cross-encoder, the E5 vectors, the
 alignments and the common part's character spans were all spent once, offline,
-by `scripts/build_quran_close_verses.py`. The route paths predate the
-unification and are kept so the client keeps its URLs.
+by `scripts/build_quran_close_verses.py`.
 
-A separate route — and a separate dataset — from `GET /surah/{number}/similar`,
-so the two fail apart: without this file the intra-surah view still answers.
-No conflict with `GET /verse/{surah}/{ayah}`: one more path segment, so neither
-pattern can match the other's URL.
+A separate dataset from `GET /surah/{number}/similar`, so the two fail apart:
+without this file the intra-surah view still answers.
 
-Verse records, the surah's Arabic name and its ayah count are read the way
-`GET /surah/{number}` reads them (`app.state.engine.retriever`), and every
-verse — the anchor and each neighbour, whatever its surah — goes through
+Verse records and surah names are read the way `GET /surah/{number}` reads them
+(`app.state.engine.retriever`), and every verse goes through
 `verse_from_record`. The spans index into that verse's served
 `text_ar_tashkil`; one that does not fit it means the dataset is stale.
 
-Errors: surah outside 1..114 or `ayah < 1` → 422 (path validation); `ayah` past
-the surah's end → 404; dataset missing, of an unknown schema, malformed, naming
-a verse the corpus does not hold, or placing a span outside a verse's text →
-503 whose detail carries the rebuild command.
+Errors: dataset missing, of an unknown schema, malformed, naming a verse the
+corpus does not hold, or placing a span outside a verse's text → 503 whose
+detail carries the rebuild command.
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Path, Request
 
 from api.models.quran_similarity import (
-    QuranNeighbour,
     QuranSimilarityCellResponse,
     QuranSimilarityMatrixResponse,
     SimilarityCell,
     SimilarPair,
     SurahName,
-    VerseQuranSimilarityResponse,
 )
 from api.models.verse import Verse, verse_from_record
 from quran_data.loaders import DatasetMissing
@@ -104,54 +99,10 @@ def _placed(verse: Verse, span: list[int] | None) -> list[int] | None:
     return span
 
 
-@router.get(
-    "/verse/{surah}/{ayah}/similar",
-    response_model=VerseQuranSimilarityResponse,
-)
-def get_verse_quran_similarity(
-    request: Request,
-    surah: int = Path(..., ge=1, le=114),
-    ayah: int = Path(..., ge=1),
-) -> VerseQuranSimilarityResponse:
-    """One verse's close verses in the other 113 surahs: every pair, score desc then ref."""
-    retriever = request.app.state.engine.retriever
-    verses = retriever.get_surah(surah)
-    if not verses:
-        raise HTTPException(status_code=404, detail=f"Surah {surah} not found")
-    by_ayah = {v["ayah_number"]: v for v in verses}
-    ayah_count = len(verses)
-
-    # Range check BEFORE the dataset: an invalid ref is a 404 whether or not the
-    # file has been built.
-    if ayah > ayah_count or ayah not in by_ayah:
-        raise HTTPException(
-            status_code=404, detail=f"Verse {surah}:{ayah} not found"
-        )
-
-    view = _aggregate(reader.ayah_view, surah, ayah)
-    neighbours = []
-    for n in view["neighbours"]:
-        verse = verse_from_record(_record(retriever, n["surah"], n["ayah"]))
-        neighbours.append(QuranNeighbour(
-            verse=verse, score=n["score"], roots=n["roots"],
-            words=n["words"], span=_placed(verse, n["span"]),
-        ))
-
-    return VerseQuranSimilarityResponse(
-        surah_number=surah,
-        surah_name_ar=verses[0].get("surah_name_ar", ""),
-        ayah_count=ayah_count,
-        anchor=verse_from_record(by_ayah[ayah]),
-        unscored=view["unscored"],
-        neighbours=neighbours,
-    )
-
-
 # ── the surah × surah map ─────────────────────────────────────────────────
 #
 # Both routes aggregate the same dataset through the pure reader (memoised per
-# loaded dict), load no model and touch no Qdrant. Same failure mode as the
-# per-verse route above: a missing, unknown-schema or malformed dataset — or one
+# loaded dict), load no model and touch no Qdrant. Failure mode: a missing, unknown-schema or malformed dataset — or one
 # naming a verse the corpus lacks — is a 503 carrying the rebuild command.
 
 

@@ -158,8 +158,8 @@ python scripts/build_quran_similarity.py --fresh          # ignore existing chec
 python scripts/eval_quran_similarity.py                   # measure it against the gold set
 ```
 
-Writes `data/derived/quran_similarity.json`, the static lookup behind
-`GET /verse/{surah}/{ayah}/similar`: for every verse, at most 10 verses of the
+Writes `data/derived/quran_similarity.json`, one input of the close-verses
+relation (`quran_close_verses.json`, behind the surah × surah map): for every verse, at most 10 verses of the
 OTHER surahs that pass the same two gates as the intra-surah build, with the
 same frozen parameters — its helpers and constants are imported from
 `build_surah_similarity.py`, not copied. Only the population differs: the

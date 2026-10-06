@@ -2,7 +2,8 @@
 quran_close_verses.py — the pure reader of the unified cross-surah relation.
 
 Behind GET /verse/{surah}/{ayah}/similar (one verse's close verses in the other
-surahs), GET /quran-similarity/matrix (the surah × surah map) and
+surahs, quarantined), GET /surah/{number}/annotations (a surah's close verses,
+per ayah, for the reading page), GET /quran-similarity/matrix (the surah × surah map) and
 GET /quran-similarity/pairs/{a}/{b} (one cell's pairs). Change
 `unify-close-verses`, design D6–D7: it replaces the two readers of the input
 relations (`quran_similarity.py`, `quran_passages.py`), which no route reads
@@ -186,7 +187,7 @@ def _aggregate(data: dict) -> dict:
     """The validated pairs, grouped by surah cell and by verse.
 
     Returns:
-      * `pairs`  — `{(u, v): {"score", "roots", "common"}}`, `u`, `v` as
+      * `pairs`  — `{(u, v): {"score", "roots", "common", "from"}}`, `u`, `v` as
         `(surah, ayah)`, `surah(u) < surah(v)`;
       * `cells`  — `{(a, b): [(u, v), ...]}`, each list in served order
         (score desc, then `(u, v)`);
@@ -211,9 +212,9 @@ def _aggregate(data: dict) -> dict:
                 raise ValueError(f"{p['a']} / {p['b']} is listed twice; one entry per pair")
             _score(p["sim"], "sim")
             _score(p["pas"], "pas")
-            _from(p["from"])
             pairs[(u, v)] = {"score": _score(p["score"], "score"),
-                             "roots": _roots(p["roots"]), "common": _common(p)}
+                             "roots": _roots(p["roots"]), "common": _common(p),
+                             "from": _from(p["from"])}
         except _MALFORMED as exc:
             raise _malformed(f"pairs[{n}]", exc) from exc
 
@@ -322,6 +323,41 @@ def ayah_view(data: dict, surah: int, ayah: int) -> dict:
             "span": span,
         })
     return {"unscored": False, "neighbours": neighbours}
+
+
+def surah_partners(data: dict, surah: int) -> dict[int, list[dict]]:
+    """Every pair holding a verse of `surah`, grouped by that verse's ayah.
+
+    `{ayah: [{"surah", "ayah", "score", "from", "words", "span_self",
+    "span_other"}]}` — only the ayahs holding at least one pair, each list in the
+    served order of `ayah_view` (score descending, then the partner's
+    `(surah, ayah)`). `from` is the pair's relation list (`["similarity"]`,
+    `["passage"]` or both); `span_self` is the common part's character span in
+    THIS verse's displayed text, `span_other` in the partner's, `words` its
+    matched word count — all three None when the pair has no common part.
+
+    Behind GET /surah/{number}/annotations, which needs a whole surah at once
+    and the relation of each pair (the reading page decides marker vs words by
+    it). The surah is NOT range-checked: an out-of-range one simply holds no
+    pair. Raises `MalformedEntry` when the dataset is not in the D6 shape.
+    """
+    agg = _aggregated(data)
+    out: dict[int, list[dict]] = {}
+    for anchor in sorted(r for r in agg["by_ref"] if r[0] == surah):
+        partners = []
+        for other, pair in agg["by_ref"][anchor]:
+            p = agg["pairs"][pair]
+            common = p["common"]
+            mine, theirs = ("ca", "cb") if pair[0] == anchor else ("cb", "ca")
+            partners.append({
+                "surah": other[0], "ayah": other[1], "score": p["score"],
+                "from": list(p["from"]),
+                "words": common["k"] if common else None,
+                "span_self": list(common[mine]) if common else None,
+                "span_other": list(common[theirs]) if common else None,
+            })
+        out[anchor[1]] = partners
+    return out
 
 
 def pair_set(data: dict) -> list[dict]:

@@ -4,7 +4,8 @@
 
 Define the one surface of the application whose purpose is **reading** rather than
 analysis: a sūra chosen from a picker and rendered whole, as one continuous vocalized
-Arabic block, with no translation, no transliteration and no annotation of any kind.
+Arabic block, with no translation, no transliteration and no annotation — except the closeness
+annotations of `surah-reading-annotations`, which the reader turns on and which are off by default.
 
 It fixes what belongs on that surface and what does not — the sūra header, the Basmala in
 its correct role (a heading for the sūras that open with one, āya `﴿١﴾` in al-Fātiḥa,
@@ -14,7 +15,6 @@ screen is shareable and the verse references emitted elsewhere in the applicatio
 landing here. And it fixes what the reader is owed between visits — the sūra and the āya
 they had reached, restored when they return through the navigation, while a deep link
 still lands where it points.
-
 ## Requirements
 ### Requirement: The «سور القرآن» page reads one whole sūra
 
@@ -23,17 +23,25 @@ and below it the chosen sūra rendered in full.
 
 The sūra SHALL be rendered as one continuous Arabic block, fully vocalized, each āya
 followed by its number in Arabic-Indic digits inside āya brackets `﴿…﴾`. No translation, no
-transliteration, no per-āya card and no analytical annotation SHALL appear on this page.
+transliteration and no per-āya card SHALL appear on this page. No analytical annotation SHALL
+appear either, except the closeness annotations of `surah-reading-annotations`, and those only
+while the reader has turned them on (they are off by default).
 
 An āya SHALL be rendered from its vocalized text when the API provides one, and from its
 undiacritized text otherwise.
 
 #### Scenario: Reading a sūra
 
-- **WHEN** a sūra is chosen
+- **WHEN** a sūra is chosen and the annotations are off
 - **THEN** all of its āyāt are rendered as one continuous vocalized Arabic block
 - **AND** each āya is followed by its number in Arabic-Indic digits inside `﴿…﴾`
 - **AND** no translation or analytical annotation is shown.
+
+#### Scenario: Annotations are the reader's choice
+
+- **WHEN** the reader turns the annotations on
+- **THEN** the closeness annotations appear on the same continuous block, which stays one block
+- **AND** no other analytical annotation appears.
 
 #### Scenario: The reading page shows no Latin text
 
@@ -240,3 +248,4 @@ records where they actually were.
 
 - **WHEN** the reader resumes through the navigation entry and then goes back
 - **THEN** they return to the page they came from, not to the navigation entry.
+

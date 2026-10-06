@@ -56,6 +56,7 @@ from api.routers import qlisan as qlisan_router  # noqa: E402
 from api.routers import quran_similarity as quran_similarity_router  # noqa: E402
 from api.routers import roots as roots_router  # noqa: E402
 from api.routers import search as search_router  # noqa: E402
+from api.routers import surah_annotations as surah_annotations_router  # noqa: E402
 from api.routers import surah_similarity as surah_similarity_router  # noqa: E402
 # QUARANTINED on the same terms: «التحليل النحوي» left the navigation and its
 # /tahlil page was deleted, so /tahlil/word and /tahlil/review have no consumer.
@@ -63,6 +64,8 @@ from api.routers import surah_similarity as surah_similarity_router  # noqa: E40
 # restoring the page from git.
 from api.routers import tahlil as tahlil_router  # noqa: E402,F401
 from api.routers import verse as verse_router  # noqa: E402
+# Quarantined with the panel that read it — see api/routers/verse_quran_similarity.py.
+from api.routers import verse_quran_similarity as verse_quran_similarity_router  # noqa: E402,F401
 from api.routers import verse_lookup as verse_lookup_router  # noqa: E402
 
 logging.basicConfig(
@@ -201,10 +204,11 @@ app.include_router(verse_router.router)
 # GET /surah/{number}/similar — no conflict with GET /surah/{number}: one more
 # path segment, so neither pattern can match the other's URL.
 app.include_router(surah_similarity_router.router)
-# GET /verse/{surah}/{ayah}/similar — likewise one segment past GET
-# /verse/{surah}/{ayah}, and a separate dataset so the intra view survives without it.
-# It also serves the surah × surah map, over the unified close-verses relation;
-# GET /quran-passages/* is gone with its router (change `unify-close-verses`).
+# GET /surah/{number}/annotations — the reading page's closeness cues, over the
+# intra groups and the cross pairs; one more path segment, like /similar.
+app.include_router(surah_annotations_router.router)
+# The surah × surah map, over the unified close-verses relation; GET /quran-passages/*
+# is gone with its router (change `unify-close-verses`).
 app.include_router(quran_similarity_router.router)
 app.include_router(verse_lookup_router.router)
 app.include_router(fassila_router.router)
@@ -213,6 +217,8 @@ app.include_router(feedback_router.router)
 # exactly one line here: `app.include_router(madar_router.router)`.
 # NOT mounted: `lisan_concept_router` — quarantined, see api/routers/lisan_concept.py.
 # NOT mounted: `tahlil_router` — quarantined with the deleted /tahlil page.
+# NOT mounted: `verse_quran_similarity_router` (GET /verse/{surah}/{ayah}/similar) —
+# quarantined with the removed picked-verse panel, see api/routers/verse_quran_similarity.py.
 
 
 @app.get("/health", tags=["health"])

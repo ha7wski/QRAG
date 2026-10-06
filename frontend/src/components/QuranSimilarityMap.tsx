@@ -5,12 +5,14 @@ import type { KeyboardEvent } from "react";
 import {
   type QuranSimilarityCell,
   type QuranSimilarityMatrix,
+  type QuranSimilarityPair,
   type QuranSimilarityPairs,
   detailOf,
   getQuranSimilarityMatrix,
   getQuranSimilarityPairs,
   statusOf,
 } from "@/lib/api";
+import type { Verse } from "@/lib/types";
 import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
@@ -22,7 +24,7 @@ import {
 } from "@/components/SimilarVerseParts";
 
 /**
- * «الآيات المتشابهات في سائر القرآن» — the surah × surah map.
+ * «الآيات المتقاربات في سائر القرآن» — the surah × surah map.
  *
  * Every cell (A, B) counts the close verse PAIRS between surah A and surah B
  * in the unified close-verses dataset (`GET /quran-similarity/matrix`); picking
@@ -99,6 +101,66 @@ const keyOf = (a: number, b: number) => `${Math.min(a, b)}:${Math.max(a, b)}`;
 type CellRef = { a: number; b: number };
 
 const LIST_ID = "quran-map-pairs";
+
+/** A verse of a group, shown once, with every common part it has in the group. */
+export type GroupVerse = { verse: Verse; spans: [number, number][] };
+
+/** A verse joined to the group's hub by one pair. */
+export type GroupPartner = GroupVerse & { pair: QuranSimilarityPair };
+
+/** One verse of either surah and every verse of the other surah it is close to. */
+export type PairGroup = { hub: GroupVerse; partners: GroupPartner[] };
+
+/**
+ * A cell's pairs as STARS: a verse close to several verses of the other surah
+ * is shown once, with all of them under it — البقرة 39 with المائدة 10 and 86,
+ * or المائدة 89 with البقرة 196, 219, 225, 242 and 266. Every common part is
+ * marked: the hub's as the union of its pairs' parts, each partner's its own.
+ *
+ * The hub is picked greedily: the verse, on either side, with the most pairs not
+ * yet shown takes them all, then the next; a tie goes to the verse whose
+ * strongest pair the route ranks first. Each pair lands in exactly one group, so
+ * a verse may still head one group and sit under another. A pair whose verses
+ * have no other pair is a group of two. Groups keep the route's order (a group
+ * sits where its strongest pair did); partners are in mushaf order.
+ */
+export function groupPairs(pairs: QuranSimilarityPair[]): PairGroup[] {
+  const left = new Set(pairs.map((_, k) => k));
+  const sideOf = (k: number, side: "u" | "v") => `${side}${pairs[k][side].id}`;
+  const groups: { first: number; group: PairGroup }[] = [];
+  while (left.size > 0) {
+    // Remaining pairs per verse, keyed by side so a verse id can't meet itself.
+    const byVerse = new Map<string, number[]>();
+    for (const k of left) {
+      for (const side of ["u", "v"] as const) {
+        const key = sideOf(k, side);
+        if (!byVerse.has(key)) byVerse.set(key, []);
+        byVerse.get(key)!.push(k);
+      }
+    }
+    let best: string | null = null;
+    for (const [key, ks] of byVerse) {
+      const cur = best ? byVerse.get(best)! : null;
+      if (!cur || ks.length > cur.length || (ks.length === cur.length && ks[0] < cur[0])) best = key;
+    }
+    const ks = byVerse.get(best!)!;
+    const side = best!.startsWith("u") ? "u" : "v";
+    const other = side === "u" ? "v" : "u";
+    const hub: GroupVerse = { verse: pairs[ks[0]][side], spans: [] };
+    const partners: GroupPartner[] = [];
+    for (const k of ks) {
+      const p = pairs[k];
+      const hubSpan = side === "u" ? p.span_u : p.span_v;
+      const partnerSpan = side === "u" ? p.span_v : p.span_u;
+      if (hubSpan) hub.spans.push(hubSpan);
+      partners.push({ verse: p[other], spans: partnerSpan ? [partnerSpan] : [], pair: p });
+      left.delete(k);
+    }
+    partners.sort((x, y) => x.verse.ayah_number - y.verse.ayah_number);
+    groups.push({ first: ks[0], group: { hub, partners } });
+  }
+  return groups.sort((x, y) => x.first - y.first).map((g) => g.group);
+}
 
 export default function QuranSimilarityMap({
   openInContext,
@@ -280,31 +342,48 @@ export default function QuranSimilarityMap({
             </div>
           ) : (
             <ol className="space-y-3">
-              {pairs.pairs.map((p) => (
+              {groupPairs(pairs.pairs).map((g, i) => (
+                /* The group's number in a green disc on the reading side, as
+                   in «داخل السورة», then the card: the hub verse, then each
+                   verse close to it with what the two share. */
                 <li
-                  key={`${p.u.id}|${p.v.id}`}
-                  data-testid="quran-map-pair"
-                  className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand"
+                  key={`${g.hub.verse.id}|${g.partners.map((x) => x.verse.id).join(",")}`}
+                  className="flex items-start gap-3"
                 >
-                  {/* Both verses, each with the common part marked when the pair
-                      has one (spans into `text_ar_tashkil`, from the route), then
-                      its word count, then the shared roots. */}
-                  <VerseCardButton
-                    verse={p.u}
-                    openInContext={openInContext}
-                    withSurah
-                    span={p.span_u}
-                  />
-                  <div className="border-t border-dashed border-gray-200">
+                  <span
+                    data-testid="quran-map-group-number"
+                    aria-hidden="true"
+                    className="western-digits mt-4 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white"
+                  >
+                    {i + 1}
+                  </span>
+                  <div
+                    data-testid="quran-map-group"
+                    className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand"
+                  >
                     <VerseCardButton
-                      verse={p.v}
+                      verse={g.hub.verse}
                       openInContext={openInContext}
                       withSurah
-                      span={p.span_v}
+                      spans={g.hub.spans}
                     />
+                    {g.partners.map((x) => (
+                      <div
+                        key={x.verse.id}
+                        data-testid="quran-map-pair"
+                        className="border-t border-dashed border-gray-200"
+                      >
+                        <VerseCardButton
+                          verse={x.verse}
+                          openInContext={openInContext}
+                          withSurah
+                          spans={x.spans}
+                        />
+                        <SharedWords words={x.pair.words} />
+                        <RootChips roots={x.pair.roots} />
+                      </div>
+                    ))}
                   </div>
-                  <SharedWords words={p.words} />
-                  <RootChips roots={p.roots} />
                 </li>
               ))}
             </ol>

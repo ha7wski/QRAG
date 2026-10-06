@@ -1,12 +1,14 @@
 "use client";
 
+import { Fragment } from "react";
 import { Loader2 } from "lucide-react";
 import type { Verse } from "@/lib/types";
 import { S } from "@/lib/strings";
 import ArabicText from "@/components/ArabicText";
+import { splitMarked } from "@/lib/annotations";
 
 /**
- * The verse, common-part and root-chip markup the «الآيات المتشابهات» views
+ * The verse, common-part and root-chip markup the «الآيات المتقاربات» views
  * share: the intra-surah mode (`SurahSimilarity`) and the surah × surah map
  * (`QuranSimilarityMap`) render a close verse — and the part it shares with its
  * pair, `<mark>`ed with its word count — the same way, so the markup lives here
@@ -27,36 +29,42 @@ export function LoadingLine() {
 }
 
 /**
- * The vocalized text, with `span` — the common part of a close pair, as
+ * The vocalized text, with each of `spans` — the common part of a close pair, as
  * half-open CHARACTER offsets into the DISPLAYED `text_ar_tashkil` (Basmala
- * stripped), computed by the build — wrapped in a `<mark>`. The offsets address
- * the vocalized text only: a verse that falls back to `text_ar`, or a span
- * outside the text, is rendered unmarked rather than marked at the wrong place.
+ * stripped), computed by the build — wrapped in a `<mark>`. Several spans are a
+ * verse shown once for several pairs (the map's groups): overlapping ones are
+ * merged, so their union is marked (`lib/annotations.ts`, shared with the
+ * reading page). The offsets address the vocalized text only: a verse that
+ * falls back to `text_ar` is rendered unmarked, and a span outside the text is
+ * dropped rather than marked at the wrong place.
  */
-function MarkedText({ verse, span }: { verse: Verse; span?: [number, number] | null }) {
+function MarkedText({ verse, spans }: { verse: Verse; spans: [number, number][] }) {
   const text = verse.text_ar_tashkil || verse.text_ar;
-  if (!span || !verse.text_ar_tashkil) return <>{text}</>;
-  const [start, end] = span;
-  const valid =
-    Number.isInteger(start) &&
-    Number.isInteger(end) &&
-    start >= 0 &&
-    start < end &&
-    end <= text.length;
-  if (!valid) return <>{text}</>;
+  if (!verse.text_ar_tashkil) return <>{text}</>;
   return (
     <>
-      {text.slice(0, start)}
-      <mark
-        data-testid="common-part"
-        className="rounded-sm bg-brand-light text-brand-dark"
-      >
-        {text.slice(start, end)}
-      </mark>
-      {text.slice(end)}
+      {splitMarked(text, spans).map((seg) =>
+        seg.marked ? (
+          <mark
+            key={seg.start}
+            data-testid="common-part"
+            className="rounded-sm bg-brand-light text-brand-dark"
+          >
+            {seg.text}
+          </mark>
+        ) : (
+          <Fragment key={seg.start}>{seg.text}</Fragment>
+        ),
+      )}
     </>
   );
 }
+
+/** `span` and `spans` as one list — a single pair's part, or a group's parts. */
+const spanList = (
+  span: [number, number] | null | undefined,
+  spans: [number, number][] | undefined,
+): [number, number][] => [...(span ? [span] : []), ...(spans ?? [])];
 
 /** A vocalized verse with its number badge — and its surah's name when the
  *  verse may come from another surah than the one on screen. `span`, when
@@ -65,14 +73,17 @@ export function VerseText({
   verse,
   withSurah = false,
   span,
+  spans,
 }: {
   verse: Verse;
   withSurah?: boolean;
   span?: [number, number] | null;
+  /** Several common parts, marked as their union. */
+  spans?: [number, number][];
 }) {
   return (
     <ArabicText className="block text-2xl leading-loose text-gray-900">
-      <MarkedText verse={verse} span={span} />{" "}
+      <MarkedText verse={verse} spans={spanList(span, spans)} />{" "}
       <span className="western-digits align-middle text-sm text-gray-400">
         ﴿{withSurah ? `${verse.surah_name_ar} ${verse.ayah_number}` : verse.ayah_number}﴾
       </span>
@@ -87,6 +98,7 @@ export function VerseCardButton({
   highlighted = false,
   withSurah = false,
   span,
+  spans,
 }: {
   verse: Verse;
   openInContext: (surah: number, ayah: number) => void;
@@ -94,6 +106,8 @@ export function VerseCardButton({
   withSurah?: boolean;
   /** The common part to mark in the verse's vocalized text. */
   span?: [number, number] | null;
+  /** Several common parts (a verse shown once for several pairs), marked as their union. */
+  spans?: [number, number][];
 }) {
   return (
     <button
@@ -104,7 +118,7 @@ export function VerseCardButton({
         highlighted ? "rounded-lg border border-brand/40 bg-brand-light/40" : ""
       }`}
     >
-      <VerseText verse={verse} withSurah={withSurah} span={span} />
+      <VerseText verse={verse} withSurah={withSurah} span={span} spans={spans} />
     </button>
   );
 }

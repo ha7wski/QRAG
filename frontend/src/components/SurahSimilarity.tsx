@@ -2,15 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  type AyahSimilarityResponse,
-  type QuranNeighbour,
   type SurahSimilarityResponse,
-  type VerseQuranSimilarityResponse,
   detailOf,
-  getAyahSimilarity,
   getSurahSimilarity,
   getSurahs,
-  getVerseQuranSimilarity,
   statusOf,
 } from "@/lib/api";
 import type { SurahMeta } from "@/lib/types";
@@ -18,28 +13,16 @@ import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import SurahPicker from "@/components/SurahPicker";
-import {
-  LoadingLine,
-  RootChips,
-  SharedWords,
-  VerseCardButton,
-  VerseText,
-} from "@/components/SimilarVerseParts";
-
-/** The anchor panel's id — a group verse scrolls it into view when picked. */
-const ANCHOR_PANEL_ID = "surah-similar-anchor";
+import { LoadingLine, VerseText } from "@/components/SimilarVerseParts";
 
 /**
- * «داخل سورة» — the intra-surah similarity view of «الآيات المتشابهات».
+ * «داخل سورة» — the intra-surah similarity view of «الآيات المتقاربات».
  *
  * Pick a surah → its groups of mutually close verses, strongest first, each
- * framed in green and numbered (1, 2, 3 …) in a green disc beside it. Pick a verse of a group → the verse, then
- * its close verses in the REST of the Quran (`GET /verse/{s}/{a}/similar`),
- * ranked, each with the part it shares with it `<mark>`ed and counted when it
- * has one, and the content roots the two share. The picked verse itself is
- * never marked: its common part differs with every neighbour. Its same-surah
- * neighbours are not listed (the group already shows them); the intra request
- * still supplies the verse card, and the two requests fail apart.
+ * framed in green and numbered (1, 2, 3 …) in a green disc beside it. A group
+ * verse opens in «الآية في سياقها». (The picked-verse panel — the verse, then its
+ * close verses in the rest of the Quran — was removed at the user's request;
+ * the map «في سائر القرآن» is where cross-surah closeness is read.)
  *
  * Everything shown is read from a precomputed dataset (`GET /surah/{n}/similar`):
  * «close» there means the same meaning or subject AND nearly the same syntax,
@@ -47,9 +30,7 @@ const ANCHOR_PANEL_ID = "surah-similar-anchor";
  * and computes nothing — and renders NO score: the order carries the ranking.
  *
  * All durable state lives under `verse-study.similar.surah.*`, so coming back to
- * this mode (or to the page) shows the same surah and verse without a request.
- * Each fetched verse is kept in `anchors` (and its Quran-wide answer in
- * `quranAnchors`), so revisiting one costs nothing either.
+ * this mode (or to the page) shows the same surah without a request.
  */
 export default function SurahSimilarity({
   openInContext,
@@ -74,36 +55,11 @@ export default function SurahSimilarity({
     "verse-study.similar.surah.error",
     null,
   );
-  const [ayah, setAyah] = useCachedState<number | null>(
-    "verse-study.similar.surah.ayah",
-    null,
-  );
-  // Fetched anchors of the CURRENT surah, keyed by ayah number.
-  const [anchors, setAnchors] = useCachedState<
-    Record<number, AyahSimilarityResponse>
-  >("verse-study.similar.surah.anchors", {});
-  const [ayahError, setAyahError] = useCachedState<Failure | null>(
-    "verse-study.similar.surah.ayahError",
-    null,
-  );
-  // Quran-wide answers of the CURRENT surah's verses, keyed "s:a" — a separate
-  // dataset and route, so its own cache, error and request counter.
-  const [quranAnchors, setQuranAnchors] = useCachedState<
-    Record<string, VerseQuranSimilarityResponse>
-  >("verse-study.similar.surah.quranAnchors", {});
-  const [quranError, setQuranError] = useCachedState<Failure | null>(
-    "verse-study.similar.surah.quranError",
-    null,
-  );
   // Transient — never cached (a cached `true` restores a spinner that never stops).
   const [loading, setLoading] = useState(false);
-  const [ayahLoading, setAyahLoading] = useState(false);
-  const [quranLoading, setQuranLoading] = useState(false);
   // Only the latest request applies its answer: picking surah A then B quickly
   // must never end with A's groups under B's name.
   const surahSeq = useRef(0);
-  const ayahSeq = useRef(0);
-  const quranSeq = useRef(0);
 
   useEffect(() => {
     if (surahs.length) return;
@@ -131,114 +87,23 @@ export default function SurahSimilarity({
     }
   }
 
-  // Fetches verse `a` of surah `s`; only the latest verse request applies its answer.
-  async function fetchAyah(s: number, a: number) {
-    const seq = ++ayahSeq.current;
-    setAyahLoading(true);
-    try {
-      const res = await getAyahSimilarity(s, a);
-      if (seq === ayahSeq.current)
-        setAnchors((prev) => ({ ...prev, [a]: res }));
-    } catch (e) {
-      if (seq === ayahSeq.current)
-        setAyahError({
-          text: forStatus(statusOf(e), "verse"),
-          detail: detailOf(e),
-        });
-    } finally {
-      if (seq === ayahSeq.current) setAyahLoading(false);
-    }
-  }
-
-  // Fetches verse `a` of surah `s` across the Quran; only the latest Quran-wide
-  // request applies its answer. Independent of `fetchAyah` on purpose.
-  async function fetchQuran(s: number, a: number) {
-    const seq = ++quranSeq.current;
-    setQuranLoading(true);
-    try {
-      const res = await getVerseQuranSimilarity(s, a);
-      if (seq === quranSeq.current)
-        setQuranAnchors((prev) => ({ ...prev, [`${s}:${a}`]: res }));
-    } catch (e) {
-      if (seq === quranSeq.current)
-        setQuranError({
-          text: forStatus(statusOf(e), "verse"),
-          detail: detailOf(e),
-        });
-    } finally {
-      if (seq === quranSeq.current) setQuranLoading(false);
-    }
-  }
-
   // A pick is cached before its answer lands, so leaving the page while a request
   // is in flight drops the answer and strands the pick: on return the select shows
   // it, nothing else does, and choosing the same option again fires no change. The
   // stranded request is therefore re-issued on mount.
   useEffect(() => {
     if (surah !== "" && !data && !error) void fetchSurah(surah);
-    else if (data && ayah !== null && !anchors[ayah] && !ayahError)
-      void fetchAyah(data.surah_number, ayah);
-    // The Quran-wide answer strands independently of the intra one.
-    if (
-      data &&
-      ayah !== null &&
-      !quranAnchors[`${data.surah_number}:${ayah}`] &&
-      !quranError
-    )
-      void fetchQuran(data.surah_number, ayah);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function chooseSurah(n: number) {
     // The surah already on screen is not fetched again.
     if (n === surah && data?.surah_number === n) return;
-    ayahSeq.current++; // any verse still in flight belongs to the old surah
-    quranSeq.current++;
     setSurah(n);
     setData(null);
     setError(null);
-    setAyah(null);
-    setAnchors({});
-    setAyahError(null);
-    setAyahLoading(false);
-    setQuranAnchors({});
-    setQuranError(null);
-    setQuranLoading(false);
     void fetchSurah(n);
   }
-
-  function chooseAyah(a: number, scroll = false) {
-    if (!data) return;
-    const s = data.surah_number;
-    setAyah(a);
-    setAyahError(null);
-    setQuranError(null);
-    if (scroll) {
-      const el = document.getElementById(ANCHOR_PANEL_ID);
-      if (el && typeof el.scrollIntoView === "function")
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-    // The two answers are cached and requested apart: one may be on hand while
-    // the other is not (a failed request is retried on the next pick).
-    if (anchors[a]) {
-      ayahSeq.current++; // a verse still in flight must not replace this one
-      setAyahLoading(false); // already fetched — switching verses is local
-    } else void fetchAyah(s, a);
-    if (quranAnchors[`${s}:${a}`]) {
-      quranSeq.current++;
-      setQuranLoading(false);
-    } else void fetchQuran(s, a);
-  }
-
-  const anchor = ayah !== null ? anchors[ayah] : undefined;
-  const quranAnchor =
-    ayah !== null && data
-      ? quranAnchors[`${data.surah_number}:${ayah}`]
-      : undefined;
-  // An unscored verse was compared with nothing, anywhere: the intra panel
-  // already says so, and a second section would only repeat it.
-  const showQuran =
-    ayah !== null && !anchor?.unscored && !quranAnchor?.unscored;
 
   return (
     <div className="space-y-6">
@@ -304,16 +169,12 @@ export default function SurahSimilarity({
                   >
                     {g.verses.map((v) => (
                       <li key={v.id}>
-                        {/* A group verse SELECTS that verse — its close verses
-                          then open in the panel below. */}
+                        {/* A group verse opens in «الآية في سياقها». */}
                         <button
                           type="button"
-                          onClick={() => chooseAyah(v.ayah_number, true)}
-                          aria-pressed={ayah === v.ayah_number}
-                          title={S.verseStudy.surahSimilar.selectAyah}
-                          className={`block w-full px-4 py-3 text-start transition hover:bg-brand-light/50 ${
-                            ayah === v.ayah_number ? "bg-brand-light/60" : ""
-                          }`}
+                          onClick={() => openInContext(v.surah_number, v.ayah_number)}
+                          title={S.verseStudy.openInContext}
+                          className="block w-full px-4 py-3 text-start transition hover:bg-brand-light/50"
                         >
                           <VerseText verse={v} />
                         </button>
@@ -324,135 +185,8 @@ export default function SurahSimilarity({
               ))
             )}
           </section>
-
-          {/* The verse panel, after the groups (D11: groups render first): the
-              verse picked in a group, then its close verses in the rest of the
-              Quran. Picking scrolls
-              down to it. */}
-          <section id={ANCHOR_PANEL_ID} className="scroll-mt-4 space-y-4">
-            {ayahError && (
-              <FailureNote
-                failure={ayahError}
-                className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
-              />
-            )}
-
-            {ayahLoading && <LoadingLine />}
-
-            {anchor && !ayahLoading && (
-              <AnchorPanel result={anchor} openInContext={openInContext} />
-            )}
-
-            {/* Below the picked verse, never waiting on the intra request. */}
-            {showQuran && (
-              <section
-                data-testid="quran-similar-section"
-                className="space-y-3 pt-2"
-              >
-                <h3
-                  lang="ar"
-                  className="font-arabic text-lg font-semibold text-gray-800"
-                >
-                  {S.verseStudy.surahSimilar.quranHeading}
-                </h3>
-
-                {quranError && (
-                  <FailureNote
-                    failure={quranError}
-                    className="rounded bg-red-50 px-3 py-2 text-sm text-red-700"
-                  />
-                )}
-
-                {quranLoading && <LoadingLine />}
-
-                {quranAnchor &&
-                  !quranLoading &&
-                  (quranAnchor.neighbours.length === 0 ? (
-                    <div
-                      role="status"
-                      lang="ar"
-                      data-testid="quran-similar-empty"
-                      className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
-                    >
-                      {S.verseStudy.surahSimilar.noQuranClose}
-                    </div>
-                  ) : (
-                    <ol className="space-y-3">
-                      {quranAnchor.neighbours.map((n) => (
-                        <NeighbourCard
-                          key={n.verse.id}
-                          neighbour={n}
-                          openInContext={openInContext}
-                          withSurah
-                          testId="quran-similar-neighbour"
-                        />
-                      ))}
-                    </ol>
-                  ))}
-              </section>
-            )}
-          </section>
         </div>
       )}
     </div>
-  );
-}
-
-/** The selected verse — its close verses are those of «في سائر القرآن» below;
- *  the same-surah list is no longer shown. An unscored verse says why nothing
- *  follows it. */
-function AnchorPanel({
-  result,
-  openInContext,
-}: {
-  result: AyahSimilarityResponse;
-  openInContext: (surah: number, ayah: number) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <VerseCardButton verse={result.anchor} openInContext={openInContext} highlighted />
-
-      {result.unscored && (
-        <div
-          role="status"
-          lang="ar"
-          className="rounded-lg bg-amber-50 px-4 py-3 font-arabic text-lg text-amber-800"
-        >
-          {S.verseStudy.surahSimilar.unscoredAnchor}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** One ranked close verse elsewhere in the Quran: the verse (opens «الآية في
- *  سياقها») with its common part with the anchor marked — `span` addresses THIS
- *  verse's text — then that part's word count and the content roots the two
- *  share. No score — the order carries the ranking. */
-function NeighbourCard({
-  neighbour: n,
-  openInContext,
-  withSurah = false,
-  testId,
-}: {
-  neighbour: QuranNeighbour;
-  openInContext: (surah: number, ayah: number) => void;
-  withSurah?: boolean;
-  testId: string;
-}) {
-  return (
-    <li
-      data-testid={testId}
-      className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand"
-    >
-      <VerseCardButton
-        verse={n.verse}
-        openInContext={openInContext}
-        withSurah={withSurah}
-        span={n.span}
-      />
-      <SharedWords words={n.words} />
-      <RootChips roots={n.roots} />
-    </li>
   );
 }

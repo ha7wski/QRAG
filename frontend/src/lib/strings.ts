@@ -249,7 +249,7 @@ export const S = {
     tabs: {
       word: "الكلمة في الآيات",
       /** «النظائر» is rejected: it names a different discipline (design D21). */
-      similar: "الآيات المتشابهات",
+      similar: "الآيات المتقاربات",
       context: "الآية في سياقها",
     },
     search: "بحث",
@@ -309,14 +309,14 @@ export const S = {
     sortAsc: "الأقلّ آياتٍ",
     sortGroupLabel: "الترتيب",
     /**
-     * The two modes of «الآيات المتشابهات». «بعبارة» is the phrase search over the
+     * The two modes of «الآيات المتقاربات». «بعبارة» is the phrase search over the
      * whole Quran, unchanged; «داخل سورة» reads the precomputed intra-surah
      * closeness. Arabic only — no English mode name is ever rendered.
      */
     similarModes: {
-      phrase: "المتشابهات من عبارة",
-      surah: "المتشابهات داخل السورة",
-      quran: "الآيات المتشابهات في سائر القرآن",
+      phrase: "المتقاربات من عبارة",
+      surah: "المتقاربات داخل السورة",
+      quran: "الآيات المتقاربات في سائر القرآن",
       groupLabel: "طريقة البحث",
     },
     /**
@@ -326,7 +326,7 @@ export const S = {
      */
     surahSimilar: {
       caption:
-        "اختر سورةً فترى مجموعاتِ آياتها المتقاربة في المعنى والتركيب معًا، ثم اختر آيةً منها فترى أقربَ آيات السورة إليها.",
+        "اختر سورةً فترى مجموعاتِ آياتها المتقاربة في المعنى والتركيب معًا.",
       groupsHeading: "مجموعات الآيات المتقاربة",
       noGroups: "ليس في هذه السورة مجموعةٌ من الآيات تتقارب في المعنى والتركيب معًا.",
       /** One line naming the surah's verses that carry no content word. */
@@ -334,33 +334,25 @@ export const S = {
         ayahs.length === 1
           ? `لا تُقارَن الآية ${ayahs[0]} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`
           : `لا تُقارَن الآيات ${ayahs.join("، ")} بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.`,
-      /** The selected verse is itself unscored: nothing was compared. */
-      unscoredAnchor: "لا تُقارَن هذه الآية بغيرها، إذ ليس فيها لفظٌ ذو جذرٍ دالّ.",
       sharedRoots: "الجذور المشتركة :",
       /** The matched words of a close pair's common part, under its verses —
-       *  shared by the verse panel and the surah × surah map. */
+       *  in the surah × surah map. */
       sharedWords: (n: number) => count(n, NOUNS.kalimaMushtaraka),
-      /** The verse panel's list: close verses in OTHER surahs. */
-      quranHeading: "الآيات المتشابهات في سائر القرآن",
-      /** Scored, but no verse elsewhere in the Quran is close to it or shares a
-       *  passage with it. */
-      noQuranClose: "لا توجد في سائر القرآن آية تشابهها أو تشاركها مقطعًا",
-      selectAyah: "اختر هذه الآية",
       loading: "جارٍ التحميل…",
     },
     /**
      * «في سائر القرآن» — the surah × surah map. A cell counts the close verse
      * PAIRS between two surahs, in the unified sense: two verses close in
-     * meaning AND syntax, OR sharing a passage of wording — so the wording here
-     * says «متشابهة», never the narrower «متقاربة في المعنى والتركيب معًا».
+     * meaning AND syntax, OR sharing a passage of wording — «متقاربة» here names
+     * that union, not closeness in meaning and syntax alone.
      * Every figure is read from the route, never written here.
      */
     quranMap: {
       /** The one-line totals under the chart: surah pairs, verse pairs, surahs. */
       caption: (cells: number, pairs: number, surahs: number) =>
-        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات المتشابهة أو المشتركة في مقطع، في ${count(surahs, NOUNS.surah)}.`,
+        `${count(cells, NOUNS.zawj)} من السور تجمعها ${count(pairs, NOUNS.zawj)} من الآيات المتقاربة أو المشتركة في مقطع، في ${count(surahs, NOUNS.surah)}.`,
       hint: "اختر خانةً من الجدول لترى أزواج آياتها.",
-      chartLabel: "جدول السور المتشابهة الآيات",
+      chartLabel: "جدول السور المتقاربة الآيات",
       legendTitle: "عدد أزواج الآيات :",
       legendEmpty: "لا شيء",
       /** The last log bin, open-ended. */
@@ -380,11 +372,11 @@ export const S = {
       ) =>
         `سورة ${nameA} × سورة ${nameB} : ${count(pairs, NOUNS.zawj)} (${count(versesA, NOUNS.aya)} × ${count(versesB, NOUNS.aya)})`,
       /** The cell list's heading prefix. */
-      pairsHeading: "أزواج الآيات المتشابهة",
+      pairsHeading: "أزواج الآيات المتقاربة",
       /** An empty matrix: the dataset holds no cross-surah pair at all. */
-      noPairs: "لا آيةَ في سورةٍ تشابه آيةً من سورةٍ أخرى أو تشاركها مقطعًا.",
+      noPairs: "لا آيةَ في سورةٍ تقارب آيةً من سورةٍ أخرى أو تشاركها مقطعًا.",
       /** A cell the route answers empty — the matrix was stale. */
-      noCellPairs: "لا زوجَ من الآيات المتشابهة بين هاتين السورتين.",
+      noCellPairs: "لا زوجَ من الآيات المتقاربة بين هاتين السورتين.",
       /** Re-issues a failed matrix request. */
       retry: "أعد المحاولة",
     },
@@ -591,6 +583,23 @@ export const S = {
     rangesLabel: "مقاطع السورة",
     /** Under the block: the next range, «الآيات 51–100». */
     nextRange: "الآيات التالية",
+    /** The opt-in closeness annotations of the reading block. */
+    annotations: {
+      toggle: "إظهار الآيات المتقاربة",
+      legendLabel: "دليل الألوان",
+      legendGroup: "آية قريبة داخل السورة",
+      legendQuran: "آية قريبة في سائر القرآن",
+      legendPassage: "جزء مشترك في سائر القرآن",
+      loading: "جارٍ تحميل الآيات المتقاربة…",
+      /** The annotations failed; the surah itself is still on screen. */
+      unavailable: "تعذّر تحميل الآيات المتقاربة؛ تُعرض السورة دون تعليم.",
+      /** The accessible name of an annotated marker or word. */
+      openFor: (ayah: number) => `الآيات القريبة من الآية ${ayah}`,
+      bubbleTitle: (ayah: number) => `الآيات القريبة من الآية ${ayah}`,
+      insideSurah: "داخل السورة",
+      otherSurahs: "في سائر القرآن",
+      close: "إغلاق",
+    },
   },
 
   health: {
