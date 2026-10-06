@@ -153,7 +153,13 @@ const POSITIONS: Record<SensePosition, string> = {
   any: "أيّ موضع",
 };
 
-export const S = {
+/**
+ * Every entry but `intro`. Declared apart only so `intro` (below) can REFERENCE
+ * the names the pages render — a tab, a section, a switch — rather than retype
+ * them: an object literal cannot read its own properties while it is being
+ * built. Nothing reads `BASE` directly; `S` spreads it.
+ */
+const BASE = {
   /** The application's only name. The old Latin brand appears nowhere —
    *  including here: naming it would be the sole hit of the 9.2c check. */
   app: {
@@ -389,6 +395,14 @@ export const S = {
     caption:
       "اختر آيةً، ثم اضغط كلمةً واحدةً لترى تحليلها في أربعة مستويات — صوتي، صرفي، نحوي، دلالي. والصرفُ والنحوُ مأخوذان على وجه الحتم من المدوّنة المُعرَبة، لا من نموذج لغويّ.",
     loadVerse: "اعرض الآية",
+    /** The four level cards' titles, in the fiche's fixed order. */
+    levels: { sawti: "صوتي", sarfi: "صرفي", nahwi: "نحوي", dalali: "دلالي" },
+  },
+
+  /** «فواصل الآيات والسور». */
+  fassila: {
+    caption: "الفاصلة: آخر حرف من كل آية وقفًا · مع استبعاد الحروف المقطّعة · 114 سورة",
+    tabs: { analysis: "تحليل الفواصل", comparison: "مقارنة السور" },
   },
 
   lexical: {
@@ -644,6 +658,149 @@ export const S = {
   /** Scroll-to-top control. */
   common: {
     scrollToTop: "الرجوع إلى الأعلى",
+  },
+} as const;
+
+export const S = {
+  ...BASE,
+
+  /**
+   * The page introductions: one summary sentence and one card per feature.
+   *
+   * A card's `title` is the name the page itself renders for that feature,
+   * read from `BASE` — so a renamed tab renames its card. A title with no
+   * on-screen counterpart (a grouping the page never labels) is the only kind
+   * written out here. Every `how` is a claim about the page and was checked
+   * against the code; a feature the page does not have is not described.
+   * Bounds: summary ≤ 30 words, each `how` ≤ 25.
+   */
+  intro: {
+    toggle: "عن هذه الصفحة",
+    region: "تعريف بالصفحة",
+    surah: {
+      summary:
+        "اقرأ السورة كاملةً بنصّها المشكول، وانتقل بين السور، واكشف عند الحاجة ما يتقارب من آياتها.",
+      features: [
+        {
+          title: BASE.reading.pickerLabel,
+          how: "اختر السورة من القائمة، وانتقل إلى السورة السابقة أو التالية من جانبَي اسمها.",
+        },
+        {
+          title: BASE.reading.rangesLabel,
+          how: "السورة التي تزيد على خمسين آيةً تُعرض خمسين آيةً في كلِّ مقطع، تنتقل بينها بالأزرار فوق النصّ.",
+        },
+        {
+          title: BASE.reading.annotations.toggle,
+          how: "الأخضر آيةٌ تقاربها آياتٌ من سورتها، والبرتقالي آيةٌ تقاربها أو تشاركها كلماتٌ في سورٍ أخرى؛ انقر لترى قريناتها.",
+        },
+      ],
+    },
+    verseStudy: {
+      summary:
+        "ثلاثُ طرقٍ لدراسة الآيات: تتبُّعُ جذر كلمةٍ في القرآن كلِّه، والبحثُ عن الآيات المتقاربة، وقراءةُ آيةٍ في سياقها.",
+      features: [
+        {
+          title: BASE.verseStudy.tabs.word,
+          how: "اكتب كلمةً واحدةً فيُحدَّد جذرها، وتُعرض كلُّ آيةٍ ورد فيها الجذر، مجمّعةً بحسب اللفظ ثم السورة، والكلمةُ مميَّزةٌ في موضعها.",
+        },
+        {
+          title: BASE.verseStudy.tabs.similar,
+          how: "داخل السورة: مجموعاتُ آياتها المتقاربة؛ في سائر القرآن: جدولُ السور بعدد أزواج آياتها المتقاربة؛ من عبارة: أقربُ الآيات إلى ما تكتب.",
+        },
+        {
+          title: BASE.verseStudy.tabs.context,
+          how: "اختر السورة والآية فتُعرض مع الآيات الثلاث قبلها وبعدها.",
+        },
+      ],
+    },
+    roots: {
+      summary:
+        "جذور القرآن كلُّها مرتَّبةً على حروف المعجم، ولكلِّ جذرٍ أعدادُه وسورُه وألفاظُه، وتركيبٌ آليٌّ لحروفه إن كان ثلاثيًّا.",
+      features: [
+        {
+          title: BASE.roots.lettersLabel,
+          how: "اختر حرفًا فتظهر الجذور التي تبدأ به، وتحت كلِّ حرفٍ عددُ جذوره.",
+        },
+        {
+          title: "بطاقة الجذر",
+          how: "تعرض الجذرَ وعددَ مواضعه وآياته وسوره في القرآن.",
+        },
+        {
+          title: "تفصيل الجذر",
+          how: "انقر البطاقة فتنفتح على التركيب الآليّ لحروفه إن كان الجذر ثلاثيًّا، وعلى سوره وألفاظه؛ واسمُ كلِّ سورةٍ رابطٌ إلى قراءتها.",
+        },
+        {
+          title: "الانتقال",
+          how: `في البطاقة المفتوحة زرّان: إلى «${BASE.roots.openVerseStudy}» وإلى «${BASE.roots.openLexical}».`,
+        },
+      ],
+    },
+    lexical: {
+      summary:
+        "اكتب كلمةً فترى جذرَها المحقَّق، ودلالةَ حروفه كما نشرها سامر إسلامبولي، وتركيبًا آليًّا لها، ومواضعَ الجذر في القرآن، وصرفَ الكلمة.",
+      features: [
+        {
+          title: BASE.lexical.rootLabel,
+          how: "يُستخرج الجذر من مدوّنة القرآن المُعرَبة المحقَّقة؛ فإن قُدِّر بغيرها عُلِّم بـ«جذر تقديري».",
+        },
+        {
+          title: BASE.lexical.lettersHeading,
+          how: "لكلِّ حرفٍ اسمُه ومخرجه وموضعه في الجذر، ودلالتُه كما نشرها سامر إسلامبولي منسوبةً إليه.",
+        },
+        {
+          title: BASE.lexical.citedHeading,
+          how: "جملتُه المنشورة لهذا الجذر، إن وُجدت، منقولةً بنصِّها وعنوانها كما طُبعت.",
+        },
+        {
+          title: BASE.lexical.assemblyHeading,
+          how: "تركيبٌ آليٌّ من صنع التطبيق لأسطر الحروف الثلاثة في جدول إسلامبولي، لا قولُه، مع الفرق بينه وبين جملته إن وُجدت.",
+        },
+        {
+          title: BASE.lexical.occurrencesHeading,
+          how: `عددُ مواضع الجذر وآياته وألفاظه، ونماذجُ من مواضعه، ورابطٌ إلى عرضها كاملةً في «${BASE.nav.verseStudy}».`,
+        },
+        {
+          title: BASE.lexical.sarfiSection,
+          how: "قسمُ الكلمة وجذرها وبنيتها ووزنها ونظائرها، كما تُثبتها المدوّنة المُعرَبة لصيغتها، لا لموضعٍ بعينه.",
+        },
+      ],
+    },
+    fassila: {
+      summary:
+        "الفاصلة آخرُ حرفٍ في الآية عند الوقف؛ تُدرس هنا في كلِّ سورة، ثم تُقارن السور بها.",
+      features: [
+        {
+          title: BASE.fassila.tabs.analysis,
+          how: "اختر سورةً فترى توزيعَ فواصلها، وتتابعَها آيةً بعد آية.",
+        },
+        {
+          title: BASE.fassila.tabs.comparison,
+          how: "تُصنَّف السورُ كلُّها بعدد فواصلها المختلفة؛ انقر فئةً في الدائرة لتصفية قائمة السور.",
+        },
+      ],
+    },
+    qlisan: {
+      summary:
+        "اختر آيةً ثم اضغط كلمةً منها، فتظهر بطاقتُها في أربعة مستويات: الصرفي والنحوي محقَّقان من المدوّنة، والصوتي والدلالي قيد الإعداد.",
+      features: [
+        {
+          title: BASE.qlisan.levels.sawti,
+          how: "مستوًى قيد الإعداد: تُعلَّم بطاقته بذلك، ولا يُعرض فيها تحليلٌ بعد.",
+        },
+        {
+          title: BASE.qlisan.levels.sarfi,
+          how: "قسمُ الكلمة وجذرها وبنيتها الصرفية ووزنها ونظائرها، معطًى محقَّقٌ من المدوّنة المُعرَبة.",
+        },
+        {
+          title: BASE.qlisan.levels.nahwi,
+          how: "موقعُها الإعرابي وموضعُ ما تتعلّق به، من المدوّنة المُعرَبة لا من نموذجٍ لغويّ.",
+        },
+        {
+          title: BASE.qlisan.levels.dalali,
+          how: "مستوًى قيد الإعداد: تُعلَّم بطاقته بذلك، ولا يُعرض فيها تحليلٌ بعد.",
+        },
+      ],
+    },
   },
 } as const;
 

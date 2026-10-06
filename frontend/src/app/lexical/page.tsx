@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Loader2, Type } from "lucide-react";
+import { Loader2, MapPin, Network, Puzzle, Quote, Sprout, Type } from "lucide-react";
 import { API_URL, ApiError, qlisanForm } from "@/lib/api";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
@@ -11,6 +11,10 @@ import { statusOf, detailOf } from "@/lib/api";
 import { S, forStatus, type FailureKind } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import LisanResult from "@/components/LisanResult";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
+
+// One icon per `S.intro.lexical.features` card, in the same order.
+const INTRO_ICONS = [Sprout, Type, Quote, Puzzle, MapPin, Network] as const;
 
 /**
  * Lisan Analysis — a single Arabic word: its verified root, the root's letters
@@ -42,6 +46,7 @@ export default function LexicalPage() {
 }
 
 function LisanAnalysis() {
+  const intro = usePageIntro("lexical");
   // Cached: leaving for Verse Study and coming back restores the analysis rather
   // than an empty box. `loading` is deliberately NOT cached.
   const [word, setWord] = useCachedState("lexical.word", "");
@@ -134,10 +139,28 @@ function LisanAnalysis() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {S.lexical.heading}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {S.lexical.heading}
+          </h1>
+          <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+        </div>
         <p className="mt-1 text-sm text-gray-500">{S.lexical.caption}</p>
+        {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+        <div
+          className={`${intro.open ? "mt-4" : "mt-0"} ${
+            intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+          }`}
+        >
+          <PageIntro
+            id="lexical"
+            summary={S.intro.lexical.summary}
+            features={S.intro.lexical.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+            open={intro.open}
+            regionId={intro.regionId}
+            ready={intro.ready}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

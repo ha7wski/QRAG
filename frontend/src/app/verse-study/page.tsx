@@ -14,7 +14,9 @@ import { useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   ChevronLeft,
+  GitCompareArrows,
   Loader2,
+  ScrollText,
   Search,
   Type,
 } from "lucide-react";
@@ -46,10 +48,14 @@ import VerseContextCard from "@/components/VerseContextCard";
 import SelectBox from "@/components/SelectBox";
 import SurahSimilarity from "@/components/SurahSimilarity";
 import QuranSimilarityMap from "@/components/QuranSimilarityMap";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
 
 // Context shown around the chosen verse in the "Find Verse context" tab:
 // 3 before + 3 after (same surah).
 const CONTEXT_WINDOW = 3;
+
+// One icon per `S.intro.verseStudy.features` card, in the same order.
+const INTRO_ICONS = [Search, GitCompareArrows, ScrollText] as const;
 
 /** A verse targeted for the context tab. `nonce` monotonically increases on every
  *  open request so clicking the SAME verse twice still re-triggers a load (we never
@@ -96,6 +102,7 @@ export default function VerseStudyPage() {
 }
 
 function VerseStudy() {
+  const intro = usePageIntro("verse-study");
   // Cached: coming back from Lisan Analysis lands on the tab you left, not on
   // "Word in Verses". The context TARGET is deliberately not cached — it is a
   // one-shot "open this verse" signal, and FindVerseContext restores its own
@@ -148,10 +155,28 @@ function VerseStudy() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {S.verseStudy.heading}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {S.verseStudy.heading}
+          </h1>
+          <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+        </div>
         <p className="mt-1 text-sm text-gray-500">{S.verseStudy.caption}</p>
+        {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+        <div
+          className={`${intro.open ? "mt-4" : "mt-0"} ${
+            intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+          }`}
+        >
+          <PageIntro
+            id="verse-study"
+            summary={S.intro.verseStudy.summary}
+            features={S.intro.verseStudy.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+            open={intro.open}
+            regionId={intro.regionId}
+            ready={intro.ready}
+          />
+        </div>
       </div>
 
       {/* Tabs */}

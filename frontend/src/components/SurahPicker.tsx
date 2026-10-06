@@ -1,18 +1,43 @@
 "use client";
 
+import { BookOpen, Highlighter, Layers } from "lucide-react";
 import { S } from "@/lib/strings";
 import type { SurahMeta } from "@/lib/types";
 import SelectBox from "@/components/SelectBox";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
+
+// One icon per `S.intro.surah.features` card, in the same order.
+const INTRO_ICONS = [BookOpen, Layers, Highlighter] as const;
 
 /**
- * The «سور القرآن» page heading and its caption. Shared by the main page and
- * the reading page, so choosing a surah keeps the reader under the same title.
+ * The «سور القرآن» page heading, its caption and the page introduction. Shared
+ * by the main page and the reading page, so choosing a surah keeps the reader
+ * under the same title — and the intro's folded state under one id.
  */
 export function SurahsIntro() {
+  const intro = usePageIntro("surah");
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800">{S.reading.heading}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-gray-800">{S.reading.heading}</h1>
+        <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+      </div>
       <p className="mt-1 text-sm text-gray-500">{S.reading.caption}</p>
+      {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+      <div
+        className={`${intro.open ? "mt-4" : "mt-0"} ${
+          intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+        }`}
+      >
+        <PageIntro
+          id="surah"
+          summary={S.intro.surah.summary}
+          features={S.intro.surah.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+          open={intro.open}
+          regionId={intro.regionId}
+          ready={intro.ready}
+        />
+      </div>
     </div>
   );
 }

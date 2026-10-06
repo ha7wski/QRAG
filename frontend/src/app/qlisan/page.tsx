@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Search } from "lucide-react";
+import { ArrowLeft, AudioLines, Lightbulb, Loader2, Network, Search, Shapes } from "lucide-react";
 import { getSurahs, qlisanVerse, qlisanWord } from "@/lib/api";
 import { useCachedState } from "@/lib/pageCache";
 import { statusOf, detailOf } from "@/lib/api";
@@ -10,6 +10,7 @@ import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import FicheRow from "@/components/FicheRow";
 import LevelCard from "@/components/LevelCard";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
 import SarfiRows from "@/components/SarfiRows";
 import type {
   QlisanNahwi,
@@ -22,6 +23,9 @@ import type {
 } from "@/lib/types";
 import SelectBox from "@/components/SelectBox";
 
+// One icon per `S.intro.qlisan.features` card, in the same order.
+const INTRO_ICONS = [AudioLines, Shapes, Network, Lightbulb] as const;
+
 /**
  * QLisan — per-word, four-level analysis of a single Quran word.
  *
@@ -32,6 +36,7 @@ import SelectBox from "@/components/SelectBox";
  * facts; the صوتي/دلالي stubs are shown visibly as pending, never blank.
  */
 export default function QlisanPage() {
+  const intro = usePageIntro("qlisan");
   // Cached across navigation: the loaded verse, the selected word and its fiche
   // survive a trip to another page. The two `*Loading` flags never are — a cached
   // `true` would restore a spinner that never stops.
@@ -142,10 +147,28 @@ export default function QlisanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {S.qlisan.heading}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {S.qlisan.heading}
+          </h1>
+          <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+        </div>
         <p className="mt-1 text-sm text-gray-500">{S.qlisan.caption}</p>
+        {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+        <div
+          className={`${intro.open ? "mt-4" : "mt-0"} ${
+            intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+          }`}
+        >
+          <PageIntro
+            id="qlisan"
+            summary={S.intro.qlisan.summary}
+            features={S.intro.qlisan.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+            open={intro.open}
+            regionId={intro.regionId}
+            ready={intro.ready}
+          />
+        </div>
       </div>
 
       {/* Verse picker. Source order is logical — sūra select, āya box, load
@@ -339,14 +362,14 @@ function VerseTokens({
  *  دلالي (driven by `levels_order` so the API owns the ordering). */
 function Fiche({ data }: { data: QlisanWordResponse }) {
   const renderers: Record<string, () => JSX.Element> = {
-    sawti: () => <StubLevel titleAr="صوتي" level={data.sawti} />,
+    sawti: () => <StubLevel titleAr={S.qlisan.levels.sawti} level={data.sawti} />,
     sarfi: () => (
       <SarfiLevel level={data.sarfi} marker={data.nahwi?.marker_ar ?? null} />
     ),
     nahwi: () => <NahwiLevel level={data.nahwi} />,
     dalali: () => (
       <StubLevel
-        titleAr="دلالي"
+        titleAr={S.qlisan.levels.dalali}
        
         level={data.dalali}
         sourced
@@ -400,7 +423,7 @@ function SarfiLevel({
 }) {
   if (!level.available) {
     return (
-      <LevelCard titleAr="صرفي" badge="غير متاح" tone="pending">
+      <LevelCard titleAr={S.qlisan.levels.sarfi} badge="غير متاح" tone="pending">
         <p lang="ar" className="font-arabic text-base text-gray-500">
           لا يوجد تحليل صرفي لهذه الكلمة.
         </p>
@@ -409,7 +432,7 @@ function SarfiLevel({
   }
 
   return (
-    <LevelCard titleAr="صرفي" badge="معطى محقّق" tone="fact">
+    <LevelCard titleAr={S.qlisan.levels.sarfi} badge="معطى محقّق" tone="fact">
       <SarfiRows level={level} marker={marker} />
     </LevelCard>
   );
@@ -419,7 +442,7 @@ function SarfiLevel({
 function NahwiLevel({ level }: { level: QlisanNahwi }) {
   if (!level.available) {
     return (
-      <LevelCard titleAr="نحوي" badge="غير متاح" tone="pending">
+      <LevelCard titleAr={S.qlisan.levels.nahwi} badge="غير متاح" tone="pending">
         <p lang="ar" className="font-arabic text-base text-gray-500">
           {level.message || S.qlisan.noIrab}
         </p>
@@ -431,7 +454,7 @@ function NahwiLevel({ level }: { level: QlisanNahwi }) {
        (relation function [+ case word]) subsumes the old «العلاقة» row, and the
        raw `relation`/`relation_ar` codes are never rendered. The العلامة marker is
        rendered in the صرفي card (under البنية الصرفية), not here. */
-    <LevelCard titleAr="نحوي" badge="معطى محقّق" tone="fact">
+    <LevelCard titleAr={S.qlisan.levels.nahwi} badge="معطى محقّق" tone="fact">
       <dl className="space-y-3">
         {level.iraab_ar && (
           <FicheRow label="الموقع الإعرابي">

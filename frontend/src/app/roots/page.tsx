@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { ArrowLeftRight, ChevronsUpDown, Hash, ListTree, Loader2 } from "lucide-react";
 import {
   detailOf,
   fetchRootLetters,
@@ -14,8 +14,12 @@ import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import ArabicText from "@/components/ArabicText";
 import FailureNote, { type Failure } from "@/components/FailureNote";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
 import RootCard from "@/components/RootCard";
 import ScrollToTop from "@/components/ScrollToTop";
+
+// One icon per `S.intro.roots.features` card, in the same order.
+const INTRO_ICONS = [ListTree, Hash, ChevronsUpDown, ArrowLeftRight] as const;
 
 /**
  * Vertical offsets (px) that put every letter's INK at the same height.
@@ -90,6 +94,7 @@ export default function RootsPage() {
 }
 
 function RootIndex() {
+  const intro = usePageIntro("roots");
   const router = useRouter();
   const params = useSearchParams();
   const requested = params.get("letter")?.trim() || "";
@@ -193,8 +198,26 @@ function RootIndex() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">{S.roots.heading}</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-gray-800">{S.roots.heading}</h1>
+          <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+        </div>
         <p className="mt-1 text-sm text-gray-500">{S.roots.caption}</p>
+        {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+        <div
+          className={`${intro.open ? "mt-4" : "mt-0"} ${
+            intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+          }`}
+        >
+          <PageIntro
+            id="roots"
+            summary={S.intro.roots.summary}
+            features={S.intro.roots.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+            open={intro.open}
+            regionId={intro.regionId}
+            ready={intro.ready}
+          />
+        </div>
       </div>
 
       {lettersError && (

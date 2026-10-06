@@ -1,16 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { ChartLine, ChartPie } from "lucide-react";
 import FassilaAnalysisTab from "@/components/FassilaAnalysisTab";
 import FassilaComparisonTab from "@/components/FassilaComparisonTab";
+import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
 import { S } from "@/lib/strings";
 
 type Tab = "analysis" | "comparison";
 
 const TABS: [Tab, string][] = [
-  ["analysis", "تحليل الفواصل"],
-  ["comparison", "مقارنة السور"],
+  ["analysis", S.fassila.tabs.analysis],
+  ["comparison", S.fassila.tabs.comparison],
 ];
+
+// One icon per `S.intro.fassila.features` card, in the same order.
+const INTRO_ICONS = [ChartLine, ChartPie] as const;
 
 /**
  * «فواصل الآيات والسور» — the pausal rhyme-letter of the Qurʾān, read at two scales:
@@ -28,6 +33,7 @@ const TABS: [Tab, string][] = [
  *     later switch. Same idiom as `app/verse-study/page.tsx`.
  */
 export default function FassilaPage() {
+  const intro = usePageIntro("fassila");
   const [tab, setTab] = useState<Tab>("analysis");
   // Latches on the first visit to tab 2 and never resets — that single visit is
   // what mounts the comparison tab, and its mount is what fetches the overview.
@@ -41,12 +47,30 @@ export default function FassilaPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-arabic text-2xl font-semibold text-gray-800">
-          {S.nav.fassila}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="font-arabic text-2xl font-semibold text-gray-800">
+            {S.nav.fassila}
+          </h1>
+          <PageIntroToggle open={intro.open} onToggle={intro.toggle} controls={intro.regionId} />
+        </div>
         <p className="western-digits mt-1 text-sm text-gray-500">
-          الفاصلة: آخر حرف من كل آية وقفًا · مع استبعاد الحروف المقطّعة · 114 سورة
+          {S.fassila.caption}
         </p>
+        {/* The gap above the intro folds with it, so a folded intro leaves no blank line. */}
+        <div
+          className={`${intro.open ? "mt-4" : "mt-0"} ${
+            intro.ready ? "transition-[margin] duration-200 motion-reduce:transition-none" : ""
+          }`}
+        >
+          <PageIntro
+            id="fassila"
+            summary={S.intro.fassila.summary}
+            features={S.intro.fassila.features.map((f, i) => ({ ...f, icon: INTRO_ICONS[i] }))}
+            open={intro.open}
+            regionId={intro.regionId}
+            ready={intro.ready}
+          />
+        </div>
       </header>
 
       {/* Tabs */}
