@@ -6,9 +6,12 @@ Composes the two cross-surah relations into ONE and writes it to
 `data/derived/quran_close_verses.json`, which `GET /quran-similarity/*` and
 `GET /surah/{number}/annotations` serve without loading any model. The design
 is `openspec/changes/unify-close-verses/design.md`, its common part replaced by
-`openspec/changes/order-invariant-common-words/design.md`; every value below was
-frozen there before this build ran on the corpus — decisions to record there,
-never tuning knobs:
+`openspec/changes/order-invariant-common-words/design.md`, and its content words,
+matching and ungated `sim` made order-invariant by
+`openspec/changes/order-invariant-closeness/design.md` (D1, D2, D3, D4, D7) —
+whose definitions live ONCE in `scripts/closeness_core.py`, imported here; every
+value below was frozen there before this build ran on the corpus — decisions to
+record there, never tuning knobs:
 
   * D1 — the pair set is the UNION `S ∪ W` of the pairs `quran_similarity.json`
     stores in either verse's list (S) and the passages `quran_passages.json`
@@ -16,9 +19,12 @@ never tuning knobs:
     rebuilt or filtered here.
   * D2 — `sim = sem × syn`. For a pair of S: its stored `s`, READ (the higher of
     the two sides should they ever disagree). For a pair of W \\ S: computed by
-    the similarity build's own functions, IMPORTED, with NO gate — `dense` is the
-    cosine's percentile among the re-derived syntax survivors, ignored between
-    verbatim verses, and these pairs are cross-encoded in a call of their own.
+    the imported definition with NO gate — `sem_score` (the similarity build's),
+    the core's order-robust `syn` over the similarity build's signatures and the
+    core's `lex` over the pair's matching (order-invariant-closeness D3/D4/D7);
+    `dense` is the cosine's percentile among the re-derived syntax survivors,
+    ignored between verbatim verses, and these pairs are cross-encoded in a call
+    of their own. Their `roots` are the roots of the matching's content edges.
     The integrity check recomputes `dense` for every pair of S and refuses to
     write when it differs from the stored value at 4 decimals.
   * D3 — `pas = k / min(n_a, n_b)` for a pair of W (`n` = the passage build's
@@ -27,14 +33,16 @@ never tuning knobs:
   * D5 — the common part (order-invariant-common-words D1–D5), computed the
     same way for EVERY pair, passage or not. Display only: it never changes the
     pair set, `sim`, `pas` or `score`.
-      - content word: the passage build's `content` flag (the word carries a
-        root) AND its `s:a:w` is not a grammatical tool in `word_function.json`;
-      - the matching: a maximum-weight one-to-one matching of the two verses'
-        content words (`scipy.optimize.linear_sum_assignment`, maximize), edge
-        weight `W_LEMMA` for the same passage-build token, `W_ROOT` for the same
-        resolved primary root under another token, no edge otherwise, each
-        minus `TIE_BREAK × |p/n_a − q/n_b|` (relative place, n = QAC word
-        count), so order only ever breaks an exact tie; edges of weight > 0 kept;
+      - content word: `closeness_core.content_words` (order-invariant-closeness
+        D1) — the word's resolved primary root is among its verse's content
+        roots (the similarity build's content-root set) AND its `s:a:w` is not a
+        grammatical tool in `word_function.json`; so a stoplisted function noun
+        (كُلّ) is no longer coloured, and the coloured words are the scored ones;
+      - the matching: the content edges of `closeness_core.match_all` (D2) — a
+        maximum-weight one-to-one matching, edge weight `W_LEMMA` for the same
+        passage-build token, `W_ROOT` for the same resolved primary root under
+        another token, each minus `TIE_BREAK × |p/n_a − q/n_b|` (relative place,
+        n = QAC word count), exact ties settled in one canonical orientation;
       - bridged function words: the unmatched words strictly between two
         matched pairs `(p, q) < (p', q')` that run in the same order on both
         sides with no matched pair between them on both sides at once, when
@@ -46,7 +54,8 @@ never tuning knobs:
     span per RUN of consecutive coloured words, in the DISPLAYED
     `text_ar_tashkil` (Basmala stripped). The passage's own `k` / `wa` / `wb`
     stay on passage pairs only — `pas` reads `k` — and are not the display.
-  * D6 — the file layout, schema 2, byte-identical across builds.
+  * D6 — the file layout, schema 3 (order-invariant-closeness), byte-identical
+    across builds.
 
 order-invariant-common-words D3 was AMENDED during implementation (design.md
 D3, spec «Every pair carries its common part»): its first wording («consecutive
@@ -99,18 +108,19 @@ from quran_data import loaders, paths  # noqa: E402
 
 import build_quran_passages as passages_build  # noqa: E402
 import build_quran_similarity as similarity_build  # noqa: E402
+import closeness_core as cc  # noqa: E402 — content words, matching, syn, lex: the core's
 from build_quran_similarity import (  # noqa: E402 — D2: the definition, imported
     RERANKER_MODEL, CrossEncoderScorer, dense_stage, load_vectors, qdrant_lock_held, rnd,
-    sem_score, syn_similarity, syntax_stage,
+    sem_score, syntax_stage,
+)
+from closeness_core import (  # noqa: E402 — frozen in order-invariant-closeness D2
+    LEMMA, ROOT_ONLY, TIE_BREAK, TOOL, W_LEMMA, W_ROOT, W_TOOL,
 )
 
 SCHEMA = loaders.QURAN_CLOSE_VERSES_SCHEMA
 SCOPE = "cross-surah"
-# Frozen in openspec/changes/order-invariant-common-words/design.md (D2, D4).
+# Frozen in openspec/changes/order-invariant-common-words/design.md (D4).
 MARK_MIN = 2
-W_LEMMA, W_ROOT = 1.0, 0.5
-TIE_BREAK = 1e-3
-LEMMA, ROOT_ONLY = "lemma", "root"
 FROM_SIMILARITY, FROM_PASSAGE = "similarity", "passage"
 REBUILD = "python scripts/build_quran_close_verses.py"
 BUILD_ORDER = (f"{similarity_build.REBUILD}  →  {passages_build.REBUILD}  →  {REBUILD}"
@@ -118,8 +128,11 @@ BUILD_ORDER = (f"{similarity_build.REBUILD}  →  {passages_build.REBUILD}  → 
 SCORE_RULE = ("1 - (1 - sim)(1 - pas), computed from the unrounded sim and pas, "
               "rounded to 4 decimals")
 SIM_RULE = ("sem x syn: the stored s for a pair quran_similarity.json stores (the higher "
-            "side); otherwise the similarity build's functions with no gate, dense = the "
-            "cosine's percentile among the syntax survivors, ignored between verbatim verses")
+            "side); otherwise with no gate: sem_score(ce, dense, lex) x syn, syn the core's "
+            "order-robust uni+bigram bag over the similarity signatures, lex the core's "
+            "IDF Jaccard of the pair's content matching, dense = the cosine's percentile "
+            "among the syntax survivors, ignored between verbatim verses; roots = the roots "
+            "of the content edges")
 PAS_RULE = ("k / min(n_a, n_b) for a pair quran_passages.json holds, n = QAC word count; "
             "0 otherwise")
 MARK_RULE = ("the order-invariant matching of the two verses' content words when it joins "
@@ -127,14 +140,17 @@ MARK_RULE = ("the order-invariant matching of the two verses' content words when
              "sorted by p, and per verse one half-open character span per run of "
              "consecutive coloured words (matched or bridged) in the displayed "
              "text_ar_tashkil, Basmala stripped; display only, never in sim, pas or score")
-CONTENT_WORD_RULE = ("the word carries a root (the passage build's content flag) and its "
-                     "s:a:w is not a grammatical tool in word_function.json")
-MATCHING_RULE = ("maximum-weight one-to-one matching (scipy linear_sum_assignment, maximize) "
-                 "of content words: weight 1 for the same passage-build lemma token, 0.5 for "
-                 "the same resolved primary root under another token, no edge otherwise; "
-                 "edges of weight > 0 kept")
+CONTENT_WORD_RULE = ("closeness_core.content_words: the word's resolved primary root is "
+                     "among its verse's content roots (the similarity build's content-root "
+                     "set) and its s:a:w is not a grammatical tool in word_function.json")
+MATCHING_RULE = ("the content edges of closeness_core.match_all: a maximum-weight one-to-one "
+                 "matching (scipy linear_sum_assignment, maximize) of all words, content "
+                 "words joined with weight 1 for the same passage-build lemma token, 0.5 for "
+                 "the same resolved primary root under another token, non-content words by "
+                 "identical token (tool, never in the common part); edges of weight > 0 kept")
 TIE_RULE = ("every weight minus tie_break x |p/n_a - q/n_b|, p and q 1-based, n = QAC word "
-            "count: among equal partners the nearest relative place wins")
+            "count: among equal partners the nearest relative place wins; an exact tie is "
+            "settled in one canonical orientation of the pair")
 BRIDGE_RULE = ("the unmatched words strictly between two matched pairs (p, q) < (p', q') in "
                "the same order on both sides, with no matched pair (r, s) such that "
                "p < r < p' and q < s < q', are coloured on both sides when their token "
@@ -214,51 +230,9 @@ def combined_score(sim: float, pas: float) -> float:
     return 1.0 - (1.0 - sim) * (1.0 - pas)
 
 
-def ungated_sim(ce: float, dense: float, cov: float, syn: float, verbatim: bool) -> float:
+def ungated_sim(ce: float, dense: float, lex: float, syn: float, verbatim: bool) -> float:
     """D2 for a pair of W \\ S: `sem × syn` with no gate; dense ignored between verbatim verses."""
-    return sem_score(ce, None if verbatim else dense, cov) * syn
-
-
-def content_flags(content: Sequence[bool], surah: int, ayah: int,
-                  tools) -> tuple[bool, ...]:
-    """D1: carries a root AND is not a grammatical-tool occurrence (`word_function.json`)."""
-    return tuple(bool(c) and f"{surah}:{ayah}:{w}" not in tools
-                 for w, c in enumerate(content, start=1))
-
-
-def match_words(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
-                content_a: Sequence[bool], content_b: Sequence[bool]
-                ) -> list[tuple[int, int, str]]:
-    """D2: the order-invariant matching, `[(p, q, "lemma"|"root")]` sorted by `p`.
-
-    Positions are 1-based QAC word numbers. Same token → `W_LEMMA`; another token
-    under the same (non-null) resolved root → `W_ROOT`; else no edge. Every edge
-    loses `TIE_BREAK × |p/n_a − q/n_b|`, which is below half the smallest weight
-    gap, so it never trades a heavier matching for a better-placed one.
-    """
-    ia = [p for p in range(1, len(tok_a) + 1) if content_a[p - 1]]
-    ib = [q for q in range(1, len(tok_b) + 1) if content_b[q - 1]]
-    if not ia or not ib:
-        return []
-    import numpy as np
-    from scipy.optimize import linear_sum_assignment
-
-    na, nb = len(tok_a), len(tok_b)
-    weight = np.zeros((len(ia), len(ib)))
-    kind: dict[tuple[int, int], str] = {}
-    for x, p in enumerate(ia):
-        for y, q in enumerate(ib):
-            if tok_a[p - 1] == tok_b[q - 1]:
-                w, k = W_LEMMA, LEMMA
-            elif roots_a[p - 1] is not None and roots_a[p - 1] == roots_b[q - 1]:
-                w, k = W_ROOT, ROOT_ONLY
-            else:
-                continue
-            weight[x, y] = w - TIE_BREAK * abs(p / na - q / nb)
-            kind[(x, y)] = k
-    rows, cols = linear_sum_assignment(weight, maximize=True)
-    return sorted((ia[x], ib[y], kind[(x, y)]) for x, y in zip(rows.tolist(), cols.tolist())
-                  if weight[x, y] > 0)
+    return sem_score(ce, None if verbatim else dense, lex) * syn
 
 
 def bridge_words(m: Sequence, tok_a: Sequence, tok_b: Sequence) -> tuple[set[int], set[int]]:
@@ -296,16 +270,24 @@ def coloured_runs(words) -> list[list[int]]:
     return runs
 
 
-def common_part(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
-                content_a: Sequence[bool], content_b: Sequence[bool]) -> dict | None:
-    """D2–D4: `{m, runs_a, runs_b}` when ≥ `MARK_MIN` words match, else None."""
-    m = match_words(tok_a, tok_b, roots_a, roots_b, content_a, content_b)
+def common_part_of(edges: Sequence, tok_a: Sequence, tok_b: Sequence) -> dict | None:
+    """D2–D4 from a pair's matching (`closeness_core.match_all`): `{m, runs_a, runs_b}`
+    when its content edges join ≥ `MARK_MIN` words, else None. `tool` edges never
+    enter `m`; function words are coloured by the bridge only."""
+    m = [tuple(e) for e in cc.content_edges(edges)]
     if len(m) < MARK_MIN:
         return None
     br_a, br_b = bridge_words(m, tok_a, tok_b)
     return {"m": m,
             "runs_a": coloured_runs({p for p, _, _ in m} | br_a),
             "runs_b": coloured_runs({q for _, q, _ in m} | br_b)}
+
+
+def common_part(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
+                content_a: Sequence[bool], content_b: Sequence[bool]) -> dict | None:
+    """`common_part_of` the core's matching of two verses (content flags given, D1)."""
+    return common_part_of(cc.match_all(tok_a, tok_b, roots_a, roots_b, content_a, content_b),
+                          tok_a, tok_b)
 
 
 def char_span(word_index: dict, raw: str, shown: str, surah: int, ayah: int,
@@ -397,9 +379,10 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
             ) -> tuple[list[dict], list[str], dict]:
     """`(pairs, unscored, stats)` — raises `StaleInput` before anything is written.
 
-    `sc` is the similarity build's `Corpus` (refs, index, seqs, roots, verbatim,
-    cov), `pc` the passage build's (refs, index, seqs, content, roots); `tools`
-    the grammatical-tool occurrences (`word_function.json`); `survivors` the
+    `sc` is the similarity build's `Corpus` (refs, index, seqs — the interned
+    signatures —, roots — the content-root sets —, idf, verbatim), `pc` the passage
+    build's (refs, index, seqs — the tokens —, roots — per word); `tools` the
+    grammatical-tool occurrences (`word_function.json`); `survivors` the
     re-derived syntax survivors keyed on `sc` indexes; `scorer.symmetric` the
     cross-encoder, called ONCE and only after every check has passed; `texts`
     the cross-encoder texts by `sc` index; `displayed(s, a)` → `(raw chakl row,
@@ -443,16 +426,22 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
             f"was built")
     stats.update({"survivors": n_pop, "dense_s": round(time.time() - t0, 1)})
 
-    # D5 / D3 — common parts, their character spans and pas, all settled before the
-    # model loads, so every refusal comes first.
+    # D5 / D3 — the matching of every pair (content words D1, the core's match_all),
+    # the common parts, their character spans and pas, all settled before the model
+    # loads, so every refusal comes first.
     t0 = time.time()
+    edges: dict[tuple[str, str], list] = {}
+    content: dict[tuple[str, str], tuple] = {}
     parts: dict[tuple[str, str], dict] = {}
     for key in union:
         i, j = pidx(key)
+        si, sj = idx_of[key]
         ra, rb = parse_ref(key[0]), parse_ref(key[1])
-        part = common_part(pc.seqs[i], pc.seqs[j], pc.roots[i], pc.roots[j],
-                           content_flags(pc.content[i], *ra, tools),
-                           content_flags(pc.content[j], *rb, tools))
+        ca = cc.content_words(pc.roots[i], sc.roots[si], *ra, tools)
+        cb = cc.content_words(pc.roots[j], sc.roots[sj], *rb, tools)
+        content[key] = (ca, cb)
+        edges[key] = cc.match_all(pc.seqs[i], pc.seqs[j], pc.roots[i], pc.roots[j], ca, cb)
+        part = common_part_of(edges[key], pc.seqs[i], pc.seqs[j])
         if part is not None:
             parts[key] = part
     spans: dict[tuple[str, str], tuple[list, list]] = {}
@@ -492,11 +481,15 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
         if key in S:
             sim, roots = S[key]["s"], S[key]["roots"]
         else:
+            # Ungated, from the matching itself — never from the common part (spec «The
+            # scores do not move»).
             verbatim = sc.verbatim(i, j)
             n_verbatim += verbatim
-            sim = ungated_sim(ce[key], dense_of[key], sc.cov(i, j),
-                              syn_similarity(sc.seqs[i], sc.seqs[j]), verbatim)
-            roots = sorted(sc.roots[i] & sc.roots[j])
+            pi, pj = pidx(key)
+            lex = cc.lex(edges[key], pc.roots[pi], pc.roots[pj], *content[key], sc.idf)
+            sim = ungated_sim(ce[key], dense_of[key], lex, cc.syn(sc.seqs[i], sc.seqs[j]),
+                              verbatim)
+            roots = cc.shared_roots(edges[key], pc.roots[pi], pc.roots[pj])
         ca, cb = spans.get(key, (None, None))
         pairs.append(pair_record(key, frm, sim, pas[key], roots, W.get(key), parts.get(key),
                                  ca, cb))
@@ -535,7 +528,9 @@ def header(input_digests: dict, gold: dict) -> dict:
         "common_part": MARK_RULE,
         "content_word": CONTENT_WORD_RULE,
         "matching": MATCHING_RULE,
-        "match_weights": {LEMMA: W_LEMMA, ROOT_ONLY: W_ROOT},
+        "match_weights": {LEMMA: W_LEMMA, ROOT_ONLY: W_ROOT, TOOL: W_TOOL},
+        "signature_measure": cc.SIGNATURE_MEASURE,
+        "lexical": cc.LEXICAL,
         "tie_break_rule": TIE_RULE,
         "tie_break": TIE_BREAK,
         "bridge": BRIDGE_RULE,

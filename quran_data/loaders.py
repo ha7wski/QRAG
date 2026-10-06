@@ -157,7 +157,10 @@ def alignment_overrides() -> dict:
 
 # ── offline similarity ────────────────────────────────────────────────────
 
-SURAH_SIMILARITY_SCHEMA = 1
+# 2 since order-invariant-closeness: neighbours carry `lex` (the order-invariant
+# content-word matching's IDF Jaccard) instead of `cov`, and `syn` is the
+# uni+bigram-bag measure; a schema-1 file is refused, not read as the new layout.
+SURAH_SIMILARITY_SCHEMA = 2
 
 
 class UnknownSchema(ValueError):
@@ -166,11 +169,11 @@ class UnknownSchema(ValueError):
 
 @functools.lru_cache(maxsize=1)
 def surah_similarity() -> dict:
-    """The intra-surah similarity lookup (design D10, schema 1).
+    """The intra-surah similarity lookup (design D10, schema 2).
 
-    `{"schema": 1, "build": {...}, "surahs": {"<n>": {"unscored": [int],
+    `{"schema": 2, "build": {...}, "surahs": {"<n>": {"unscored": [int],
     "groups": [{"ayahs", "strength"}], "neighbours": {"<ayah>": [{"a", "s",
-    "sem", "syn", "ce", "dense", "cov", "roots"}]}}}}`.
+    "sem", "syn", "ce", "dense", "lex", "roots"}]}}}}`.
 
     Refuses a file whose `schema` it does not know, with the rebuild command:
     a reader that guessed at a newer layout would serve a wrong answer rather
@@ -187,15 +190,19 @@ def surah_similarity() -> dict:
     return data
 
 
-QURAN_SIMILARITY_SCHEMA = 1
+# 2 since order-invariant-closeness: neighbours carry `lex` (the order-invariant
+# content-word matching's IDF Jaccard) instead of `cov`, `roots` are the matched
+# content words' roots, and `syn` is the uni+bigram-bag measure; a schema-1 file
+# is refused, not read as the new layout.
+QURAN_SIMILARITY_SCHEMA = 2
 
 
 @functools.lru_cache(maxsize=1)
 def quran_similarity() -> dict:
-    """The cross-surah similarity lookup (design D7, schema 1).
+    """The cross-surah similarity lookup (design D7, schema 2).
 
-    `{"schema": 1, "build": {...}, "unscored": ["<s:a>"], "neighbours":
-    {"<s:a>": [{"r", "s", "sem", "syn", "ce", "dense", "cov", "roots"}]}}`,
+    `{"schema": 2, "build": {...}, "unscored": ["<s:a>"], "neighbours":
+    {"<s:a>": [{"r", "s", "sem", "syn", "ce", "dense", "lex", "roots"}]}}`,
     a neighbour possibly carrying `"verbatim": true`.
 
     A separate file from `surah_similarity()` so a missing cross-surah build
@@ -212,16 +219,19 @@ def quran_similarity() -> dict:
     return data
 
 
-QURAN_PASSAGES_SCHEMA = 1
+QURAN_PASSAGES_SCHEMA = 2
 
 
 @functools.lru_cache(maxsize=1)
 def quran_passages() -> dict:
-    """The cross-surah shared passages (add-shared-passages design D5, schema 1).
+    """The cross-surah shared passages (add-shared-passages design D5; schema 2,
+    order-invariant-closeness D6: the passage is an order-free dense region).
 
-    `{"schema": 1, "build": {...}, "passages": [{"a": "<s:a>", "b": "<s:a>",
+    `{"schema": 2, "build": {...}, "passages": [{"a": "<s:a>", "b": "<s:a>",
     "wa": [i1, i2], "wb": [j1, j2], "k": int, "roots": [str]}]}`, `a` in the
-    lower surah, sorted by `(a, b)`; word spans are 1-based and inclusive.
+    lower surah, sorted by `(a, b)`; word spans are 1-based and inclusive — the
+    region's window in each verse, `k` its kept identical-token pairs. A schema-1
+    (Smith–Waterman) file is refused with its rebuild command.
 
     A separate file from `quran_similarity()`: the two relations fail apart.
     Same schema refusal, same reason.
@@ -237,21 +247,23 @@ def quran_passages() -> dict:
     return data
 
 
-QURAN_CLOSE_VERSES_SCHEMA = 2
+QURAN_CLOSE_VERSES_SCHEMA = 3
 
 
 @functools.lru_cache(maxsize=1)
 def quran_close_verses() -> dict:
     """The unified cross-surah relation (unify-close-verses D6; common part schema 2,
-    order-invariant-common-words D5).
+    order-invariant-common-words D5; schema 3, order-invariant-closeness D7: the
+    shared content-word definition and matching, the ungated `sim` through the
+    order-robust `syn` and `lex`).
 
-    `{"schema": 2, "build": {...}, "unscored": ["<s:a>"], "pairs": [{"a", "b",
+    `{"schema": 3, "build": {...}, "unscored": ["<s:a>"], "pairs": [{"a", "b",
     "score", "sim", "pas", "from", "roots", "k"?, "wa"?, "wb"?, "m"?, "ca"?,
     "cb"?}]}`, `a` in the lower surah, sorted by `(a, b)`. `k` / `wa` / `wb` (the
     passage's own figures) are present exactly when `"passage" in from`; the
     common part — `m` (`[[p, q, "lemma"|"root"]]`) and `ca` / `cb` (lists of
     half-open `[s, e]` spans in the displayed text) — is present together or
-    absent together. A schema-1 file is refused with its rebuild command.
+    absent together. An older schema is refused with its rebuild command.
 
     Composed from `quran_similarity()` and `quran_passages()`, which stay its
     inputs. Same schema refusal, same reason.

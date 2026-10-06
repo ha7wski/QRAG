@@ -10,7 +10,8 @@ words are the same words. The
 matching SHALL be a maximum-weight one-to-one matching in which two content words are joined with
 weight 1 when they have the same lemma token (the passage relation's token), with weight 0.5 when they
 have different lemma tokens but the same resolved primary root, and not at all otherwise; among
-partners of equal weight a word SHALL take the one at the nearest relative position. A pair SHALL
+partners of equal weight a word SHALL take the one at the offset of the shared material (the median shift
+of the uniquely matched words). A pair SHALL
 carry a common part when the matching joins at least 2 words, and none otherwise.
 
 Function words SHALL be coloured with the common part only when they sit strictly between two matched

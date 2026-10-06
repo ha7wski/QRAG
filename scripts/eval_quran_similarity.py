@@ -13,10 +13,12 @@ target pre-registered in `openspec/changes/add-quran-wide-similar-verses/tasks.m
     `N10(a)` holds any verse verbatim identical to `b`, or `N10(b)` one
     identical to `a`;
   * the rank of each positive (best of the two directions);
-  * the positives lost at each stage — length window, bag bound (both 0 by
-    construction: a pair is reported there only if its full `syn ≥ σ`, which
-    is a bug), syntax gate, candidate cap, semantic gate, shared-root rule,
-    top-K — read from the per-gold-pair diagnostics the builder writes;
+  * the positives lost at each stage — length window, bag bound, bigram bound
+    (all three 0 by construction: a pair is reported there only if its full
+    `syn ≥ σ`, which is a bug), syntax gate, candidate cap, semantic gate,
+    matched-mass rule (`no_shared_root`), top-K — read from the per-gold-pair
+    diagnostics the builder writes, whose lexical signal is `lex` (schema 2,
+    order-invariant-closeness D3; `cov` before);
   * the negatives of each kind stored as neighbours, and how many appear in
     a top-3 (either direction).
 
@@ -42,9 +44,12 @@ sys.path.insert(0, str(ROOT))
 from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
-STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "short_exact",
+STAGES = ("unscored", "length_window", "bag_bound", "bigram_bound", "syntax_gate", "short_exact",
           "candidate_cap", "semantic_gate", "no_shared_root", "top_k", "relative_cut", "stored")
-PREFILTER_STAGES = ("length_window", "bag_bound")
+# order-invariant-closeness D5: the core's three exact bounds of `syn`.
+PREFILTER_STAGES = ("length_window", "bag_bound", "bigram_bound")
+# The per-pair signals each positive row reports (diagnostics schema 2).
+SIGNALS = ("syn", "dense", "lex", "ce", "sem")
 CANDIDATE_STAGES = ("syntax_gate", "candidate_cap")
 
 # The first build's targets (add-quran-wide-similar-verses tasks.md §1.2), still
@@ -112,7 +117,7 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
         if rank is not None and stage != "stored":
             stage = "stored (verbatim class)"
         pos_rows.append({"ref": f"{p['a']}/{p['b']}", "rank": rank, "stage": stage,
-                         **{key: d.get(key) for key in ("syn", "dense", "cov", "ce", "sem")}})
+                         **{key: d.get(key) for key in SIGNALS}})
     recalled = sum(1 for r in pos_rows if r["rank"] is not None and r["rank"] <= k)
     stage_loss = Counter(r["stage"] for r in pos_rows if r["rank"] is None)
     candidate_loss = sum(stage_loss.get(s, 0) for s in CANDIDATE_STAGES)
@@ -236,12 +241,11 @@ def main(argv: list[str] | None = None) -> int:
         st = v2[kind]["stages"]
         print(f"   {kind}s by stage: " + (", ".join(f"{k_} {st[k_]}" for k_ in sorted(st)) or "none")
               + (f" — stored: {'; '.join(v2[kind]['refs'])}" if v2[kind]["refs"] else ""))
-    print(f"T5 positives lost at the pre-filters (length window + bag bound): "
+    print(f"T5 positives lost at the pre-filters (length window + bag + bigram bounds): "
           f"{report['prefilter_loss']} (target = 0) {mark(t['T5 prefilter_loss'])}")
     print("\nPositives (best rank either direction; stage where a miss was lost):")
     for row in report["positive_rows"]:
-        sig = " ".join(f"{k}={row[k]}" for k in ("syn", "dense", "cov", "ce", "sem")
-                       if row[k] is not None)
+        sig = " ".join(f"{k}={row[k]}" for k in SIGNALS if row[k] is not None)
         print(f"  {row['ref']:>13}  rank {row['rank'] or '—':>2}  {row['stage']:<23} {sig}")
     return 0
 

@@ -43,18 +43,21 @@ order in which the shared lemmas or roots occur in the two verses.
 
 ### Requirement: The syntactic signature comes from QAC
 
-Each verse's syntactic signature SHALL be the ordered sequence of its words' QAC descriptions:
-for every word, the part-of-speech tags of its segments in order (prefixes, stem, suffixes) with the
-stem's verb aspect/mood or nominal case where QAC records one. The treebank role
+Each verse's syntactic signature SHALL be the ordered sequence of its words' COARSE QAC descriptions:
+for every word, its stem segments only — a verb as its aspect (PERF / IMPF / IMPV) and whether it is
+passive, a noun as its QAC subcategory (PN, ADJ, PRON, DEM, REL, T, LOC, NV, INTG, COND, ADDR) or a bare
+noun, a particle as its tag — with no prefix or suffix segment, no case and no mood, so that a pronoun
+suffix, a clitic particle, a case ending or a mood never changes the element. The treebank role
 (`qac_syntax.json` `role_ar`) SHALL NOT be part of the signature. Particles and tool words SHALL be
 kept in the signature — they are syntax, even though they are excluded from the root signal.
 
-Syntactic similarity SHALL be `½·uni + ½·bi`, where `uni` is the size of the multiset intersection of
-the two verses' signature elements divided by the longer verse's word count, and `bi` the size of the
-multiset intersection of their consecutive element pairs divided by the longer verse's word count
-minus one (`bi = uni` when both verses have one word). It SHALL be symmetric, lie in `[0, 1]`, equal
-1 for identical signatures, fall when the two verses differ markedly in length, and cost a displaced
-block only the element pairs at its junctions.
+Syntactic similarity SHALL be `1 − normalized edit distance` (word as the unit, distance divided by the
+longer length) taken as the best of three alignments: the two signatures as written, and each one
+against the other with its blocks re-ordered along the lexical matching — a block being a maximal run
+of positions whose matched partners keep their order, unmatched positions staying with the block they
+follow, the blocks concatenated in the order of their first partner. It SHALL be symmetric, lie in
+`[0, 1]`, equal 1 for identical signatures and for a pure permutation of blocks, cost a substituted
+word one edit, and fall when the two verses differ markedly in length.
 
 The signature SHALL be computed at build time only, through `quran_data.qac.records()`.
 `qac_words.json` SHALL NOT be read on any request path.
@@ -75,11 +78,17 @@ The signature SHALL be computed at build time only, through `quran_data.qac.reco
   55:13 and 55:25, which the treebank labels differently («اسم» vs «حرف استفهام» on «فَبِأَيِّ»)
 - **THEN** their signatures SHALL be equal and their syntactic similarity SHALL be 1
 
-#### Scenario: A moved block costs only its junctions
+#### Scenario: A permutation of blocks scores 1
 
-- **WHEN** a signature of 9 elements is compared with the same elements where a block of 3 has been
-  moved elsewhere
-- **THEN** `uni` SHALL be 1 and at most 3 of the 8 element pairs SHALL be lost
+- **WHEN** a verse is compared with the same words in which two blocks have been exchanged
+- **THEN** their syntactic similarity SHALL be 1
+
+#### Scenario: A pronoun suffix, a clitic or a mood is not a difference
+
+- **WHEN** 43:83 and 70:42 (the same text, two verbs tagged subjunctive in one and jussive in the
+  other) are compared, or two words differ only by a pronoun suffix (رَبِّكُمْ / رَبِّهِمْ) or a clitic
+  (وَالزُّبُرِ / وَبِالزُّبُرِ)
+- **THEN** their elements SHALL be equal and the pair SHALL cost no edit
 
 ### Requirement: Grammatical-tool occurrences are excluded from the root signal
 

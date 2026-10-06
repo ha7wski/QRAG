@@ -502,7 +502,8 @@ MANIFEST: dict[str, Entry] = {
              "granularity (1.1 MB).",
         origin="Chain A.",
         producer="ingestion/qac_morphology.py",
-        consumers=("retrieval/lexical_retriever.py", "scripts/build_maqayis_dataset.py"),
+        consumers=("retrieval/lexical_retriever.py", "scripts/build_maqayis_dataset.py",
+                   "scripts/build_quran_passages.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -550,7 +551,8 @@ MANIFEST: dict[str, Entry] = {
                "recorded-verdict channel. The resolver RAISES rather than "
                "writing when a disagreement is unarbitrated.",
         producer="ingestion/root_resolver.py",
-        consumers=("ingestion/qac_morphology.py", "ingestion/qac_treebank.py"),
+        consumers=("ingestion/qac_morphology.py", "ingestion/qac_treebank.py",
+                   "scripts/build_quran_passages.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -588,7 +590,8 @@ MANIFEST: dict[str, Entry] = {
                "markers, unioned with the treebank's `role_ar` (حرف استفهام, حرف "
                "شرط). Neither layer sees every case on its own.",
         producer="ingestion/qac_treebank.py",
-        consumers=("retrieval/verse_lookup.py", "scripts/build_quran_close_verses.py"),
+        consumers=("retrieval/verse_lookup.py", "scripts/build_quran_close_verses.py",
+                   "scripts/build_quran_passages.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),
@@ -700,22 +703,29 @@ MANIFEST: dict[str, Entry] = {
     ),
     "SURAH_SIMILARITY_JSON": Entry(
         bucket="derived",
-        what="Intra-surah verse similarity, schema 1 (~3 MB): per surah its "
+        what="Intra-surah verse similarity, schema 2 (~3 MB): per surah its "
              "`unscored` ayahs, its `groups` of mutually close verses and, per "
              "ayah, at most K=10 neighbours of the SAME surah that pass both the "
-             "syntactic gate (QAC word signatures, `syn ≥ σ`) and the semantic "
-             "gate (cross-encoder + E5 cosine + tool-filtered root coverage, "
-             "`sem ≥ τ_sem`), each with its signals and shared content roots. "
-             "Consecutive ayahs are never stored. The `build` header records the "
-             "models, K, M, weights, thresholds, the signature used and the "
-             "gold-set sha256.",
+             "syntactic gate (QAC word signatures compared order-robustly — "
+             "`syn = ½·uni + ½·bi`, multiset overlap of the elements and of "
+             "their consecutive pairs — `syn ≥ σ`) and the semantic gate "
+             "(cross-encoder + E5 cosine + `lex`, the IDF Jaccard of the "
+             "order-invariant content-word matching, `sem ≥ τ_sem`), each with "
+             "its signals (`lex`, formerly `cov`) and the roots of its matched "
+             "content words; a pair is stored only when that matching carries "
+             "a positive mass. Consecutive ayahs are never stored. The `build` "
+             "header records the models, K, M, weights, thresholds, the "
+             "signature, its measure (`uni+bigram-bag`), the lexical signal "
+             "(`matching-idf-jaccard`) and the gold-set sha256.",
         origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
                "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
                "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature: segment "
                "POS tags + stem features, no treebank role), WORD_FUNCTION_JSON "
                "(tool filter) and "
-               "BAAI/bge-reranker-v2-m3. Needs the backend STOPPED: embedded "
-               "Qdrant takes an exclusive lock.",
+               "BAAI/bge-reranker-v2-m3, with the matching, `syn` and `lex` "
+               "imported from scripts/closeness_core.py and the per-word tokens "
+               "from scripts/build_quran_passages.py. Needs the backend STOPPED: "
+               "embedded Qdrant takes an exclusive lock.",
         producer="scripts/build_surah_similarity.py",
         consumers=("retrieval/surah_similarity.py", "api/routers/surah_similarity.py",
                    "scripts/eval_surah_similarity.py"),
@@ -727,8 +737,10 @@ MANIFEST: dict[str, Entry] = {
         bucket="derived",
         what="Per-surah resume markers of the similarity build — not a dataset. "
              "Each file is reused only when its digest — header parameters, "
-             "derived inputs, verse vectors and the builder's own source — "
-             "matches the running build; a torn or stale file is rebuilt. "
+             "derived inputs, verse vectors and the sources of the builder and "
+             "of the definitions it imports (closeness_core, the passage "
+             "build's token rule) — matches the running build; a torn or stale "
+             "file is rebuilt. "
              "Deleting the directory costs a full rebuild.",
         origin="Written by the similarity builder as it progresses.",
         producer="scripts/build_surah_similarity.py",
@@ -738,22 +750,31 @@ MANIFEST: dict[str, Entry] = {
     ),
     "QURAN_SIMILARITY_JSON": Entry(
         bucket="derived",
-        what="Cross-surah verse similarity, schema 1 (est. <= 3 MB): the "
+        what="Cross-surah verse similarity, schema 2 (est. <= 3 MB): the "
              "`unscored` verse refs and, per verse ref (`s:a`), at most K=10 "
              "neighbours from OTHER surahs that pass the same syntactic gate "
-             "(`syn >= sigma`), semantic gate (`sem >= tau_sem`, dense percentile-"
-             "ranked over the cross-surah population) and shared-content-root "
-             "rule as the intra-surah build, each with its signals and shared "
-             "roots. Only verses with at least one neighbour carry a list. The "
-             "`build` header records scope, models, K, M, weights, thresholds, "
-             "the signature used and the gold-set sha256.",
+             "(order-robust `syn = ½·uni + ½·bi` over the QAC signature, "
+             "`syn >= sigma`; a longer signature of <= 3 elements needs syn = 1), "
+             "semantic gate (`sem >= tau_sem`, dense percentile-ranked among the "
+             "syntax survivors, `lex` the IDF Jaccard of the order-invariant "
+             "content-word matching) and matched-mass rule (`Mw > 0`) as the "
+             "intra-surah build, each with its signals (`lex`, formerly `cov`) "
+             "and the roots of its matched content words; each list keeps a "
+             "neighbour only at >= rho x its best score. The syntactic gate runs "
+             "behind three EXACT pre-filters, closeness_core's upper bounds of "
+             "`syn` (length, element bag, bigram bag). Only verses with at least "
+             "one neighbour carry a list. The `build` header records scope, "
+             "models, K, M, weights, thresholds, the signature, its measure "
+             "(`uni+bigram-bag`), the lexical signal (`matching-idf-jaccard`) "
+             "and the gold-set sha256.",
         origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
                "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
-               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature), "
-               "WORD_FUNCTION_JSON (tool filter) and BAAI/bge-reranker-v2-m3, "
-               "with the parameters and pure helpers imported from "
-               "scripts/build_surah_similarity.py. Needs the backend STOPPED: "
-               "embedded Qdrant takes an exclusive lock.",
+               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature, word "
+               "tokens), WORD_FUNCTION_JSON (tool filter) and "
+               "BAAI/bge-reranker-v2-m3, with the parameters and pure helpers "
+               "imported from scripts/build_surah_similarity.py, which takes the "
+               "measure, the matching and the bounds from scripts/closeness_core.py. "
+               "Needs the backend STOPPED: embedded Qdrant takes an exclusive lock.",
         producer="scripts/build_quran_similarity.py",
         consumers=("scripts/build_quran_close_verses.py", "scripts/eval_quran_similarity.py"),
         regenerable=True,
@@ -766,8 +787,10 @@ MANIFEST: dict[str, Entry] = {
              "build — not a dataset. Each file holds the cross-encoded, gated "
              "pairs whose lower verse lies in one surah, and is reused only when "
              "its digest — header parameters, derived inputs, verse vectors and "
-             "both builders' sources — matches the running build; a torn or "
-             "stale file is rebuilt. Deleting the directory costs a full rebuild.",
+             "the sources of both builders and of the definitions they import "
+             "(closeness_core, the passage build's token rule) — matches the "
+             "running build; a torn or stale file is rebuilt. Deleting the "
+             "directory costs a full rebuild.",
         origin="Written by the cross-surah similarity builder as it progresses.",
         producer="scripts/build_quran_similarity.py",
         consumers=("scripts/build_quran_similarity.py",),
@@ -776,19 +799,22 @@ MANIFEST: dict[str, Entry] = {
     ),
     "QURAN_PASSAGES_JSON": Entry(
         bucket="derived",
-        what="Cross-surah shared passages, schema 1: one entry per pair of "
-             "verses of DIFFERENT surahs whose best Smith-Waterman local "
-             "alignment (match +2, mismatch -1, gap -1) of their token "
-             "sequences -- one token per QAC word, the stem segment's lemma, "
-             "else the bare surface -- has k >= 6 matched words, k >= 0.75 x "
-             "the longer aligned span and >= 3 matched content words. Each "
-             "entry holds both refs (lower surah first), both aligned 1-based "
-             "word spans, k and the matched content roots. The `build` header "
-             "records the token rule, the scores, the thresholds and the "
-             "gold-set sha256.",
-        origin="Built from QAC_MORPHOLOGY_TXT (lemmas, stems, ROOT features) and "
-               "ROOTS_RESOLVED_JSON (canonical roots). No model and no Qdrant: "
-               "it may run with the backend up.",
+        what="Cross-surah shared passages, schema 2: one entry per pair of "
+             "verses of DIFFERENT surahs whose order-invariant matching (one "
+             "token per QAC word, the stem segment's lemma, else the bare "
+             "surface; content words by lemma, other words by identical token) "
+             "holds a dense region -- a window pair, in any order, with k >= 6 "
+             "identical-token pairs, k >= 0.75 x the longer window and >= 3 of "
+             "them joining content words (order-invariant-closeness D6; "
+             "Smith-Waterman retired). Each entry holds both refs (lower surah "
+             "first), both 1-based region windows, k and the matched content "
+             "roots. The `build` header records the token, content-word, "
+             "matching and region rules, the thresholds and the gold-set sha256.",
+        origin="Built from QAC_MORPHOLOGY_TXT (lemmas, stems, ROOT features), "
+               "ROOTS_RESOLVED_JSON (canonical roots), MORPHOLOGY_JSON and "
+               "WORD_FUNCTION_JSON (the content-word definition, shared with the "
+               "similarity builds through scripts/closeness_core.py). No model and "
+               "no Qdrant: it may run with the backend up.",
         producer="scripts/build_quran_passages.py",
         consumers=("scripts/build_quran_close_verses.py", "scripts/eval_quran_passages.py"),
         regenerable=True,
@@ -797,7 +823,7 @@ MANIFEST: dict[str, Entry] = {
     ),
     "QURAN_CLOSE_VERSES_JSON": Entry(
         bucket="derived",
-        what="The unified cross-surah relation «close verses», schema 2: the "
+        what="The unified cross-surah relation «close verses», schema 3: the "
              "UNION of the pairs QURAN_SIMILARITY_JSON stores and the pairs "
              "QURAN_PASSAGES_JSON holds. Each pair: both refs (lower surah "
              "first), sim (the similarity score sem x syn -- stored, or computed "
@@ -805,7 +831,9 @@ MANIFEST: dict[str, Entry] = {
              "the shorter verse, 0 without a passage), score = 1 - (1-sim)(1-pas), "
              "`from`, the shared content roots, the passage's own k / wa / wb on "
              "a passage pair and, when it has one, its common part: the "
-             "order-invariant matching of the two verses' content words (m = "
+             "content edges of the shared order-invariant matching "
+             "(scripts/closeness_core.py; content word = a root among the "
+             "verse's content roots, not a tool occurrence) (m = "
              "[[p, q, lemma|root]]) and, per verse, a list of half-open character "
              "spans (one per run of coloured words) in its displayed "
              "text_ar_tashkil (Basmala stripped). The header records the rules, "
@@ -813,7 +841,9 @@ MANIFEST: dict[str, Entry] = {
         origin="Composed from QURAN_SIMILARITY_JSON and QURAN_PASSAGES_JSON, with "
                "the verse vectors (embedded Qdrant), the cross-encoder, the QAC "
                "morphology, WORD_FUNCTION_JSON (tool occurrences are not content "
-               "words) and WORD_INDEX_JSON for the spans. Build order: "
+               "words) and WORD_INDEX_JSON for the spans; a passage-only pair's "
+               "sim goes through the order-robust syn and the matching's lex. "
+               "Build order: "
                "build_quran_similarity.py -> build_quran_passages.py -> "
                "build_quran_close_verses.py. Needs the backend STOPPED: embedded "
                "Qdrant takes an exclusive lock.",

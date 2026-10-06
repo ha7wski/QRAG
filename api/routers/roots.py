@@ -120,7 +120,37 @@ def root_entry(forms: dict, names: dict[int, str]) -> dict:
         "forms": list(forms["forms"]),
         "reading": None,
         "reading_refusal": None,
+        "letters": root_letters(forms["root"]),
     }
+
+
+def root_letters(root: str) -> list[dict]:
+    """The root's letter cards — name, مخرج, position and Islambouli's gloss.
+
+    The fields «تحليل اللسان» shows, read from the same sources: the letter sheet
+    for the phonetics (`letter_lexicon.describe`; its sense bundle is dropped
+    here, never forwarded), `letter_position` for the slot, and the `/lisan`
+    router's `_with_islambouli` join for the gloss — verbatim, or "" for every
+    letter when his table fails its lock. No core is read and no sense selected.
+    """
+    from api.routers.lisan import _with_islambouli
+    from linguistics.lisan import letter_lexicon
+    from linguistics.lisan.sense_selection import letter_position
+
+    n = len(root)
+    letters = []
+    for i, ch in enumerate(root):
+        d = letter_lexicon.describe(ch)
+        letters.append({
+            "index": i + 1,
+            "letter": d.get("letter", ""),
+            "name": d.get("name", ""),
+            "makhraj": d.get("makhraj", ""),
+            "sifat": list(d.get("sifat", [])),
+            "position": letter_position(i, n),
+            "sense_count": len(d.get("senses", [])),
+        })
+    return _with_islambouli({"letters": letters})["letters"]
 
 
 def attach_readings(entries: list[dict]) -> bool:

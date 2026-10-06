@@ -56,8 +56,9 @@ selection, not a copy of them. Three rules SHALL apply to the cross-surah popula
 ### Requirement: The syntactic gate's pre-filters are exact
 
 To make the gate affordable over the 19 113 299 cross-surah pairs, the build MAY skip a pair by an
-upper bound on its syntactic similarity (the length bound `½(m/M + (m−1)/(M−1))` with `m`, `M` the
-shorter and longer word counts, the multiset bound on signature elements, or its bigram analogue),
+upper bound on its syntactic similarity (the length bound `m / M` with `m`, `M` the shorter and
+longer word counts, or the multiset bound `|bag_A ∩ bag_B| / M` on coarse elements — both exact
+under any re-ordering of blocks),
 but only by a bound that is exact: a skipped pair SHALL have `syn < σ`. Every pair that is not skipped
 SHALL be scored by the same syntactic-similarity function as the intra-surah build.
 

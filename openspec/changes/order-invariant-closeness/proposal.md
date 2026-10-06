@@ -13,16 +13,24 @@ the relation itself order-invariant, reusing that matching.
 
 ## What Changes
 
-- **Syntax gate, order-robust**: `syn = ½·uni + ½·bi` — multiset overlap of the per-word signature
-  elements (unigrams) and of consecutive element pairs (bigrams), each over the longer verse. A
-  displaced block costs only its junctions; the construction inside each block is still measured.
-  `σ = 2/3` and the short-pair rule are kept as they are.
+- **Syntax gate, pronoun- and permutation-invariant** (version 2 — version 1's bag of bigrams was
+  built, measured and closed, see the design): the signature element becomes COARSE — the stem's POS
+  with the verb's aspect and voice or the noun's subcategory, the particle's tag; no prefix or suffix
+  segment, no case, no mood — so a pronoun suffix, a clitic or a mood never changes it; the measure
+  stays Levenshtein, with the blocks of either verse re-orderable along the lexical matching
+  (`syn = max` of the plain and the two re-ordered alignments). `σ = 2/3` and the short-pair rule are
+  kept as they are.
 - **Lexical signal from the matching**: `cov` (IDF Jaccard of root SETS) is replaced by `lex`, the
   IDF-weighted Jaccard of the order-invariant content-word matching (same lemma 1, same root 0.5).
   `sem = (0.7·ce + 0.3·dense) × (0.25 + 0.75·lex)`; every other weight, threshold and cap unchanged.
-- **Shared passages without Smith–Waterman**: a passage is the densest window pair of identical-token
-  matches, in any order (`2k − gaps` maximised), accepted with the current thresholds (k ≥ 6,
-  density ≥ 0.75, ≥ 3 content words).
+- **Shared passages without Smith–Waterman**: a passage is the LARGEST ACCEPTED window pair of
+  identical-token matches, in any order, under the current thresholds (k ≥ 6, density ≥ 0.75, ≥ 3
+  content words); repeated tokens pair at the offset of the shared material (median shift of the
+  unique matches), not at the same relative position.
+- **Measurement protocol**: the three gold sets are RELABELLED under the written definition (permuted
+  blocks are positives, not «scattered»), and a fresh blind sample of 60 cross-surah pairs is drawn
+  model-free and labelled before any version-2 build; the blind figure is the one that counts, the
+  relabelled gold is reported as in-sample.
 - **One content-word definition** for `lex`, the passage and the displayed common part: a word whose
   root is among its verse's content roots (the set `cov` uses today) and which is not a grammatical
   tool occurrence.
@@ -38,12 +46,13 @@ the relation itself order-invariant, reusing that matching.
 <!-- none -->
 
 ### Modified Capabilities
-- `surah-internal-similarity`: the syntactic similarity (signature unchanged, measure order-robust)
-  and the root signal (`lex` over the matching instead of `cov` over root sets).
+- `surah-internal-similarity`: the syntactic signature (coarse element) and similarity (block
+  re-ordering) and the root signal (`lex` over the matching instead of `cov` over root sets).
 - `quran-wide-similarity`: inherits both; its exact pre-filters are re-derived for the new `syn`.
-- `shared-passages`: the passage becomes an order-free dense region of identical-token matches.
-- `close-verses`: the common part's content-word definition becomes the shared one; measured against
-  pre-registered targets.
+- `shared-passages`: the passage becomes the largest accepted order-free region of identical-token
+  matches, repeated tokens paired by median shift.
+- `close-verses`: the common part's content-word definition becomes the shared one and the matching's
+  tie-break becomes the median shift; measured against pre-registered targets.
 
 ## Impact
 
@@ -57,3 +66,5 @@ the relation itself order-invariant, reusing that matching.
 - Rebuild of the four datasets, backend STOPPED (embedded Qdrant lock + cross-encoder); the
   cross-surah build is the long one.
 - Tests: the four build test files, eval tests, reader tests.
+- Gold: `tests/eval/{surah_similarity,quran_similarity,quran_passages}_gold.json` relabelled (version
+  bump); new `tests/eval/closeness_blind_v2.json`; two new scripts (draw + eval of the blind sample).

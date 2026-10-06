@@ -162,10 +162,12 @@ Writes `data/derived/quran_similarity.json`, one input of the close-verses
 relation (`quran_close_verses.json`, behind the surah × surah map): for every verse, at most 10 verses of the
 OTHER surahs that pass the same two gates as the intra-surah build, with the
 same frozen parameters — its helpers and constants are imported from
-`build_surah_similarity.py`, not copied. Only the population differs: the
-~19 M cross-surah pairs, which the syntactic gate reaches through two exact
-pre-filters (length window, multiset bag distance) before the same Levenshtein,
-and a dense percentile ranked over all cross-surah pairs. **Stop the backend
+`build_surah_similarity.py` and `closeness_core.py`, not copied. Only the
+population differs: the ~19 M cross-surah pairs, which the syntactic gate
+reaches through three exact pre-filters — the core's upper bounds of `syn`
+(length window, element bag, bigram bag) — before the same order-invariant
+`syn` (unigram + bigram multiset overlap), and a dense percentile ranked among
+the cross-surah pairs that pass the syntactic gate. **Stop the backend
 first**, as for the intra build (embedded Qdrant lock, ~1.1 GB cross-encoder);
 `--syntax-only` is the one mode that needs neither and can run beside the
 backend. `--dry-run` reads the vectors, so it needs the lock too, and stops
