@@ -62,12 +62,15 @@ Pairs SHALL be ordered by score descending, ties broken by reference ascending.
 ### Requirement: Every pair carries its common part when it has one
 
 A pair's common part SHALL be the order-invariant matching of the two verses' content words, so that a
-word shared by both verses is part of it whatever its position in each. A content word SHALL be a word
-that carries a root and whose occurrence is not a grammatical tool in `word_function.json`. The
+word shared by both verses is part of it whatever its position in each. A content word SHALL be a content word
+as the `surah-internal-similarity` lexical signal defines it (its primary root is among its verse's
+content roots, and its occurrence is not a grammatical tool), so the coloured words and the scored
+words are the same words. The
 matching SHALL be a maximum-weight one-to-one matching in which two content words are joined with
 weight 1 when they have the same lemma token (the passage relation's token), with weight 0.5 when they
 have different lemma tokens but the same resolved primary root, and not at all otherwise; among
-partners of equal weight a word SHALL take the one at the nearest relative position. A pair SHALL
+partners of equal weight a word SHALL take the one at the offset of the shared material (the median shift
+of the uniquely matched words). A pair SHALL
 carry a common part when the matching joins at least 2 words, and none otherwise.
 
 Function words SHALL be coloured with the common part only when they sit strictly between two matched
@@ -110,8 +113,8 @@ common part.
 
 #### Scenario: The scores do not move
 
-- **WHEN** the dataset is rebuilt under this rule from unchanged inputs
-- **THEN** every pair's `sim`, `pas` and `score`, and the pair set, SHALL equal the previous build's
+- **WHEN** the common-part fields of every pair are removed and the dataset is composed again
+- **THEN** every pair's `sim`, `pas` and `score`, and the pair set, SHALL be unchanged
 
 ### Requirement: An offline close-verses dataset
 

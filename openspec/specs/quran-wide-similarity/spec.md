@@ -11,14 +11,16 @@ a cross-surah gold set frozen beforehand, and served model-free under the picked
 
 Two verses of **different** surahs SHALL be considered close only when they pass BOTH gates of the
 `surah-internal-similarity` capability, with the same frozen values: the semantic gate
-(`sem = (w_ce·ce + w_dense·dense) × (floor + (1 − floor)·cov) ≥ τ_sem`, dense ignored between verbatim
-verses) and the syntactic gate (`syn ≥ σ` over the same QAC `(segs, stem)` signature). Grammatical
-tools SHALL be excluded from the root signal exactly as there, and a pair SHALL be stored only when
-the two verses share at least one content root.
+(`sem = (w_ce·ce + w_dense·dense) × (floor + (1 − floor)·lex) ≥ τ_sem`, dense ignored between verbatim
+verses, `lex` the order-invariant matching's IDF Jaccard) and the syntactic gate (`syn ≥ σ`, the
+Levenshtein similarity over the same coarse QAC signature, blocks re-orderable along the matching).
+Grammatical tools
+SHALL be excluded from the lexical signal exactly as there, and a pair SHALL be stored only when its
+matched content mass is positive.
 
 The build SHALL reuse the intra-surah builder's functions and constants for the signature, the
-syntactic similarity, the coverage, the semantic score, the candidate cap and the neighbour selection,
-not a copy of them. Three rules SHALL apply to the cross-surah population only:
+syntactic similarity, the lexical signal, the semantic score, the candidate cap and the neighbour
+selection, not a copy of them. Three rules SHALL apply to the cross-surah population only:
 
 - `dense` SHALL be the cosine's average-rank percentile among the cross-surah pairs that pass the
   syntactic gate (this rule included), so that it is symmetric and spread over the candidates the
@@ -31,8 +33,8 @@ not a copy of them. Three rules SHALL apply to the cross-surah population only:
 #### Scenario: The parameters are the intra-surah ones
 
 - **WHEN** the headers of `quran_similarity.json` and `surah_similarity.json` are compared
-- **THEN** `σ`, `τ_sem`, `w_ce`, `w_dense`, `floor`, `K`, `M`, `signature` and `dense_on_verbatim`
-  SHALL be equal
+- **THEN** `σ`, `τ_sem`, `w_ce`, `w_dense`, `floor`, `K`, `M`, `signature`, the syntactic measure, the
+  lexical signal and `dense_on_verbatim` SHALL be equal
 - **AND** the cross-surah header SHALL name `dense_population: "syntax-survivors"`,
   `short_exact_max_len` and `rho`
 
@@ -73,9 +75,11 @@ those.
 
 ### Requirement: The syntactic gate's pre-filters are exact
 
-To make the gate affordable over the 19 113 299 cross-surah pairs, the build MAY skip a pair by a
-lower bound on its edit distance (length difference, multiset difference of signature elements), but
-only by a bound that is exact: a skipped pair SHALL have `syn < σ`. Every pair that is not skipped
+To make the gate affordable over the 19 113 299 cross-surah pairs, the build MAY skip a pair by an
+upper bound on its syntactic similarity (the length bound `m / M` with `m`, `M` the shorter and
+longer word counts, or the multiset bound `|bag_A ∩ bag_B| / M` on coarse elements — both exact
+under any re-ordering of blocks),
+but only by a bound that is exact: a skipped pair SHALL have `syn < σ`. Every pair that is not skipped
 SHALL be scored by the same syntactic-similarity function as the intra-surah build.
 
 #### Scenario: No passing pair is pruned
