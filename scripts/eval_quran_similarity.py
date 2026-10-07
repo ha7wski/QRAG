@@ -15,8 +15,9 @@ target pre-registered in `openspec/changes/add-quran-wide-similar-verses/tasks.m
   * the rank of each positive (best of the two directions);
   * the positives lost at each stage — length window, bag bound (both 0 by
     construction: a pair is reported there only if its full `syn ≥ σ`, which
-    is a bug), syntax gate, candidate cap, semantic gate,
-    matched-mass rule (`no_shared_root`), top-K — read from the per-gold-pair
+    is a bug), syntax gate, candidate cap, semantic gate, short-verse material
+    rule (`short_material`, short-verse-material D1), matched-mass rule
+    (`no_shared_root`), top-K — read from the per-gold-pair
     diagnostics the builder writes, whose lexical signal is `lex` (schema 2,
     order-invariant-closeness D3; `cov` before);
   * the negatives of each kind stored as neighbours, and how many appear in
@@ -45,7 +46,8 @@ from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
 STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "short_exact",
-          "candidate_cap", "semantic_gate", "no_shared_root", "top_k", "relative_cut", "stored")
+          "candidate_cap", "semantic_gate", "short_material", "no_shared_root", "top_k",
+          "relative_cut", "stored")
 # order-invariant-closeness version 2 D5: the core's two exact bounds of `syn`
 # (length, coarse-element bag); version 1's bigram bound is gone.
 PREFILTER_STAGES = ("length_window", "bag_bound")

@@ -51,6 +51,13 @@ replaced the two order-dependent measures, and both now come from
     shared roots shown are the roots of the matched content words. The stored
     field is `lex`.
 
+`openspec/changes/short-verse-material` (D1) adds one rule, the core's
+`short_material_ok`: a pair whose SHORTER verse has at most
+`SHORT_MATERIAL_MAX_LEN` (5) QAC words is stored only when its matching holds at
+least `SHORT_MATERIAL_MIN_LEMMAS` (2) `lemma` edges — root-only edges do not
+count. Applied after the semantic gate and before the matched-mass rule; a gold
+row it drops reports the stage `short_material`. The header names both values.
+
 The parameters below are the FROZEN values of design.md «Frozen parameters»,
 fixed against the gold set before any pair was scored. Changing one is a
 decision to record there (task 4.3), never a tuning knob.
@@ -106,6 +113,11 @@ TAU_GROUP = 0.4
 # Recorded in the header so the rule is visible; the gold positives it cannot
 # reach (design D8 «Open point») are a reported result.
 REQUIRE_SHARED_ROOT = True
+# short-verse-material D1: a pair whose SHORTER verse has ≤ 5 QAC words is stored only
+# when its matching holds ≥ 2 `lemma` edges — the core's frozen values and rule,
+# applied after the semantic gate, before the matched-mass rule (`short_material`).
+SHORT_MATERIAL_MAX_LEN = cc.SHORT_MATERIAL_MAX_LEN
+SHORT_MATERIAL_MIN_LEMMAS = cc.SHORT_MATERIAL_MIN_LEMMAS
 DECIMALS = 4              # stored floats; two builds must be byte-identical
 CE_BATCH = 32
 
@@ -200,6 +212,12 @@ def lexical(va: VerseWords, vb: VerseWords, idf: dict[str, float],
     return Lexical(cc.lex(edges, va.roots, vb.roots, va.content, vb.content, idf),
                    cc.matched_mass(edges, va.roots, vb.roots, idf),
                    cc.shared_roots(edges, va.roots, vb.roots))
+
+
+def short_material(va: VerseWords, vb: VerseWords, edges: Sequence) -> bool:
+    """short-verse-material D1, through the core: `short_material_ok` over the pair's
+    D2 `edges`, `n` read from the two verses' QAC word counts."""
+    return cc.short_material_ok(edges, len(va.tokens), len(vb.tokens))
 
 
 class Syntax(NamedTuple):
@@ -639,6 +657,8 @@ def header(gold_sha: str | None) -> dict:
         "tie_break": TIE_BREAK,
         "dense_on_verbatim": DENSE_ON_VERBATIM,
         "require_shared_root": REQUIRE_SHARED_ROOT,
+        "short_material_max_len": SHORT_MATERIAL_MAX_LEN,
+        "short_material_min_lemmas": SHORT_MATERIAL_MIN_LEMMAS,
         "gold_sha256": gold_sha,
     }
 
@@ -650,8 +670,10 @@ def params_digest(head: dict) -> str:
 # A built header may differ from what this code writes on these keys without being
 # another build's file: the digests name the gold / blind files' bytes AT BUILD TIME
 # (the tests check them against the files as they are now), and the embedder is
-# read from the environment.
-RUNTIME_HEADER_KEYS = frozenset({"gold_sha256", "blind_sample_sha256", "embedder"})
+# read from the environment. `blind_short_sha256` is the cross builds' digest of the
+# short-verse-material blind sample (short-verse-material D2).
+RUNTIME_HEADER_KEYS = frozenset({"gold_sha256", "blind_sample_sha256", "blind_short_sha256",
+                                 "embedder"})
 
 
 def header_drift(built: dict, code: dict) -> list[str]:
@@ -682,10 +704,14 @@ DEFINITION_HEADER_KEYS = frozenset({"signature", "signature_measure", "lexical",
 
 
 def definition_drift(built: dict, code: dict) -> list[str]:
-    """The `DEFINITION_HEADER_KEYS` of `header_drift(built, code)`, in its order:
-    non-empty exactly when the file is another version's — built under other
-    definition names, or before one of them existed. Pure."""
-    return [k for k in header_drift(built, code) if k in DEFINITION_HEADER_KEYS]
+    """The keys of `header_drift(built, code)`, in its order, that make the file
+    another version's: a `DEFINITION_HEADER_KEYS` name that differs, or ANY key this
+    code writes that the file lacks altogether — it was built before that key (and the
+    rule it names) existed, as a file predating `short_material_*`
+    (short-verse-material) is. A key the file carries with another value is not
+    listed here: that is a changed frozen value, for `header_drift` to fail on. Pure."""
+    return [k for k in header_drift(built, code)
+            if k in DEFINITION_HEADER_KEYS or k not in built]
 
 
 def inputs_digest(vectors: dict) -> str:
@@ -783,6 +809,9 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
         sem = sem_score(ce_of[p], dense, lex)
         if sem < TAU_SEM:
             continue
+        # short-verse-material D1: after the semantic gate, before the matched mass
+        if not short_material(lw[(surah, p[0])], lw[(surah, p[1])], survivors[p].edges):
+            continue
         if REQUIRE_SHARED_ROOT and not lex_of[p].mass > 0:
             continue
         sy = survivors[p].syn
@@ -822,6 +851,8 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
                 row["stage"] = "candidate_cap"
             elif sem < TAU_SEM:
                 row["stage"] = "semantic_gate"
+            elif not short_material(lw[(surah, p[0])], lw[(surah, p[1])], syx.edges):
+                row["stage"] = "short_material"
             elif p not in stored_pairs:
                 row["stage"] = "no_shared_root"
             elif any(e["a"] == p[1] for e in neighbours[p[0]]) or \

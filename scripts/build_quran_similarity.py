@@ -36,8 +36,13 @@ intra-surah definition unchanged and only changes the population:
     and dense became a constant +0.3 in `sem` — change
     `tighten-cross-surah-similarity`, design D1.
   * D5 — `cap_pairs(M)`, the symmetrised cross-encoder, the semantic gate, the
-    matched-mass rule (a pair is stored only when its content-word matching
-    carries `Mw > 0`), `score = sem × syn`, `select_neighbours(K)`.
+    short-verse material rule (short-verse-material D1, the intra `short_material`:
+    a pair whose shorter verse has ≤ 5 QAC words needs ≥ 2 `lemma` edges; gold
+    stage `short_material`), the matched-mass rule (a pair is stored only when its
+    content-word matching carries `Mw > 0`), `score = sem × syn`,
+    `select_neighbours(K)`. The header records `blind_short_sha256`, the sha256 of
+    the BYTES of `tests/eval/closeness_blind_short.json` (never parsed; null when
+    absent), beside `blind_sample_sha256`.
   * Two rules of the cross-surah population only (tighten-cross-surah-similarity
     D2, D3): a pair whose LONGER signature has ≤ `SHORT_EXACT_MAX_LEN` elements
     passes the syntactic gate only with `syn = 1` (`passes_short_rule`), and each
@@ -90,11 +95,12 @@ from quran_data import loaders, paths  # noqa: E402
 
 import build_surah_similarity as intra  # noqa: E402
 from build_surah_similarity import (  # noqa: E402 — D1: the definition, imported
-    DENSE_ON_VERBATIM, FLOOR, K, LEXICAL, M, REQUIRE_SHARED_ROOT, RERANKER_MODEL, SIGMA,
-    SIGMA_EPS, SIGNATURE, SIGNATURE_MEASURE, TAU_SEM, TIE_BREAK, W_CE, W_DENSE,
+    DENSE_ON_VERBATIM, FLOOR, K, LEXICAL, M, REQUIRE_SHARED_ROOT, RERANKER_MODEL,
+    SHORT_MATERIAL_MAX_LEN, SHORT_MATERIAL_MIN_LEMMAS, SIGMA, SIGMA_EPS, SIGNATURE,
+    SIGNATURE_MEASURE, TAU_SEM, TIE_BREAK, W_CE, W_DENSE,
     CrossEncoderScorer, cap_pairs, lexical, load_content_roots, load_signatures, load_vectors,
     load_verse_words, pair_edges, passes_syntax, prefilter_stage, qdrant_lock_held, rnd,
-    select_neighbours, sem_score, syn, syntax_similarity,
+    select_neighbours, sem_score, short_material, syn, syntax_similarity,
 )
 # order-invariant-closeness D5: the exact bounds, from the core itself.
 from closeness_core import syn_bag_bound, syn_length_bound  # noqa: E402
@@ -112,6 +118,9 @@ GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
 # on. Its sha256 (of the BYTES — never parsed here) goes into the header so
 # `eval_closeness_blind.py` can refuse a mismatch; null when the file is absent.
 BLIND_SAMPLE_JSON = ROOT / "tests" / "eval" / "closeness_blind_v2.json"
+# short-verse-material D2: the blind sample of SHORT pairs the rule is measured on,
+# hashed by its bytes (never parsed) under `blind_short_sha256`; null when absent.
+BLIND_SHORT_JSON = ROOT / "tests" / "eval" / "closeness_blind_short.json"
 REBUILD = "python scripts/build_quran_similarity.py"
 # The intra header keys this build must share verbatim (spec «The parameters are
 # the intra-surah ones»); their digest is recorded so the equality is checkable.
@@ -119,7 +128,7 @@ REBUILD = "python scripts/build_quran_similarity.py"
 # not be read as one relation.
 SHARED_PARAMS = ("K", "M", "w_ce", "w_dense", "floor", "sigma", "tau_sem", "signature",
                  "signature_measure", "lexical", "tie_break", "dense_on_verbatim",
-                 "require_shared_root")
+                 "require_shared_root", "short_material_max_len", "short_material_min_lemmas")
 # `passes_syntax`'s threshold, as the one float it compares against.
 _SYN_THRESHOLD = SIGMA - SIGMA_EPS
 
@@ -407,6 +416,14 @@ def blind_sample_digest() -> str | None:
     return hashlib.sha256(BLIND_SAMPLE_JSON.read_bytes()).hexdigest()
 
 
+def blind_short_digest() -> str | None:
+    """sha256 of the BYTES of `BLIND_SHORT_JSON` (short-verse-material D2), or None when
+    it is absent. Hashed, never parsed: its labels are the evaluation's."""
+    if not BLIND_SHORT_JSON.exists():
+        return None
+    return hashlib.sha256(BLIND_SHORT_JSON.read_bytes()).hexdigest()
+
+
 def header(gold_sha: str | None) -> dict:
     intra_head = intra.header(None)
     shared = {k: intra_head[k] for k in SHARED_PARAMS}
@@ -425,11 +442,15 @@ def header(gold_sha: str | None) -> dict:
         "short_exact_max_len": SHORT_EXACT_MAX_LEN,
         "rho": RHO,
         "require_shared_root": REQUIRE_SHARED_ROOT,
+        "short_material_max_len": SHORT_MATERIAL_MAX_LEN,
+        "short_material_min_lemmas": SHORT_MATERIAL_MIN_LEMMAS,
         # D1: the intra builder's digest of the parameters both builds share
         "intra_params_sha256": intra.params_digest(shared),
         "gold_sha256": gold_sha,
         # D10.3: the blind sample this build is measured on (bytes hashed, not read)
         "blind_sample_sha256": blind_sample_digest(),
+        # short-verse-material D2: the short-pair blind sample (bytes hashed, not read)
+        "blind_short_sha256": blind_short_digest(),
     }
 
 
@@ -474,10 +495,20 @@ class Corpus:
     def verbatim(self, i: int, j: int) -> bool:
         return self.words.get(self.refs[i]) == self.words.get(self.refs[j])
 
-    def lexical(self, i: int, j: int):
+    def edges(self, i: int, j: int) -> list:
+        """The intra `pair_edges` of verses i and j: their D2 matching."""
+        return pair_edges(self.vwords[i], self.vwords[j])
+
+    def lexical(self, i: int, j: int, edges: Sequence | None = None):
         """The intra `lexical` of verses i and j: `lex`, the matched mass `Mw` and the
-        matched content words' roots (order-invariant-closeness D3)."""
-        return lexical(self.vwords[i], self.vwords[j], self.idf)
+        matched content words' roots (order-invariant-closeness D3), over `edges` when
+        the pair's matching is already in hand."""
+        return lexical(self.vwords[i], self.vwords[j], self.idf, edges)
+
+    def material(self, i: int, j: int, edges: Sequence | None = None) -> bool:
+        """The intra `short_material` of verses i and j (short-verse-material D1)."""
+        edges = self.edges(i, j) if edges is None else edges
+        return short_material(self.vwords[i], self.vwords[j], edges)
 
     def syntax(self, i: int, j: int):
         """The intra `syntax_similarity` of verses i and j: their matching and `syn`
@@ -529,7 +560,11 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
         sem = sem_score(ce_of[p], dense, lex)
         if sem < TAU_SEM:
             continue
-        lx = corpus.lexical(*p)
+        edges = corpus.edges(*p)
+        # short-verse-material D1: after the semantic gate, before the matched mass
+        if not corpus.material(*p, edges):
+            continue
+        lx = corpus.lexical(*p, edges)
         # D3: «shares a content root» is now «the matching carries a positive mass»
         if REQUIRE_SHARED_ROOT and not lx.mass > 0:
             continue
@@ -577,6 +612,8 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
             row["stage"] = "candidate_cap"
         elif sem < TAU_SEM:
             row["stage"] = "semantic_gate"
+        elif not corpus.material(*p):
+            row["stage"] = "short_material"
         elif p not in passed:
             row["stage"] = "no_shared_root"
         else:

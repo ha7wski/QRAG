@@ -69,7 +69,8 @@ record there, never tuning knobs:
     of the BYTES of `tests/eval/closeness_blind_v2.json` (D10.3) at build time,
     never its content — the labels are not to be read by the build —, null when
     the file is absent. `scripts/eval_closeness_blind.py` refuses to measure on
-    a sample whose digest the header did not record.
+    a sample whose digest the header did not record. `blind_short_sha256` does the
+    same for `tests/eval/closeness_blind_short.json` (short-verse-material D2).
 
 order-invariant-common-words D3 was AMENDED during implementation (design.md
 D3, spec «Every pair carries its common part»): its first wording («consecutive
@@ -140,6 +141,9 @@ REBUILD = "python scripts/build_quran_close_verses.py"
 # order-invariant-closeness D10.3: the blind sample (local-only, like the gold sets),
 # hashed by its bytes and never read here.
 BLIND_SAMPLE_JSON = ROOT / "tests" / "eval" / "closeness_blind_v2.json"
+# short-verse-material D2: the blind sample of SHORT pairs, hashed by its bytes under
+# `blind_short_sha256` and never read here; null when absent.
+BLIND_SHORT_JSON = ROOT / "tests" / "eval" / "closeness_blind_short.json"
 BUILD_ORDER = (f"{similarity_build.REBUILD}  →  {passages_build.REBUILD}  →  {REBUILD}"
                f"  (backend stopped)")
 SCORE_RULE = ("1 - (1 - sim)(1 - pas), computed from the unrounded sim and pas, "
@@ -549,7 +553,14 @@ def blind_sample_digest() -> str | None:
     return sha256_of(BLIND_SAMPLE_JSON) if BLIND_SAMPLE_JSON.exists() else None
 
 
-def header(input_digests: dict, gold: dict, blind_sha: str | None) -> dict:
+def blind_short_digest() -> str | None:
+    """The sha256 of the short-pair blind sample's BYTES (short-verse-material D2), None
+    when the file is absent. Never parsed."""
+    return sha256_of(BLIND_SHORT_JSON) if BLIND_SHORT_JSON.exists() else None
+
+
+def header(input_digests: dict, gold: dict, blind_sha: str | None,
+           blind_short_sha: str | None = None) -> dict:
     return {
         "scope": SCOPE,
         "score": SCORE_RULE,
@@ -574,6 +585,7 @@ def header(input_digests: dict, gold: dict, blind_sha: str | None) -> dict:
         "inputs": input_digests,
         "gold": gold,
         "blind_sample_sha256": blind_sha,
+        "blind_short_sha256": blind_short_sha,
     }
 
 
@@ -628,7 +640,8 @@ def main(argv: list[str] | None = None) -> int:
 
     t_start = time.time()
     sim_data, pas_data, input_digests = read_inputs()
-    head = header(input_digests, gold_digests(args.no_gold), blind_sample_digest())
+    head = header(input_digests, gold_digests(args.no_gold), blind_sample_digest(),
+                  blind_short_digest())
     want = (head["reranker"], head["embedder"])
     have = (sim_data["build"].get("reranker"), sim_data["build"].get("embedder"))
     if want != have:

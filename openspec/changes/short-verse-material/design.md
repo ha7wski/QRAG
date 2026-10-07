@@ -53,3 +53,30 @@ function `short_material_ok(edges, na, nb)` in `closeness_core`, imported by bot
 
 Draw + label the short sample → implement D1 (TDD) → stop the backend → rebuild intra → cross → close
 verses → evals → record under «Measured result» → restart.
+
+## Measured result (rebuild 2026-10-07, intra → cross → close verses)
+
+No parameter changed after the build. Cross close pairs 3 681 (4 148 before; similarity-only 803, was 1 270).
+
+| Eval | Target | Before the rule | Measured | |
+|---|---|---|---|---|
+| **short blind** negatives stored | ≤ 0.25 | — | 6/29 = 0.207 (all six in the ≥ 2-lemma stratum) | PASS |
+| **short blind** positives stored, all positives | ≥ 0.65 | — | 10/11 = 0.909 | PASS |
+| short blind — 1-lemma stratum (the rule's own class) | reported | — | positives 0/1 stored (37:27/68:30, the recall cost), negatives 0/19 | — |
+| blind v2 positives / negatives | ≥ 0.65 / ≤ 0.25 | 36/42, 2/18 | 36/42, 2/18 | PASS |
+| intra recall@10 | ≥ 0.75 | 49/50 | 42/50 = 0.840 (7 lost at `short_material`: 55:50/66, 26:66/172, 26:66/120, 37:109/120, 37:123/133 …) | PASS |
+| intra negatives in a top-3 | ≤ 2 | 2 | 1 | PASS |
+| cross T1 | ≥ 0.65 | 52/53 | 50/53 | PASS |
+| cross T2 negatives in a top-3 | ≤ 4 | 9 | **3** | PASS |
+| cross T3 | ≤ 1 | 2 | 0 | PASS |
+| cross T4 | ≥ 80 % of 7 | 5/6 | 5/6 | MISS (unchanged, by the formula) |
+| close verses U1 AUC(score) | ≥ 0.80 | 0.875 | **0.752** (89 × 9) | **MISS** |
+| close verses U3 26:203/37:54 | `pas` 0, last of its cell | rank 16 of 33 | no longer stored at all | MISS by the eval's letter (absent) — the frame-only pair the rule was written for is gone |
+
+**Reading.** The rule does what it was meant to: the blind short sample's 1-lemma stratum stores 0 of
+its 19 negatives, cross T2 falls from 9 to 3, T3 from 2 to 0. Its cost is the short refrains that differ
+by one content word — «سَلَامٌ عَلَىٰ X», «ثُمَّ أَغْرَقْنَا / دَمَّرْنَا الْآخَرِينَ», «فِيهِمَا عَيْنَانِ X» —
+which the relabelled gold keeps positive under its slot-fill convention: they leave the lists (intra
+recall 49 → 42) and, absent, rank below every negative in the close-verses AUC (0.875 → 0.752).
+The remaining stored short negatives (6/29) are 2-lemma moulds the rule does not reach (51:12/75:6,
+75:22/88:2). Recorded; not tuned.

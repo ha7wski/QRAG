@@ -198,6 +198,7 @@ python scripts/eval_quran_passages.py                     # measure it against t
 python scripts/build_quran_close_verses.py                # backend stopped (cross-encoder); after the two builds above
 python scripts/eval_quran_close_verses.py                 # measure it against both gold sets
 python scripts/eval_closeness_blind.py                    # the blind sample: the figure that counts
+python scripts/eval_closeness_blind.py --sample tests/eval/closeness_blind_short.json  # short-verse-material: per stratum
 ```
 
 Build order: cross-surah similarity → passages → close verses. `build_quran_passages.py`
@@ -329,7 +330,7 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/eval_quran_passages.py` | Report recall and negatives found of that build against the local gold set; refuses a digest mismatch |
 | `scripts/build_quran_close_verses.py` | Build `data/derived/quran_close_verses.json` (the relation behind the surah × surah map: union of the cross-surah similarity pairs and the passages, with `score` and the displayed common part). Backend stopped; run AFTER the two builds above; records `blind_sample_sha256` |
 | `scripts/eval_quran_close_verses.py` | Report AUC(score) and the U2–U4 checks of that build over both gold sets; refuses on any input or gold digest change |
-| `scripts/eval_closeness_blind.py` | The figure that counts for version 2 of the closeness relation: positives / negatives STORED (either direction) on the blind sample, PASS / MISS against ≥ 0.65 / ≤ 0.25; refuses when the sample's sha256 differs from either dataset header |
+| `scripts/eval_closeness_blind.py` | The figure that counts for version 2 of the closeness relation: positives / negatives STORED (either direction) on the blind sample, PASS / MISS against ≥ 0.65 / ≤ 0.25; refuses when the sample's sha256 differs from either dataset header (`blind_sample_sha256`; `blind_short_sha256` for `--sample tests/eval/closeness_blind_short.json`, reported per stratum with the 1-lemma positives apart as the short-verse rule's recall cost) |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference

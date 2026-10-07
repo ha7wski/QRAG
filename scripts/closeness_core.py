@@ -32,6 +32,9 @@ Public API (stable — the builds depend on it):
               block_reorder(seq_b, edges, n_a) -> tuple; syn(a, b, edges) -> float;
               passes_syntax(value, sigma=SIGMA)
   D5          syn_length_bound(la, lb); syn_bag_bound(bag_a, bag_b)
+  short       SHORT_MATERIAL_MAX_LEN, SHORT_MATERIAL_MIN_LEMMAS;
+              short_material_ok(edges, na, nb) -> bool
+              (openspec/changes/short-verse-material, D1)
   D6          Region(k, i1, i2, j1, j2, edges, score, content);
               passage_region(edges) -> Region | None (= best_region_in_a);
               rejection(k, span_a, span_b, content) -> str | None;
@@ -130,6 +133,11 @@ _ASPECTS = ("PERF", "IMPF", "IMPV")
 L_MIN = 6
 DENSITY = 0.75
 CONTENT_MIN = 3
+# short-verse-material D1 (decided by the user on 2026-10-07, frozen before the build):
+# a pair whose SHORTER verse has at most this many QAC words needs at least this many
+# `lemma` content edges in its matching.
+SHORT_MATERIAL_MAX_LEN = 5
+SHORT_MATERIAL_MIN_LEMMAS = 2
 
 # Rule names the builds' headers record (D8).
 SIGNATURE = "stem-coarse"
@@ -323,6 +331,20 @@ def shared_roots(edges: Iterable[Edge], roots_a: Sequence, roots_b: Sequence) ->
     """The roots displayed as shared: both ends' roots of every content edge, sorted."""
     return sorted({r for e in content_edges(edges)
                    for r in (roots_a[e.p - 1], roots_b[e.q - 1]) if r})
+
+
+def short_material_ok(edges: Iterable[Edge], na: int, nb: int) -> bool:
+    """short-verse-material D1: a short verse needs two shared lemmas.
+
+    `n = min(na, nb)` — the two verses' QAC word counts. When `n ≤
+    SHORT_MATERIAL_MAX_LEN` the pair is storable only when its matching (D2) holds at
+    least `SHORT_MATERIAL_MIN_LEMMAS` `lemma` edges; `root` edges (a shared root under
+    another lemma) and `tool` edges do not count. A longer pair is not subject to the
+    rule (True): the matched-mass rule alone governs it. Symmetric in (A, B).
+    """
+    if min(na, nb) > SHORT_MATERIAL_MAX_LEN:
+        return True
+    return sum(1 for e in edges if e.kind == LEMMA) >= SHORT_MATERIAL_MIN_LEMMAS
 
 
 # ═══════════════════════════════════════════════════════════════════════════

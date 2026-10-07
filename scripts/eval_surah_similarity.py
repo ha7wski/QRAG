@@ -12,7 +12,8 @@ target pre-registered in `openspec/changes/add-surah-similar-verses/tasks.md`
     identical, a neighbour verbatim identical to the other also counts;
   * the rank of each positive (best of the two directions);
   * the positives lost at each stage — unscored, syntax gate, candidate cap,
-    semantic gate, matched-mass rule (stage `no_shared_root`), top-K — read from the per-gold-pair
+    semantic gate, short-verse material rule (stage `short_material`,
+    short-verse-material D1), matched-mass rule (stage `no_shared_root`), top-K — read from the per-gold-pair
     diagnostics the builder writes;
   * the negatives of each kind stored as neighbours, and how many appear in
     a top-3 (either direction).
@@ -43,7 +44,7 @@ GOLD_JSON = ROOT / "tests" / "eval" / "surah_similarity_gold.json"
 # schema 2, order-invariant-closeness D3).
 SIGNALS = ("syn", "dense", "lex", "ce", "sem")
 STAGES = ("unscored", "consecutive", "syntax_gate", "candidate_cap", "semantic_gate",
-          "no_shared_root", "top_k", "stored")
+          "short_material", "no_shared_root", "top_k", "stored")
 
 # tasks.md §1.3, copied as numbers so a miss is printed as a miss.
 TARGET_RECALL = 0.75
