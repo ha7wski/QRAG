@@ -10,8 +10,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from api.models.lisan import LetterIdentity
-
 
 class RootLetter(BaseModel):
     """One letter group: its label and how many roots it holds (zero allowed)."""
@@ -47,7 +45,6 @@ class RootEntry(BaseModel):
     forms: list[str]                   # النظائر: distinct written forms, `root_forms` order
     reading: str | None = None
     reading_refusal: str | None = None
-    letters: list[LetterIdentity] = []  # the /lexical letter cards, gloss included
 
 
 class RootLetterResponse(BaseModel):
