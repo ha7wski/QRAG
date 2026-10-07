@@ -6,7 +6,8 @@ Two verses of **different** surahs SHALL be considered close only when they pass
 `surah-internal-similarity` capability, with the same frozen values: the semantic gate
 (`sem = (w_ce·ce + w_dense·dense) × (floor + (1 − floor)·lex) ≥ τ_sem`, dense ignored between verbatim
 verses, `lex` the order-invariant matching's IDF Jaccard) and the syntactic gate (`syn ≥ σ`, the
-order-robust unigram + bigram measure over the same QAC `(segs, stem)` signature). Grammatical tools
+Levenshtein similarity over the same coarse QAC signature, blocks re-orderable along the matching).
+Grammatical tools
 SHALL be excluded from the lexical signal exactly as there, and a pair SHALL be stored only when its
 matched content mass is positive.
 

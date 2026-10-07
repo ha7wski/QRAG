@@ -13,9 +13,9 @@ target pre-registered in `openspec/changes/add-quran-wide-similar-verses/tasks.m
     `N10(a)` holds any verse verbatim identical to `b`, or `N10(b)` one
     identical to `a`;
   * the rank of each positive (best of the two directions);
-  * the positives lost at each stage — length window, bag bound, bigram bound
-    (all three 0 by construction: a pair is reported there only if its full
-    `syn ≥ σ`, which is a bug), syntax gate, candidate cap, semantic gate,
+  * the positives lost at each stage — length window, bag bound (both 0 by
+    construction: a pair is reported there only if its full `syn ≥ σ`, which
+    is a bug), syntax gate, candidate cap, semantic gate,
     matched-mass rule (`no_shared_root`), top-K — read from the per-gold-pair
     diagnostics the builder writes, whose lexical signal is `lex` (schema 2,
     order-invariant-closeness D3; `cov` before);
@@ -44,10 +44,11 @@ sys.path.insert(0, str(ROOT))
 from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
-STAGES = ("unscored", "length_window", "bag_bound", "bigram_bound", "syntax_gate", "short_exact",
+STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "short_exact",
           "candidate_cap", "semantic_gate", "no_shared_root", "top_k", "relative_cut", "stored")
-# order-invariant-closeness D5: the core's three exact bounds of `syn`.
-PREFILTER_STAGES = ("length_window", "bag_bound", "bigram_bound")
+# order-invariant-closeness version 2 D5: the core's two exact bounds of `syn`
+# (length, coarse-element bag); version 1's bigram bound is gone.
+PREFILTER_STAGES = ("length_window", "bag_bound")
 # The per-pair signals each positive row reports (diagnostics schema 2).
 SIGNALS = ("syn", "dense", "lex", "ce", "sem")
 CANDIDATE_STAGES = ("syntax_gate", "candidate_cap")
@@ -241,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
         st = v2[kind]["stages"]
         print(f"   {kind}s by stage: " + (", ".join(f"{k_} {st[k_]}" for k_ in sorted(st)) or "none")
               + (f" — stored: {'; '.join(v2[kind]['refs'])}" if v2[kind]["refs"] else ""))
-    print(f"T5 positives lost at the pre-filters (length window + bag + bigram bounds): "
+    print(f"T5 positives lost at the pre-filters (length window + coarse-bag bound): "
           f"{report['prefilter_loss']} (target = 0) {mark(t['T5 prefilter_loss'])}")
     print("\nPositives (best rank either direction; stage where a miss was lost):")
     for row in report["positive_rows"]:

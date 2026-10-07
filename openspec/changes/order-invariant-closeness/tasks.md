@@ -57,11 +57,11 @@
 - [x] 10.2 `build_quran_similarity.py`: pre-filters = length + coarse bag (drop the bigram stage from stats/diagnostics/eval), syntax stage with the core's `syn`; header names; blind-sample digest in the header
 - [x] 10.3 `build_quran_passages.py`: largest accepted region from the core; header names
 - [x] 10.4 `build_quran_close_verses.py`: D2 tie-break through the core; blind-sample digest in the header
-- [ ] 10.5 Tests of the four builds and the eval scripts follow; `python -m pytest -q` green; frontend checks green
+- [x] 10.5 Tests of the four builds and the eval scripts follow; `python -m pytest -q` green; frontend checks green
 
 ## 11. Rebuild and measure, version 2 (backend stopped)
 
-- [ ] 11.1 Stop the backend; rebuild intra → cross → passages → close verses (`--fresh`); record build times and survivor / stored counts
-- [ ] 11.2 Run the four evals on the relabelled gold (in-sample) and `eval_closeness_blind.py`; record every figure under «Measured result (version 2)» with PASS / MISS against D9 — no parameter change after this point
-- [ ] 11.3 Restart; check in the app: sūra 2 annotations (2:3 bubble lists 14:31), the map, the «داخل السورة» groups
-- [ ] 11.4 Update CLAUDE.md's closeness paragraphs (coarse signature, block re-ordering, `lex`, largest accepted region, blind sample)
+- [x] 11.1 Stop the backend; rebuild intra → cross → passages → close verses (`--fresh`); record build times and survivor / stored counts
+- [x] 11.2 Run the four evals on the relabelled gold (in-sample) and `eval_closeness_blind.py`; record every figure under «Measured result (version 2)» with PASS / MISS against D9 — no parameter change after this point
+- [x] 11.3 Restart; check in the app: sūra 2 annotations (2:3 bubble lists 14:31), the map, the «داخل السورة» groups
+- [x] 11.4 Update CLAUDE.md's closeness paragraphs (coarse signature, block re-ordering, `lex`, largest accepted region, blind sample)

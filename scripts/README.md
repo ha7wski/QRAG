@@ -127,9 +127,13 @@ python scripts/eval_surah_similarity.py                   # measure it against t
 
 Writes `data/derived/surah_similarity.json`, the static lookup behind
 `GET /surah/{number}/similar`: for every verse, at most 10 verses of the SAME
-surah that pass both a syntactic gate (QAC word signatures) and a semantic gate
-(`bge-reranker-v2-m3` + the E5 vectors + tool-filtered root coverage), and the
-surah's groups of mutually close verses. Consecutive verses are never stored.
+surah that pass both a syntactic gate (coarse QAC word signatures — stem segments
+only, so a clitic, a pronoun suffix, a case or a mood is no difference — compared
+by Levenshtein with the blocks re-orderable along the pair's word matching) and a
+semantic gate (`bge-reranker-v2-m3` + the E5 vectors + `lex`, the IDF Jaccard of
+the order-invariant content-word matching), and the surah's groups of mutually
+close verses; the matching, `syn` and `lex` are imported from `closeness_core.py`.
+Consecutive verses are never stored.
 **Stop the backend first**: the build reads the verse vectors out of the
 embedded Qdrant, which holds an exclusive lock — the script checks that lock and
 refuses to start while it is held. It also loads the ~1.1 GB cross-encoder for
@@ -164,10 +168,15 @@ OTHER surahs that pass the same two gates as the intra-surah build, with the
 same frozen parameters — its helpers and constants are imported from
 `build_surah_similarity.py` and `closeness_core.py`, not copied. Only the
 population differs: the ~19 M cross-surah pairs, which the syntactic gate
-reaches through three exact pre-filters — the core's upper bounds of `syn`
-(length window, element bag, bigram bag) — before the same order-invariant
-`syn` (unigram + bigram multiset overlap), and a dense percentile ranked among
-the cross-surah pairs that pass the syntactic gate. **Stop the backend
+reaches through two exact pre-filters — the core's upper bounds of `syn`
+(length window, coarse-element bag; both exact under any re-ordering of
+blocks) — before the same order-robust `syn` (Levenshtein over the coarse
+signatures, blocks re-orderable along the pair's word matching, which the
+syntax workers compute for every pair past the bounds), and a dense percentile
+ranked among the cross-surah pairs that pass the syntactic gate. The header
+also records the sha256 of the bytes of `tests/eval/closeness_blind_v2.json`
+(`blind_sample_sha256`, null when absent), which the blind evaluation checks.
+**Stop the backend
 first**, as for the intra build (embedded Qdrant lock, ~1.1 GB cross-encoder);
 `--syntax-only` is the one mode that needs neither and can run beside the
 backend. `--dry-run` reads the vectors, so it needs the lock too, and stops
@@ -180,6 +189,31 @@ over the whole population, because the candidate cap is per verse. The final
 file is written once all 114 are done. Gold set:
 `tests/eval/quran_similarity_gold.json` (local-only); `--no-gold` and the
 evaluation's digest refusal work as for the intra build.
+
+### Build the shared passages and the close verses (the surah × surah map)
+
+```bash
+python scripts/build_quran_passages.py                    # model-free, seconds; the backend may stay up
+python scripts/eval_quran_passages.py                     # measure it against the gold set
+python scripts/build_quran_close_verses.py                # backend stopped (cross-encoder); after the two builds above
+python scripts/eval_quran_close_verses.py                 # measure it against both gold sets
+python scripts/eval_closeness_blind.py                    # the blind sample: the figure that counts
+```
+
+Build order: cross-surah similarity → passages → close verses. `build_quran_passages.py`
+writes `data/derived/quran_passages.json`: for two verses of different surahs, the
+largest ACCEPTED order-free region of their identical-word matching (≥ 6 words, ≥ 3/4 of
+each window, ≥ 3 of them content words, blocks in any order), through
+`closeness_core.passage_region` — nothing copied. `build_quran_close_verses.py` writes
+`data/derived/quran_close_verses.json`, the relation behind the surah × surah map: the
+UNION of the similarity pairs and the passages, each with `sim`, `pas`, `score` and its
+displayed common part (the content edges of the core's matching); it refuses a stale
+input and records `blind_sample_sha256` like the cross build. `eval_closeness_blind.py`
+reads `tests/eval/closeness_blind_v2.json` (local-only) and reports positives stored
+(either direction) / negatives stored against the pre-registered ≥ 0.65 / ≤ 0.25; it
+refuses when the sample's sha256 differs from either dataset header, or when the
+close-verses file was not composed from the similarity file on disk. Nothing is tuned
+from what it prints.
 
 ### Smoke-test hybrid search
 
@@ -291,6 +325,11 @@ automatically; for a production `npm run build`, set the variable before buildin
 | `scripts/eval_surah_similarity.py` | Report recall@10, per-stage losses and stored negatives of that build against the local gold set |
 | `scripts/build_quran_similarity.py` | Build `data/derived/quran_similarity.json` (cross-surah close verses). Backend stopped; `--syntax-only` needs neither Qdrant nor a model |
 | `scripts/eval_quran_similarity.py` | Report recall@10, per-stage losses (pre-filters included) and stored negatives of that build against the local gold set |
+| `scripts/build_quran_passages.py` | Build `data/derived/quran_passages.json` (cross-surah shared passages: the largest accepted order-free region of a pair's identical-word matching, from `closeness_core`). Model-free, seconds; the backend may stay up |
+| `scripts/eval_quran_passages.py` | Report recall and negatives found of that build against the local gold set; refuses a digest mismatch |
+| `scripts/build_quran_close_verses.py` | Build `data/derived/quran_close_verses.json` (the relation behind the surah × surah map: union of the cross-surah similarity pairs and the passages, with `score` and the displayed common part). Backend stopped; run AFTER the two builds above; records `blind_sample_sha256` |
+| `scripts/eval_quran_close_verses.py` | Report AUC(score) and the U2–U4 checks of that build over both gold sets; refuses on any input or gold digest change |
+| `scripts/eval_closeness_blind.py` | The figure that counts for version 2 of the closeness relation: positives / negatives STORED (either direction) on the blind sample, PASS / MISS against ≥ 0.65 / ≤ 0.25; refuses when the sample's sha256 differs from either dataset header |
 | `scripts/run.sh` | One-command launcher: Qdrant + Ollama + backend + frontend |
 
 ### Rebuilding the Maqāyīs reference

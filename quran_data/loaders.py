@@ -159,7 +159,9 @@ def alignment_overrides() -> dict:
 
 # 2 since order-invariant-closeness: neighbours carry `lex` (the order-invariant
 # content-word matching's IDF Jaccard) instead of `cov`, and `syn` is the
-# uni+bigram-bag measure; a schema-1 file is refused, not read as the new layout.
+# order-robust measure (version 2: coarse-element Levenshtein with blocks
+# re-orderable along the matching — the header's `signature_measure` names which);
+# a schema-1 file is refused, not read as the new layout.
 SURAH_SIMILARITY_SCHEMA = 2
 
 
@@ -192,8 +194,10 @@ def surah_similarity() -> dict:
 
 # 2 since order-invariant-closeness: neighbours carry `lex` (the order-invariant
 # content-word matching's IDF Jaccard) instead of `cov`, `roots` are the matched
-# content words' roots, and `syn` is the uni+bigram-bag measure; a schema-1 file
-# is refused, not read as the new layout.
+# content words' roots, and `syn` is the order-robust measure (version 2:
+# coarse-element Levenshtein with blocks re-orderable along the matching — the
+# header's `signature_measure` names which); a schema-1 file is refused, not read
+# as the new layout.
 QURAN_SIMILARITY_SCHEMA = 2
 
 
@@ -225,7 +229,9 @@ QURAN_PASSAGES_SCHEMA = 2
 @functools.lru_cache(maxsize=1)
 def quran_passages() -> dict:
     """The cross-surah shared passages (add-shared-passages design D5; schema 2,
-    order-invariant-closeness D6: the passage is an order-free dense region).
+    order-invariant-closeness D6: the passage is the largest ACCEPTED order-free
+    region of the pair's matching — the same schema as version 1's best-scoring
+    region, told apart by the header's `passage` name).
 
     `{"schema": 2, "build": {...}, "passages": [{"a": "<s:a>", "b": "<s:a>",
     "wa": [i1, i2], "wb": [j1, j2], "k": int, "roots": [str]}]}`, `a` in the

@@ -256,6 +256,50 @@ reasons; a substituted proper name counts as a slot fill, not as different mater
 4. Run the five evals; record every figure under «Measured result (version 2)», PASS / MISS.
 Rollback: revert the commit and rebuild the four datasets.
 
+## Measured result (version 2, rebuild 2026-10-07, all four datasets, `--fresh`)
+
+No parameter changed after the build. Builds: intra 72 s; cross 480 s — 18 978 384 pairs → 5 934 258 in
+the length window → 326 672 past the coarse-bag bound → 44 371 pass σ → **25 630** pass the short-pair
+rule (1 316 at baseline); passages 2 878 (2 191); close verses **4 148 pairs** (2 491) — similarity
+only 1 270, passage only 2 593, both 285; common part on 3 571.
+
+**Blind sample (the figure that counts, labelled before the build):**
+
+| Target | Measured | |
+|---|---|---|
+| positives stored ≥ 0.65 | 36/42 = **0.857** | PASS |
+| negatives stored ≤ 0.25 | 2/18 = **0.111** | PASS |
+
+**Relabelled gold (in-sample — version 2 was designed after reading version 1's failures on it):**
+
+| Eval | Target (D9) | Measured | |
+|---|---|---|---|
+| intra recall@10 | ≥ 0.75 | 49/50 = 0.980 | PASS |
+| intra candidate-generation losses | ≤ 15 % | 1/50 | PASS |
+| intra negatives in a top-3 / consecutive stored | ≤ 2 / 0 | 2 / 0 | PASS |
+| cross T1 | ≥ 0.65 | 52/53 = 0.981 | PASS |
+| cross T2 negatives in a top-3 | ≤ 4 | **9** (all `neg_same_syntax_diff_subject`) | **MISS** |
+| cross T3 second-sample negatives stored | ≤ 1 | **2/51** (88:23/92:16, 83:19/101:3) | **MISS** |
+| cross T4 second-sample positives stored | ≥ 80 % of 7 | 5/6 (the relabel left 6 positives) | **MISS** (by the formula) |
+| cross T5 pre-filter exactness | 0 | 0 | PASS |
+| passages recall | ≥ 0.8 | 40/40 | PASS |
+| passages negatives found | ≤ 10 % | **4/20** (14:32/45:12, 49:15/61:11, 21:33/36:40, 13:35/47:15) | **MISS** |
+| 28:20/36:20, 2:3/14:31 | found | found (k 7) / found (k 7) | PASS |
+| close verses U1 AUC(score) | ≥ 0.80 | **0.875** (91 × 19; baseline 0.726) | PASS |
+| close verses U2 / U4 | as specified | PASS / PASS | PASS |
+| close verses U3 26:203/37:54 | `pas` 0, last of its cell | `pas` 0, score 0.21, rank 16 of 33 | **MISS** |
+| syntax-gate losses | intra ≤ 6, cross ≤ 14 | 1 / 1 | PASS |
+
+**Reading.** Recall is solved (the blind sample, intra and cross all ≥ 0.86; the baseline's syntax-gate
+losses fall from 6 / 14 to 1 / 1; AUC 0.726 → 0.875) and the blind negatives stay low (2/18). The cost is
+PRECISION on one class: short verses that share ONE lemma inside the same mould (69:3/83:19
+«وَمَا أَدْرَاكَ مَا X», 43:74/54:47, 81:19/86:13) — the coarse element makes the mould pass σ and the
+single shared lemma passes the shared-root rule, so only the semantic gate stands between them and a
+list; nine reach a top-3. The passage misses are the definition's borderline: two are permutations
+the relabeller kept negative under the stricter «runs ≥ 2» reading (14:32/45:12, 49:15/61:11) which the
+definition's text accepts. The volume grew (4 148 pairs, 1 270 similarity-only against 300). Recorded;
+not tuned.
+
 ## Open Questions
 
 None.

@@ -706,26 +706,28 @@ MANIFEST: dict[str, Entry] = {
         what="Intra-surah verse similarity, schema 2 (~3 MB): per surah its "
              "`unscored` ayahs, its `groups` of mutually close verses and, per "
              "ayah, at most K=10 neighbours of the SAME surah that pass both the "
-             "syntactic gate (QAC word signatures compared order-robustly — "
-             "`syn = ½·uni + ½·bi`, multiset overlap of the elements and of "
-             "their consecutive pairs — `syn ≥ σ`) and the semantic gate "
-             "(cross-encoder + E5 cosine + `lex`, the IDF Jaccard of the "
-             "order-invariant content-word matching, `sem ≥ τ_sem`), each with "
-             "its signals (`lex`, formerly `cov`) and the roots of its matched "
-             "content words; a pair is stored only when that matching carries "
-             "a positive mass. Consecutive ayahs are never stored. The `build` "
-             "header records the models, K, M, weights, thresholds, the "
-             "signature, its measure (`uni+bigram-bag`), the lexical signal "
-             "(`matching-idf-jaccard`) and the gold-set sha256.",
+             "syntactic gate (COARSE QAC word signatures — stem segments only: "
+             "verb aspect + voice, noun subcategory, particle tag; no clitic, "
+             "suffix, case or mood — compared by Levenshtein with the blocks "
+             "re-orderable along the pair's word matching, `syn ≥ σ`) and the "
+             "semantic gate (cross-encoder + E5 cosine + `lex`, the IDF Jaccard "
+             "of the order-invariant content-word matching, `sem ≥ τ_sem`), each "
+             "with its signals (`lex`, formerly `cov`) and the roots of its "
+             "matched content words; a pair is stored only when that matching "
+             "carries a positive mass. Consecutive ayahs are never stored. The "
+             "`build` header records the models, K, M, weights, thresholds, the "
+             "signature (`stem-coarse`), its measure (`levenshtein+block-reorder`), "
+             "the lexical signal (`matching-idf-jaccard`), the matching's "
+             "tie-break (`median-shift`) and the gold-set sha256.",
         origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
                "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
-               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature: segment "
-               "POS tags + stem features, no treebank role), WORD_FUNCTION_JSON "
-               "(tool filter) and "
-               "BAAI/bge-reranker-v2-m3, with the matching, `syn` and `lex` "
-               "imported from scripts/closeness_core.py and the per-word tokens "
-               "from scripts/build_quran_passages.py. Needs the backend STOPPED: "
-               "embedded Qdrant takes an exclusive lock.",
+               "roots, IDF), QAC_MORPHOLOGY_TXT (coarse syntactic signature from "
+               "the stem segments, no treebank role; word tokens), "
+               "WORD_FUNCTION_JSON (tool filter) and "
+               "BAAI/bge-reranker-v2-m3, with the coarse element, the matching, "
+               "`syn` and `lex` imported from scripts/closeness_core.py and the "
+               "per-word tokens from scripts/build_quran_passages.py. Needs the "
+               "backend STOPPED: embedded Qdrant takes an exclusive lock.",
         producer="scripts/build_surah_similarity.py",
         consumers=("retrieval/surah_similarity.py", "api/routers/surah_similarity.py",
                    "scripts/eval_surah_similarity.py"),
@@ -753,30 +755,36 @@ MANIFEST: dict[str, Entry] = {
         what="Cross-surah verse similarity, schema 2 (est. <= 3 MB): the "
              "`unscored` verse refs and, per verse ref (`s:a`), at most K=10 "
              "neighbours from OTHER surahs that pass the same syntactic gate "
-             "(order-robust `syn = ½·uni + ½·bi` over the QAC signature, "
-             "`syn >= sigma`; a longer signature of <= 3 elements needs syn = 1), "
+             "(Levenshtein over the coarse QAC signature with the blocks "
+             "re-orderable along the pair's word matching, `syn >= sigma`; a "
+             "longer signature of <= 3 elements needs syn = 1), "
              "semantic gate (`sem >= tau_sem`, dense percentile-ranked among the "
              "syntax survivors, `lex` the IDF Jaccard of the order-invariant "
              "content-word matching) and matched-mass rule (`Mw > 0`) as the "
              "intra-surah build, each with its signals (`lex`, formerly `cov`) "
              "and the roots of its matched content words; each list keeps a "
              "neighbour only at >= rho x its best score. The syntactic gate runs "
-             "behind three EXACT pre-filters, closeness_core's upper bounds of "
-             "`syn` (length, element bag, bigram bag). Only verses with at least "
-             "one neighbour carry a list. The `build` header records scope, "
-             "models, K, M, weights, thresholds, the signature, its measure "
-             "(`uni+bigram-bag`), the lexical signal (`matching-idf-jaccard`) "
-             "and the gold-set sha256.",
+             "behind two EXACT pre-filters, closeness_core's upper bounds of "
+             "`syn` (length, coarse-element bag — both exact under any "
+             "re-ordering). Only verses with at least one neighbour carry a "
+             "list. The `build` header records scope, models, K, M, weights, "
+             "thresholds, the signature (`stem-coarse`), its measure "
+             "(`levenshtein+block-reorder`), the lexical signal "
+             "(`matching-idf-jaccard`), the tie-break (`median-shift`), the "
+             "gold-set sha256 and, under `blind_sample_sha256`, the sha256 of "
+             "the bytes of tests/eval/closeness_blind_v2.json (null when absent).",
         origin="Built from VERSES_FINAL_JSON (Arabic text), the Qdrant collection "
                "(E5 verse vectors), MORPHOLOGY_JSON + ROOTS_RESOLVED_JSON (content "
-               "roots, IDF), QAC_MORPHOLOGY_TXT (syntactic signature, word "
+               "roots, IDF), QAC_MORPHOLOGY_TXT (coarse syntactic signature, word "
                "tokens), WORD_FUNCTION_JSON (tool filter) and "
                "BAAI/bge-reranker-v2-m3, with the parameters and pure helpers "
                "imported from scripts/build_surah_similarity.py, which takes the "
-               "measure, the matching and the bounds from scripts/closeness_core.py. "
-               "Needs the backend STOPPED: embedded Qdrant takes an exclusive lock.",
+               "element, the measure, the matching and the bounds from "
+               "scripts/closeness_core.py. Needs the backend STOPPED: embedded "
+               "Qdrant takes an exclusive lock.",
         producer="scripts/build_quran_similarity.py",
-        consumers=("scripts/build_quran_close_verses.py", "scripts/eval_quran_similarity.py"),
+        consumers=("scripts/build_quran_close_verses.py", "scripts/eval_quran_similarity.py",
+                   "scripts/eval_closeness_blind.py"),
         regenerable=True,
         rebuild="python scripts/build_quran_similarity.py  (backend stopped; add "
                 "--no-gold on a clone without the local-only tests/eval/ gold set)",
@@ -802,14 +810,19 @@ MANIFEST: dict[str, Entry] = {
         what="Cross-surah shared passages, schema 2: one entry per pair of "
              "verses of DIFFERENT surahs whose order-invariant matching (one "
              "token per QAC word, the stem segment's lemma, else the bare "
-             "surface; content words by lemma, other words by identical token) "
-             "holds a dense region -- a window pair, in any order, with k >= 6 "
-             "identical-token pairs, k >= 0.75 x the longer window and >= 3 of "
-             "them joining content words (order-invariant-closeness D6; "
-             "Smith-Waterman retired). Each entry holds both refs (lower surah "
-             "first), both 1-based region windows, k and the matched content "
-             "roots. The `build` header records the token, content-word, "
-             "matching and region rules, the thresholds and the gold-set sha256.",
+             "surface; content words by lemma, other words by identical token, "
+             "a repeated token paired at the median shift of the uniquely "
+             "matched words) holds an ACCEPTED region -- a window pair bounded "
+             "by matched words, in any order, with k >= 6 identical-token "
+             "pairs, k >= 0.75 x the longer window and >= 3 of them joining "
+             "content words -- the largest accepted one being stored "
+             "(order-invariant-closeness D6, version 2; version 1's best-scoring "
+             "region and Smith-Waterman retired). Each entry holds both refs "
+             "(lower surah first), both 1-based region windows, k and the "
+             "matched content roots. The `build` header records the token, "
+             "content-word, matching and region rules, the names `tie_break` "
+             "(`median-shift`) and `passage` (`largest-accepted-region`), the "
+             "thresholds and the gold-set sha256.",
         origin="Built from QAC_MORPHOLOGY_TXT (lemmas, stems, ROOT features), "
                "ROOTS_RESOLVED_JSON (canonical roots), MORPHOLOGY_JSON and "
                "WORD_FUNCTION_JSON (the content-word definition, shared with the "
@@ -836,20 +849,27 @@ MANIFEST: dict[str, Entry] = {
              "verse's content roots, not a tool occurrence) (m = "
              "[[p, q, lemma|root]]) and, per verse, a list of half-open character "
              "spans (one per run of coloured words) in its displayed "
-             "text_ar_tashkil (Basmala stripped). The header records the rules, "
-             "the sha256 of both input files and of both gold sets.",
+             "text_ar_tashkil (Basmala stripped). The header records the rules "
+             "under the core's names (signature `stem-coarse`, its measure "
+             "`levenshtein+block-reorder`, the lexical signal "
+             "`matching-idf-jaccard`, `tie_break` `median-shift`, `passage` "
+             "`largest-accepted-region`), the sha256 of both input files, of "
+             "both gold sets and, under `blind_sample_sha256`, of the BYTES of "
+             "tests/eval/closeness_blind_v2.json (never read; null when absent) "
+             "-- what scripts/eval_closeness_blind.py refuses to measure without.",
         origin="Composed from QURAN_SIMILARITY_JSON and QURAN_PASSAGES_JSON, with "
                "the verse vectors (embedded Qdrant), the cross-encoder, the QAC "
                "morphology, WORD_FUNCTION_JSON (tool occurrences are not content "
                "words) and WORD_INDEX_JSON for the spans; a passage-only pair's "
-               "sim goes through the order-robust syn and the matching's lex. "
-               "Build order: "
+               "sim goes through the core's syn (Levenshtein over the coarse "
+               "signatures, blocks re-ordered along the pair's matching) and "
+               "that matching's lex. Build order: "
                "build_quran_similarity.py -> build_quran_passages.py -> "
                "build_quran_close_verses.py. Needs the backend STOPPED: embedded "
                "Qdrant takes an exclusive lock.",
         producer="scripts/build_quran_close_verses.py",
         consumers=("retrieval/quran_close_verses.py", "api/routers/quran_similarity.py",
-                   "scripts/eval_quran_close_verses.py"),
+                   "scripts/eval_quran_close_verses.py", "scripts/eval_closeness_blind.py"),
         regenerable=True,
         rebuild="python scripts/build_quran_close_verses.py  (backend stopped; add "
                 "--no-gold on a clone without the local-only tests/eval/ gold sets)",

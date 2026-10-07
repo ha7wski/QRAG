@@ -3,8 +3,11 @@
 eval_quran_passages.py — measure the shared-passage build against its gold set.
 
 Reads `data/derived/quran_passages.json` (through its loader) and the gold set
-`tests/eval/quran_passages_gold.json` (local-only), and reports, against the targets
-pre-registered in `openspec/changes/add-shared-passages/design.md` D8 and
+`tests/eval/quran_passages_gold.json` (local-only; relabelled under
+`order-invariant-closeness` D10, which read it first — so this figure is IN-SAMPLE for
+version 2, and the figure that counts is `scripts/eval_closeness_blind.py`'s), and
+reports, against the targets pre-registered in
+`openspec/changes/add-shared-passages/design.md` D8 and
 `openspec/changes/order-invariant-closeness/design.md` D9:
 
   * recall of the positives — a positive `(a, b)` is found iff the dataset holds a

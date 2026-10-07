@@ -98,7 +98,8 @@ count for a verse when every occurrence of it in that verse is a grammatical too
 `word_function.json` (أداة نداء / استفهام / شرط) or a word of the existing function-word stoplist
 (`retrieval/similar_verses.py`) — and its own occurrence is not a grammatical tool. The two verses'
 content words SHALL be joined by a maximum-weight one-to-one matching (same lemma token: 1; different
-token, same primary root: 0.5; among equal partners the nearest relative position), and `lex` SHALL be
+token, same primary root: 0.5; among equal partners the one at the offset of the shared material — the
+median shift of the uniquely matched words), and `lex` SHALL be
 the IDF-weighted Jaccard of that matching: matched weight × root IDF, divided by the IDF mass of both
 verses' content words minus that matched mass. A root nobody holds as primary carries no weight. The
 roots displayed as shared SHALL be the roots of the matched content words. A pair SHALL be stored

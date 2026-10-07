@@ -14,9 +14,13 @@ are applied here with no further choice:
     pass both rank by `score = sem × syn`. Between two VERBATIM-identical verses
     (equal `qac.ayah_words()` tuples) dense is ignored — `sem = ce × (…)` — and
     the candidate cap ranks them on `lex` alone (amendment of 2026-10-02).
-  * D3 — the syntactic signature: one `(segs, stem)` element per QAC word. The
-    treebank role was removed from the element before the first build
-    (design.md, amendment of 2026-10-02); `qac_syntax.json` is not read.
+  * D3 — the syntactic signature: one element per QAC word, since
+    order-invariant-closeness version 2 the COARSE element of the core (its
+    D4): the stem segments' labels only — `V.<aspect>[.PASS]`, `N:<subcat>` |
+    `N`, `P:<tag>` — so a pronoun suffix, a clitic, a case ending or a mood
+    never changes it. The treebank role was removed from the element before
+    the first build (design.md, amendment of 2026-10-02); `qac_syntax.json` is
+    not read.
   * D4 — tool words out of the root signal (`word_function.json` + the
     `SimilarVerses` stoplist).
   * D5 — `|Δayah| = 1` pairs are dropped before scoring.
@@ -25,18 +29,27 @@ are applied here with no further choice:
   * D8 — groups are the components of the mutual-neighbour graph above τ.
   * D10 — the file layout (schema 2 since order-invariant-closeness).
 
-`openspec/changes/order-invariant-closeness` (D3, D4, D8) replaced the two
-order-dependent measures, and both now come from `scripts/closeness_core.py`,
-imported, never copied:
+`openspec/changes/order-invariant-closeness` (version 2: D2, D4, D5, D8)
+replaced the two order-dependent measures, and both now come from
+`scripts/closeness_core.py`, imported, never copied:
 
-  * `syn` — `½·uni + ½·bi`, the multiset overlap of the signature elements and
-    of their consecutive pairs (was `1 − Levenshtein / longer`): a displaced
-    block costs only its junctions.
+  * `syn` — the Levenshtein similarity over the coarse signatures taken as the
+    best of three alignments: as written, and each verse against the other
+    with its blocks re-ordered along the pair's D2 matching (`block_reorder`),
+    so a pure permutation of blocks scores 1 and a substitution costs `1/n`.
+    The matching is therefore an INPUT of the syntactic gate: the syntax stage
+    computes it (`syntax_similarity`) for every pair it scores, and the lexical
+    signal reuses those edges. Candidate generation is unchanged (every
+    non-consecutive pair of scored verses is examined); the core's EXACT
+    bounds of `syn` (D5: length, coarse-element bag) only let the stage skip
+    the matching of a pair that provably scores below σ — the survivors, their
+    `syn` and their edges are what a full scoring gives, pinned by a test.
   * `lex` — the word-level IDF Jaccard of the order-invariant content-word
-    matching (was `cov`, the IDF Jaccard of the two content-root SETS). A pair
-    is stored only when its matched mass is positive (was «shares a content
-    root»); the shared roots shown are the roots of the matched content words.
-    The stored field is `lex`.
+    matching (was `cov`, the IDF Jaccard of the two content-root SETS), ties
+    broken by the median shift of the anchors (version 2 D2). A pair is stored
+    only when its matched mass is positive (was «shares a content root»); the
+    shared roots shown are the roots of the matched content words. The stored
+    field is `lex`.
 
 The parameters below are the FROZEN values of design.md «Frozen parameters»,
 fixed against the gold set before any pair was scored. Changing one is a
@@ -62,7 +75,7 @@ import os
 import re
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable, Iterator, NamedTuple, Sequence
 
@@ -106,13 +119,14 @@ REBUILD = "python scripts/build_surah_similarity.py"
 # one file whose header claims a single one.
 CHECKPOINT_INPUTS = ("MORPHOLOGY_JSON", "ROOTS_RESOLVED_JSON", "WORD_FUNCTION_JSON",
                      "QAC_MORPHOLOGY_TXT", "VERSES_FINAL_JSON")
-# Which D3 element the signature uses, recorded in the header (and so in the
+# Which element the signature uses, recorded in the header (and so in the
 # checkpoint digest): a checkpoint computed under another element is stale.
-SIGNATURE = "segs+stem"
-# order-invariant-closeness D8: the measure over that signature, and the lexical
-# signal, named in the header (and so in the checkpoint digest).
+# order-invariant-closeness D8: the element, the measure over it, the lexical
+# signal and the matching's tie-break are the core's names.
+SIGNATURE = cc.SIGNATURE
 SIGNATURE_MEASURE = cc.SIGNATURE_MEASURE
 LEXICAL = cc.LEXICAL
+TIE_BREAK = cc.TIE_BREAK
 # The source files a checkpoint was computed BY: this builder, the core it
 # imports the definitions from, and the passage build whose `word_of` gives the
 # lexical tokens. Imported code changes a checkpoint as surely as this file does.
@@ -124,75 +138,29 @@ CHECKPOINT_SOURCES = (Path(__file__).resolve(), ROOT / "scripts" / "closeness_co
 # Arabic texts is translation variance, not the verses. Recorded in the header.
 DENSE_ON_VERBATIM = "ignored"
 
-# D3 step 2: the N-tag tokens that ARE a part of speech. Derivation and
-# inflection tokens (ACT_PCPL, PASS_PCPL, VN, INDEF, P) are deliberately absent.
-N_POS = ("PN", "ADJ", "PRON", "DEM", "REL", "T", "LOC", "NV", "INTG", "COND", "ADDR")
-_N_POS_SET = frozenset(N_POS)
-_ASPECTS = ("PERF", "IMPF", "IMPV")
-_CASES = ("NOM", "ACC", "GEN")
+# The noun subcategories that ARE a part of speech in the coarse element: the
+# core's list (version 2 D4 is the core's definition), named here for readers.
+N_POS = cc.N_POS
 
-Element = tuple  # (segs: tuple[str, ...], stem: tuple[str, ...])
+Signature = tuple  # one coarse element (a tuple of stem labels) per QAC word
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Pure functions — importable by tests, no disk, no model
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _features(raw: str) -> list[str]:
-    return [t for t in raw.split("|") if t]
-
-
-def segment_label(tag: str, feats: Sequence[str]) -> str:
-    """D3 step 2: one `segs` label for one segment."""
-    if tag == "P":
-        first = feats[0] if feats else ""
-        if not first or first.startswith(("ROOT:", "LEM:")):
-            raise ValueError(f"P segment does not open with its particle tag: {feats!r}")
-        return "P:" + first
-    if tag == "N":
-        for t in feats:
-            if t in _N_POS_SET:
-                return "N:" + t
-        return "N"
-    if tag == "V":
-        return "V"
-    raise ValueError(f"unknown QAC tag {tag!r}")
-
-
-def stem_feature(tag: str, feats: Sequence[str]) -> str:
-    """D3 step 3: the stem string of one STEM segment (no PREF, no SUFF)."""
-    if tag == "V":
-        aspect = next((t for t in feats if t in _ASPECTS), "")
-        mood = next((t[5:] for t in feats if t.startswith("MOOD:")), "")
-        return f"{aspect}.{mood}" if mood else aspect
-    if tag == "N":
-        return next((t for t in feats if t in _CASES), "")
-    return ""
-
-
-def word_element(segments: Sequence[tuple[str, str]]) -> Element:
-    """One word's element from its `(tag, features)` segments in file order."""
-    segs: list[str] = []
-    stem: list[str] = []
-    for tag, raw in segments:
-        feats = _features(raw)
-        segs.append(segment_label(tag, feats))
-        if "PREF" not in feats and "SUFF" not in feats:
-            stem.append(stem_feature(tag, feats))
-    return (tuple(segs), tuple(stem))
-
-
-def build_signatures(records: Iterable) -> dict[tuple[int, int], tuple[Element, ...]]:
-    """D3: `{(surah, ayah): (element, …)}` over every word QAC records.
+def build_signatures(records: Iterable) -> dict[tuple[int, int], Signature]:
+    """D3 / version 2 D4: `{(surah, ayah): (coarse element, …)}` over every word QAC
+    records, through `closeness_core.coarse_signature`.
 
     `records` yields `quran_data.qac.Record`s (file order).
     """
     words: dict[tuple[int, int], dict[int, list[tuple[str, str]]]] = defaultdict(dict)
     for rec in records:
         words[(rec.surah, rec.ayah)].setdefault(rec.word, []).append((rec.tag, rec.features))
-    out: dict[tuple[int, int], tuple[Element, ...]] = {}
+    out: dict[tuple[int, int], Signature] = {}
     for (s, a), by_word in words.items():
-        out[(s, a)] = tuple(word_element(by_word[w]) for w in sorted(by_word))
+        out[(s, a)] = cc.coarse_signature(by_word[w] for w in sorted(by_word))
     return out
 
 
@@ -214,14 +182,58 @@ class Lexical(NamedTuple):
     roots: list
 
 
-def lexical(va: VerseWords, vb: VerseWords, idf: dict[str, float]) -> Lexical:
-    """order-invariant-closeness D3, through the core: the order-invariant matching
-    of the two verses (D2), its word-level IDF Jaccard `lex`, its matched mass, and
-    the roots of its content edges. Symmetric in (A, B)."""
-    edges = cc.match_all(va.tokens, vb.tokens, va.roots, vb.roots, va.content, vb.content)
+def pair_edges(va: VerseWords, vb: VerseWords) -> list:
+    """order-invariant-closeness D2, through the core: the order-invariant matching of
+    ALL words of the two verses (`lemma` / `root` / `tool` edges, median-shift
+    tie-break). The one input both gates read: `syn` re-orders blocks along it,
+    `lex` sums its content edges."""
+    return cc.match_all(va.tokens, vb.tokens, va.roots, vb.roots, va.content, vb.content)
+
+
+def lexical(va: VerseWords, vb: VerseWords, idf: dict[str, float],
+            edges: Sequence | None = None) -> Lexical:
+    """order-invariant-closeness D3, through the core: the word-level IDF Jaccard
+    `lex` of the two verses' matching (`pair_edges`, or the `edges` already computed
+    for the pair), its matched mass, and the roots of its content edges. Symmetric
+    in (A, B)."""
+    edges = pair_edges(va, vb) if edges is None else edges
     return Lexical(cc.lex(edges, va.roots, vb.roots, va.content, vb.content, idf),
                    cc.matched_mass(edges, va.roots, vb.roots, idf),
                    cc.shared_roots(edges, va.roots, vb.roots))
+
+
+class Syntax(NamedTuple):
+    """A pair's `syn` and the D2 edges it was re-ordered along (which `lexical` reuses)."""
+
+    syn: float
+    edges: list
+
+
+def syntax_similarity(sig_a: Signature, sig_b: Signature, va: VerseWords,
+                      vb: VerseWords) -> Syntax:
+    """Version 2 D4, through the core: the pair's matching (D2) and `syn` over the two
+    coarse signatures with the blocks re-orderable along it."""
+    edges = pair_edges(va, vb)
+    return Syntax(syn(sig_a, sig_b, edges), edges)
+
+
+def prefilter_stage(a: Signature, b: Signature, bag_a: Counter | None = None,
+                    bag_b: Counter | None = None) -> str | None:
+    """Version 2 D5: the exact bound that proves `syn(a, b) < σ` whatever the
+    re-ordering — `length_window` (`m / M`), `bag_bound` (`|bagA ∩ bagB| / M` over
+    the coarse elements) — or None when the pair must be scored in full.
+
+    The scalar reference of the cross build's vectorised pre-filters, and the
+    shortcut of the intra stage. `bag_a` / `bag_b` are the signatures' Counters
+    when the caller holds them already.
+    """
+    if not passes_syntax(cc.syn_length_bound(len(a), len(b))):
+        return "length_window"
+    bag_a = Counter(a) if bag_a is None else bag_a
+    bag_b = Counter(b) if bag_b is None else bag_b
+    if not passes_syntax(cc.syn_bag_bound(bag_a, bag_b)):
+        return "bag_bound"
+    return None
 
 
 def sem_score(ce: float, dense: float | None, lex: float) -> float:
@@ -499,7 +511,7 @@ def load_content_roots() -> tuple[dict[tuple[int, int], frozenset], dict[str, fl
     return sets, root_idf(index, sv.N)
 
 
-def load_signatures() -> dict[tuple[int, int], tuple[Element, ...]]:
+def load_signatures() -> dict[tuple[int, int], Signature]:
     return build_signatures(_qac_records())
 
 
@@ -624,6 +636,7 @@ def header(gold_sha: str | None) -> dict:
         "signature": SIGNATURE,
         "signature_measure": SIGNATURE_MEASURE,
         "lexical": LEXICAL,
+        "tie_break": TIE_BREAK,
         "dense_on_verbatim": DENSE_ON_VERBATIM,
         "require_shared_root": REQUIRE_SHARED_ROOT,
         "gold_sha256": gold_sha,
@@ -632,6 +645,47 @@ def header(gold_sha: str | None) -> dict:
 
 def params_digest(head: dict) -> str:
     return hashlib.sha256(json.dumps(head, sort_keys=True).encode()).hexdigest()
+
+
+# A built header may differ from what this code writes on these keys without being
+# another build's file: the digests name the gold / blind files' bytes AT BUILD TIME
+# (the tests check them against the files as they are now), and the embedder is
+# read from the environment.
+RUNTIME_HEADER_KEYS = frozenset({"gold_sha256", "blind_sample_sha256", "embedder"})
+
+
+def header_drift(built: dict, code: dict) -> list[str]:
+    """The keys of `code` — a header as this code writes it — on which `built`, a
+    file's header, differs, `RUNTIME_HEADER_KEYS` aside: empty exactly when the file
+    was built under this code's parameters AND definitions. A key the file lacks is
+    drift (version 1's header names no `tie_break`); listed in `code`'s key order.
+
+    The loaders refuse a file by its SCHEMA only, and version 2 kept version 1's
+    schema (order-invariant-closeness D8): a file built under the other definition
+    is served exactly like this build's, so this comparison is the one place the
+    drift can show. Pure. The test suite reads it in two halves — see
+    `definition_drift`. The cross build's header is checked through it too.
+    """
+    return [k for k in code if k not in RUNTIME_HEADER_KEYS and built.get(k) != code[k]]
+
+
+# The keys that NAME the definition a file was computed under (D8: `signature`,
+# `signature_measure`, `lexical`, `tie_break`, `passage`, «as applicable»). Version 2
+# kept version 1's schema, so these names are the version marker a schema bump would
+# have been: a file whose names differ is ANOTHER VERSION's file, which the dataset
+# tests skip over exactly as they skip a file at another schema — naming the rebuild,
+# so a definition can be developed with a green suite before its rebuild — while a
+# file naming THIS definition with another frozen value FAILS them (a frozen value is
+# never changed, D9).
+DEFINITION_HEADER_KEYS = frozenset({"signature", "signature_measure", "lexical", "tie_break",
+                                    "passage"})
+
+
+def definition_drift(built: dict, code: dict) -> list[str]:
+    """The `DEFINITION_HEADER_KEYS` of `header_drift(built, code)`, in its order:
+    non-empty exactly when the file is another version's — built under other
+    definition names, or before one of them existed. Pure."""
+    return [k for k in header_drift(built, code) if k in DEFINITION_HEADER_KEYS]
 
 
 def inputs_digest(vectors: dict) -> str:
@@ -660,16 +714,28 @@ def inputs_digest(vectors: dict) -> str:
     return h.hexdigest()
 
 
-def syntax_survivors(surah: int, ayahs: list[int], scored: set[int],
-                     sigs: dict) -> tuple[dict[tuple[int, int], float], int]:
-    """D6 steps 1-2: `{(a, b): syn}` passing the gate, and the pairs examined."""
-    out: dict[tuple[int, int], float] = {}
+def syntax_survivors(surah: int, ayahs: list[int], scored: set[int], sigs: dict,
+                     words: dict) -> tuple[dict[tuple[int, int], Syntax], int]:
+    """D6 steps 1-2: `{(a, b): Syntax}` passing the gate, and the pairs examined.
+
+    Every non-consecutive pair of scored verses is examined (candidate generation
+    is unchanged). The version 2 `syn` needs the pair's D2 matching, computed
+    here from `words` (`VerseWords` per verse) — except for a pair the core's
+    exact bounds (D5, `prefilter_stage`) prove below σ under ANY re-ordering,
+    whose matching is skipped: the result is the one a full scoring gives.
+    """
+    out: dict[tuple[int, int], Syntax] = {}
     examined = 0
-    for a, b in candidate_pairs([x for x in ayahs if x in scored]):
+    mine = [x for x in ayahs if x in scored]
+    bags = {a: Counter(sigs[(surah, a)]) for a in mine}
+    for a, b in candidate_pairs(mine):
         examined += 1
-        s = syn(sigs[(surah, a)], sigs[(surah, b)])
-        if passes_syntax(s):
-            out[(a, b)] = s
+        sig_a, sig_b = sigs[(surah, a)], sigs[(surah, b)]
+        if prefilter_stage(sig_a, sig_b, bags[a], bags[b]) is not None:
+            continue
+        got = syntax_similarity(sig_a, sig_b, words[(surah, a)], words[(surah, b)])
+        if passes_syntax(got.syn):
+            out[(a, b)] = got
     return out, examined
 
 
@@ -680,7 +746,7 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
     sigs, roots, idf, lw = ctx["signatures"], ctx["roots"], ctx["idf"], ctx["lexical"]
     unscored = [a for a in ayahs if not roots.get((surah, a))]
     scored_set = {a for a in ayahs if roots.get((surah, a))}
-    survivors, examined = syntax_survivors(surah, ayahs, scored_set, sigs)
+    survivors, examined = syntax_survivors(surah, ayahs, scored_set, sigs, lw)
 
     # dense: cosine, rank-normalised over ALL non-consecutive scored pairs of the surah
     vecs = ctx["vectors"]
@@ -693,7 +759,9 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
     words = ctx["words"]
     verbatim = {p for p in population if words[(surah, p[0])] == words[(surah, p[1])]}
     eff_dense = {p: None if p in verbatim else dense_of[p] for p in population}
-    lex_of = {p: lexical(lw[(surah, p[0])], lw[(surah, p[1])], idf) for p in survivors}
+    # the lexical signal over the matching the syntax stage already computed
+    lex_of = {p: lexical(lw[(surah, p[0])], lw[(surah, p[1])], idf, sy.edges)
+              for p, sy in survivors.items()}
     signals = {p: (eff_dense[p], lex_of[p].lex) for p in survivors}
     kept = set(signals) if len(ayahs) <= 2 * M + 1 else cap_pairs(signals, M)
 
@@ -717,7 +785,7 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
             continue
         if REQUIRE_SHARED_ROOT and not lex_of[p].mass > 0:
             continue
-        sy = survivors[p]
+        sy = survivors[p].syn
         # `dense` stays the measured value; `verbatim` says it did not enter `sem`
         stored_pairs[p] = {"s": rnd(sem * sy), "sem": rnd(sem), "syn": rnd(sy), "ce": rnd(ce_of[p]),
                            "dense": rnd(dense_of[p]), "lex": rnd(lex), "roots": lex_of[p].roots}
@@ -738,8 +806,11 @@ def build_surah(surah: int, ayahs: list[int], ctx: dict, gold: list[dict]) -> di
         elif p[1] - p[0] == 1:
             row["stage"] = "consecutive"
         else:
-            sy = syn(sigs[(surah, p[0])], sigs[(surah, p[1])])
-            lx = lex_of.get(p) or lexical(lw[(surah, p[0])], lw[(surah, p[1])], idf)
+            # scored in full, whatever the bounds said: a gold row reports the value
+            syx = syntax_similarity(sigs[(surah, p[0])], sigs[(surah, p[1])],
+                                    lw[(surah, p[0])], lw[(surah, p[1])])
+            sy = syx.syn
+            lx = lex_of.get(p) or lexical(lw[(surah, p[0])], lw[(surah, p[1])], idf, syx.edges)
             dense, ce = dense_of[p], ce_of.get(p)
             sem = sem_score(ce, eff_dense[p], lx.lex) if ce is not None else None
             row.update({"syn": rnd(sy), "dense": rnd(dense), "lex": rnd(lx.lex),
@@ -794,13 +865,14 @@ def dry_run(only: list[int] | None) -> None:
     t0 = time.time()
     sigs = load_signatures()
     roots, _ = load_content_roots()
+    words = load_verse_words(roots)
     ayahs_by_surah = surah_ayahs()
     total_ex = total_sv = total_unscored = 0
     for s, ayahs in ayahs_by_surah.items():
         if only and s not in only:
             continue
         scored = {a for a in ayahs if roots.get((s, a))}
-        survivors, examined = syntax_survivors(s, ayahs, scored, sigs)
+        survivors, examined = syntax_survivors(s, ayahs, scored, sigs, words)
         unscored = len(ayahs) - len(scored)
         total_ex += examined
         total_sv += len(survivors)
@@ -814,7 +886,8 @@ def dry_run(only: list[int] | None) -> None:
         for g in json.loads(GOLD_JSON.read_text(encoding="utf-8"))["pairs"]:
             if only and g["surah"] not in only:
                 continue
-            sy = syn(sigs[(g["surah"], g["a"])], sigs[(g["surah"], g["b"])])
+            sy = syntax_similarity(sigs[(g["surah"], g["a"])], sigs[(g["surah"], g["b"])],
+                                   words[(g["surah"], g["a"])], words[(g["surah"], g["b"])]).syn
             by_label[g["label"]][0] += passes_syntax(sy)
             by_label[g["label"]][1] += 1
         print("Gold pairs passing the syntax gate: " + ", ".join(

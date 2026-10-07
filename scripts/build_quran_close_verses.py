@@ -20,13 +20,15 @@ record there, never tuning knobs:
   * D2 — `sim = sem × syn`. For a pair of S: its stored `s`, READ (the higher of
     the two sides should they ever disagree). For a pair of W \\ S: computed by
     the imported definition with NO gate — `sem_score` (the similarity build's),
-    the core's order-robust `syn` over the similarity build's signatures and the
-    core's `lex` over the pair's matching (order-invariant-closeness D3/D4/D7);
-    `dense` is the cosine's percentile among the re-derived syntax survivors,
-    ignored between verbatim verses, and these pairs are cross-encoded in a call
-    of their own. Their `roots` are the roots of the matching's content edges.
-    The integrity check recomputes `dense` for every pair of S and refuses to
-    write when it differs from the stored value at 4 decimals.
+    the core's `syn` over the similarity build's COARSE signatures — the best of
+    the plain Levenshtein and the two alignments with blocks re-ordered along the
+    pair's D2 matching, the very edges the common part is read from (version 2,
+    order-invariant-closeness D4) — and the core's `lex` over that matching
+    (D3/D7); `dense` is the cosine's percentile among the re-derived syntax
+    survivors, ignored between verbatim verses, and these pairs are cross-encoded
+    in a call of their own. Their `roots` are the roots of the matching's content
+    edges. The integrity check recomputes `dense` for every pair of S and refuses
+    to write when it differs from the stored value at 4 decimals.
   * D3 — `pas = k / min(n_a, n_b)` for a pair of W (`n` = the passage build's
     QAC word count), 0 for any other pair.
   * D4 — `score = 1 − (1 − sim)(1 − pas)`, rounded to 4 decimals.
@@ -41,8 +43,14 @@ record there, never tuning knobs:
       - the matching: the content edges of `closeness_core.match_all` (D2) — a
         maximum-weight one-to-one matching, edge weight `W_LEMMA` for the same
         passage-build token, `W_ROOT` for the same resolved primary root under
-        another token, each minus `TIE_BREAK × |p/n_a − q/n_b|` (relative place,
-        n = QAC word count), exact ties settled in one canonical orientation;
+        another token; ties by the MEDIAN SHIFT (version 2): the anchors — the
+        tokens unique in both verses — are forced, `δ = median(q − p)` over
+        them, and every other weight loses `TIE_BREAK_WEIGHT × |(q − p) − δ| /
+        max(n_a, n_b)`, so a repeated token takes the partner at the offset of
+        the shared material (version 1's relative place `|p/n_a − q/n_b|` lost
+        2:255/3:2's opening «لا»); exact ties settled in one canonical
+        orientation. The build holds NO matching of its own: the core's
+        tie-break reaches the display by itself;
       - bridged function words: the unmatched words strictly between two
         matched pairs `(p, q) < (p', q')` that run in the same order on both
         sides with no matched pair between them on both sides at once, when
@@ -54,8 +62,14 @@ record there, never tuning knobs:
     span per RUN of consecutive coloured words, in the DISPLAYED
     `text_ar_tashkil` (Basmala stripped). The passage's own `k` / `wa` / `wb`
     stay on passage pairs only — `pas` reads `k` — and are not the display.
-  * D6 — the file layout, schema 3 (order-invariant-closeness), byte-identical
-    across builds.
+  * D6 — the file layout, schema 3 (bumped by order-invariant-closeness version 1
+    and kept by version 2, D8), byte-identical across builds. The header names
+    the rules (`signature`, `signature_measure`, `lexical`, `tie_break`,
+    `passage` — the core's names) and records `blind_sample_sha256`: the sha256
+    of the BYTES of `tests/eval/closeness_blind_v2.json` (D10.3) at build time,
+    never its content — the labels are not to be read by the build —, null when
+    the file is absent. `scripts/eval_closeness_blind.py` refuses to measure on
+    a sample whose digest the header did not record.
 
 order-invariant-common-words D3 was AMENDED during implementation (design.md
 D3, spec «Every pair carries its common part»): its first wording («consecutive
@@ -113,8 +127,8 @@ from build_quran_similarity import (  # noqa: E402 — D2: the definition, impor
     RERANKER_MODEL, CrossEncoderScorer, dense_stage, load_vectors, qdrant_lock_held, rnd,
     sem_score, syntax_stage,
 )
-from closeness_core import (  # noqa: E402 — frozen in order-invariant-closeness D2
-    LEMMA, ROOT_ONLY, TIE_BREAK, TOOL, W_LEMMA, W_ROOT, W_TOOL,
+from closeness_core import (  # noqa: E402 — frozen in order-invariant-closeness D2 / D8
+    LEMMA, ROOT_ONLY, TIE_BREAK, TIE_BREAK_WEIGHT, TOOL, W_LEMMA, W_ROOT, W_TOOL,
 )
 
 SCHEMA = loaders.QURAN_CLOSE_VERSES_SCHEMA
@@ -123,14 +137,18 @@ SCOPE = "cross-surah"
 MARK_MIN = 2
 FROM_SIMILARITY, FROM_PASSAGE = "similarity", "passage"
 REBUILD = "python scripts/build_quran_close_verses.py"
+# order-invariant-closeness D10.3: the blind sample (local-only, like the gold sets),
+# hashed by its bytes and never read here.
+BLIND_SAMPLE_JSON = ROOT / "tests" / "eval" / "closeness_blind_v2.json"
 BUILD_ORDER = (f"{similarity_build.REBUILD}  →  {passages_build.REBUILD}  →  {REBUILD}"
                f"  (backend stopped)")
 SCORE_RULE = ("1 - (1 - sim)(1 - pas), computed from the unrounded sim and pas, "
               "rounded to 4 decimals")
 SIM_RULE = ("sem x syn: the stored s for a pair quran_similarity.json stores (the higher "
             "side); otherwise with no gate: sem_score(ce, dense, lex) x syn, syn the core's "
-            "order-robust uni+bigram bag over the similarity signatures, lex the core's "
-            "IDF Jaccard of the pair's content matching, dense = the cosine's percentile "
+            "Levenshtein over the similarity build's coarse signatures, the best of the "
+            "plain alignment and the two with blocks re-ordered along the pair's matching, "
+            "lex the core's IDF Jaccard of that matching, dense = the cosine's percentile "
             "among the syntax survivors, ignored between verbatim verses; roots = the roots "
             "of the content edges")
 PAS_RULE = ("k / min(n_a, n_b) for a pair quran_passages.json holds, n = QAC word count; "
@@ -148,9 +166,12 @@ MATCHING_RULE = ("the content edges of closeness_core.match_all: a maximum-weigh
                  "words joined with weight 1 for the same passage-build lemma token, 0.5 for "
                  "the same resolved primary root under another token, non-content words by "
                  "identical token (tool, never in the common part); edges of weight > 0 kept")
-TIE_RULE = ("every weight minus tie_break x |p/n_a - q/n_b|, p and q 1-based, n = QAC word "
-            "count: among equal partners the nearest relative place wins; an exact tie is "
-            "settled in one canonical orientation of the pair")
+TIE_RULE = ("median shift: the anchors (tokens occurring once in each verse, both ends "
+            "content or both not) are forced and delta = median(q - p) over them (0 with "
+            "none); every other weight loses tie_break_weight x |(q - p) - delta| / "
+            "max(n_a, n_b), p and q 1-based, n = QAC word count, so among equal partners "
+            "the one at the offset of the shared material wins; an exact tie is settled in "
+            "one canonical orientation of the pair")
 BRIDGE_RULE = ("the unmatched words strictly between two matched pairs (p, q) < (p', q') in "
                "the same order on both sides, with no matched pair (r, s) such that "
                "p < r < p' and q < s < q', are coloured on both sides when their token "
@@ -487,8 +508,10 @@ def compose(sim_data: dict, pas_data: dict, sc, pc, survivors: dict[tuple[int, i
             n_verbatim += verbatim
             pi, pj = pidx(key)
             lex = cc.lex(edges[key], pc.roots[pi], pc.roots[pj], *content[key], sc.idf)
-            sim = ungated_sim(ce[key], dense_of[key], lex, cc.syn(sc.seqs[i], sc.seqs[j]),
-                              verbatim)
+            # D4: syn re-orders the signatures' blocks along THIS pair's matching — the
+            # edges read above for the common part; both are indexed by QAC word.
+            sim = ungated_sim(ce[key], dense_of[key], lex,
+                              cc.syn(sc.seqs[i], sc.seqs[j], edges[key]), verbatim)
             roots = cc.shared_roots(edges[key], pc.roots[pi], pc.roots[pj])
         ca, cb = spans.get(key, (None, None))
         pairs.append(pair_record(key, frm, sim, pas[key], roots, W.get(key), parts.get(key),
@@ -519,7 +542,14 @@ def gold_digests(no_gold: bool) -> dict:
     return out
 
 
-def header(input_digests: dict, gold: dict) -> dict:
+def blind_sample_digest() -> str | None:
+    """The sha256 of the blind sample's BYTES (D10.3), None when the file is absent.
+    The content is never parsed: the build records which file it is measured against
+    and reads no label."""
+    return sha256_of(BLIND_SAMPLE_JSON) if BLIND_SAMPLE_JSON.exists() else None
+
+
+def header(input_digests: dict, gold: dict, blind_sha: str | None) -> dict:
     return {
         "scope": SCOPE,
         "score": SCORE_RULE,
@@ -529,16 +559,21 @@ def header(input_digests: dict, gold: dict) -> dict:
         "content_word": CONTENT_WORD_RULE,
         "matching": MATCHING_RULE,
         "match_weights": {LEMMA: W_LEMMA, ROOT_ONLY: W_ROOT, TOOL: W_TOOL},
+        # D8: the rule names, the core's — the datasets this one composes name the same.
+        "signature": cc.SIGNATURE,
         "signature_measure": cc.SIGNATURE_MEASURE,
         "lexical": cc.LEXICAL,
+        "passage": cc.PASSAGE,
         "tie_break_rule": TIE_RULE,
         "tie_break": TIE_BREAK,
+        "tie_break_weight": TIE_BREAK_WEIGHT,
         "bridge": BRIDGE_RULE,
         "mark_min": MARK_MIN,
         "reranker": RERANKER_MODEL,
         "embedder": similarity_build.header(None)["embedder"],
         "inputs": input_digests,
         "gold": gold,
+        "blind_sample_sha256": blind_sha,
     }
 
 
@@ -593,7 +628,7 @@ def main(argv: list[str] | None = None) -> int:
 
     t_start = time.time()
     sim_data, pas_data, input_digests = read_inputs()
-    head = header(input_digests, gold_digests(args.no_gold))
+    head = header(input_digests, gold_digests(args.no_gold), blind_sample_digest())
     want = (head["reranker"], head["embedder"])
     have = (sim_data["build"].get("reranker"), sim_data["build"].get("embedder"))
     if want != have:
@@ -607,7 +642,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Corpora: {len(sc.refs)} verses (similarity), {len(pc.refs)} (passages) "
           f"[{time.time() - t0:.1f}s]")
     t0 = time.time()
-    survivors, _ = syntax_stage(sc.seqs, sc.surah_of, sc.scored,
+    # The cross build's own call, verbatim: the syntax stage re-orders blocks along each
+    # pair's matching (D4), so it takes the verses' words beside their signatures.
+    survivors, _ = syntax_stage(sc.seqs, sc.surah_of, sc.scored, sc.vwords,
                                 sorted(set(sc.surah_of)), args.jobs)
     print(f"SYNTAX: {len(survivors)} cross-surah syntax survivors re-derived "
           f"[{time.time() - t0:.1f}s]")

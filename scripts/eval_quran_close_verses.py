@@ -4,8 +4,10 @@ eval_quran_close_verses.py — measure the unified cross-surah relation against 
 
 Reads `data/derived/quran_close_verses.json` (through its loader), the two gold sets
 `tests/eval/quran_similarity_gold.json` and `tests/eval/quran_passages_gold.json`
-(local-only, unchanged), and reports, against the targets pre-registered in
-`openspec/changes/unify-close-verses/design.md` D10:
+(local-only; relabelled under `order-invariant-closeness` D10, which read them first —
+so every figure here is IN-SAMPLE for version 2, and the figure that counts is
+`scripts/eval_closeness_blind.py`'s), and reports, against the targets pre-registered
+in `openspec/changes/unify-close-verses/design.md` D10:
 
   * the gold positives present, per gold sample (similarity first sample, similarity
     second sample `v2-syntax-survivors`, passages), the negatives present per kind, and

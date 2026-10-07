@@ -19,13 +19,22 @@ record there, never tuning knobs:
     verse's content roots (`build_surah_similarity.content_root_sets`) and its
     `s:a:w` is not a grammatical tool (`word_function.json`).
   * the matching (D2) — `closeness_core.match_all`: one order-invariant
-    one-to-one matching of ALL words, edges `lemma` / `root` / `tool`.
-  * the passage (D6) — the core's window-pair search: the densest window pair of
-    the identical-token edges (`lemma`, `tool`; `root` edges are gaps), in any
-    order; accepted iff `k ≥ L_MIN`, `k ≥ DENSITY × the longer window` and ≥
-    `CONTENT_MIN` kept `lemma` edges (`closeness_core.region_rejection`). One
-    passage per pair; exact ties are read in A, the lower-surah verse (`region_of`).
-    Smith–Waterman, its scores and its traceback are gone.
+    one-to-one matching of ALL words, edges `lemma` / `root` / `tool`; among
+    equal partners a repeated token takes the one at the OFFSET of the shared
+    material — the median shift of the anchors, the tokens unique in both verses
+    (version 2; version 1's relative position lost 2:255/3:2's opening «لا»).
+  * the passage (D6, version 2) — the core's LARGEST ACCEPTED region
+    (`closeness_core.passage_region`): over the identical-token edges (`lemma`,
+    `tool`; `root` edges are gaps), a candidate is a window of A bounded by
+    matched words with a window of B bounded by matched words, in any order; it
+    is accepted iff its kept edges number `k ≥ L_MIN`, `k ≥ DENSITY × the longer
+    window` and ≥ `CONTENT_MIN` of them are `lemma` edges. The stored passage is
+    the accepted candidate with the largest `k`; ties: the larger `2k − unmatched
+    words of both windows`, then the smaller `i1`, `i2`, `j1` — read in A, the
+    lower-surah verse (`region_of`). A pair with no accepted candidate holds no
+    region at all. Version 1's best-SCORING region (which could be a rejected
+    hull hiding an accepted sub-window: 2:164/45:5) and Smith–Waterman, its
+    scores and its traceback, are gone.
   * candidates (add-shared-passages D4) — only pairs whose token MULTISETS share
     ≥ `L_MIN` tokens are matched (`k` kept edges join `k` pairs of equal tokens,
     one to one, so nothing else can pass), computed exactly with sparse
@@ -83,13 +92,16 @@ CONTENT_RULE = ("the word's resolved primary root is among its verse's content r
 MATCHING_RULE = ("closeness_core.match_all: one maximum-weight one-to-one matching of all "
                  "words; content words by lemma token (lemma, 1) or resolved primary root "
                  "(root, 0.5), non-content words by identical token (tool, 1); ties broken "
-                 "by relative position, then in one canonical orientation")
-REGION_RULE = ("closeness_core window-pair search over the identical-token edges "
-               "(lemma, tool; "
-               "root edges count as gaps): the window pair maximising 2k - unmatched words "
-               "of both windows, k = edges with both ends inside both windows, in any "
-               "order; ties: smaller i1, shorter A window, smaller j1, shorter B window, "
-               "read in A = the lower-surah verse")
+                 "by the median shift of the anchors (tokens unique in both verses): a "
+                 "repeated token takes the partner at the offset of the shared material, "
+                 "then in one canonical orientation")
+REGION_RULE = ("closeness_core.passage_region over the identical-token edges (lemma, tool; "
+               "root edges count as gaps): among the window pairs bounded by matched words "
+               "in both verses, in any order, that are ACCEPTED (k >= l_min kept edges, "
+               "k >= density x the longer window, >= content_min lemma edges), the one "
+               "with the largest k; ties: the larger 2k - unmatched words of both windows, "
+               "then the smaller i1, i2, j1, read in A = the lower-surah verse; none when "
+               "no window pair is accepted")
 CANDIDATES = "token multisets share >= l_min tokens (exact, sparse threshold products)"
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_passages_gold.json"
 REBUILD = "python scripts/build_quran_passages.py"
@@ -132,16 +144,17 @@ def word_of(segments: Sequence) -> Word:
 
 def region_of(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
               content_a: Sequence[bool], content_b: Sequence[bool]) -> "cc.Region | None":
-    """D6: the best region of two verses (accepted or not), through the core only.
+    """D6: the largest ACCEPTED region of two verses, or None, through the core only.
 
     Ties are read in A as passed — the build passes the lower-surah verse, stored as `a` —
-    as the shared-passages spec pre-registers («earlier window start in A, then the shorter
-    window»). `cc.best_region` reads them in a canonical orientation instead, which keeps
-    a different region on exact ties (5:33/7:124: k 5 rejected against k 6 accepted), so
-    the build calls the core's A-oriented reading, `cc.best_region_in_a`.
+    as the shared-passages spec pre-registers («the earlier and then the shorter window in
+    A, then the earlier in B»). The core's `passage_region` reads them that way and never
+    canonicalises the pair: two blocks exchanged across a wide gap store the T window from
+    A and the U window from B (pinned), and 5:33/7:124 lost its passage when a canonical
+    orientation read the tie in B.
     """
     edges = cc.match_all(tok_a, tok_b, roots_a, roots_b, content_a, content_b)
-    return cc.best_region_in_a(edges)
+    return cc.passage_region(edges)
 
 
 def common_tokens(a: Iterable, b: Iterable) -> int:
@@ -253,16 +266,20 @@ class Corpus:
             for r, roots in zip(self.refs, self.roots)]
 
     def region(self, i: int, j: int) -> "cc.Region | None":
-        """D6: the best region of verses `i` and `j` (accepted or not)."""
+        """D6: the largest accepted region of verses `i` and `j`, or None."""
         return region_of(self.seqs[i], self.seqs[j], self.roots[i], self.roots[j],
                          self.content[i], self.content[j])
 
     def judge(self, i: int, j: int, region: "cc.Region | None"
               ) -> tuple[str | None, dict | None]:
-        """`(rejection, passage)` for the pair `(i, j)`, `i` in the lower surah."""
+        """`("none", None)` when the pair holds no accepted region, else `(None, passage)`
+        for the pair `(i, j)`, `i` in the lower surah."""
+        if region is None:
+            return "none", None
         why = cc.region_rejection(region)
-        if why:
-            return why, None
+        if why is not None:          # the core returns accepted regions only
+            raise ValueError(f"{ref_str(self.refs[i])}/{ref_str(self.refs[j])}: the core "
+                             f"returned a region it rejects ({why}): {region}")
         roots = sorted({r for e in region.edges if e.kind == cc.LEMMA
                         for r in (self.roots[i][e.p - 1], self.roots[j][e.q - 1]) if r})
         return None, {"a": ref_str(self.refs[i]), "b": ref_str(self.refs[j]),
@@ -290,7 +307,8 @@ def _region_chunk(chunk: list[tuple[int, int]]) -> list[tuple[int, int, "cc.Regi
 
 def region_stage(corpus: Corpus, pairs: list[tuple[int, int]], jobs: int, chunk: int = 2000
                  ) -> dict[tuple[int, int], "cc.Region | None"]:
-    """`{(i, j): best region}` for every candidate; the result does not depend on `jobs`."""
+    """`{(i, j): largest accepted region or None}` for every candidate; the result does
+    not depend on `jobs`."""
     verses = (corpus.seqs, corpus.roots, corpus.content)
     chunks = [pairs[n:n + chunk] for n in range(0, len(pairs), chunk)]
     out: dict[tuple[int, int], cc.Region | None] = {}
@@ -325,7 +343,8 @@ def header(gold_sha: str | None) -> dict:
         "token": TOKEN_RULE,
         "content": CONTENT_RULE,
         "matching": MATCHING_RULE,
-        "passage": cc.PASSAGE,
+        "tie_break": cc.TIE_BREAK,          # D8: "median-shift"
+        "passage": cc.PASSAGE,              # D8: "largest-accepted-region"
         "region": REGION_RULE,
         "l_min": L_MIN,
         "density": DENSITY,
@@ -343,17 +362,19 @@ def build(corpus: Corpus, jobs: int) -> tuple[list[dict], dict]:
     t1 = time.time()
     regions = region_stage(corpus, pairs, jobs)
     stats["region_s"] = round(time.time() - t1, 1)
-    passages, why = [], Counter()
+    passages, rejected = [], 0
     for i, j in pairs:
-        reason, passage = corpus.judge(i, j, regions[(i, j)])
+        _, passage = corpus.judge(i, j, regions[(i, j)])
         if passage is None:
-            why[reason] += 1
+            rejected += 1
         else:
             passages.append(passage)
     # Global indexes are (surah, ayah) order, so sorting by them is sorting by (a, b)
     # numerically — the order the reader serves ties in.
     passages.sort(key=lambda p: (corpus.index[_ref(p["a"])], corpus.index[_ref(p["b"])]))
-    stats.update({f"rejected_{k_}": why[k_] for k_ in ("l_min", "density", "content_min")})
+    # The region is accepted or absent (D6, version 2): there is no reason to count
+    # per pair, only the pairs that hold none.
+    stats["rejected"] = rejected
     stats["passages"] = len(passages)
     return passages, stats
 
@@ -393,9 +414,8 @@ def main(argv: list[str] | None = None) -> int:
     passages, stats = build(corpus, args.jobs)
     print(f"CANDIDATES (D4): {stats['candidates']} cross-surah pairs share ≥ {L_MIN} tokens "
           f"[{stats['candidates_s']}s]")
-    print(f"REGIONS (D6): {stats['passages']} passages; rejected — l_min "
-          f"{stats['rejected_l_min']}, density {stats['rejected_density']}, content_min "
-          f"{stats['rejected_content_min']} [{stats['region_s']}s, {args.jobs} job(s)]")
+    print(f"REGIONS (D6): {stats['passages']} passages; {stats['rejected']} candidate pairs "
+          f"hold no accepted region [{stats['region_s']}s, {args.jobs} job(s)]")
     if only:
         print(f"(surahs {only} only — nothing written)")
         return 0

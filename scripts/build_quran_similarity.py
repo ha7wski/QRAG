@@ -18,13 +18,17 @@ intra-surah definition unchanged and only changes the population:
     (19 113 299 pairs over the full corpus). Verses are keyed by their global
     corpus index (0…6235, i.e. (surah, ayah) order) inside the build, so the
     intra helpers keyed on `int` work unchanged; the file uses `"s:a"` refs.
-  * D3 — the syntactic gate runs behind three EXACT pre-filters, the core's
-    upper bounds of `syn` (order-invariant-closeness D5): the length window
-    (`syn_length_bound`), the element-bag bound (`syn_bag_bound`) and the
-    bigram-bag bound (`syn_bigram_bound`). Each is evaluated through the very
-    float expression `syn` uses (vectorised here with the same IEEE operations,
-    tested bit for bit against the core), so a pruned pair provably scores below
-    σ. Survivors are scored by the core's `syn` itself.
+  * D3 — the syntactic gate runs behind two EXACT pre-filters, the core's
+    upper bounds of `syn` (order-invariant-closeness version 2, D5): the
+    length window (`syn_length_bound`, `m / M`) and the coarse-element bag
+    bound (`syn_bag_bound`, `|bagA ∩ bagB| / M`) — both exact under any
+    re-ordering of blocks, which is why version 1's bigram bound is gone. Each
+    is evaluated through the very float expression the core uses (vectorised
+    here with the same IEEE operations, tested bit for bit against the core),
+    so a pruned pair provably scores below σ. Survivors are scored by the
+    intra `syntax_similarity`: the pair's D2 matching, then the core's `syn`
+    with the blocks re-orderable along it — so the syntax workers hold the
+    verses' words (`VerseWords`) beside their signatures.
   * D4 — dense is the cosine's average-rank percentile among the cross-surah
     pairs that pass the syntactic gate (one global population, so it is
     symmetric). It used to be ranked among ALL 19 M cross-surah pairs, where
@@ -40,9 +44,14 @@ intra-surah definition unchanged and only changes the population:
     verse's list keeps a neighbour only when its score is ≥ `RHO` × the list's best
     (`relative_cut`). The intra build is untouched.
   * D7 — the file layout; schema 2 since `order-invariant-closeness`: `syn` is
-    the order-robust `½·uni + ½·bi` (was `1 − Levenshtein / longer`), and the
+    the coarse-element Levenshtein with blocks re-orderable along the matching
+    (version 2 D4; version 1's `½·uni + ½·bi` was measured and closed), and the
     stored `lex` — the word-level IDF Jaccard of the order-invariant content-word
     matching — replaces `cov`; `roots` are the matched content words' roots.
+    The header names every definition (D8: `signature`, `signature_measure`,
+    `lexical`, `tie_break`) and, under `blind_sample_sha256`, the sha256 of the
+    BYTES of `tests/eval/closeness_blind_v2.json` (D10.3 — the blind sample the
+    build is measured on; its content is never parsed here; null when absent).
 
 Needs the backend STOPPED: the verse vectors are read out of the embedded Qdrant,
 which takes an exclusive file lock. The script checks that lock before loading
@@ -82,14 +91,13 @@ from quran_data import loaders, paths  # noqa: E402
 import build_surah_similarity as intra  # noqa: E402
 from build_surah_similarity import (  # noqa: E402 — D1: the definition, imported
     DENSE_ON_VERBATIM, FLOOR, K, LEXICAL, M, REQUIRE_SHARED_ROOT, RERANKER_MODEL, SIGMA,
-    SIGMA_EPS, SIGNATURE, SIGNATURE_MEASURE, TAU_SEM, W_CE, W_DENSE, CrossEncoderScorer,
-    cap_pairs, lexical, load_content_roots, load_signatures, load_vectors, load_verse_words,
-    passes_syntax, qdrant_lock_held, rnd, select_neighbours, sem_score, syn,
+    SIGMA_EPS, SIGNATURE, SIGNATURE_MEASURE, TAU_SEM, TIE_BREAK, W_CE, W_DENSE,
+    CrossEncoderScorer, cap_pairs, lexical, load_content_roots, load_signatures, load_vectors,
+    load_verse_words, pair_edges, passes_syntax, prefilter_stage, qdrant_lock_held, rnd,
+    select_neighbours, sem_score, syn, syntax_similarity,
 )
 # order-invariant-closeness D5: the exact bounds, from the core itself.
-from closeness_core import (  # noqa: E402
-    bigrams, syn_bag_bound, syn_bigram_bound, syn_length_bound,
-)
+from closeness_core import syn_bag_bound, syn_length_bound  # noqa: E402
 
 SCHEMA = loaders.QURAN_SIMILARITY_SCHEMA
 SCOPE = "cross-surah"
@@ -100,11 +108,18 @@ DENSE_POPULATION = "syntax-survivors"   # D1
 SHORT_EXACT_MAX_LEN = 3                 # D2
 RHO = 0.5                               # D3
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
+# order-invariant-closeness D10.3: the blind sample the version-2 build is measured
+# on. Its sha256 (of the BYTES — never parsed here) goes into the header so
+# `eval_closeness_blind.py` can refuse a mismatch; null when the file is absent.
+BLIND_SAMPLE_JSON = ROOT / "tests" / "eval" / "closeness_blind_v2.json"
 REBUILD = "python scripts/build_quran_similarity.py"
 # The intra header keys this build must share verbatim (spec «The parameters are
 # the intra-surah ones»); their digest is recorded so the equality is checkable.
+# D8's definition names are among them: two datasets under two definitions must
+# not be read as one relation.
 SHARED_PARAMS = ("K", "M", "w_ce", "w_dense", "floor", "sigma", "tau_sem", "signature",
-                 "signature_measure", "lexical", "dense_on_verbatim", "require_shared_root")
+                 "signature_measure", "lexical", "tie_break", "dense_on_verbatim",
+                 "require_shared_root")
 # `passes_syntax`'s threshold, as the one float it compares against.
 _SYN_THRESHOLD = SIGMA - SIGMA_EPS
 
@@ -113,51 +128,16 @@ _SYN_THRESHOLD = SIGMA - SIGMA_EPS
 #  Pure functions — importable by tests, no disk, no model
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _syn_value_np(c_uni, c_bi, la, lb):
-    """`closeness_core._syn_value`, elementwise over int64 arrays.
-
-    The same IEEE operations in the same order (true division, then `0.5·uni +
-    0.5·bi`), so each element is bit-identical to the core's scalar — tested.
-    """
+def bag_bound_np(c_uni, la, lb):
+    """`syn_bag_bound` from the common element count, vectorised (D5): `count / M`,
+    the core's one true division over int64 arrays, so each element is
+    bit-identical to the core's scalar — tested; two empty signatures bound at 1."""
     import numpy as np
 
     longest = np.maximum(la, lb)
     with np.errstate(divide="ignore", invalid="ignore"):
-        uni = c_uni / longest
-        bi = np.where(longest == 1, uni, c_bi / (longest - 1))
-        out = 0.5 * uni + 0.5 * bi
+        out = c_uni / longest
     return np.where(longest == 0, 1.0, out)
-
-
-def bag_bound_np(c_uni, la, lb):
-    """`syn_bag_bound` from the common element count, vectorised (D5)."""
-    import numpy as np
-
-    return _syn_value_np(c_uni, np.minimum(c_uni, np.maximum(np.minimum(la, lb) - 1, 0)), la, lb)
-
-
-def bigram_bound_np(c_bi, la, lb):
-    """`syn_bigram_bound` from the common bigram count, vectorised (D5)."""
-    import numpy as np
-
-    return _syn_value_np(np.minimum(la, lb), c_bi, la, lb)
-
-
-def prefilter_stage(a: Sequence, b: Sequence) -> str | None:
-    """The pre-filter that drops `(a, b)` — `length_window`, `bag_bound`,
-    `bigram_bound` — or None.
-
-    The scalar reference of what `SyntaxIndex.survivors` does vectorised, through
-    the core's own bounds; the evaluation and the exactness check read it.
-    """
-    if not passes_syntax(syn_length_bound(len(a), len(b))):
-        return "length_window"
-    if not passes_syntax(syn_bag_bound(Counter(a), Counter(b))):
-        return "bag_bound"
-    if not passes_syntax(syn_bigram_bound(Counter(bigrams(a)), Counter(bigrams(b)),
-                                          len(a), len(b))):
-        return "bigram_bound"
-    return None
 
 
 def passes_short_rule(la: int, lb: int, syn: float,
@@ -165,10 +145,12 @@ def passes_short_rule(la: int, lb: int, syn: float,
     """D2: a pair whose longer signature has ≤ `max_len` elements needs `syn = 1`.
 
     With three words one element is the whole difference between a shared frame
-    and a shared construction. `syn` returns exactly 1.0 iff the two signatures
-    are equal as multisets of elements and of bigrams — for ≤ 3 words, the same
-    sequence (a rotation of 3 words scores 0.75, past σ: this rule stops it). Applied AFTER
-    `σ`, so the pre-filters (upper bounds for the `σ` gate) stay exact.
+    and a shared construction. `syn` returns exactly 1.0 iff one of its three
+    alignments is an identity: the two signatures equal as written, or equal once
+    the blocks of one are re-ordered along the pair's matching — for ≤ 3 words,
+    the same construction up to the order of its matched blocks, never a
+    substitution (which costs ≥ 1/3). Applied AFTER `σ`, so the pre-filters (upper
+    bounds for the `σ` gate) stay exact.
     """
     return max(la, lb) > max_len or syn == 1.0
 
@@ -192,7 +174,7 @@ def length_windows(max_len: int) -> list[tuple[int, int]]:
     Derived from the exact inequality itself — every L is tested through
     `passes_syntax(syn_length_bound(n, L))` — not from a closed form, so the
     window cannot drift from the gate at a float edge. The admitted set is an
-    interval (`½(m/M + (m−1)/(M−1))` falls as L leaves n on either side); asserted.
+    interval (`m / M` falls as L leaves n on either side); asserted.
     """
     out = []
     for n in range(max_len + 1):
@@ -205,8 +187,9 @@ def length_windows(max_len: int) -> list[tuple[int, int]]:
 def intern_signatures(sigs: Sequence[Sequence]) -> list[tuple[int, ...]]:
     """Each element replaced by a small int, first-seen order.
 
-    A bijection on elements (hence on bigrams), so `syn` (equality only) gives the
-    same value on the interned sequences as on the element tuples.
+    A bijection on elements, so `syn` (equality only, positions re-ordered along
+    the matching) gives the same value on the interned sequences as on the
+    element tuples.
     """
     ids: dict = {}
     return [tuple(ids.setdefault(e, len(ids)) for e in sig) for sig in sigs]
@@ -248,17 +231,20 @@ class SyntaxIndex:
     """The length-sorted, count-matrix view of the scored signatures.
 
     `seqs[i]` is verse i's interned signature (global index), `surah_of[i]` its
-    surah, `scored` the global indexes with ≥ 1 content root. `counts` holds each
-    verse's element bag (dense: the element vocabulary is small), `bigram_counts`
-    its bigram bag (sparse CSC: the bigram vocabulary is not).
+    surah, `scored` the global indexes with ≥ 1 content root, `vwords[i]` its
+    intra `VerseWords` — the tokens, roots and content flags the pair's D2
+    matching is computed from, which `syn` re-orders blocks along (version 2 D4).
+    `counts` holds each verse's coarse-element bag (dense: the vocabulary is small).
     """
 
     def __init__(self, seqs: Sequence[tuple[int, ...]], surah_of: Sequence[int],
-                 scored: Sequence[int]):
+                 scored: Sequence[int], vwords: Sequence):
         import numpy as np
-        from scipy.sparse import csc_matrix
 
         self.seqs = list(seqs)
+        self.vwords = list(vwords)
+        if len(self.vwords) != len(self.seqs):
+            raise ValueError(f"{len(self.seqs)} signatures against {len(self.vwords)} verses' words")
         self.surah_of = np.asarray(surah_of, dtype="int32")
         self.lengths = np.asarray([len(s) for s in self.seqs], dtype="int64")
         self.scored = sorted(scored)
@@ -267,18 +253,6 @@ class SyntaxIndex:
         for i, s in enumerate(self.seqs):
             for e, c in Counter(s).items():
                 self.counts[i, e] = c
-        bigram_ids: dict[tuple[int, int], int] = {}
-        rows, cols, vals = [], [], []
-        self.bigram_bags: list[dict[int, int]] = []
-        for i, s in enumerate(self.seqs):
-            bag = Counter(bigram_ids.setdefault(bg, len(bigram_ids)) for bg in bigrams(s))
-            self.bigram_bags.append(dict(bag))
-            for b, c in bag.items():
-                rows.append(i), cols.append(b), vals.append(c)
-        self.bigram_counts = csc_matrix(
-            (np.asarray(vals, dtype="int64"), (np.asarray(rows, dtype="int64"),
-                                               np.asarray(cols, dtype="int64"))),
-            shape=(len(self.seqs), max(len(bigram_ids), 1)), dtype="int64")
         order = sorted(self.scored, key=lambda i: (int(self.lengths[i]), i))
         self.by_length = np.asarray(order, dtype="int64")
         self.sorted_lengths = self.lengths[self.by_length]
@@ -292,12 +266,13 @@ class SyntaxIndex:
         Each unordered cross-surah pair is examined exactly once (by the anchor
         surah of its lower verse). Returns `[(i, j, syn)]` passing the gate AND
         the short-pair rule (D2), sorted, and the per-stage counts (each count is
-        the number of pairs still in after that stage).
+        the number of pairs still in after that stage). A pair past both bounds
+        is scored in full: its matching, then `syn` (`syntax_similarity`).
         """
         import numpy as np
 
         out: list[tuple[int, int, float]] = []
-        stats = {"examined": 0, "length_window": 0, "bag_bound": 0, "bigram_bound": 0,
+        stats = {"examined": 0, "length_window": 0, "bag_bound": 0,
                  "syntax_gate": 0, "short_exact": 0}
         anchors = [i for i in self.scored if self.surah_of[i] == surah]
         for i in anchors:
@@ -311,31 +286,17 @@ class SyntaxIndex:
             stats["length_window"] += len(cands)
             if not len(cands):
                 continue
-            # D5, the element-bag bound: syn_bag_bound with the same IEEE operations
+            # D5, the coarse-element bag bound: syn_bag_bound with the same IEEE operations
             mine = self.counts[i]
             nz = np.flatnonzero(mine)
             common = np.minimum(self.counts[np.ix_(cands, nz)], mine[nz]).sum(axis=1, dtype="int64")
             la = np.full(len(cands), n, dtype="int64")
             lb = self.lengths[cands]
-            keep = bag_bound_np(common, la, lb) >= _SYN_THRESHOLD
-            cands, la, lb = cands[keep], la[keep], lb[keep]
+            cands = cands[bag_bound_np(common, la, lb) >= _SYN_THRESHOLD]
             stats["bag_bound"] += len(cands)
-            if not len(cands):
-                continue
-            # D5, the bigram-bag bound: syn_bigram_bound with the same IEEE operations
-            bag = self.bigram_bags[i]
-            if bag:
-                cols = np.fromiter(bag, dtype="int64", count=len(bag))
-                want = np.fromiter(bag.values(), dtype="int64", count=len(bag))
-                theirs = self.bigram_counts[:, cols][cands].toarray()
-                common_bi = np.minimum(theirs, want).sum(axis=1, dtype="int64")
-            else:
-                common_bi = np.zeros(len(cands), dtype="int64")
-            cands = cands[bigram_bound_np(common_bi, la, lb) >= _SYN_THRESHOLD]
-            stats["bigram_bound"] += len(cands)
-            a = self.seqs[i]
+            a, va = self.seqs[i], self.vwords[i]
             for j in cands.tolist():
-                s = syn(a, self.seqs[j])
+                s = syntax_similarity(a, self.seqs[j], va, self.vwords[j]).syn
                 if passes_syntax(s):
                     stats["syntax_gate"] += 1
                     if passes_short_rule(len(a), len(self.seqs[j]), s):
@@ -347,9 +308,9 @@ class SyntaxIndex:
 _WORKER: SyntaxIndex | None = None
 
 
-def _init_worker(seqs, surah_of, scored) -> None:
+def _init_worker(seqs, surah_of, scored, vwords) -> None:
     global _WORKER
-    _WORKER = SyntaxIndex(seqs, surah_of, scored)
+    _WORKER = SyntaxIndex(seqs, surah_of, scored, vwords)
 
 
 def _worker_survivors(surah: int):
@@ -359,16 +320,17 @@ def _worker_survivors(surah: int):
     return surah, out, stats
 
 
-def syntax_stage(seqs, surah_of, scored, anchors: Sequence[int], jobs: int
+def syntax_stage(seqs, surah_of, scored, vwords, anchors: Sequence[int], jobs: int
                  ) -> tuple[dict[tuple[int, int], float], dict[int, dict]]:
     """`{(i, j): syn}` over the anchor surahs, and their per-surah stats.
 
-    The result does not depend on `jobs`: each anchor surah's pairs are
-    computed independently and merged in surah order.
+    `seqs`, `surah_of` and `vwords` are index-aligned per verse (the `Corpus`
+    attributes of those names). The result does not depend on `jobs`: each anchor
+    surah's pairs are computed independently and merged in surah order.
     """
     results = {}
     if jobs <= 1:
-        _init_worker(seqs, surah_of, scored)
+        _init_worker(seqs, surah_of, scored, vwords)
         for s in anchors:
             surah, out, st = _worker_survivors(s)
             results[surah] = (out, st)
@@ -377,7 +339,8 @@ def syntax_stage(seqs, surah_of, scored, anchors: Sequence[int], jobs: int
         sizes = Counter(surah_of[i] for i in scored)
         order = sorted(anchors, key=lambda s: -sizes.get(s, 0) * _after(sizes, s))
         ctx = multiprocessing.get_context("spawn")
-        with ctx.Pool(jobs, initializer=_init_worker, initargs=(seqs, surah_of, scored)) as pool:
+        with ctx.Pool(jobs, initializer=_init_worker,
+                      initargs=(seqs, surah_of, scored, vwords)) as pool:
             for surah, out, st in pool.imap_unordered(_worker_survivors, order, chunksize=1):
                 results[surah] = (out, st)
     survivors: dict[tuple[int, int], float] = {}
@@ -436,6 +399,14 @@ def gold_digest(no_gold: bool) -> tuple[str | None, list[dict]]:
     return hashlib.sha256(raw).hexdigest(), json.loads(raw)["pairs"]
 
 
+def blind_sample_digest() -> str | None:
+    """sha256 of the BYTES of `BLIND_SAMPLE_JSON` (D10.3), or None when it is absent.
+    The file is hashed, never parsed: its labels are the evaluation's, not the build's."""
+    if not BLIND_SAMPLE_JSON.exists():
+        return None
+    return hashlib.sha256(BLIND_SAMPLE_JSON.read_bytes()).hexdigest()
+
+
 def header(gold_sha: str | None) -> dict:
     intra_head = intra.header(None)
     shared = {k: intra_head[k] for k in SHARED_PARAMS}
@@ -448,6 +419,7 @@ def header(gold_sha: str | None) -> dict:
         "signature": SIGNATURE,
         "signature_measure": SIGNATURE_MEASURE,
         "lexical": LEXICAL,
+        "tie_break": TIE_BREAK,
         "dense_on_verbatim": DENSE_ON_VERBATIM,
         "dense_population": DENSE_POPULATION,
         "short_exact_max_len": SHORT_EXACT_MAX_LEN,
@@ -456,6 +428,8 @@ def header(gold_sha: str | None) -> dict:
         # D1: the intra builder's digest of the parameters both builds share
         "intra_params_sha256": intra.params_digest(shared),
         "gold_sha256": gold_sha,
+        # D10.3: the blind sample this build is measured on (bytes hashed, not read)
+        "blind_sample_sha256": blind_sample_digest(),
     }
 
 
@@ -504,6 +478,11 @@ class Corpus:
         """The intra `lexical` of verses i and j: `lex`, the matched mass `Mw` and the
         matched content words' roots (order-invariant-closeness D3)."""
         return lexical(self.vwords[i], self.vwords[j], self.idf)
+
+    def syntax(self, i: int, j: int):
+        """The intra `syntax_similarity` of verses i and j: their matching and `syn`
+        over the interned signatures with the blocks re-orderable along it (D4)."""
+        return syntax_similarity(self.seqs[i], self.seqs[j], self.vwords[i], self.vwords[j])
 
 
 def gold_pairs(corpus: Corpus, gold: list[dict]) -> list[dict]:
@@ -572,7 +551,7 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
             diag.append(row)
             continue
         a_sig, b_sig = corpus.seqs[p[0]], corpus.seqs[p[1]]
-        sy = syn(a_sig, b_sig)
+        sy = corpus.syntax(*p).syn
         verbatim = corpus.verbatim(*p)
         lex = corpus.lexical(*p).lex
         ce = ce_of.get(p)
@@ -658,12 +637,12 @@ def print_syntax_stats(stats: dict[int, dict], elapsed: float, per_surah: bool) 
             total[k_] += v
         if per_surah:
             print(f"  anchor surah {s:3d}: {st['examined']:8d} pairs → {st['length_window']:7d} "
-                  f"length window → {st['bag_bound']:6d} bag bound → {st['bigram_bound']:6d} "
-                  f"bigram bound → {st['syntax_gate']:5d} syntax gate → {st['short_exact']:5d} "
+                  f"length window → {st['bag_bound']:6d} bag bound → "
+                  f"{st['syntax_gate']:5d} syntax gate → {st['short_exact']:5d} "
                   f"short-pair rule [{st['elapsed']:.1f}s]")
     print(f"SYNTAX: {int(total['examined'])} cross-surah scored pairs → "
           f"{int(total['length_window'])} in the length window → {int(total['bag_bound'])} "
-          f"past the bag bound → {int(total['bigram_bound'])} past the bigram bound → "
+          f"past the bag bound → "
           f"{int(total['syntax_gate'])} pass the syntax gate "
           f"(σ = {SIGMA:.4f}) → {int(total['short_exact'])} pass the short-pair rule "
           f"(≤ {SHORT_EXACT_MAX_LEN} elements: syn = 1) — {elapsed:.1f}s wall, "
@@ -704,7 +683,7 @@ def main(argv: list[str] | None = None) -> int:
     def run_syntax(anchors: list[int]) -> dict[tuple[int, int], float]:
         t1 = time.time()
         survivors, stats = syntax_stage(corpus.seqs, corpus.surah_of, corpus.scored,
-                                        anchors, args.jobs)
+                                        corpus.vwords, anchors, args.jobs)
         print_syntax_stats(stats, time.time() - t1, args.per_surah)
         return survivors
 
