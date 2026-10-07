@@ -227,8 +227,10 @@ export async function getSurahSimilarity(
 // closeness annotations. A static lookup: no model, nothing computed per request.
 
 /** One partner of an āya's cross-sūra pair, as seen from that āya. `words`,
- *  `span_self` and `span_other` describe the pair's common part and are null
- *  together when it has none; a passage-only partner always has them. */
+ *  `spans_self` and `spans_other` describe the pair's common part and are null
+ *  together when it has none; a passage-only partner always has them. The
+ *  common part is the order-invariant matching of the two verses' content
+ *  words: a verse may be coloured in several runs. */
 export interface AnnotationPartner {
   /** `"s:a"` — a key of `SurahAnnotations.verses`. */
   ref: string;
@@ -236,10 +238,11 @@ export interface AnnotationPartner {
   score: number;
   /** Matched words of the common part, or null. */
   words: number | null;
-  /** Half-open CHARACTER offsets of the common part in THIS āya's `text_ar_tashkil`. */
-  span_self: [number, number] | null;
+  /** Half-open CHARACTER spans of the common part in THIS āya's
+   *  `text_ar_tashkil`, one per run of coloured words, ascending and disjoint. */
+  spans_self: [number, number][] | null;
   /** The same in the partner's `text_ar_tashkil`. */
-  span_other: [number, number] | null;
+  spans_other: [number, number][] | null;
 }
 
 /** One annotated āya. */
@@ -299,7 +302,7 @@ export interface QuranSimilarityMatrix {
 }
 
 /** One close pair of a cell: `u` in surah `a`, `v` in surah `b`. `words`,
- *  `span_u` and `span_v` describe the pair's common part and are null together
+ *  `spans_u` and `spans_v` describe the pair's common part and are null together
  *  when it has none. */
 export interface QuranSimilarityPair {
   u: Verse;
@@ -309,10 +312,11 @@ export interface QuranSimilarityPair {
   roots: string[];
   /** Matched words of the common part, or null. */
   words: number | null;
-  /** Half-open CHARACTER offsets of the common part in `u.text_ar_tashkil`, or null. */
-  span_u: [number, number] | null;
-  /** Half-open CHARACTER offsets of the common part in `v.text_ar_tashkil`, or null. */
-  span_v: [number, number] | null;
+  /** Half-open CHARACTER spans of the common part in `u.text_ar_tashkil`, one
+   *  per run of coloured words, ascending and disjoint; or null. */
+  spans_u: [number, number][] | null;
+  /** The same in `v.text_ar_tashkil`, or null. */
+  spans_v: [number, number][] | null;
 }
 
 /** `GET /quran-similarity/pairs/{a}/{b}` — one cell's pairs, strongest first. */

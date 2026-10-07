@@ -3,13 +3,19 @@
 eval_quran_passages.py — measure the shared-passage build against its gold set.
 
 Reads `data/derived/quran_passages.json` (through its loader) and the gold set
-`tests/eval/quran_passages_gold.json` (local-only), and reports, against the target
-pre-registered in `openspec/changes/add-shared-passages/design.md` D8:
+`tests/eval/quran_passages_gold.json` (local-only; relabelled under
+`order-invariant-closeness` D10, which read it first — so this figure is IN-SAMPLE for
+version 2, and the figure that counts is `scripts/eval_closeness_blind.py`'s), and
+reports, against the targets pre-registered in
+`openspec/changes/add-shared-passages/design.md` D8 and
+`openspec/changes/order-invariant-closeness/design.md` D9:
 
   * recall of the positives — a positive `(a, b)` is found iff the dataset holds a
     passage for that unordered pair;
   * the negatives of each kind found;
-  * 28:20/36:20, the pair that motivated the change, reported apart.
+  * 28:20/36:20, the pair that motivated add-shared-passages, reported apart;
+  * 2:3/14:31, the pair that motivated order-invariant-closeness (a word moved
+    across the passage), reported apart.
 
 It REFUSES to report when the gold file's sha256 differs from the one the dataset
 header was frozen against: a number measured on another gold set is not the
@@ -34,6 +40,7 @@ from quran_data import loaders  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_passages_gold.json"
 MOTIVATING = ("28:20", "36:20")
+MOVED = ("2:3", "14:31")           # order-invariant-closeness D9
 
 # design.md D8, copied as numbers so a miss is printed as a miss.
 TARGET_RECALL = 0.80
@@ -67,6 +74,7 @@ def evaluate(data: dict, gold: dict) -> dict:
     neg_found = sum(v["found"] for v in neg.values())
     n = len(positives)
     motivating = found.get(_key(*MOTIVATING))
+    moved = found.get(_key(*MOVED))
     return {
         "positives": n,
         "recalled": recalled,
@@ -76,11 +84,14 @@ def evaluate(data: dict, gold: dict) -> dict:
         "negatives_total": n_neg,
         "motivating": None if motivating is None else
         {"wa": motivating["wa"], "wb": motivating["wb"], "k": motivating["k"]},
+        "moved": None if moved is None else
+        {"wa": moved["wa"], "wb": moved["wb"], "k": moved["k"]},
         "positive_rows": pos_rows,
         "targets": {
             "recall": (recalled / n if n else 0.0) >= TARGET_RECALL,
             "negatives": neg_found <= TARGET_NEG_SHARE * n_neg,
             "motivating": motivating is not None,
+            "moved": moved is not None,
         },
     }
 
@@ -122,6 +133,9 @@ def main(argv: list[str] | None = None) -> int:
     m = report["motivating"]
     print(f"28:20/36:20: " + ("found, " + f"words {m['wa']} / {m['wb']}, k = {m['k']}" if m
                                else "NOT found") + f" {mark(t['motivating'])}")
+    m = report["moved"]
+    print(f"2:3/14:31: " + ("found, " + f"words {m['wa']} / {m['wb']}, k = {m['k']}" if m
+                             else "NOT found") + f" {mark(t['moved'])}")
     missed = [r["ref"] for r in report["positive_rows"] if not r["found"]]
     print("positives missed: " + (", ".join(missed) or "none"))
     return 0

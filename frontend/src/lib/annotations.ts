@@ -83,12 +83,13 @@ export function markerCue(entry: AyahAnnotation, vocalized: boolean): MarkerCue 
   };
 }
 
-/** The spans to mark in the āya's own text: its passage-only pairs' side of the
- *  common part, and only on the vocalized text the spans address. Whole-verse
- *  pairs never colour words, even when they carry a common part. */
+/** The spans to mark in the āya's own text: every span of its passage-only
+ *  pairs' side of the common part (a pair may colour several runs), and only on
+ *  the vocalized text the spans address. Whole-verse pairs never colour words,
+ *  even when they carry a common part. Not merged here: `splitMarked` unions. */
 export function passageSpans(entry: AyahAnnotation, vocalized: boolean): Span[] {
   if (!vocalized) return [];
-  return entry.passage.flatMap((p) => (p.span_self ? [p.span_self] : []));
+  return entry.passage.flatMap((p) => p.spans_self ?? []);
 }
 
 /** Whether an entry carries anything at all — only such an āya is clickable. */

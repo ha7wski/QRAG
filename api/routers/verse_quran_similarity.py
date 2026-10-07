@@ -62,7 +62,7 @@ def get_verse_quran_similarity(
         verse = verse_from_record(qs._record(retriever, n["surah"], n["ayah"]))
         neighbours.append(QuranNeighbour(
             verse=verse, score=n["score"], roots=n["roots"],
-            words=n["words"], span=qs._placed(verse, n["span"]),
+            words=n["words"], spans=qs._placed(verse, n["spans"]),
         ))
 
     return VerseQuranSimilarityResponse(

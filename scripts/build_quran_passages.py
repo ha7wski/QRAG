@@ -4,41 +4,56 @@ build_quran_passages.py — the offline shared-passage build.
 
 Answers, once and for every pair of verses of DIFFERENT surahs, «does a passage
 of this verse's wording come back in that one?» and writes the answer to
-`data/derived/quran_passages.json`, which `GET /quran-passages/*` serves. The
-design is `openspec/changes/add-shared-passages/design.md`; every value below
-was frozen there (D1–D6) before the gold set existed and before this build ran
-on the corpus — decisions to record there, never tuning knobs:
+`data/derived/quran_passages.json`, which `build_quran_close_verses.py` composes.
+The design is `openspec/changes/add-shared-passages/design.md` (tokens D1,
+candidates D4, layout D5), its alignment replaced by
+`openspec/changes/order-invariant-closeness/design.md` (D1, D2, D6, D8); every
+value below was frozen there before the build ran on the corpus — decisions to
+record there, never tuning knobs:
 
-  * D1 — one token per QAC word: the `LEM:` of the word's STEM segment (a
-    segment carrying neither `PREF` nor `SUFF`), else the word's surface folded
-    by `arabic_text.bare()`. A token is CONTENT when the word carries `ROOT:`.
-  * D2 — Smith–Waterman over the two token sequences, match +2 (amended), mismatch −1,
-    gap −1, floored at 0; best cell = highest score, ties → smallest end in A,
-    then in B; traced back diagonal first, then up, then left.
-  * D3 — accepted iff `k ≥ L_MIN`, `k ≥ DENSITY × the longer aligned span` and
-    ≥ `CONTENT_MIN` matched content tokens. One passage per pair.
-  * D4 — only pairs whose token MULTISETS share ≥ `L_MIN` tokens are aligned
-    (`k` matched positions are `k` equal tokens, so nothing else can pass),
-    computed exactly with sparse count-threshold indicator products.
-  * D5 — the file layout, schema 1, byte-identical across builds.
+  * tokens (add-shared-passages D1) — one token per QAC word: the `LEM:` of the
+    word's STEM segment (a segment carrying neither `PREF` nor `SUFF`), else the
+    word's surface folded by `arabic_text.bare()`.
+  * content words (order-invariant-closeness D1) — the shared definition,
+    `closeness_core.content_words`: the word's resolved primary root is among its
+    verse's content roots (`build_surah_similarity.content_root_sets`) and its
+    `s:a:w` is not a grammatical tool (`word_function.json`).
+  * the matching (D2) — `closeness_core.match_all`: one order-invariant
+    one-to-one matching of ALL words, edges `lemma` / `root` / `tool`; among
+    equal partners a repeated token takes the one at the OFFSET of the shared
+    material — the median shift of the anchors, the tokens unique in both verses
+    (version 2; version 1's relative position lost 2:255/3:2's opening «لا»).
+  * the passage (D6, version 2) — the core's LARGEST ACCEPTED region
+    (`closeness_core.passage_region`): over the identical-token edges (`lemma`,
+    `tool`; `root` edges are gaps), a candidate is a window of A bounded by
+    matched words with a window of B bounded by matched words, in any order; it
+    is accepted iff its kept edges number `k ≥ L_MIN`, `k ≥ DENSITY × the longer
+    window` and ≥ `CONTENT_MIN` of them are `lemma` edges. The stored passage is
+    the accepted candidate with the largest `k`; ties: the larger `2k − unmatched
+    words of both windows`, then the smaller `i1`, `i2`, `j1` — read in A, the
+    lower-surah verse (`region_of`). A pair with no accepted candidate holds no
+    region at all. Version 1's best-SCORING region (which could be a rejected
+    hull hiding an accepted sub-window: 2:164/45:5) and Smith–Waterman, its
+    scores and its traceback, are gone.
+  * candidates (add-shared-passages D4) — only pairs whose token MULTISETS share
+    ≥ `L_MIN` tokens are matched (`k` kept edges join `k` pairs of equal tokens,
+    one to one, so nothing else can pass), computed exactly with sparse
+    count-threshold indicator products.
+  * the file layout (D5), schema 2, byte-identical across builds.
 
 Model-free and Qdrant-free: it may run with the backend up.
 
     python scripts/build_quran_passages.py              # full build
     python scripts/build_quran_passages.py --no-gold    # without the local-only gold set
-    python scripts/build_quran_passages.py --jobs 4     # alignment worker processes
+    python scripts/build_quran_passages.py --jobs 4     # region worker processes
     python scripts/build_quran_passages.py --surahs 28,36   # report only, write nothing
 
-Three points D1/D2 leave open, settled here and recorded in the header:
+Points the designs leave open, settled here and recorded in the header:
 
   * A word with SEVERAL stem segments (563 words: «مِمَّا» = مِن + ما, «إِنَّمَا»)
     keeps one token per word: its stem lemmas joined by `+`, in segment order.
-  * The scores are match +2, mismatch −1, gap −1 (design D2, amended before any
-    gold measurement): with unit scores «جَاءَ» (+1) then the gap of the displaced
-    «رَجُل» (−1) sum to 0 and the standard traceback cuts 28:20/36:20 to 5 words —
-    the case D2 names. The traceback is the standard one: it stops at a zero.
-  * A matched position counts as content when the words on BOTH sides carry a
-    root; `roots` is the sorted union of both sides' canonical roots there.
+  * `roots` is the sorted union of both sides' canonical roots over the kept
+    `lemma` edges (the content words of the passage).
 """
 from __future__ import annotations
 
@@ -55,21 +70,38 @@ from typing import Iterable, Iterator, NamedTuple, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))   # the shared closeness core, a sibling script
 
 from arabic_text import bare  # noqa: E402
 from quran_data import loaders, paths, qac  # noqa: E402
 
+# The definition is the shared core's (order-invariant-closeness D8), never a copy:
+# content words, the matching, the region and its acceptance thresholds.
+import closeness_core as cc  # noqa: E402
+from closeness_core import CONTENT_MIN, DENSITY, L_MIN, rejection  # noqa: E402,F401
+# The content-root sets D1 reads are the intra build's (`content_root_sets`).
+import build_surah_similarity as intra  # noqa: E402
+
 SCHEMA = loaders.QURAN_PASSAGES_SCHEMA
 SCOPE = "cross-surah"
-# Frozen in openspec/changes/add-shared-passages/design.md (D2, D3).
-MATCH, MISMATCH, GAP = 2, -1, -1
-L_MIN = 6
-DENSITY = 0.75
-CONTENT_MIN = 3
 TOKEN_RULE = ("one token per QAC word: the LEM of its stem segment(s) (neither PREF nor "
               "SUFF), '+'-joined in segment order; a word with none takes bare(surface)")
-CONTENT_RULE = "the word carries a ROOT feature; a matched position counts when both words do"
-TRACEBACK = "diagonal, then up, then left; stops at a zero cell (standard Smith-Waterman)"
+CONTENT_RULE = ("the word's resolved primary root is among its verse's content roots "
+                "(build_surah_similarity.content_root_sets) and its s:a:w is not a "
+                "grammatical tool in word_function.json (closeness_core.content_words)")
+MATCHING_RULE = ("closeness_core.match_all: one maximum-weight one-to-one matching of all "
+                 "words; content words by lemma token (lemma, 1) or resolved primary root "
+                 "(root, 0.5), non-content words by identical token (tool, 1); ties broken "
+                 "by the median shift of the anchors (tokens unique in both verses): a "
+                 "repeated token takes the partner at the offset of the shared material, "
+                 "then in one canonical orientation")
+REGION_RULE = ("closeness_core.passage_region over the identical-token edges (lemma, tool; "
+               "root edges count as gaps): among the window pairs bounded by matched words "
+               "in both verses, in any order, that are ACCEPTED (k >= l_min kept edges, "
+               "k >= density x the longer window, >= content_min lemma edges), the one "
+               "with the largest k; ties: the larger 2k - unmatched words of both windows, "
+               "then the smaller i1, i2, j1, read in A = the lower-surah verse; none when "
+               "no window pair is accepted")
 CANDIDATES = "token multisets share >= l_min tokens (exact, sparse threshold products)"
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_passages_gold.json"
 REBUILD = "python scripts/build_quran_passages.py"
@@ -80,10 +112,10 @@ REBUILD = "python scripts/build_quran_passages.py"
 # ═══════════════════════════════════════════════════════════════════════════
 
 class Word(NamedTuple):
-    """One QAC word as this build sees it (D1)."""
+    """One QAC word as this build sees it: its token, whether it carries a root."""
 
     token: str
-    content: bool
+    rooted: bool
     root: str | None          # the QAC `ROOT:` as written, None for a rootless word
 
 
@@ -92,7 +124,7 @@ def _features(rec) -> list[str]:
 
 
 def word_of(segments: Sequence) -> Word:
-    """D1: the word's token, its content flag and its raw root, from its segments.
+    """The word's token, whether it carries a root, and its raw root, from its segments.
 
     `segments` are `quran_data.qac.Record`s of ONE word, in segment order.
     """
@@ -110,82 +142,19 @@ def word_of(segments: Sequence) -> Word:
     return Word(token, root is not None, root)
 
 
-class Alignment(NamedTuple):
-    """The best local alignment of A against B (D2), 1-based inclusive spans."""
+def region_of(tok_a: Sequence, tok_b: Sequence, roots_a: Sequence, roots_b: Sequence,
+              content_a: Sequence[bool], content_b: Sequence[bool]) -> "cc.Region | None":
+    """D6: the largest ACCEPTED region of two verses, or None, through the core only.
 
-    score: int
-    i1: int
-    i2: int
-    j1: int
-    j2: int
-    matches: tuple[tuple[int, int], ...]   # (i, j) of every matched position, ascending
-
-    @property
-    def k(self) -> int:
-        return len(self.matches)
-
-
-def smith_waterman(a: Sequence, b: Sequence) -> Alignment | None:
-    """D2: Smith–Waterman of `a` against `b`, or None when no cell scores above 0.
-
-    Scores match +2, mismatch −1, gap −1, floored at 0. The best cell is the
-    first highest score in row-major order — smallest end in A, then in B. The
-    traceback prefers the diagonal, then up (a word of A against a gap), then
-    left, and stops at a zero cell, as standard. A cell above 0 whose diagonal
-    predecessor is 0 can only be a match, so the alignment starts on a match.
+    Ties are read in A as passed — the build passes the lower-surah verse, stored as `a` —
+    as the shared-passages spec pre-registers («the earlier and then the shorter window in
+    A, then the earlier in B»). The core's `passage_region` reads them that way and never
+    canonicalises the pair: two blocks exchanged across a wide gap store the T window from
+    A and the U window from B (pinned), and 5:33/7:124 lost its passage when a canonical
+    orientation read the tie in B.
     """
-    n, m = len(a), len(b)
-    H = [[0] * (m + 1) for _ in range(n + 1)]
-    best, bi, bj = 0, 0, 0
-    for i in range(1, n + 1):
-        ai, prev, row = a[i - 1], H[i - 1], H[i]
-        for j in range(1, m + 1):
-            v = prev[j - 1] + (MATCH if ai == b[j - 1] else MISMATCH)
-            u = prev[j] + GAP
-            if u > v:
-                v = u
-            le = row[j - 1] + GAP
-            if le > v:
-                v = le
-            if v < 0:
-                v = 0
-            row[j] = v
-            if v > best:
-                best, bi, bj = v, i, j
-    if best == 0:
-        return None
-    i, j = bi, bj
-    i1, j1 = bi, bj
-    matches: list[tuple[int, int]] = []
-    while i > 0 and j > 0 and H[i][j] > 0:
-        h = H[i][j]
-        same = a[i - 1] == b[j - 1]
-        if H[i - 1][j - 1] + (MATCH if same else MISMATCH) == h:
-            if same:
-                matches.append((i, j))
-            i1, j1 = i, j
-            i, j = i - 1, j - 1
-        elif H[i - 1][j] + GAP == h:
-            i1 = i
-            i -= 1
-        elif H[i][j - 1] + GAP == h:
-            j1 = j
-            j -= 1
-        else:
-            break                       # only the floor explains this cell
-    matches.reverse()
-    return Alignment(best, i1, bi, j1, bj, tuple(matches))
-
-
-def rejection(k: int, span_a: int, span_b: int, content: int) -> str | None:
-    """D3: the first rule a candidate fails — `l_min`, `density`, `content_min` — or None."""
-    if k < L_MIN:
-        return "l_min"
-    if k < DENSITY * max(span_a, span_b):
-        return "density"
-    if content < CONTENT_MIN:
-        return "content_min"
-    return None
+    edges = cc.match_all(tok_a, tok_b, roots_a, roots_b, content_a, content_b)
+    return cc.passage_region(edges)
 
 
 def common_tokens(a: Iterable, b: Iterable) -> int:
@@ -242,10 +211,28 @@ def ref_str(ref: tuple[int, int]) -> str:
     return f"{ref[0]}:{ref[1]}"
 
 
-class Corpus:
-    """Every verse in (surah, ayah) order: its words (D1), interned tokens, roots."""
+def content_roots(refs: Iterable[tuple[int, int]], resolved: dict, tools: dict
+                  ) -> dict[tuple[int, int], frozenset]:
+    """D1's content-root sets, as the intra build computes them (its function, imported).
 
-    def __init__(self, records: Iterable | None = None, resolved: dict | None = None):
+    The function nouns are judged on the WHOLE QAC whatever `refs` holds: the stoplist
+    reading is a corpus-wide fact, so a build on two surahs sees the sets the full one does.
+    """
+    records = intra._qac_records()
+    return intra.content_root_sets(loaders.morphology(), resolved, tools,
+                                   intra.function_word_refs(records), refs)
+
+
+class Corpus:
+    """Every verse in (surah, ayah) order: its words, interned tokens, roots, content flags.
+
+    `resolved` (`roots_resolved.json`), `tools` (`word_function.json`) and
+    `root_sets` (the content roots, `{(s, a): frozenset}`) are read through
+    `quran_data` unless given.
+    """
+
+    def __init__(self, records: Iterable | None = None, resolved: dict | None = None,
+                 tools: dict | None = None, root_sets: dict | None = None):
         by_word: dict[tuple[int, int, int], list] = defaultdict(list)
         for rec in (qac_records() if records is None else records):
             by_word[(rec.surah, rec.ayah, rec.word)].append(rec)
@@ -264,60 +251,76 @@ class Corpus:
         vocab: dict[str, int] = {}
         self.seqs = [tuple(vocab.setdefault(w.token, len(vocab)) for w in ws)
                      for ws in self.words]
-        self.content = [tuple(w.content for w in ws) for ws in self.words]
         resolved = loaders.roots_resolved() if resolved is None else resolved
         self.roots: list[tuple[str | None, ...]] = []
         for r, ws in zip(self.refs, self.words):
             self.roots.append(tuple(
                 ((resolved.get(f"{r[0]}:{r[1]}:{n}") or {}).get("primary") or w.root)
-                if w.content else None
+                if w.rooted else None
                 for n, w in enumerate(ws, start=1)))
+        tools = loaders.word_function() if tools is None else tools
+        if root_sets is None:
+            root_sets = content_roots(self.refs, resolved, tools)
+        self.content: list[tuple[bool, ...]] = [
+            cc.content_words(roots, root_sets.get(r, frozenset()), *r, tools)
+            for r, roots in zip(self.refs, self.roots)]
 
-    def judge(self, i: int, j: int, al: Alignment | None) -> tuple[str | None, dict | None]:
-        """`(rejection, passage)` for the aligned pair `(i, j)`, `i` in the lower surah."""
-        if al is None:
-            return "l_min", None
-        content = [(p, q) for p, q in al.matches
-                   if self.content[i][p - 1] and self.content[j][q - 1]]
-        why = rejection(al.k, al.i2 - al.i1 + 1, al.j2 - al.j1 + 1, len(content))
-        if why:
-            return why, None
-        roots = sorted({r for p, q in content
-                        for r in (self.roots[i][p - 1], self.roots[j][q - 1]) if r})
+    def region(self, i: int, j: int) -> "cc.Region | None":
+        """D6: the largest accepted region of verses `i` and `j`, or None."""
+        return region_of(self.seqs[i], self.seqs[j], self.roots[i], self.roots[j],
+                         self.content[i], self.content[j])
+
+    def judge(self, i: int, j: int, region: "cc.Region | None"
+              ) -> tuple[str | None, dict | None]:
+        """`("none", None)` when the pair holds no accepted region, else `(None, passage)`
+        for the pair `(i, j)`, `i` in the lower surah."""
+        if region is None:
+            return "none", None
+        why = cc.region_rejection(region)
+        if why is not None:          # the core returns accepted regions only
+            raise ValueError(f"{ref_str(self.refs[i])}/{ref_str(self.refs[j])}: the core "
+                             f"returned a region it rejects ({why}): {region}")
+        roots = sorted({r for e in region.edges if e.kind == cc.LEMMA
+                        for r in (self.roots[i][e.p - 1], self.roots[j][e.q - 1]) if r})
         return None, {"a": ref_str(self.refs[i]), "b": ref_str(self.refs[j]),
-                      "wa": [al.i1, al.i2], "wb": [al.j1, al.j2], "k": al.k, "roots": roots}
+                      "wa": [region.i1, region.i2], "wb": [region.j1, region.j2],
+                      "k": region.k, "roots": roots}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  The alignment stage — multiprocessing, independent of the split
+#  The region stage — multiprocessing, independent of the split
 # ═══════════════════════════════════════════════════════════════════════════
 
-_SEQS: Sequence[Sequence[int]] | None = None
+_VERSES: tuple | None = None          # (seqs, roots, content), one entry per verse
 
 
-def _init_worker(seqs) -> None:
-    global _SEQS
-    _SEQS = seqs
+def _init_worker(verses) -> None:
+    global _VERSES
+    _VERSES = verses
 
 
-def _align_chunk(chunk: list[tuple[int, int]]) -> list[tuple[int, int, Alignment | None]]:
-    return [(i, j, smith_waterman(_SEQS[i], _SEQS[j])) for i, j in chunk]
+def _region_chunk(chunk: list[tuple[int, int]]) -> list[tuple[int, int, "cc.Region | None"]]:
+    seqs, roots, content = _VERSES
+    return [(i, j, region_of(seqs[i], seqs[j], roots[i], roots[j], content[i], content[j]))
+            for i, j in chunk]
 
 
-def align_stage(seqs, pairs: list[tuple[int, int]], jobs: int, chunk: int = 2000
-                ) -> dict[tuple[int, int], Alignment | None]:
-    """`{(i, j): best alignment}` for every candidate; the result does not depend on `jobs`."""
+def region_stage(corpus: Corpus, pairs: list[tuple[int, int]], jobs: int, chunk: int = 2000
+                 ) -> dict[tuple[int, int], "cc.Region | None"]:
+    """`{(i, j): largest accepted region or None}` for every candidate; the result does
+    not depend on `jobs`."""
+    verses = (corpus.seqs, corpus.roots, corpus.content)
     chunks = [pairs[n:n + chunk] for n in range(0, len(pairs), chunk)]
-    out: dict[tuple[int, int], Alignment | None] = {}
+    out: dict[tuple[int, int], cc.Region | None] = {}
     if jobs <= 1 or len(chunks) <= 1:
-        _init_worker(seqs)
+        _init_worker(verses)
         for c in chunks:
-            out.update(((i, j), al) for i, j, al in _align_chunk(c))
+            out.update(((i, j), r) for i, j, r in _region_chunk(c))
         return out
     ctx = multiprocessing.get_context("spawn")
-    with ctx.Pool(jobs, initializer=_init_worker, initargs=(seqs,)) as pool:
-        for res in pool.imap_unordered(_align_chunk, chunks, chunksize=1):
-            out.update(((i, j), al) for i, j, al in res)
+    with ctx.Pool(jobs, initializer=_init_worker, initargs=(verses,)) as pool:
+        for res in pool.imap_unordered(_region_chunk, chunks, chunksize=1):
+            out.update(((i, j), r) for i, j, r in res)
     return out
 
 
@@ -339,9 +342,10 @@ def header(gold_sha: str | None) -> dict:
         "scope": SCOPE,
         "token": TOKEN_RULE,
         "content": CONTENT_RULE,
-        "alignment": "smith-waterman",
-        "scores": {"match": MATCH, "mismatch": MISMATCH, "gap": GAP},
-        "traceback": TRACEBACK,
+        "matching": MATCHING_RULE,
+        "tie_break": cc.TIE_BREAK,          # D8: "median-shift"
+        "passage": cc.PASSAGE,              # D8: "largest-accepted-region"
+        "region": REGION_RULE,
         "l_min": L_MIN,
         "density": DENSITY,
         "content_min": CONTENT_MIN,
@@ -356,19 +360,21 @@ def build(corpus: Corpus, jobs: int) -> tuple[list[dict], dict]:
     pairs = candidate_pairs(corpus.seqs, corpus.surah_of)
     stats: dict = {"candidates": len(pairs), "candidates_s": round(time.time() - t0, 1)}
     t1 = time.time()
-    aligned = align_stage(corpus.seqs, pairs, jobs)
-    stats["align_s"] = round(time.time() - t1, 1)
-    passages, why = [], Counter()
+    regions = region_stage(corpus, pairs, jobs)
+    stats["region_s"] = round(time.time() - t1, 1)
+    passages, rejected = [], 0
     for i, j in pairs:
-        reason, passage = corpus.judge(i, j, aligned[(i, j)])
+        _, passage = corpus.judge(i, j, regions[(i, j)])
         if passage is None:
-            why[reason] += 1
+            rejected += 1
         else:
             passages.append(passage)
     # Global indexes are (surah, ayah) order, so sorting by them is sorting by (a, b)
     # numerically — the order the reader serves ties in.
     passages.sort(key=lambda p: (corpus.index[_ref(p["a"])], corpus.index[_ref(p["b"])]))
-    stats.update({f"rejected_{k_}": why[k_] for k_ in ("l_min", "density", "content_min")})
+    # The region is accepted or absent (D6, version 2): there is no reason to count
+    # per pair, only the pairs that hold none.
+    stats["rejected"] = rejected
     stats["passages"] = len(passages)
     return passages, stats
 
@@ -391,8 +397,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-gold", action="store_true",
                     help="build without the gold set (header gold_sha256 = null)")
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1),
-                    help="alignment worker processes (default: CPUs − 1)")
-    ap.add_argument("--surahs", help="comma-separated surahs: align among these only, "
+                    help="region worker processes (default: CPUs − 1)")
+    ap.add_argument("--surahs", help="comma-separated surahs: match among these only, "
                                      "print the counts, write nothing")
     args = ap.parse_args(argv)
     only = sorted({int(s) for s in args.surahs.split(",")}) if args.surahs else None
@@ -408,9 +414,8 @@ def main(argv: list[str] | None = None) -> int:
     passages, stats = build(corpus, args.jobs)
     print(f"CANDIDATES (D4): {stats['candidates']} cross-surah pairs share ≥ {L_MIN} tokens "
           f"[{stats['candidates_s']}s]")
-    print(f"ALIGNED (D2/D3): {stats['passages']} passages; rejected — l_min "
-          f"{stats['rejected_l_min']}, density {stats['rejected_density']}, content_min "
-          f"{stats['rejected_content_min']} [{stats['align_s']}s, {args.jobs} job(s)]")
+    print(f"REGIONS (D6): {stats['passages']} passages; {stats['rejected']} candidate pairs "
+          f"hold no accepted region [{stats['region_s']}s, {args.jobs} job(s)]")
     if only:
         print(f"(surahs {only} only — nothing written)")
         return 0

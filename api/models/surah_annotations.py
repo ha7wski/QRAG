@@ -18,16 +18,17 @@ from api.models.verse import Verse
 class AnnotationPartner(BaseModel):
     """One cross-surah partner of an ayah, as seen from that ayah.
 
-    `span_self` indexes THIS ayah's `text_ar_tashkil`, `span_other` the
-    partner's; `words` is the common part's matched word count. The three are
-    null together when the pair has no common part (never for a passage).
+    `spans_self` lists half-open `[start, end)` character spans in THIS ayah's
+    `text_ar_tashkil`, `spans_other` in the partner's — one per run of coloured
+    words, ascending; `words` is the common part's matched content-word count.
+    The three are null together when the pair has no common part (never for a passage, D4).
     """
 
     ref: str                          # "s:a"
     score: float
     words: int | None = None
-    span_self: list[int] | None = None
-    span_other: list[int] | None = None
+    spans_self: list[tuple[int, int]] | None = None
+    spans_other: list[tuple[int, int]] | None = None
 
 
 class AnnotatedAyah(BaseModel):

@@ -12,7 +12,8 @@ target pre-registered in `openspec/changes/add-surah-similar-verses/tasks.md`
     identical, a neighbour verbatim identical to the other also counts;
   * the rank of each positive (best of the two directions);
   * the positives lost at each stage — unscored, syntax gate, candidate cap,
-    semantic gate, shared-root rule, top-K — read from the per-gold-pair
+    semantic gate, short-verse material rule (stage `short_material`,
+    short-verse-material D1), matched-mass rule (stage `no_shared_root`), top-K — read from the per-gold-pair
     diagnostics the builder writes;
   * the negatives of each kind stored as neighbours, and how many appear in
     a top-3 (either direction).
@@ -39,8 +40,11 @@ sys.path.insert(0, str(ROOT))
 from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "surah_similarity_gold.json"
+# The per-pair signals the build's diagnostics carry (`lex` replaced `cov` in
+# schema 2, order-invariant-closeness D3).
+SIGNALS = ("syn", "dense", "lex", "ce", "sem")
 STAGES = ("unscored", "consecutive", "syntax_gate", "candidate_cap", "semantic_gate",
-          "no_shared_root", "top_k", "stored")
+          "short_material", "no_shared_root", "top_k", "stored")
 
 # tasks.md §1.3, copied as numbers so a miss is printed as a miss.
 TARGET_RECALL = 0.75
@@ -91,7 +95,7 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
             stage = "stored (verbatim class)"
         pos_rows.append({"ref": f"{p['surah']}:{p['a']}/{p['b']}", "rank": rank, "stage": stage,
                          **{key: diag.get((p["surah"], p["a"], p["b"]), {}).get(key)
-                            for key in ("syn", "dense", "cov", "ce", "sem")}})
+                            for key in SIGNALS}})
     recalled = sum(1 for r in pos_rows if r["rank"] is not None and r["rank"] <= k)
     stage_loss = Counter(r["stage"] for r in pos_rows if r["rank"] is None)
     candidate_loss = stage_loss.get("syntax_gate", 0) + stage_loss.get("candidate_cap", 0)
@@ -184,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
               + (f" — {'; '.join(v['refs'])}" if v["refs"] else ""))
     print("\nPositives (best rank either direction; stage where a miss was lost):")
     for row in report["positive_rows"]:
-        sig = " ".join(f"{k}={row[k]}" for k in ("syn", "dense", "cov", "ce", "sem")
+        sig = " ".join(f"{k}={row[k]}" for k in SIGNALS
                        if row[k] is not None)
         print(f"  {row['ref']:>12}  rank {row['rank'] or '—':>2}  {row['stage']:<22} {sig}")
     return 0

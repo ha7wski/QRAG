@@ -14,12 +14,12 @@ attribute), never at import: a backend without the file must still start, and a
 request against it must become a 503 carrying the rebuild command — not a
 startup failure.
 
-Shapes (dataset design D10, schema 1):
+Shapes (dataset design D10, schema 2 — `lex` replaced `cov` in order-invariant-closeness):
 
     surahs["<n>"] = {
         "unscored":   [ayah, ...],                       # no content root → not compared
         "groups":     [{"ayahs": [...], "strength": s}], # strongest first
-        "neighbours": {"<ayah>": [{"a", "s", "sem", "syn", "ce", "dense", "cov", "roots",
+        "neighbours": {"<ayah>": [{"a", "s", "sem", "syn", "ce", "dense", "lex", "roots",
                                           "verbatim"?}]},
     }
 

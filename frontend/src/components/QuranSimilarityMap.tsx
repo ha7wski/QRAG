@@ -115,7 +115,9 @@ export type PairGroup = { hub: GroupVerse; partners: GroupPartner[] };
  * A cell's pairs as STARS: a verse close to several verses of the other surah
  * is shown once, with all of them under it — البقرة 39 with المائدة 10 and 86,
  * or المائدة 89 with البقرة 196, 219, 225, 242 and 266. Every common part is
- * marked: the hub's as the union of its pairs' parts, each partner's its own.
+ * marked: the hub's as the union of every span of its pairs' parts, each
+ * partner's its own list (a pair's part may be several runs: the common words
+ * are matched whatever their order, so they need not be contiguous).
  *
  * The hub is picked greedily: the verse, on either side, with the most pairs not
  * yet shown takes them all, then the next; a tie goes to the verse whose
@@ -150,10 +152,10 @@ export function groupPairs(pairs: QuranSimilarityPair[]): PairGroup[] {
     const partners: GroupPartner[] = [];
     for (const k of ks) {
       const p = pairs[k];
-      const hubSpan = side === "u" ? p.span_u : p.span_v;
-      const partnerSpan = side === "u" ? p.span_v : p.span_u;
-      if (hubSpan) hub.spans.push(hubSpan);
-      partners.push({ verse: p[other], spans: partnerSpan ? [partnerSpan] : [], pair: p });
+      const hubSpans = (side === "u" ? p.spans_u : p.spans_v) ?? [];
+      const partnerSpans = (side === "u" ? p.spans_v : p.spans_u) ?? [];
+      hub.spans.push(...hubSpans);
+      partners.push({ verse: p[other], spans: [...partnerSpans], pair: p });
       left.delete(k);
     }
     partners.sort((x, y) => x.verse.ayah_number - y.verse.ayah_number);

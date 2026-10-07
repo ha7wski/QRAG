@@ -20,18 +20,19 @@ from api.models.verse import Verse
 class QuranNeighbour(BaseModel):
     """One close verse of the anchor in another surah.
 
-    `words` is the common part's matched word count and `span` its half-open
-    `[start, end)` character span in THIS verse's `text_ar_tashkil` (the
-    neighbour's, not the anchor's: the anchor's span differs per neighbour).
-    Both are null together when the pair has no common part. A separate model
-    from the intra-surah `SimilarNeighbour`, which has no common part.
+    `words` is the common part's matched content-word count and `spans` its
+    half-open `[start, end)` character spans — one per run of coloured words,
+    ascending — in THIS verse's `text_ar_tashkil` (the neighbour's, not the
+    anchor's: the anchor's spans differ per neighbour). Both are null together
+    when the pair has no common part. A separate model from the intra-surah
+    `SimilarNeighbour`, which has no common part.
     """
 
     verse: Verse
     score: float
     roots: list[str]
     words: int | None = None
-    span: tuple[int, int] | None = None
+    spans: list[tuple[int, int]] | None = None
 
 
 class VerseQuranSimilarityResponse(BaseModel):
@@ -87,9 +88,11 @@ class QuranSimilarityMatrixResponse(BaseModel):
 class SimilarPair(BaseModel):
     """One close verse pair of a cell: `u` in the lower-numbered surah, `v` in the other.
 
-    `words`, `span_u`, `span_v` are the common part — its matched word count and
-    its half-open `[start, end)` character span in `u`'s and `v`'s
-    `text_ar_tashkil` — and are null together when the pair has none.
+    `words`, `spans_u`, `spans_v` are the common part — its matched content-word
+    count and its half-open `[start, end)` character spans (one per run of
+    coloured words, ascending) in `u`'s and `v`'s `text_ar_tashkil` — and are
+    null together when the pair has none. The words need not be in the same
+    order in both verses (change `order-invariant-common-words`).
     """
 
     u: Verse
@@ -97,8 +100,8 @@ class SimilarPair(BaseModel):
     score: float
     roots: list[str]
     words: int | None = None
-    span_u: tuple[int, int] | None = None
-    span_v: tuple[int, int] | None = None
+    spans_u: list[tuple[int, int]] | None = None
+    spans_v: list[tuple[int, int]] | None = None
 
 
 class QuranSimilarityCellResponse(BaseModel):
