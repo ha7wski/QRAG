@@ -192,14 +192,24 @@ class LisanService:
         w = self.normalize(word)
         if not w:
             return {"root": None, "roots": [], "root_source": None}
+        # 0. A whole word the Quran writes: the root its occurrences carry
+        #    (`word_to_roots`), as «الكلمة في الآيات» answers it. The segment
+        #    ladder and the peeling below only guess at a word: «ينسلون» met no
+        #    key at all, and a peeled «…سل» can land on a QAC segment of another
+        #    root (سيل). A written word is therefore never peeled.
+        written = self.lex.resolve_written(word)
+        if written:
+            return {"root": written[0], "roots": written, "root_source": "qac"}
         # 1. Strict QAC ladder — the primary, most-trusted path.
         qac_roots = self.lex._ladder(w)
         if qac_roots:
             return {"root": qac_roots[0], "roots": qac_roots, "root_source": "qac"}
         # 2. Lenient QAC retries (clitic-stripped / plene→defective alif), still
         #    QAC-backed — the ladder is re-run on each candidate stem, never the
-        #    stemmer. This is why it stays labeled "qac".
-        for stem in clitic_alif_candidates(w):
+        #    stemmer. This is why it stays labeled "qac". The first hit wins, so
+        #    the candidate removing the FEWEST letters goes first (ي before ني);
+        #    the sort is stable, so equal strips keep the retriever's order.
+        for stem in sorted(clitic_alif_candidates(w), key=lambda s: len(w) - len(s)):
             retried = self.lex._ladder(stem)
             if retried:
                 return {"root": retried[0], "roots": retried, "root_source": "qac"}
