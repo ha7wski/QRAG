@@ -600,7 +600,6 @@ const BASE = {
       legendLabel: "دليل الألوان",
       legendGroup: "آية قريبة داخل السورة",
       legendQuran: "آية قريبة في سائر القرآن",
-      legendPassage: "جزء مشترك في سائر القرآن",
       loading: "جارٍ تحميل الآيات المتقاربة…",
       /** The annotations failed; the surah itself is still on screen. */
       unavailable: "تعذّر تحميل الآيات المتقاربة؛ تُعرض السورة دون تعليم.",

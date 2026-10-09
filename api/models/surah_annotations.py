@@ -2,11 +2,11 @@
 
 Per annotated ayah of one surah: the other members of its intra-surah group
 (`surah_similarity.json`), and its cross-surah partners (`quran_close_verses.json`)
-split by relation — `whole` when the pair's `from` holds `similarity`, `passage`
-when it is a shared passage alone. Every partner verse the bubble lists travels
-once in `verses`, built through `verse_from_record`, so its `text_ar_tashkil` is
-Basmala-stripped like every other verse the API emits — which is the text the
-spans index.
+in ONE list `cross`, whatever relation produced each pair (change
+`unify-cross-closeness-cue`, D8 — the `whole` / `passage` split is gone).
+Every partner verse the bubble lists travels once in `verses`, built through
+`verse_from_record`, so its `text_ar_tashkil` is Basmala-stripped like every
+other verse the API emits — which is the text the spans index.
 """
 from __future__ import annotations
 
@@ -21,7 +21,8 @@ class AnnotationPartner(BaseModel):
     `spans_self` lists half-open `[start, end)` character spans in THIS ayah's
     `text_ar_tashkil`, `spans_other` in the partner's — one per run of coloured
     words, ascending; `words` is the common part's matched content-word count.
-    The three are null together when the pair has no common part (never for a passage, D4).
+    The three are null together when the pair has no common part (never for a
+    passage) — such a pair colours the orange marker alone.
     """
 
     ref: str                          # "s:a"
@@ -36,8 +37,7 @@ class AnnotatedAyah(BaseModel):
 
     ayah: int
     group: list[int]                  # other members of its group(s), mushaf order
-    whole: list[AnnotationPartner]    # `similarity` in `from` → orange marker
-    passage: list[AnnotationPartner]  # `from == ["passage"]` → orange words
+    cross: list[AnnotationPartner]    # every cross pair: score desc, ties mushaf order
 
 
 class SurahAnnotationsResponse(BaseModel):

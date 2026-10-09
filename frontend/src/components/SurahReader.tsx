@@ -32,7 +32,7 @@ import { writePosition } from "@/lib/readingPosition";
 import {
   isAnnotated,
   markerCue,
-  passageSpans,
+  crossSpans,
   readAnnotationsOn,
   splitMarked,
   writeAnnotationsOn,
@@ -550,12 +550,14 @@ export default function SurahReader({ number }: { number: number }) {
               <span aria-hidden className="inline-block h-4 w-6 rounded-sm bg-emerald-100" />
               {S.reading.annotations.legendGroup}
             </li>
+            {/* ONE orange cue in two parts: the ringed marker over an orange word. */}
             <li className="flex items-center gap-1.5">
-              <span aria-hidden className="inline-block h-4 w-6 rounded-sm bg-orange-100" />
-              {S.reading.annotations.legendPassage}
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span aria-hidden className="inline-block h-4 w-6 rounded-md bg-white ring-2 ring-orange-400" />
+              <span
+                aria-hidden
+                className="inline-flex h-4 w-6 items-center justify-center rounded-md bg-white ring-2 ring-orange-400"
+              >
+                <span className="inline-block h-2 w-4 rounded-sm bg-orange-100" />
+              </span>
               {S.reading.annotations.legendQuran}
             </li>
           </ul>
@@ -601,16 +603,17 @@ export default function SurahReader({ number }: { number: number }) {
                 </span>
               );
             }
-            // Spans address the vocalized text only; on the fallback the
-            // passage cue moves to the marker (`markerCue`).
+            // One orange cue: every cross pair rings the marker and colours its
+            // common part. Spans address the vocalized text only; on the
+            // fallback the marker alone remains.
             const vocalized = !!v.text_ar_tashkil;
-            const cue = markerCue(entry, vocalized);
-            const segments = splitMarked(text, passageSpans(entry, vocalized));
+            const cue = markerCue(entry);
+            const segments = splitMarked(text, crossSpans(entry, vocalized));
             const body = segments.map((seg) =>
                   seg.marked ? (
                     <mark
                       key={seg.start}
-                      data-cue="passage"
+                      data-cue="cross"
                       {...triggerProps(v.ayah_number, false)}
                       className="cursor-pointer rounded-sm bg-orange-100 text-inherit focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                     >
@@ -623,7 +626,7 @@ export default function SurahReader({ number }: { number: number }) {
             return (
               <span key={v.id}>
                 {/* Close inside the sūra: the whole āya text turns green (its
-                    orange passage words, if any, stay orange on top). */}
+                    orange common-part words, if any, stay orange on top). */}
                 {cue.green ? (
                   <span
                     data-cue="group"

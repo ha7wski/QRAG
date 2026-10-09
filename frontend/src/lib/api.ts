@@ -228,7 +228,7 @@ export async function getSurahSimilarity(
 
 /** One partner of an āya's cross-sūra pair, as seen from that āya. `words`,
  *  `spans_self` and `spans_other` describe the pair's common part and are null
- *  together when it has none; a passage-only partner always has them. The
+ *  together when it has none (such a pair is the orange marker alone). The
  *  common part is the order-invariant matching of the two verses' content
  *  words: a verse may be coloured in several runs. */
 export interface AnnotationPartner {
@@ -250,10 +250,10 @@ export interface AyahAnnotation {
   ayah: number;
   /** The other members of its intra-sūra group(s), mushaf order; [] if none. */
   group: number[];
-  /** Cross pairs of the whole-verse relation (`from` contains `similarity`). */
-  whole: AnnotationPartner[];
-  /** Cross pairs that are a shared passage only (`from == ["passage"]`). */
-  passage: AnnotationPartner[];
+  /** EVERY pair with a verse of another sūra, whatever relation produced it —
+   *  score descending, ties in mushaf order; [] if none. Each one rings the
+   *  orange marker and colours its common part. */
+  cross: AnnotationPartner[];
 }
 
 /** `GET /surah/{n}/annotations` — annotated āyāt only, ayah ascending, and a

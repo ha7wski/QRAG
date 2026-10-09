@@ -70,32 +70,34 @@ export function splitMarked(text: string, spans: readonly Span[]): Segment[] {
 export interface MarkerCue {
   /** A member of one of its sūra's groups. */
   green: boolean;
-  /** A whole-verse pair in another sūra — or a passage-only pair whose span
-   *  cannot be applied because the āya is rendered from its undiacritized
-   *  fallback. */
+  /** At least one pair with a verse of another sūra, whatever relation
+   *  produced it — the marker half of the one orange cue. */
   orange: boolean;
 }
 
-export function markerCue(entry: AyahAnnotation, vocalized: boolean): MarkerCue {
+/** Independent of vocalization: the orange marker shows on the undiacritized
+ *  fallback too, where it is then the whole orange cue. */
+export function markerCue(entry: AyahAnnotation): MarkerCue {
   return {
     green: entry.group.length > 0,
-    orange: entry.whole.length > 0 || (!vocalized && entry.passage.length > 0),
+    orange: entry.cross.length > 0,
   };
 }
 
-/** The spans to mark in the āya's own text: every span of its passage-only
- *  pairs' side of the common part (a pair may colour several runs), and only on
- *  the vocalized text the spans address. Whole-verse pairs never colour words,
- *  even when they carry a common part. Not merged here: `splitMarked` unions. */
-export function passageSpans(entry: AyahAnnotation, vocalized: boolean): Span[] {
+/** The spans to mark in the āya's own text — the words half of the one orange
+ *  cue: every span of EVERY cross pair's side of its common part (a pair may
+ *  colour several runs; a pair without a common part colours none), and only on
+ *  the vocalized text the spans address — on the undiacritized fallback, the
+ *  marker alone remains. Not merged here: `splitMarked` unions. */
+export function crossSpans(entry: AyahAnnotation, vocalized: boolean): Span[] {
   if (!vocalized) return [];
-  return entry.passage.flatMap((p) => p.spans_self ?? []);
+  return entry.cross.flatMap((p) => p.spans_self ?? []);
 }
 
 /** Whether an entry carries anything at all — only such an āya is clickable. */
 export function isAnnotated(entry: AyahAnnotation | undefined): entry is AyahAnnotation {
   return (
-    !!entry && (entry.group.length > 0 || entry.whole.length > 0 || entry.passage.length > 0)
+    !!entry && (entry.group.length > 0 || entry.cross.length > 0)
   );
 }
 
@@ -112,10 +114,11 @@ export function compareRefs(x: string, y: string): number {
   return sx - sy || ax - ay;
 }
 
-/** The bubble's «في سائر القرآن» list: whole-verse and passage-only partners
- *  together, score descending, ties in mushaf order. */
+/** The bubble's «في سائر القرآن» list: every cross partner, score descending,
+ *  ties in mushaf order. The route already serves that order; it is re-applied
+ *  on a copy so the bubble never rests on it. */
 export function crossPartners(entry: AyahAnnotation): AnnotationPartner[] {
-  return [...entry.whole, ...entry.passage].sort(
+  return [...entry.cross].sort(
     (x, y) => y.score - x.score || compareRefs(x.ref, y.ref),
   );
 }

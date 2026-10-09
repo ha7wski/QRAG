@@ -17,11 +17,16 @@ target pre-registered in `openspec/changes/add-quran-wide-similar-verses/tasks.m
     construction: a pair is reported there only if its full `syn ≥ σ`, which
     is a bug), syntax gate, candidate cap, semantic gate, short-verse material
     rule (`short_material`, short-verse-material D1), matched-mass rule
-    (`no_shared_root`), top-K — read from the per-gold-pair
+    (`no_shared_root`), the two cross-only rules of unify-cross-closeness-cue D3
+    (`syntax_cross`: syn ≥ σ_x; `material`: the shared lemmas cover κ of the
+    shorter verse), top-K — read from the per-gold-pair
     diagnostics the builder writes, whose lexical signal is `lex` (schema 2,
     order-invariant-closeness D3; `cov` before);
   * the negatives of each kind stored as neighbours, and how many appear in
-    a top-3 (either direction).
+    a top-3 (either direction);
+  * the capped pairs (all of them, not the gold set's) lost at each stage after
+    the cross-encoder, from the build's `diagnostics.stage_losses` when it carries
+    them (unify-cross-closeness-cue D7: reported, no target).
 
 It REFUSES to report when the gold file's sha256 differs from the one the
 dataset header was frozen against: a number measured on another gold set is
@@ -46,8 +51,10 @@ from quran_data import loaders, qac  # noqa: E402
 
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
 STAGES = ("unscored", "length_window", "bag_bound", "syntax_gate", "short_exact",
-          "candidate_cap", "semantic_gate", "short_material", "no_shared_root", "top_k",
-          "relative_cut", "stored")
+          "candidate_cap", "semantic_gate", "short_material", "no_shared_root",
+          "syntax_cross", "material", "top_k", "relative_cut", "stored")
+# unify-cross-closeness-cue D3: the two cross-only filters, in the order applied.
+CROSS_RULE_STAGES = ("syntax_cross", "material")
 # order-invariant-closeness version 2 D5: the core's two exact bounds of `syn`
 # (length, coarse-element bag); version 1's bigram bound is gone.
 PREFILTER_STAGES = ("length_window", "bag_bound")
@@ -172,6 +179,8 @@ def evaluate(data: dict, gold: dict, words: dict) -> dict:
         "lost_by_stage": dict(stage_loss),
         "candidate_loss": candidate_loss,
         "prefilter_loss": prefilter_loss,
+        "cross_rule_loss": {s: stage_loss.get(s, 0) for s in CROSS_RULE_STAGES},
+        "stage_losses": data.get("diagnostics", {}).get("stage_losses"),
         "negatives": {kind: dict(v) for kind, v in sorted(neg.items())},
         "negatives_in_top3": neg_top3,
         "positive_rows": pos_rows,
@@ -230,6 +239,14 @@ def main(argv: list[str] | None = None) -> int:
     print("   positives lost by stage: " + (", ".join(
         f"{s} {report['lost_by_stage'][s]}" for s in (*STAGES, "unknown")
         if report["lost_by_stage"].get(s)) or "none"))
+    cr = report["cross_rule_loss"]
+    head = data["build"]
+    print(f"   positives lost at the cross-only rules (unify-cross-closeness-cue): "
+          f"syntax_cross {cr['syntax_cross']} (σ_x = {head.get('sigma_cross')}), "
+          f"material {cr['material']} (κ = {head.get('material_min_coverage')})")
+    if report["stage_losses"] is not None:
+        print("   every capped pair lost after the cross-encoder, by stage: " + ", ".join(
+            f"{k_} {v}" for k_, v in report["stage_losses"].items()))
     print(f"T2 first-sample negatives in a top-3 (either direction): {report['negatives_in_top3']} "
           f"(target ≤ {TARGET_NEG_TOP3}) {mark(t['T2 neg_top3'])}")
     for kind, v in report["negatives"].items():

@@ -48,6 +48,18 @@ intra-surah definition unchanged and only changes the population:
     passes the syntactic gate only with `syn = 1` (`passes_short_rule`), and each
     verse's list keeps a neighbour only when its score is ≥ `RHO` × the list's best
     (`relative_cut`). The intra build is untouched.
+  * Two more cross-only rules (unify-cross-closeness-cue D1–D3), FILTERS applied after
+    the semantic gate, the short-verse material rule and the matched-mass rule — in
+    that order, `syntax_cross` then `material`: `syn ≥ SIGMA_CROSS` (σ_x ≥ σ), and the
+    core's `material_ok` — the pair's `lemma` edges `L ≥ 2` and their IDF-weighted
+    coverage (`weighted_coverage`, of the verse they cover best) ≥ MATERIAL_MIN_COVERAGE (κ).
+    Applied late so `dense`, `sem` and the cap stay exactly what they were for every
+    pair (the calibration simulates the rules on the stored pairs' values); the top-K
+    and the relative cut run after them, so a neighbour cut only because of a pair
+    now removed comes back. Each stage's losses are counted (`diagnostics.stage_losses`,
+    and a gold row's `stage`). The header records σ_x, κ and the sha256 of the BYTES
+    of the two sample files that chose and measure them (`calibration_sha256`,
+    `holdout_sha256`; never parsed; null when absent).
   * D7 — the file layout; schema 2 since `order-invariant-closeness`: `syn` is
     the coarse-element Levenshtein with blocks re-orderable along the matching
     (version 2 D4; version 1's `½·uni + ½·bi` was measured and closed), and the
@@ -104,6 +116,7 @@ from build_surah_similarity import (  # noqa: E402 — D1: the definition, impor
 )
 # order-invariant-closeness D5: the exact bounds, from the core itself.
 from closeness_core import syn_bag_bound, syn_length_bound  # noqa: E402
+import closeness_core as cc  # noqa: E402 — unify-cross-closeness-cue D1: `material_ok`
 
 SCHEMA = loaders.QURAN_SIMILARITY_SCHEMA
 SCOPE = "cross-surah"
@@ -113,6 +126,25 @@ SCOPE = "cross-surah"
 DENSE_POPULATION = "syntax-survivors"   # D1
 SHORT_EXACT_MAX_LEN = 3                 # D2
 RHO = 0.5                               # D3
+# unify-cross-closeness-cue D2 / D1 — the cross-only syntax threshold σ_x and the
+# material coverage κ, picked by the D6 rule on the CALIBRATION labels
+# (`scripts/select_cross_material.py`). First choice (count coverage L / c): σ_x = 0.75,
+# κ = 0.33. Re-chosen on 2026-10-09 by the same rule and the same calibration labels when
+# the user switched to the IDF-WEIGHTED coverage (design «Follow-up: weighted coverage»):
+# σ_x = 2/3 (= σ: the syntax rule adds nothing), κ = 0.40 — P = 16/21, N = 3/25. The
+# holdout had already been read for the first choice, so its figure is not blind.
+SIGMA_CROSS = SIGMA
+MATERIAL_MIN_COVERAGE = 0.40
+# Set by task 2.2 in the same edit that wrote the chosen values above. While False,
+# `main()` refuses every run that stores pairs (checkpoints included).
+THRESHOLDS_CHOSEN = True
+# The D6 grid the selection rule picks (σ_x, κ) from — the only legal values.
+SIGMA_CROSS_GRID = (SIGMA, 0.75, 0.80, 0.85, 0.90, 1.0)
+MATERIAL_COVERAGE_GRID = (0.20, 0.25, 0.33, 0.40, 0.50, 0.60)
+assert SIGMA_CROSS >= SIGMA, "σ_x ≥ σ (unify-cross-closeness-cue D2)"
+assert not THRESHOLDS_CHOSEN or (SIGMA_CROSS in SIGMA_CROSS_GRID
+                                 and MATERIAL_MIN_COVERAGE in MATERIAL_COVERAGE_GRID), \
+    "(σ_x, κ) must be a point of the D6 grid (unify-cross-closeness-cue)"
 GOLD_JSON = ROOT / "tests" / "eval" / "quran_similarity_gold.json"
 # order-invariant-closeness D10.3: the blind sample the version-2 build is measured
 # on. Its sha256 (of the BYTES — never parsed here) goes into the header so
@@ -121,6 +153,10 @@ BLIND_SAMPLE_JSON = ROOT / "tests" / "eval" / "closeness_blind_v2.json"
 # short-verse-material D2: the blind sample of SHORT pairs the rule is measured on,
 # hashed by its bytes (never parsed) under `blind_short_sha256`; null when absent.
 BLIND_SHORT_JSON = ROOT / "tests" / "eval" / "closeness_blind_short.json"
+# unify-cross-closeness-cue D4/D6: the CALIBRATION sample that chose (σ_x, κ) and the
+# disjoint HOLDOUT that measures them, hashed by their bytes (never parsed here).
+CALIBRATION_JSON = ROOT / "tests" / "eval" / "cross_material_calibration.json"
+HOLDOUT_JSON = ROOT / "tests" / "eval" / "cross_material_holdout.json"
 REBUILD = "python scripts/build_quran_similarity.py"
 # The intra header keys this build must share verbatim (spec «The parameters are
 # the intra-surah ones»); their digest is recorded so the equality is checkable.
@@ -131,6 +167,12 @@ SHARED_PARAMS = ("K", "M", "w_ce", "w_dense", "floor", "sigma", "tau_sem", "sign
                  "require_shared_root", "short_material_max_len", "short_material_min_lemmas")
 # `passes_syntax`'s threshold, as the one float it compares against.
 _SYN_THRESHOLD = SIGMA - SIGMA_EPS
+# The cross header's runtime keys: the intra ones, plus the two material samples'
+# digests, which name the files' bytes AT BUILD TIME as the gold and blind digests do.
+RUNTIME_HEADER_KEYS = intra.RUNTIME_HEADER_KEYS | {"calibration_sha256", "holdout_sha256"}
+# The capped pairs' stages after the cross-encoder, in the order they are applied
+# (unify-cross-closeness-cue D3); `stats["lost"]` counts each.
+LOSS_STAGES = ("semantic_gate", "short_material", "no_shared_root", "syntax_cross", "material")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -424,6 +466,16 @@ def blind_short_digest() -> str | None:
     return hashlib.sha256(BLIND_SHORT_JSON.read_bytes()).hexdigest()
 
 
+def file_digest(path: Path) -> str | None:
+    """sha256 of a file's BYTES, or None when it is absent — never parsed."""
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+
+
+def header_drift(built: dict, code: dict) -> list[str]:
+    """`intra.header_drift` with the cross runtime keys aside (`RUNTIME_HEADER_KEYS`)."""
+    return [k for k in intra.header_drift(built, code) if k not in RUNTIME_HEADER_KEYS]
+
+
 def header(gold_sha: str | None) -> dict:
     intra_head = intra.header(None)
     shared = {k: intra_head[k] for k in SHARED_PARAMS}
@@ -444,6 +496,11 @@ def header(gold_sha: str | None) -> dict:
         "require_shared_root": REQUIRE_SHARED_ROOT,
         "short_material_max_len": SHORT_MATERIAL_MAX_LEN,
         "short_material_min_lemmas": SHORT_MATERIAL_MIN_LEMMAS,
+        # unify-cross-closeness-cue D1/D2: the cross-only syntax and material rules
+        "sigma_cross": SIGMA_CROSS,
+        "material_min_coverage": MATERIAL_MIN_COVERAGE,
+        "material_min_lemmas": cc.MATERIAL_MIN_LEMMAS,
+        "material_coverage": "idf-weighted",
         # D1: the intra builder's digest of the parameters both builds share
         "intra_params_sha256": intra.params_digest(shared),
         "gold_sha256": gold_sha,
@@ -451,6 +508,9 @@ def header(gold_sha: str | None) -> dict:
         "blind_sample_sha256": blind_sample_digest(),
         # short-verse-material D2: the short-pair blind sample (bytes hashed, not read)
         "blind_short_sha256": blind_short_digest(),
+        # unify-cross-closeness-cue D6: the samples that chose and measure (σ_x, κ)
+        "calibration_sha256": file_digest(CALIBRATION_JSON),
+        "holdout_sha256": file_digest(HOLDOUT_JSON),
     }
 
 
@@ -510,6 +570,24 @@ class Corpus:
         edges = self.edges(i, j) if edges is None else edges
         return short_material(self.vwords[i], self.vwords[j], edges)
 
+    def material_coverage(self, i: int, j: int, edges: Sequence | None = None):
+        """`(L, c, coverage)` of verses i and j (unify-cross-closeness-cue D1): the lemma
+        edges, the shorter verse's content-word count and the IDF-WEIGHTED coverage the
+        material rule compares with κ (`closeness_core.weighted_coverage`)."""
+        edges = self.edges(i, j) if edges is None else edges
+        va, vb = self.vwords[i], self.vwords[j]
+        lemmas, c, _ = cc.material_coverage(edges, va.content, vb.content)
+        return lemmas, c, cc.weighted_coverage(edges, va.roots, vb.roots, va.content,
+                                               vb.content, self.idf)
+
+    def cross_material(self, i: int, j: int, edges: Sequence | None = None) -> bool:
+        """The core's `material_ok` of verses i and j at `MATERIAL_MIN_COVERAGE` (κ, read
+        at call time) — unify-cross-closeness-cue D1, the cross-only material rule."""
+        edges = self.edges(i, j) if edges is None else edges
+        va, vb = self.vwords[i], self.vwords[j]
+        return cc.material_ok(edges, va.roots, vb.roots, va.content, vb.content, self.idf,
+                              MATERIAL_MIN_COVERAGE)
+
     def syntax(self, i: int, j: int):
         """The intra `syntax_similarity` of verses i and j: their matching and `syn`
         over the interned signatures with the blocks re-orderable along it (D4)."""
@@ -555,20 +633,32 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
 
     stored: list[list] = []
     passed: set[tuple[int, int]] = set()
+    lost = dict.fromkeys(LOSS_STAGES, 0)
     for p in pairs:
         dense, lex = signals[p]
         sem = sem_score(ce_of[p], dense, lex)
         if sem < TAU_SEM:
+            lost["semantic_gate"] += 1
             continue
         edges = corpus.edges(*p)
         # short-verse-material D1: after the semantic gate, before the matched mass
         if not corpus.material(*p, edges):
+            lost["short_material"] += 1
             continue
         lx = corpus.lexical(*p, edges)
         # D3: «shares a content root» is now «the matching carries a positive mass»
         if REQUIRE_SHARED_ROOT and not lx.mass > 0:
+            lost["no_shared_root"] += 1
             continue
         sy = survivors[p]
+        # unify-cross-closeness-cue D3: the two cross-only rules, FILTERS after every
+        # earlier stage, so no stored value of a pair they keep moves.
+        if not passes_syntax(sy, SIGMA_CROSS):
+            lost["syntax_cross"] += 1
+            continue
+        if not corpus.cross_material(*p, edges):
+            lost["material"] += 1
+            continue
         # `dense` stays the measured value; `verbatim` says it did not enter `sem`
         sig = {"s": rnd(sem * sy), "sem": rnd(sem), "syn": rnd(sy), "ce": rnd(ce_of[p]),
                "dense": rnd(dense_of[p]), "lex": rnd(lex), "roots": lx.roots}
@@ -588,12 +678,16 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
         a_sig, b_sig = corpus.seqs[p[0]], corpus.seqs[p[1]]
         sy = corpus.syntax(*p).syn
         verbatim = corpus.verbatim(*p)
-        lex = corpus.lexical(*p).lex
+        edges = corpus.edges(*p)
+        lx = corpus.lexical(*p, edges)
+        lex = lx.lex
         ce = ce_of.get(p)
         sem = sem_score(ce, None if verbatim else dense_of[p], lex) if ce is not None else None
+        n_lemmas, n_content, coverage = corpus.material_coverage(*p, edges)
         row.update({"syn": rnd(sy), "dense": rnd(dense_of[p]), "lex": rnd(lex),
                     "verbatim": verbatim, "ce": None if ce is None else rnd(ce),
-                    "sem": None if sem is None else rnd(sem)})
+                    "sem": None if sem is None else rnd(sem),
+                    "L": n_lemmas, "c": n_content, "coverage": rnd(coverage)})
         # A pair below σ is a `syntax_gate` loss whichever stage dropped it first;
         # a pre-filter stage is reported only for a pair whose syn ≥ σ — a bug.
         dropped_by = prefilter_stage(a_sig, b_sig)
@@ -612,16 +706,24 @@ def build_anchor(surah: int, kept: list[tuple[int, int]], gold: list[dict], ctx:
             row["stage"] = "candidate_cap"
         elif sem < TAU_SEM:
             row["stage"] = "semantic_gate"
-        elif not corpus.material(*p):
+        elif not corpus.material(*p, edges):
             row["stage"] = "short_material"
-        elif p not in passed:
+        elif REQUIRE_SHARED_ROOT and not lx.mass > 0:
             row["stage"] = "no_shared_root"
+        elif not passes_syntax(survivors[p], SIGMA_CROSS):
+            row["stage"] = "syntax_cross"
+        elif not corpus.cross_material(*p, edges):
+            row["stage"] = "material"
         else:
             row["stage"] = "passed"
+        # The diagnostics re-derive the loop's verdict; a disagreement is a defect.
+        if p in kept_set and (row["stage"] == "passed") != (p in passed):
+            raise AssertionError(f"gold diagnostics disagree with the build on "
+                                 f"{g['a']}/{g['b']} (stage {row['stage']})")
         diag.append(row)
 
     return {"pairs": stored, "diagnostics": diag,
-            "stats": {"ce_pairs": len(pairs), "stored_pairs": len(stored)}}
+            "stats": {"ce_pairs": len(pairs), "stored_pairs": len(stored), "lost": lost}}
 
 
 def assemble(corpus: Corpus, done: dict[int, dict], head: dict) -> dict:
@@ -657,13 +759,20 @@ def assemble(corpus: Corpus, done: dict[int, dict], head: dict) -> dict:
                          else "relative_cut" if holds(top_k, row) else "top_k")
                 row = {**row, "stage": stage}
             gold_rows.append(row)
+    # unify-cross-closeness-cue D3: the capped pairs lost at each post-cross-encoder
+    # stage, summed over the anchor surahs (a checkpoint without `lost` adds nothing).
+    stage_losses = dict.fromkeys(LOSS_STAGES, 0)
+    for s in sorted(done):
+        for k_, v in done[s].get("stats", {}).get("lost", {}).items():
+            stage_losses[k_] = stage_losses.get(k_, 0) + v
     return {
         "schema": SCHEMA,
         "build": head,
         "unscored": corpus.unscored,
         "neighbours": neighbours,
-        # The per-gold-pair stage the evaluation reads (task 4.1). Ignored by the route.
-        "diagnostics": {"gold": gold_rows},
+        # The per-gold-pair stage the evaluation reads (task 4.1), and the per-stage
+        # losses over every capped pair. Ignored by the route.
+        "diagnostics": {"gold": gold_rows, "stage_losses": stage_losses},
     }
 
 
@@ -710,6 +819,12 @@ def main(argv: list[str] | None = None) -> int:
                      f"(the backend, or build_index.py). Stop it first — the build reads the "
                      f"verse vectors out of that store — then rerun:\n    {REBUILD}"
                      f"\n(`--syntax-only` needs no lock.)")
+
+        if not args.dry_run and not THRESHOLDS_CHOSEN:
+            sys.exit("Refusing to build: SIGMA_CROSS / MATERIAL_MIN_COVERAGE are still the "
+                     "placeholders. Task 2.2 of unify-cross-closeness-cue writes the (σ_x, κ) "
+                     "its D6 rule picks on the calibration labels and sets THRESHOLDS_CHOSEN "
+                     "= True. (`--syntax-only` and `--dry-run` store nothing and still run.)")
 
     t0 = time.time()
     corpus = Corpus()
@@ -827,10 +942,14 @@ def main(argv: list[str] | None = None) -> int:
     totals = defaultdict(int)
     for c in done.values():
         for k_, v in c["stats"].items():
-            totals[k_] += v
+            if k_ != "lost":
+                totals[k_] += v
     dataset = assemble(corpus, done, head)
     print("TOTAL: " + ", ".join(f"{k_}={v}" for k_, v in totals.items())
           + f", verses with neighbours={len(dataset['neighbours'])}")
+    print("LOST after the cross-encoder (capped pairs, by stage): " + ", ".join(
+        f"{k_}={v}" for k_, v in dataset["diagnostics"]["stage_losses"].items())
+          + f"  (σ_x = {SIGMA_CROSS:.4f}, κ = {MATERIAL_MIN_COVERAGE})")
     out = paths.QURAN_SIMILARITY_JSON
     tmp = out.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(dataset, ensure_ascii=False, sort_keys=False,

@@ -35,6 +35,10 @@ Public API (stable — the builds depend on it):
   short       SHORT_MATERIAL_MAX_LEN, SHORT_MATERIAL_MIN_LEMMAS;
               short_material_ok(edges, na, nb) -> bool
               (openspec/changes/short-verse-material, D1)
+  material    MATERIAL_MIN_LEMMAS, COVERAGE_EPS;
+              material_coverage(edges, content_a, content_b) -> (L, c, coverage);
+              material_ok(edges, content_a, content_b, kappa) -> bool
+              (openspec/changes/unify-cross-closeness-cue, D1)
   D6          Region(k, i1, i2, j1, j2, edges, score, content);
               passage_region(edges) -> Region | None (= best_region_in_a);
               rejection(k, span_a, span_b, content) -> str | None;
@@ -138,6 +142,14 @@ CONTENT_MIN = 3
 # `lemma` content edges in its matching.
 SHORT_MATERIAL_MAX_LEN = 5
 SHORT_MATERIAL_MIN_LEMMAS = 2
+# unify-cross-closeness-cue D1: the cross-surah material rule needs at least this many
+# `lemma` content edges, whatever the verses' lengths, and an IDF-WEIGHTED coverage of
+# the shorter verse ≥ `κ` — the CALLER's threshold (the cross build's constant, chosen by
+# that change's D6 on the calibration), compared `≥ κ − ε` like the syntactic gate.
+# (A count-only L ≥ 3 was built and measured on 2026-10-09 and reverted: it kept
+# 2:10/39:26 — three lemmas, two of them الله / كان — and dropped half the positives.)
+MATERIAL_MIN_LEMMAS = 2
+COVERAGE_EPS = SIGMA_EPS
 
 # Rule names the builds' headers record (D8).
 SIGNATURE = "stem-coarse"
@@ -345,6 +357,61 @@ def short_material_ok(edges: Iterable[Edge], na: int, nb: int) -> bool:
     if min(na, nb) > SHORT_MATERIAL_MAX_LEN:
         return True
     return sum(1 for e in edges if e.kind == LEMMA) >= SHORT_MATERIAL_MIN_LEMMAS
+
+
+def material_coverage(edges: Iterable[Edge], content_a: Sequence[bool],
+                      content_b: Sequence[bool]) -> tuple[int, int, float]:
+    """unify-cross-closeness-cue D1: `(L, c, L / c)` of a pair's matching (D2).
+
+    `L` — the `lemma` content edges (a `root` edge, a shared root under another lemma,
+    and a `tool` edge count for nothing); `c = min(cA, cB)` — the content words (D1,
+    the `lex` definition: the flags `content_words` returns) of the verse with FEWER
+    of them, so a short verse wholly contained in a long one covers itself whole.
+    Coverage is 0.0 when `c` is 0. Symmetric in (A, B).
+    """
+    lemmas = sum(1 for e in edges if e.kind == LEMMA)
+    c = min(sum(1 for f in content_a if f), sum(1 for f in content_b if f))
+    return lemmas, c, (lemmas / c if c else 0.0)
+
+
+def weighted_coverage(edges: Iterable[Edge], roots_a: Sequence, roots_b: Sequence,
+                      content_a: Sequence[bool], content_b: Sequence[bool],
+                      idf: dict[str, float]) -> float:
+    """unify-cross-closeness-cue D1 (weighted): how much of a verse its shared LEMMAS cover,
+    each word weighed by its root's IDF, so a lemma found everywhere (الله، كان) weighs
+    little and a rare one (ريب) much.
+
+    For each verse X: `Σ idf(root)` over X's words joined by a `lemma` edge, divided by
+    `Σ idf(root)` over X's content words (`_content_mass`, the `lex` denominator). The
+    coverage is the LARGER of the two ratios — the verse the shared lemmas cover best,
+    which is the shorter one whenever one verse is contained in the other. A verse whose
+    content mass is 0 contributes 0. `root` and `tool` edges count for nothing. Equals
+    `L / min(cA, cB)` when every root weighs the same. Symmetric in (A, B).
+    """
+    lemma = [e for e in edges if e.kind == LEMMA]
+
+    def side(roots, content, pos):
+        mass = _content_mass(roots, content, idf)
+        if mass <= 0:
+            return 0.0
+        return min(1.0, sum(idf.get(roots[k - 1], 0.0) for k in pos) / mass)
+
+    return max(side(roots_a, content_a, [e.p for e in lemma]),
+               side(roots_b, content_b, [e.q for e in lemma]))
+
+
+def material_ok(edges: Iterable[Edge], roots_a: Sequence, roots_b: Sequence,
+                content_a: Sequence[bool], content_b: Sequence[bool],
+                idf: dict[str, float], kappa: float) -> bool:
+    """unify-cross-closeness-cue D1: `L ≥ MATERIAL_MIN_LEMMAS` lemma edges AND
+    `weighted_coverage ≥ kappa − COVERAGE_EPS`, whatever the verses' lengths. The lemma
+    floor holds at every `kappa`, 0 included. Symmetric in (A, B). `short_material_ok`
+    is a separate rule, unchanged."""
+    edges = list(edges)
+    lemmas = sum(1 for e in edges if e.kind == LEMMA)
+    return (lemmas >= MATERIAL_MIN_LEMMAS
+            and weighted_coverage(edges, roots_a, roots_b, content_a, content_b, idf)
+            >= kappa - COVERAGE_EPS)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

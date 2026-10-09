@@ -8,9 +8,10 @@ and measured — this route reads, it never computes:
     the wider neighbour lists → the green marker;
   * `quran_close_verses.json` (through `api/routers/quran_similarity.py`'s
     loader and `retrieval.quran_close_verses.surah_partners`) — every pair
-    holding a verse of the surah, split by RELATION, never by a threshold:
-    `similarity` in `from` → `whole` (orange marker), `from == ["passage"]` →
-    `passage` (orange words, through the stored spans).
+    holding a verse of the surah, in ONE list `cross` whatever relation
+    produced it (change `unify-cross-closeness-cue`, D8): each pair colours the
+    orange marker AND its common part, through the stored spans. The pair's
+    `from` is not served — the reader no longer decides anything by it.
 
 Each annotated ayah lists its group partners and its cross partners; every
 partner verse travels once in `verses`, through `verse_from_record`, so the
@@ -85,23 +86,22 @@ def get_surah_annotations(
     selves: dict[int, Verse] = {}
     ayahs: list[AnnotatedAyah] = []
     for ayah in sorted(groups.keys() | pairs.keys()):
-        whole: list[AnnotationPartner] = []
-        passage: list[AnnotationPartner] = []
+        # `surah_partners` already serves score desc, then the partner's (surah, ayah).
+        partners: list[AnnotationPartner] = []
         for p in pairs.get(ayah, []):
             if ayah not in selves:
                 selves[ayah] = verse_from_record(cross._record(retriever, number, ayah))
             other = verse(p["surah"], p["ayah"])
-            partner = AnnotationPartner(
+            partners.append(AnnotationPartner(
                 ref=other.id,
                 score=p["score"],
                 words=p["words"],
                 spans_self=cross._placed(selves[ayah], p["spans_self"]),
                 spans_other=cross._placed(other, p["spans_other"]),
-            )
-            (whole if "similarity" in p["from"] else passage).append(partner)
+            ))
         group = sorted(groups.get(ayah, ()))
         for a in group:
             verse(number, a)
-        ayahs.append(AnnotatedAyah(ayah=ayah, group=group, whole=whole, passage=passage))
+        ayahs.append(AnnotatedAyah(ayah=ayah, group=group, cross=partners))
 
     return SurahAnnotationsResponse(surah=number, ayahs=ayahs, verses=verses)
