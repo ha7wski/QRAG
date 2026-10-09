@@ -435,9 +435,11 @@ def surah_partners(data: dict, surah: int) -> dict[int, list[dict]]:
     spans in THIS verse's displayed text, `spans_other` in the partner's, `words`
     its matched word count — all three None when the pair has no common part.
 
-    Behind GET /surah/{number}/annotations, which needs a whole surah at once
-    and the relation of each pair (the reading page decides marker vs words by
-    it). The surah is NOT range-checked: an out-of-range one simply holds no
+    Behind GET /surah/{number}/annotations, which needs a whole surah at once and
+    serves every pair in one `cross` list whatever its relation: the reading page
+    shows ONE orange cue (the marker, plus the common part's words) for all of them
+    (unify-cross-closeness-cue D8). `from` is kept for audits, not read by the
+    route. The surah is NOT range-checked: an out-of-range one simply holds no
     pair. Raises `MalformedEntry` when the dataset is not in the D6 shape.
     """
     agg = _aggregated(data)
