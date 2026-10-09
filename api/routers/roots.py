@@ -120,7 +120,24 @@ def root_entry(forms: dict, names: dict[int, str]) -> dict:
         "forms": list(forms["forms"]),
         "reading": None,
         "reading_refusal": None,
+        "letters": root_letters(forms["root"]),
     }
+
+
+def root_letters(root: str) -> list[dict]:
+    """The root's letter cards — name, مخرج, position and Islambouli's gloss.
+
+    Exactly what «تحليل اللسان» shows, built by the same calls: the core-first
+    engine's `decompose` + `identities` (phonetics only — the sense bundle and the
+    Ibn Jinnī note are never forwarded) and the `/lisan` router's
+    `_with_islambouli` join for the gloss — verbatim, or "" for every letter when
+    his table fails its lock. No core is read and no sense selected.
+    """
+    from api.routers.lisan import _with_islambouli
+    from linguistics.lisan.lisan_service import LisanService
+
+    letters = LisanService.identities(root, LisanService.decompose(root))
+    return _with_islambouli({"letters": letters})["letters"]
 
 
 def attach_readings(entries: list[dict]) -> bool:

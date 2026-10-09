@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, ListTree } from "lucide-react";
 import IslambouliStages from "@/components/IslambouliStages";
+import LetterCards from "@/components/LetterCards";
 import SarfiRows from "@/components/SarfiRows";
 import type { LisanResponse } from "@/lib/lisanTypes";
 import type { QlisanFormResponse } from "@/lib/types";
@@ -87,9 +88,15 @@ export default function LisanResult({
         </div>
       </div>
 
-      {/* 2 — The root's letters: name, مخرج, position, and Islambouli's gloss,
-             quoted and attributed. */}
-      <LetterCards letters={data.letters} />
+      {/* 2 — The root's letters: name, مخرج, position, and Islambouli's gloss. */}
+      {data.letters.length > 0 && (
+        <section aria-labelledby="lisan-letters">
+          <h2 id="lisan-letters" className="mb-2 font-arabic font-semibold text-gray-800">
+            {S.lexical.lettersHeading}
+          </h2>
+          <LetterCards letters={data.letters} />
+        </section>
+      )}
 
       {/* 3 — Islambouli: his own sentence when he published one, the PROJECT's
              mechanical junction of his three rows, the gap between them, and the
@@ -246,70 +253,6 @@ function Occurrences({
           </Link>
         </>
       )}
-    </section>
-  );
-}
-
-/* ── The letters, with Islambouli's gloss ──────────────────────────────── */
-
-/**
- * One card per radical: the letter, its name and مخرج, its position in the root,
- * and Samer Islambouli's gloss for it, verbatim. The صفات chips and the «N وجوه»
- * count that used to sit here are gone: the gloss replaces the first, and the
- * second counted senses this page no longer shows.
- */
-function LetterCards({ letters }: { letters: LisanResponse["letters"] }) {
-  if (letters.length === 0) return null;
-
-  return (
-    <section aria-labelledby="lisan-letters">
-      <h2
-        id="lisan-letters"
-        className="font-arabic font-semibold text-gray-800"
-      >
-        {S.lexical.lettersHeading}
-      </h2>
-      <p className="mb-2 mt-1 font-arabic text-xs text-gray-500">
-        {S.lexical.lettersNote}
-      </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {letters.map((l) => (
-          <div
-            key={l.index}
-            className="rounded-lg border border-gray-200 bg-white p-3"
-          >
-            <div className="flex items-center gap-3">
-              <span className="font-arabic text-4xl leading-none text-brand">
-                {l.letter}
-              </span>
-              <div className="min-w-0">
-                <div className="truncate font-arabic text-sm font-medium text-gray-800">
-                  {l.name}
-                </div>
-                <div className="font-arabic text-xs text-gray-500">
-                  {l.makhraj}
-                </div>
-              </div>
-              <span
-                title={S.lexical.positionLabel}
-                className="ms-auto rounded bg-gray-100 px-1.5 py-0.5 font-arabic text-[11px] text-gray-600"
-              >
-                {S.lexical.position[l.position]}
-              </span>
-            </div>
-
-            {l.islambouli ? (
-              <p className="mt-2 font-arabic text-base leading-relaxed text-gray-800">
-                {l.islambouli}
-              </p>
-            ) : (
-              <p className="mt-2 font-arabic text-sm text-gray-400">
-                {S.lexical.islambouliMissing}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
     </section>
   );
 }

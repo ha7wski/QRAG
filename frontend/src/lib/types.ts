@@ -1,3 +1,4 @@
+import type { LetterIdentity } from "./lisanTypes";
 // Shared types mirroring the FastAPI backend response models.
 
 export interface Verse {
@@ -286,6 +287,8 @@ export interface RootIndexEntry {
   forms: string[];
   reading: string | null;
   reading_refusal: string | null;
+  /** The root's letter cards, as «تحليل اللسان» shows them (gloss included). */
+  letters?: LetterIdentity[];
 }
 
 export interface RootLetterResponse {

@@ -7,11 +7,13 @@ import { NOUNS, S } from "@/lib/strings";
 import { useCachedState } from "@/lib/pageCache";
 import ArabicText from "./ArabicText";
 import Counted from "./Counted";
+import LetterCards from "./LetterCards";
 
 /**
  * One root of «فهرس الجذور». The root and its three distinct counts are always
  * visible; the rest is folded behind the header, because a letter renders ~100
- * cards and the reader scans roots before reading one. Unfolded: the project's
+ * cards and the reader scans roots before reading one. Unfolded: the root's
+ * letter cards (the ones «تحليل اللسان» shows) → the project's
  * mechanical letter reading (or why there is none) → «السور» → «المواضع» (the
  * root's distinct written forms) → two green links: «الكلمة في الآيات», which
  * lists every āya of the root in full, and «تحليل لساني» to its left.
@@ -21,8 +23,8 @@ import Counted from "./Counted";
  * «تحليل اللسان» for the same root.
  *
  * The reading is shown under `S.lexical.assemblyLabel`, the label `/lexical`
- * already puts on the same assembly, and nothing else of Islambouli's is
- * rendered here — not his published sentence, not the cultural stage. When
+ * already puts on the same assembly. Besides his letter glosses, nothing else of
+ * Islambouli's is rendered here — not his published sentence, not the cultural stage. When
  * `readingsAvailable` is false the page carries one notice and the card shows
  * no reading block at all, so a lock failure is never mistaken for a refusal.
  */
@@ -75,6 +77,8 @@ export default function RootCard({
 
       {open && (
         <div id={detailsId} className="space-y-3 px-4 pb-4">
+          <LetterCards letters={entry.letters ?? []} />
+
           {readingsAvailable &&
             (entry.reading ? (
               <div

@@ -475,8 +475,6 @@ const BASE = {
      * published table, and the note says so before any card is read. It is
      * never selected against the aṣl and never composed into a sentence. */
     lettersHeading: "حروف الجذر",
-    lettersNote:
-      "دلالةُ كلِّ حرفٍ كما نشرها سامر إسلامبولي في جدوله، منقولةً بنصِّها ومنسوبةً إليه — قولُه، لا استنباطُ هذا التطبيق.",
     islambouliMissing: "لا دلالةَ لهذا الحرف في جدول إسلامبولي.",
     // ── Islambouli: his sentence, the project's assembly, the gap ──
     citedHeading: "ما نشره إسلامبولي لهذا الجذر",
@@ -484,8 +482,7 @@ const BASE = {
     citedClassification:
       "تصنيفُ هذه الجملة «حالةً فيزيائية» تصنيفُنا نحن لا عنوانُه؛ فالعنوان المطبوع هو المعروض.",
     assemblyHeading: "تركيب الأسطر الثلاثة",
-    assemblyLabel:
-      "تركيبٌ آليٌّ للأسطر الثلاثة، من صنع هذا التطبيق — لا تعريفٌ، ولا قولُ إسلامبولي",
+    assemblyLabel: "تركيبٌ آليٌّ للأسطر الثلاثة، من صنع هذا التطبيق",
     assemblyAlternativesNote:
       "ما بين القوسين بدائلُ يذكرها الجدول بـ«أو»؛ لا يختار التطبيقُ بينها.",
     assemblyChoiceBy: (author: string) =>
