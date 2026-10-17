@@ -1,13 +1,17 @@
 import Link from "next/link";
 import {
+  Activity,
   ArrowLeft,
   BookOpen,
+  ListOrdered,
   ListTree,
   MessageSquare,
+  ScrollText,
   Type,
 } from "lucide-react";
 import { S } from "@/lib/strings";
 
+// One card per navigation entry, in the navigation's order and with its icon.
 const features = [
   {
     href: "/chat",
@@ -15,14 +19,29 @@ const features = [
     ...S.home.cards.chat,
   },
   {
+    href: "/surah",
+    icon: ScrollText,
+    ...S.home.cards.surahs,
+  },
+  {
     href: "/verse-study",
     icon: ListTree,
     ...S.home.cards.verseStudy,
   },
   {
+    href: "/roots",
+    icon: ListOrdered,
+    ...S.home.cards.roots,
+  },
+  {
     href: "/lexical",
     icon: Type,
     ...S.home.cards.lexical,
+  },
+  {
+    href: "/fassila",
+    icon: Activity,
+    ...S.home.cards.fassila,
   },
 ];
 
@@ -40,8 +59,8 @@ export default function HomePage() {
         <p className="mx-auto max-w-2xl text-lg text-gray-600">{S.home.lede}</p>
       </section>
 
-      {/* Feature cards. One column per card (there are three): a 4-column grid
-          left an empty track, which pushed the row off the page's centre. */}
+      {/* Feature cards. Six cards fill two rows of three exactly: a 4-column
+          grid would leave empty tracks and push a row off the page's centre. */}
       <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {features.map(({ href, icon: Icon, title, desc, cta }) => (
           <Link
