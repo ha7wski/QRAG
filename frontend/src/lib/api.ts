@@ -222,6 +222,24 @@ export async function getSurahSimilarity(
   return res.json();
 }
 
+/** One bar of the «داخل السورة» chart. */
+export interface SurahGroupCount {
+  surah_number: number;
+  surah_name_ar: string;
+  groups: number;
+}
+
+/** `GET /surah-similarity/overview` — surahs holding ≥ 1 group, mushaf order. */
+export interface SurahSimilarityOverview {
+  surahs: SurahGroupCount[];
+}
+
+export async function getSurahSimilarityOverview(): Promise<SurahSimilarityOverview> {
+  const res = await fetch(`${API_URL}/surah-similarity/overview`);
+  if (!res.ok) throw await similarityError(res, `Surah similarity overview failed`);
+  return res.json();
+}
+
 // ── Reading annotations («سور القرآن») ────────────────────────────────
 // The same two datasets, per sūra and per āya, for the reading page's opt-in
 // closeness annotations. A static lookup: no model, nothing computed per request.
@@ -236,6 +254,8 @@ export interface AnnotationPartner {
   ref: string;
   /** Ranking only — never rendered. */
   score: number;
+  /** The shorter verse lies WHOLE inside the shared passage (`pas` 1). Ranking only. */
+  contained: boolean;
   /** Matched words of the common part, or null. */
   words: number | null;
   /** Half-open CHARACTER spans of the common part in THIS āya's

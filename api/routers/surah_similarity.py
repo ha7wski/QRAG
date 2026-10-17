@@ -13,6 +13,9 @@ The per-verse view (`?ayah=a`, one verse's close verses in its surah) is gone:
 the page that read it was removed at the user's request, and a route no page
 calls is a route nobody audits. The pure reader keeps `ayah_view`.
 
+`GET /surah-similarity/overview` is the chart above the picker: per surah
+holding at least one group, its group count, in mushaf order.
+
 Errors: surah outside 1..114 → 422 (path validation); dataset missing, of an
 unknown schema, without this surah, or with a malformed entry for it → 503
 whose detail carries the rebuild command.
@@ -21,7 +24,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Path, Request
 
-from api.models.surah_similarity import SimilarityGroup, SurahSimilarityResponse
+from api.models.surah_similarity import (
+    SimilarityGroup,
+    SurahGroupCount,
+    SurahSimilarityOverview,
+    SurahSimilarityResponse,
+)
 from api.models.verse import verse_from_record
 from quran_data.loaders import DatasetMissing
 from retrieval import surah_similarity as reader
@@ -91,4 +99,31 @@ def get_surah_similarity(
             )
             for g in view["groups"]
         ],
+    )
+
+
+@router.get(
+    "/surah-similarity/overview",
+    response_model=SurahSimilarityOverview,
+)
+def get_surah_similarity_overview(request: Request) -> SurahSimilarityOverview:
+    """The group count of every surah holding at least one group, mushaf order."""
+    names = {
+        s["number"]: s.get("name_ar", "")
+        for s in request.app.state.engine.retriever.list_surahs()
+    }
+    data = _dataset()
+    try:
+        rows = reader.overview(data)
+    except reader.MalformedEntry as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return SurahSimilarityOverview(
+        surahs=[
+            SurahGroupCount(
+                surah_number=r["surah"],
+                surah_name_ar=names.get(r["surah"], ""),
+                groups=r["groups"],
+            )
+            for r in rows
+        ]
     )

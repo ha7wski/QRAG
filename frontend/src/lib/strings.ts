@@ -104,6 +104,7 @@ export const NOUNS = {
   root: { one: "جذر", two: "جذرين", few: "جذور", many: "جذرًا" },
   /** A pair — of surahs or of verses, the phrase names which. */
   zawj: { one: "زوج", two: "زوجين", few: "أزواج", many: "زوجًا" },
+  majmua: { one: "مجموعة", two: "مجموعتين", few: "مجموعات", many: "مجموعة" },
   /**
    * Noun + adjective as one form. The adjective agrees with the number too
    * («فواصل مميّزة», «فاصلتين مميّزتين»), so storing the bare noun and
@@ -334,6 +335,13 @@ const BASE = {
       caption:
         "اختر سورةً فترى مجموعاتِ آياتها المتقاربة في المعنى والتركيب معًا.",
       groupsHeading: "مجموعات الآيات المتقاربة",
+      /** The foldable chart above the picker: group count per surah. */
+      chartToggle: "عدد مجموعات الآيات المتقاربة في كل سورة",
+      chartLabel: "رسمٌ بعدد مجموعات الآيات المتقاربة في كل سورة",
+      chartHint: "اضغط عمود سورةٍ لترى مجموعاتها.",
+      chartBar: (name: string, groups: number) =>
+        `سورة ${name} : ${count(groups, NOUNS.majmua)}`,
+      chartEmpty: "ليس في أيّ سورةٍ مجموعةٌ من الآيات المتقاربة.",
       noGroups: "ليس في هذه السورة مجموعةٌ من الآيات تتقارب في المعنى والتركيب معًا.",
       /** One line naming the surah's verses that carry no content word. */
       unscoredNote: (ayahs: number[]) =>

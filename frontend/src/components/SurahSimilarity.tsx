@@ -13,10 +13,14 @@ import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import FailureNote, { type Failure } from "@/components/FailureNote";
 import SurahPicker from "@/components/SurahPicker";
+import SurahSimilarityChart from "@/components/SurahSimilarityChart";
 import { LoadingLine, VerseText } from "@/components/SimilarVerseParts";
 
 /**
  * «داخل سورة» — the intra-surah similarity view of «الآيات المتقاربات».
+ *
+ * Above the picker, a foldable bar chart (`SurahSimilarityChart`) gives each
+ * surah's group count; clicking a bar is the same as picking that surah.
  *
  * Pick a surah → its groups of mutually close verses, strongest first, each
  * framed in green and numbered (1, 2, 3 …) in a green disc beside it. A group
@@ -110,6 +114,9 @@ export default function SurahSimilarity({
       <p className="text-sm text-gray-500">
         {S.verseStudy.surahSimilar.caption}
       </p>
+
+      {/* Foldable: group count per surah; a bar picks its surah. */}
+      <SurahSimilarityChart selected={surah} onChoose={chooseSurah} />
 
       <SurahPicker
         surahs={surahs.length ? surahs : null}

@@ -111,6 +111,26 @@ def surah_view(data: dict, surah: int) -> dict:
         raise _malformed(surah, exc) from exc
 
 
+def overview(data: dict) -> list[dict]:
+    """Every surah holding at least one group, in mushaf order.
+
+    Returns `[{"surah": int, "groups": int}]` — the per-surah group count the
+    «داخل السورة» chart plots. A surah with no group is left out, not zeroed:
+    the chart's axis is the surahs that have something to open.
+    Raises `MalformedEntry` on the first entry not in the D10 shape.
+    """
+    out: list[dict] = []
+    try:
+        keys = sorted(int(k) for k in data.get("surahs", {}))
+    except _MALFORMED as exc:
+        raise _malformed(0, exc) from exc
+    for n in keys:
+        groups = surah_view(data, n)["groups"]
+        if groups:
+            out.append({"surah": n, "groups": len(groups)})
+    return out
+
+
 def ayah_view(data: dict, surah: int, ayah: int, ayah_count: int) -> dict:
     """One verse's close verses within its surah, in dataset order.
 

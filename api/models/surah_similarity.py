@@ -28,3 +28,17 @@ class SurahSimilarityResponse(BaseModel):
     ayah_count: int
     unscored: list[int]               # verses with no content root — never compared
     groups: list[SimilarityGroup]
+
+
+class SurahGroupCount(BaseModel):
+    """One surah of the overview chart: its name and how many groups it holds."""
+
+    surah_number: int
+    surah_name_ar: str = ""
+    groups: int
+
+
+class SurahSimilarityOverview(BaseModel):
+    """GET /surah-similarity/overview — the surahs holding ≥ 1 group, mushaf order."""
+
+    surahs: list[SurahGroupCount]
