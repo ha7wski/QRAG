@@ -362,7 +362,7 @@ def build(records, resolved: dict | None = None) -> tuple[dict, dict, dict, dict
 _VOCATIVE = ("يا", "ويا")
 
 
-def _aligned_tokens(text_ar: str, n_words: int) -> list[str] | None:
+def aligned_tokens(text_ar: str, n_words: int) -> list[str] | None:
     """The āya's written words, one per QAC word, or None when they can't be paired.
 
     Marks (waqf signs) are not words. When the counts differ, a separate vocative
@@ -406,7 +406,7 @@ def build_word_to_roots(verses: list[dict], resolved: dict,
     unpaired = 0
     for v in verses:
         s, a = v["surah_number"], v["ayah_number"]
-        toks = _aligned_tokens(v["text_ar"], len(ayah_words.get((s, a), ())))
+        toks = aligned_tokens(v["text_ar"], len(ayah_words.get((s, a), ())))
         if toks is None:
             unpaired += 1
             continue

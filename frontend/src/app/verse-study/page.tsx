@@ -937,8 +937,31 @@ function SimilarTab({
   );
 }
 
-/** Tab 2 — an Arabic phrase (even a partial verse) → closest verses by root + keyword,
- *  reranked by a cross-encoder (no dense/semantic branch; see api/routers/search.py). */
+/** Every result scoring at least this is shown (no top-N cut); the backend ranks a
+ *  short query lexically first, so the score is ~ its lexical tier. */
+const SIMILAR_MIN_SCORE = 0.6;
+/** Safety cap on the response, not a display choice. */
+const SIMILAR_MAX = 500;
+
+/** Group search results by surah, keeping the backend's relevance order at both
+ *  levels: surahs by their best-ranked verse, and verses inside a surah by rank —
+ *  so an exact match («ومن الناس» 22:3) heads its surah before 22:1. */
+function groupResultsBySurah(verses: Verse[]) {
+  const out: { number: number; name: string; verses: Verse[] }[] = [];
+  const byNum = new Map<number, number>();
+  for (const v of verses) {
+    if (!byNum.has(v.surah_number)) {
+      byNum.set(v.surah_number, out.length);
+      out.push({ number: v.surah_number, name: v.surah_name_ar, verses: [] });
+    }
+    out[byNum.get(v.surah_number)!].verses.push(v);
+  }
+  return out;
+}
+
+/** Tab 2 — an Arabic phrase (even a partial verse) → closest verses: a short query is
+ *  ranked lexically (sequence + form/lemma/root coverage), the cross-encoder ordering
+ *  within a tier; results above SIMILAR_MIN_SCORE, grouped by surah. */
 function SimilarVerses() {
   const [query, setQuery] = useCachedState("verse-study.similar.query", "");
   const [data, setData] = useCachedState<SearchResponse | null>(
@@ -967,6 +990,20 @@ function SimilarVerses() {
     {},
   );
   const [ctxLoading, setCtxLoading] = useState<Set<string>>(new Set());
+  // Surah groups the reader unfolded (all folded after a search). Cached like the
+  // open cards, so coming back to the tab finds the same groups open.
+  const [openSurahs, setOpenSurahs] = useCachedState<Set<number>>(
+    "verse-study.similar.openSurahs",
+    new Set(),
+  );
+
+  function toggleSurah(n: number) {
+    setOpenSurahs((prev) => {
+      const next = new Set(prev);
+      next.has(n) ? next.delete(n) : next.add(n);
+      return next;
+    });
+  }
 
   /** Load one verse's surrounding āyāt. Lazy by design: fetching all 20 up front
    *  would be 20 requests for context the reader probably will not open. */
@@ -1025,10 +1062,11 @@ function SimilarVerses() {
     setError(null);
     // A new search invalidates every open card and its loaded context.
     setExpanded(new Set());
+    setOpenSurahs(new Set());
     setContexts({});
     setCtxError({});
     try {
-      setData(await searchVerses(query.trim(), 20));
+      setData(await searchVerses(query.trim(), SIMILAR_MAX, SIMILAR_MIN_SCORE));
     } catch (e) {
       setError({ text: forStatus(statusOf(e), "search"), detail: detailOf(e) });
       setData(null);
@@ -1108,19 +1146,59 @@ function SimilarVerses() {
             <>
               <div className="rounded-lg bg-gray-100 px-4 py-3 text-start">
                 <span lang="ar" className="font-arabic text-lg text-gray-800">
-                  {S.verseStudy.nearest(data.results.length)}
+                  {S.verseStudy.nearestInSurahs(
+                    data.results.length,
+                    groupResultsBySurah(data.results).length,
+                  )}
                 </span>
               </div>
               <div className="space-y-3">
-                {data.results.map((v) => (
-                  <SimilarVerseCard
-                    key={v.id}
-                    verse={v}
-                    open={expanded.has(v.id)}
-                    context={contexts[v.id]}
-                    error={ctxError[v.id]}
-                    onToggle={() => toggle(v)}
-                  />
+                {groupResultsBySurah(data.results).map((g) => (
+                  <section
+                    key={g.number}
+                    data-testid="similar-surah-group"
+                    className="overflow-hidden rounded-lg border border-gray-200"
+                  >
+                    {/* Same foldable header as the surah cards of «الكلمة في الآيات». */}
+                    <h3>
+                      <button
+                        type="button"
+                        onClick={() => toggleSurah(g.number)}
+                        aria-expanded={openSurahs.has(g.number)}
+                        className="flex w-full items-center justify-between bg-gray-50 px-4 py-2.5 text-start hover:bg-gray-100"
+                      >
+                        <span className="font-arabic text-lg">
+                          <span className="font-semibold text-gray-800">{g.name}</span>
+                          <span className="text-gray-400">
+                            {" "}
+                            <span dir="ltr">({g.number})</span>
+                          </span>
+                          <span className="text-gray-600">
+                            ، عدد الآيات : {g.verses.length}
+                          </span>
+                        </span>
+                        {openSurahs.has(g.number) ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronLeft className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                    </h3>
+                    {openSurahs.has(g.number) && (
+                    <div className="space-y-3 p-3">
+                      {g.verses.map((v) => (
+                        <SimilarVerseCard
+                          key={v.id}
+                          verse={v}
+                          open={expanded.has(v.id)}
+                          context={contexts[v.id]}
+                          error={ctxError[v.id]}
+                          onToggle={() => toggle(v)}
+                        />
+                      ))}
+                    </div>
+                    )}
+                  </section>
                 ))}
               </div>
             </>
@@ -1166,37 +1244,23 @@ function SimilarVerseCard({
         className="block w-full p-4 text-start"
         title={open ? "أخفِ السياق" : "اعرض الآية في سياقها"}
       >
-        {/* Format: «اسم السورة (رقم)» — the same reference style the surah cards
-            of "Word in Verses" use. The āya number is not repeated here: it is
-            already badged at the end of the verse itself (﴿44﴾). */}
-        <header className="mb-2 flex items-center justify-between gap-2">
-          <span className="font-arabic text-lg">
-            <span className="font-semibold text-gray-800">
-              {verse.surah_name_ar}
-            </span>
-            <span className="text-gray-400"> ({verse.surah_number})</span>
-          </span>
-          <span className="flex items-center gap-2">
-            {typeof verse.relevance_score === "number" && (
-              <span dir="ltr" className="text-xs text-gray-300">
-                {verse.relevance_score.toFixed(3)}
-              </span>
-            )}
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${
-                open ? "rotate-180" : ""
-              }`}
-            />
-          </span>
-        </header>
+        {/* The surah is named by the group heading above the card, and the āya
+            number is badged at the end of the verse itself (﴿44﴾). No score. */}
         <div
           lang="ar"
-          className="arabic-text text-2xl leading-loose text-gray-900"
+          className="flex items-start justify-between gap-3 arabic-text text-2xl leading-loose text-gray-900"
         >
+          <span>
           {verse.text_ar_tashkil || verse.text_ar}{" "}
           <span className="western-digits align-middle text-sm text-gray-400">
             ﴿{verse.ayah_number}﴾
           </span>
+          </span>
+          <ChevronDown
+            className={`mt-3 h-4 w-4 shrink-0 text-gray-400 transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
+          />
         </div>
       </button>
 

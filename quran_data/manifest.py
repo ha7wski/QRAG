@@ -538,7 +538,7 @@ MANIFEST: dict[str, Entry] = {
              "index, so a name highlights by position, not by substring.",
         origin="Chain A.",
         producer="ingestion/qac_morphology.py",
-        consumers=("retrieval/verse_lookup.py",),
+        consumers=("retrieval/verse_lookup.py", "retrieval/phrase_match.py"),
         regenerable=True,
         rebuild=PIPELINE,
     ),

@@ -8,6 +8,7 @@ import time
 from fastapi import APIRouter, Query, Request
 
 from api.models.verse import SearchResponse, verse_from_record
+from retrieval.phrase_match import query_units
 
 router = APIRouter(tags=["search"])
 
@@ -41,6 +42,11 @@ COVERAGE_FLOOR = float(os.getenv("SEARCH_COVERAGE_FLOOR", "0.25"))
 # channel contributes, and the RRF constant that orders the pool when it does.
 DENSE_AR_POOL = int(os.getenv("SEARCH_DENSE_AR_POOL", "16"))
 RRF_K = 60
+# Short queries (≤ this many words, a lone و/ف counting with the next word) are
+# ranked LEXICALLY first — contiguous sequence + graded form/lemma/root coverage,
+# function words included (retrieval/phrase_match.py) — and the cross-encoder
+# only orders verses of equal lexical score. 0 disables the phrase path.
+PHRASE_MAX_WORDS = int(os.getenv("SEARCH_PHRASE_MAX_WORDS", "5"))
 
 
 def _rrf_pool(lists: list[list[str]], cap: int) -> list[str]:
@@ -60,10 +66,17 @@ def search(
     surah: int | None = Query(None, ge=1, le=114),
     period: str | None = Query(None, description="makkiyya | madani"),
     juz: int | None = Query(None, ge=1, le=30),
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(10, ge=1, le=500),
+    min_score: float | None = Query(
+        None, ge=0.0, le=1.0,
+        description="Return every result scoring at least this (up to `limit`) "
+                    "instead of the default relevance cut.",
+    ),
 ) -> SearchResponse:
-    """Similar-verse search: root ∪ BM25 candidates → cross-encoder rerank →
-    query-root-coverage blend → relevance threshold. Optional filters."""
+    """Similar-verse search: root ∪ BM25 (∪ dense) candidates → cross-encoder
+    rerank → query-root-coverage blend → relevance threshold. A short query is
+    ranked lexically first (sequence + graded coverage), the cross-encoder then
+    ordering within a lexical tier. Optional filters."""
     engine = request.app.state.engine
     # Built on the first search that gets here, then reused (see LazyReranker).
     provider = getattr(request.app.state, "search_reranker_provider", None)
@@ -134,9 +147,48 @@ def search(
         candidates = pool[:RERANK_POOL_MAX]
         mode = f"union(root={n_root}+bm25={len(pool) - n_root})"
 
+    # Short query: score every verse that could match, lexically, and hand the
+    # reranker the best RERANK_POOL_MAX. The pool built above only breaks ties
+    # (a verse the root/BM25/dense channels liked goes first), then shorter verses.
+    phrase_words = None
+    if similar is not None and 0 < len(query_units(q)) <= PHRASE_MAX_WORDS:
+        phrase = similar.phrase
+        phrase_words = phrase.analyse(q)
+        pool_rank = {r["id"]: i for i, r in enumerate(candidates)}
+        scored = []
+        for vid in phrase.candidates(phrase_words) | set(pool_rank):
+            rec = engine.retriever._full(vid)
+            if rec is None or (filters and not _passes(rec)):
+                continue
+            scored.append(({**rec, "score": 0.0, **phrase.score(vid, phrase_words)}))
+        scored.sort(key=lambda r: (
+            -r["lex"], pool_rank.get(r["id"], len(pool_rank)), len(phrase.tokens[r["id"]]),
+        ))
+        mode = f"phrase(scored={len(scored)}; {mode})"
+        candidates = scored[:RERANK_POOL_MAX]
+        beyond_pool = scored[RERANK_POOL_MAX:]
+
     # Comparison stage: rerank the candidate pool by cross-encoder relevance and
     # drop the low-relevance tail (threshold), else keep the pool order.
-    if reranker is not None:
+    if phrase_words is not None:
+        ranked = reranker.rerank(q, candidates, top_k=len(candidates)) if reranker else candidates
+        # Lexical tiers first; the cross-encoder only orders verses of one tier.
+        # The shown score stays monotone with that order: tier − 0.01·(1 − ce).
+        for r in ranked:
+            ce = r.get("rerank_score", 1.0)
+            r["_tier"] = round(r["lex"], 2)
+            r["_ce"] = ce
+            r["rerank_score"] = round(r["_tier"] - 0.01 * (1.0 - ce), 4)
+        # Verses past the reranked pool keep their lexical tier, ce unknown → 0, so
+        # they follow the reranked verses of their own tier.
+        for r in beyond_pool:
+            r["_tier"], r["_ce"] = round(r["lex"], 2), 0.0
+            r["rerank_score"] = round(r["_tier"] - 0.01, 4)
+        ranked = sorted([*ranked, *beyond_pool], key=lambda r: (r["_tier"], r["_ce"]), reverse=True)
+        floor = min_score if min_score is not None else 0.0
+        kept = [r for r in ranked if r["lex"] > 0 and r["rerank_score"] >= floor]
+        results = (kept or ranked[:MIN_RESULTS])[:limit]
+    elif reranker is not None:
         ranked = reranker.rerank(q, candidates, top_k=len(candidates))
         # Context comparison: blend query-root coverage into the score, then
         # re-sort. Disambiguates shared-root false positives and demotes verses
@@ -158,7 +210,8 @@ def search(
                 full = [r for r in ranked if r.get("_cov", 0.0) >= 0.999]
                 if len(full) >= MIN_RESULTS:
                     ranked = full
-        kept = [r for r in ranked if r.get("rerank_score", 0.0) >= MIN_RERANK_SCORE]
+        floor = min_score if min_score is not None else MIN_RERANK_SCORE
+        kept = [r for r in ranked if r.get("rerank_score", 0.0) >= floor]
         results = (kept or ranked[:MIN_RESULTS])[:limit]
     else:
         results = candidates[:limit]

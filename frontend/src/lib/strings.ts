@@ -293,6 +293,9 @@ const BASE = {
       `ما هي الآيات القريبة في المعنى والتركيب اللغوي من ${iso(`«${q}»`)} ؟`,
     similarNote: `بحثٌ بالجذر واللفظ في ${iso(6236)} آية، مرتَّبٌ بحسب القرب في المعنى — يُعيد أقرب المواضع.`,
     nearest: (n: number) => `أقرب ${count(n, NOUNS.aya)}`,
+    /** «N آية في M سورة» — the similar-verse results, grouped by surah. */
+    nearestInSurahs: (n: number, m: number) =>
+      `${count(n, NOUNS.aya)} في ${count(m, NOUNS.surah)}`,
     contextCaption: "اختر السورة والآية لقراءتها في سياقها — مع الآيات الثلاث قبلها وبعدها.",
     showVerse: "اعرض الآية",
     loadingContext: "جارٍ تحميل السياق…",

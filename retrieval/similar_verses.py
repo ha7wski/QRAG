@@ -61,6 +61,16 @@ class SimilarVerses:
         # Reuse the shared LexicalRetriever: QAC index + resolver + verse records.
         self.lex = lexical_retriever
         self.N = len(self.lex.verses_by_id) or 6236
+        self._phrase = None
+
+    @property
+    def phrase(self):
+        """The short-query lexical scorer (`retrieval/phrase_match.py`), built on
+        first use: it pairs every written word with its QAC lemma (~1 s)."""
+        if self._phrase is None:
+            from retrieval.phrase_match import PhraseMatcher
+            self._phrase = PhraseMatcher(self)
+        return self._phrase
 
     # ── query cleaning → content roots ────────────────────────────────────
     def _resolve_token(self, token: str) -> list[str]:

@@ -137,8 +137,10 @@ export async function saveLisanReading(
 export async function searchVerses(
   q: string,
   limit = 20,
+  minScore?: number,
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q, limit: String(limit) });
+  if (minScore !== undefined) params.set("min_score", String(minScore));
   const res = await fetch(`${API_URL}/search?${params.toString()}`);
   if (!res.ok) throw new ApiError(`Search failed: ${res.status}`, res.status);
   return res.json();
