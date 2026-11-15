@@ -1,0 +1,1661 @@
+{
+  "meta": {
+    "badge": "تأويلي",
+    "version": "1.0.0",
+    "compiled": "2026-11-15",
+    "letters": 28,
+    "series": {
+      "abu_qaisar": "10 lettres de la playlist «سلسلة معاني الحروف» (الفكر السابع 7)",
+      "generalise": "18 lettres construites par le procédé généralisé (cf. maani-huruf-lettres-restantes.md)"
+    },
+    "origin_values": {
+      "author": "donné par Abu Qaisar",
+      "author_inferred": "déduit de l'exemple de l'auteur",
+      "rule": "nom divin choisi par la règle début/milieu/fin",
+      "substitute_word": "aucun nom divin : mot arabe courant"
+    },
+    "sources": {
+      "AQ": "Abu Qaisar, الفكر السابع 7 (vidéo ض g9Fj5QaloQc + fragments)",
+      "IS": "سامر إسلامبولي، علمية اللسان العربي وعالميته (poster, data/references/islambouli_letters.csv)",
+      "HA": "حسن عباس، خصائص الحروف العربية ومعانيها 1998 (data/references/letter_senses.csv)",
+      "BL": "عبدالوهاب البلوشي، صحيفة الكفاح 2022 (archives/99272, 158283)",
+      "NJ": "منال نجار، القيم الدلالية لأصوات الحروف في العربية، مجلة جامعة النجاح 24(9) 2010",
+      "SM": "محمد رجب السامرائي via midad.com/article/222660"
+    },
+    "to_verify": "exemples à contrôler contre data/derived/qac_words.json"
+  },
+  "letters": [
+    {
+      "letter": "ا",
+      "name": "ألف",
+      "series": "abu_qaisar",
+      "videos": [
+        "qfhtZ8uDIxw",
+        "03_1FEivtvk"
+      ],
+      "drawing": "خط واحد = 1 ؛ المسلة",
+      "structure": "ا+ل+ف",
+      "core_sense_ar": "الآحادية والتوحيد، والدلالة الجمعية على كيان واحد",
+      "core_sense_fr": "unicité, rassemblement en une entité",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "الأول / الواحد / الآخر",
+        "IS": "إثارة وامتداد في الزمان والمكان",
+        "BL": "الوجود والاستمرار، الألفة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الأول",
+          "sense_ar": "توحيدك ملزم – عليك",
+          "sense_fr": "unicité imposée",
+          "examples": [
+            "اعمل"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الواحد",
+          "sense_ar": "توحيدك معترف – به",
+          "sense_fr": "unicité reconnue",
+          "examples": [
+            "صالح"
+          ],
+          "origin": "author_inferred"
+        },
+        "final": {
+          "divine_name": "الآخر",
+          "sense_ar": "توحيدك تختاره – أنت",
+          "sense_fr": "unicité choisie",
+          "examples": [
+            "عملا",
+            "ظلوما",
+            "جهولا"
+          ],
+          "origin": "author"
+        }
+      },
+      "dimensions": {
+        "ء": "الوضع الابتدائي للنطق",
+        "ي": "المظهر الزماني: الاستمرارية",
+        "و": "المظهر المكاني: التوجه إلى موضع"
+      },
+      "quran_refs": [
+        "الأنفال 63",
+        "آل عمران 103",
+        "هود 1",
+        "الأحزاب 72",
+        "البقرة 59",
+        "المزمل 6"
+      ],
+      "notes": "القَول (مكاني) ≠ القِيل (زماني) ; milieu déduit (l'écran ne dit pas «وسط»)",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ب",
+      "name": "باء",
+      "series": "abu_qaisar",
+      "videos": [
+        "AWpeNn5ZOeY"
+      ],
+      "drawing": "أساسات فوق السطر والنقطة بذرة تحته",
+      "structure": "ب+ا+ء",
+      "core_sense_ar": "بداية ظهور الأساسات وارتفاعها دون خبرة بما ستؤول إليه",
+      "core_sense_fr": "début d'une construction dont l'issue est inconnue",
+      "convergence": "faible",
+      "sources": {
+        "AQ": "المبدئ / الجبار / الوهاب",
+        "IS": "جمع مستقر",
+        "HA": "الحفر والشق ؛ أول: الانبثاق والظهور",
+        "BL": "الانتقال إلى النقيض"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "المبدئ",
+          "sense_ar": "بادئ لبيان شأن الحركة دون خبرة (ومنه باء الجر)",
+          "sense_fr": "départ sans expérience",
+          "examples": [
+            "بدر",
+            "بحر",
+            "بناء"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الجبّار",
+          "sense_ar": "تأكيد الصفة وإلصاقها بالكيان",
+          "sense_fr": "qualité confirmée",
+          "examples": [
+            "صبر",
+            "جبل",
+            "ربح"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الوهّاب",
+          "sense_ar": "استقرت الحركة وأصبحت مولّدة",
+          "sense_fr": "générateur",
+          "examples": [
+            "سحاب",
+            "حجاب",
+            "باب"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [
+        "الحج 26",
+        "النساء 154"
+      ],
+      "notes": "النيلي: البَوء، البِيء، البُوء",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ت",
+      "name": "تاء",
+      "series": "abu_qaisar",
+      "videos": [
+        "Co-L9KoJxqw"
+      ],
+      "drawing": null,
+      "structure": null,
+      "core_sense_ar": "ترتيل وتراكم المعرفة للتحكم في الحركة",
+      "core_sense_fr": "accumulation de savoir, maîtrise du mouvement",
+      "convergence": "faible",
+      "sources": {
+        "AQ": "التواب / الفتاح / المقيت المميت",
+        "IS": "دفع خفيف متوقف",
+        "HA": "الرقة والضعف",
+        "BL": "الذات / الاستيعاب"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "التوّاب",
+          "sense_ar": "بداية ترتيل وتراكم المعرفة ؛ الزمن الحاضر",
+          "sense_fr": "nouveau cycle",
+          "examples": [
+            "تاب",
+            "تذكر",
+            "تالله"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الفتّاح",
+          "sense_ar": "الحركة المعرفية تفرض نفسها على المعنى",
+          "sense_fr": "maîtrise imposée",
+          "examples": [
+            "كتب",
+            "اختلفوا"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "المُقيت المميت",
+          "sense_ar": "المتحكم الأخير ؛ دلالة جمعية مؤنثة نهائية",
+          "sense_fr": "contrôle final",
+          "examples": [
+            "آيات",
+            "السماوات"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [
+        "البقرة 37",
+        "يوسف 73",
+        "البقرة 218"
+      ],
+      "notes": "سؤال مفتوح: رحمت/رحمة",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ث",
+      "name": "ثاء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ت + نقطة",
+      "structure": "ث+ا+ء",
+      "core_sense_ar": "نَفَسٌ خفيف يلتصق بالشيء أو ينتشر منه",
+      "core_sense_fr": "souffle léger qui reste attaché ou se répand",
+      "convergence": "moyenne",
+      "sources": {
+        "IS": "دفع خفيف ملتصق",
+        "HA": "رقة، بضاضة، طراوة، دفء",
+        "NJ": "ابن جني: النفث والبث؛ العلايلي: التعلق الشديد",
+        "BL": "الإدراك الشديد"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "ثمر",
+            "ثبت",
+            "ثقل"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "بداية تعلّق خفيف يثبت ويستقر",
+          "substitute_word": "ثَبَتَ"
+        },
+        "medial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "أثر",
+            "كثير",
+            "مثل"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "تعلّق خفيف يبقى أثره داخل الكيان",
+          "substitute_word": "أَثَر"
+        },
+        "final": {
+          "divine_name": "الوارث",
+          "sense_fr": "ce qui demeure",
+          "examples": [
+            "حرث",
+            "بث",
+            "ورث",
+            "مكث"
+          ],
+          "origin": "rule",
+          "sense_ar": "ما يبقى ويدوم بعد انقضاء غيره"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ج",
+      "name": "جيم",
+      "series": "abu_qaisar",
+      "videos": [
+        "yQi9nXzf4tw",
+        "g_pcXjdSl9U"
+      ],
+      "drawing": "قوس يحيط بنقطة",
+      "structure": "جـ+ي+م",
+      "core_sense_ar": "جمع مستمر للحركة بكثرة حتى كمال المعنى",
+      "core_sense_fr": "rassembler en abondance",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "الجامع / الواجد الماجد",
+        "IS": "جهد أو شدة",
+        "HA": "الفخامة والعظم والامتلاء",
+        "BL": "التكرار والاستمرار"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الجامع",
+          "sense_ar": "بداية جمع الكثرة لكمال المعنى",
+          "sense_fr": "début d'un rassemblement",
+          "examples": [
+            "جمال",
+            "جهاد",
+            "جبل"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الواجد الماجد",
+          "sense_ar": "الجمع مكوّن داخلي للمعنى",
+          "sense_fr": "composant interne",
+          "examples": [
+            "زجاج",
+            "أجاج"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الواجد الماجد",
+          "sense_ar": "اتساع الحركة الجمعية أكثر",
+          "sense_fr": "expansion",
+          "examples": [
+            "أجّج",
+            "وهج"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [
+        "الفجر 19-20",
+        "الرحمن 54",
+        "التحريم 11"
+      ],
+      "notes": "ابن الأعرابي: جمّ يجمّ",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ح",
+      "name": "حاء",
+      "series": "abu_qaisar",
+      "videos": [
+        "VGcr0cB6nLs"
+      ],
+      "drawing": "قوس الجيم بلا نقطة = حدود",
+      "structure": "أساس + حركة + نسبة",
+      "core_sense_ar": "احتواء ووضع حدود للحركة في بنية الكلمة",
+      "core_sense_fr": "contenir et fixer des limites",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "الحي الحليم / الواحد / الفتاح",
+        "IS": "تأرجح شديد منضبط، أو سعة محددة",
+        "HA": "العاطفة والرقة والحرارة",
+        "BL": "الإحاطة والاحتواء"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الحيّ الحليم",
+          "sense_ar": "احتواء وإحراز وتحديد في موضع",
+          "sense_fr": "contenir en un lieu",
+          "examples": [
+            "حج",
+            "حرم",
+            "حصن"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الواحد",
+          "sense_ar": "حركة داخلية حدودها معترف بها",
+          "sense_fr": "limites reconnues",
+          "examples": [
+            "الإحسان",
+            "الأرحام"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الفتّاح",
+          "sense_ar": "حدّ نهائي يحتوي الكلمة ثم يطلق حركة في السياق",
+          "sense_fr": "limite finale qui relance",
+          "examples": [
+            "فلاح",
+            "فتح",
+            "روح"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [],
+      "notes": "الإمام علي: الحاء حقّ حيّ حليم",
+      "discarded_poles": []
+    },
+    {
+      "letter": "خ",
+      "name": "خاء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ح + نقطة",
+      "structure": "خ+ا+ء",
+      "core_sense_ar": "الرخاوة واللين الذي يلين ويميل، والباطن الخفي",
+      "core_sense_fr": "souplesse qui cède ; intérieur caché",
+      "convergence": "faible_polarisee",
+      "sources": {
+        "IS": "رخاوة أو طراوة",
+        "HA": "رداءة/خسة/قذارة (−) ؛ قطع ؛ رقة/نضارة (+)",
+        "NJ": "ابن جني: ضعف ورطوبة؛ البستاني: الخفاء",
+        "BL": "الانقطاع في المرافقة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الخالق / الخبير",
+          "sense_fr": "façonner ; connaître l'intérieur",
+          "examples": [
+            "خلق",
+            "خبر",
+            "خفي",
+            "خشع"
+          ],
+          "origin": "rule",
+          "sense_ar": "تشكيل ما هو ليّن والعلم بباطنه"
+        },
+        "medial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "أخذ",
+            "سخر"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "لين يُذلَّل ويُسخَّر داخل الكيان",
+          "substitute_word": "سَخَّرَ"
+        },
+        "final": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "نسخ",
+            "شيخ",
+            "برزخ"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "إدخال اللين والخفاء إلى الداخل",
+          "substitute_word": "نَفَخَ"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": [
+        "HA: قذارة/خسة (source unique, produit l'antonyme pour خير)"
+      ]
+    },
+    {
+      "letter": "د",
+      "name": "دال",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "dalet = porte",
+      "structure": "د+ا+ل",
+      "core_sense_ar": "دفع شديد ينتهي عند حدّ",
+      "core_sense_fr": "poussée forte qui s'arrête à une limite",
+      "convergence": "forte",
+      "sources": {
+        "IS": "دفع شديد متوقف",
+        "HA": "صلابة، قساوة، فعالية",
+        "NJ": "العلايلي: التصلب؛ البستاني: امتداد إلى حد",
+        "SM": "2e lettre: تفريق",
+        "BL": "استيعاب جميع الجهات"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "دخل",
+            "دفع",
+            "دعا"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "بداية دفع شديد نحو حدّ",
+          "substitute_word": "دَفَعَ"
+        },
+        "medial": {
+          "divine_name": "العدل / القادر",
+          "sense_fr": "force mesurée",
+          "examples": [
+            "قدر",
+            "عدل",
+            "بدأ"
+          ],
+          "origin": "rule",
+          "sense_ar": "قوة مقدّرة بميزان"
+        },
+        "final": {
+          "divine_name": "الصمد / الواحد / الحميد",
+          "sense_fr": "aboutissement plein",
+          "examples": [
+            "حمد",
+            "صمد",
+            "وعد",
+            "أحد"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء الدفع إلى تمام صلب لا فراغ فيه"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ذ",
+      "name": "ذال",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "د + نقطة",
+      "structure": "ذ+ا+ل",
+      "core_sense_ar": "دفع نافذ يخترق ويُفرد",
+      "core_sense_fr": "poussée qui pénètre et singularise",
+      "convergence": "moyenne",
+      "sources": {
+        "IS": "دفع وسط ملتصق",
+        "HA": "توتر، شدة الظهور، قطع",
+        "NJ": "العلايلي: الانفراد؛ البستاني: النفاذ بشدة",
+        "SM": "2e lettre: قطع",
+        "BL": "الكثرة الشديدة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "ذو الجلال والإكرام",
+          "sense_fr": "",
+          "examples": [
+            "ذكر",
+            "ذبح",
+            "ذهب",
+            "ذل"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية نفاذ يُظهر التفرّد"
+        },
+        "medial": {
+          "divine_name": "المذل",
+          "sense_fr": "faire plier",
+          "examples": [
+            "أذن",
+            "عذب",
+            "نذر"
+          ],
+          "origin": "rule",
+          "sense_ar": "نفاذ يُخضع ويُذلّل"
+        },
+        "final": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "أخذ",
+            "نبذ",
+            "منقذ"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "انتهاء النفاذ إلى إفراد الشيء وإبعاده",
+          "substitute_word": "نَبَذَ"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ر",
+      "name": "راء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "resh = tête",
+      "structure": "ر+ا+ء",
+      "core_sense_ar": "التكرار وعودة الحركة",
+      "core_sense_fr": "répétition, reprise du mouvement",
+      "convergence": "tres_forte",
+      "sources": {
+        "AQ": "تكرار (حرب)",
+        "IS": "تكرار",
+        "HA": "تحرك، تكرار، ترجيع؛ أول: ثبات؛ آخر: انتهاء بحركة",
+        "NJ": "ابن جني: الجر والتكرار",
+        "BL": "شدة التحول إلى النقيض"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الرزاق",
+          "sense_fr": "don renouvelé",
+          "examples": [
+            "رزق",
+            "رجع",
+            "رد",
+            "رتل"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية عطاء يتجدّد ويتكرّر"
+        },
+        "medial": {
+          "divine_name": "البارئ / المصور",
+          "sense_fr": "",
+          "examples": [
+            "أرسل",
+            "فر",
+            "مرة"
+          ],
+          "origin": "rule",
+          "sense_ar": "حركة متكررة تبني الصورة"
+        },
+        "final": {
+          "divine_name": "الغفار / الغفور",
+          "sense_fr": "pardon répété (forme intensive)",
+          "examples": [
+            "غفر",
+            "كفر",
+            "نشر",
+            "دهر"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء الفعل بتكرار متواصل (صيغة مبالغة)"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ز",
+      "name": "زاي",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "zayin = arme",
+      "structure": "ز+ا+ي",
+      "core_sense_ar": "بروز حادّ وظهور واضح",
+      "core_sense_fr": "saillie vive, émergence nette",
+      "convergence": "moyenne",
+      "sources": {
+        "IS": "بروز متصل",
+        "HA": "حدة، اهتزاز، انزلاق",
+        "NJ": "العلايلي: الانتزاع القوي؛ البستاني: المرور السريع",
+        "BL": "الكثرة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "زرع",
+            "زاد",
+            "زلزل"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "بداية بروز حيّ يخرج من الأرض",
+          "substitute_word": "زَرَعَ"
+        },
+        "medial": {
+          "divine_name": "الرزاق / المعز",
+          "sense_fr": "",
+          "examples": [
+            "عزم",
+            "نزل",
+            "رزق"
+          ],
+          "origin": "rule",
+          "sense_ar": "بروز يُعطى ويُمنح"
+        },
+        "final": {
+          "divine_name": "العزيز",
+          "sense_fr": "saillie qui résiste",
+          "examples": [
+            "عزيز",
+            "فوز",
+            "كنز"
+          ],
+          "origin": "rule",
+          "sense_ar": "بروز يمتنع ولا يُنال"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "س",
+      "name": "سين",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "šin = dent",
+      "structure": "س+ي+ن",
+      "core_sense_ar": "حركة متصلة حرّة تمتدّ",
+      "core_sense_fr": "mouvement continu, libre, qui s'étend",
+      "convergence": "forte",
+      "sources": {
+        "IS": "حركة متصلة حرة",
+        "HA": "نعومة، انزلاق، امتداد؛ أول: طلب ومسير؛ آخر: خفاء واستقرار",
+        "NJ": "العلايلي: سعة غير محددة",
+        "SM": "قطع",
+        "BL": "المرافقة الكاملة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "السلام / السميع",
+          "sense_fr": "flux paisible",
+          "examples": [
+            "سار",
+            "سعى",
+            "سبح",
+            "سأل"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية حركة سلسة هادئة"
+        },
+        "medial": {
+          "divine_name": "الباسط",
+          "sense_fr": "étendre",
+          "examples": [
+            "بسط",
+            "رسل",
+            "نسل"
+          ],
+          "origin": "rule",
+          "sense_ar": "امتداد الحركة وبسطها"
+        },
+        "final": {
+          "divine_name": "القدوس",
+          "sense_fr": "mouvement posé, stable",
+          "examples": [
+            "شمس",
+            "نفس",
+            "الناس"
+          ],
+          "origin": "rule",
+          "sense_ar": "حركة استقرت وسكنت"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ش",
+      "name": "شين",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "šin = dent",
+      "structure": "ش+ي+ن",
+      "core_sense_ar": "الانتشار والتفشّي",
+      "core_sense_fr": "diffusion, dispersion",
+      "convergence": "tres_forte",
+      "sources": {
+        "IS": "انتشار وتفش",
+        "HA": "بعثرة، انتشار",
+        "NJ": "ابن جني: التفشي؛ البستاني: التفرق",
+        "SM": "أول: تفريق",
+        "BL": "الكثافة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الشهيد / الشكور",
+          "sense_fr": "présent partout",
+          "examples": [
+            "شجر",
+            "شرح",
+            "تشيع"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية حضور ينتشر في كل مكان"
+        },
+        "medial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "نشر",
+            "بشر",
+            "حشر"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "انتشار يتوسّع داخل الكيان",
+          "substitute_word": "نَشَرَ"
+        },
+        "final": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "العرش",
+            "الفراش",
+            "منفوش"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "انتهاء الانتشار إلى بسط شامل",
+          "substitute_word": "فَرَشَ"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ص",
+      "name": "صاد",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ṣade",
+      "structure": "ص+ا+د",
+      "core_sense_ar": "حركة متصلة محدودة ثابتة نحو غاية",
+      "core_sense_fr": "mouvement continu mais borné, tenu vers un but",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "الصبر والثبات على أمر بنية لتحقيقه",
+        "IS": "حركة متصلة محددة",
+        "HA": "صفاء، صلابة",
+        "NJ": "العلايلي: المعالجة الشديدة؛ البستاني: الدخول والخروج",
+        "BL": "السلطان والحجة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الصبور / الصمد",
+          "sense_fr": "",
+          "examples": [
+            "صبر",
+            "صدق",
+            "صراط"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية ثبات وصبر على أمر"
+        },
+        "medial": {
+          "divine_name": "المصور / المحصي",
+          "sense_fr": "donner forme, compter dans des limites",
+          "examples": [
+            "نصر",
+            "بصر"
+          ],
+          "origin": "rule",
+          "sense_ar": "تشكيل الحركة وضبطها في حدود"
+        },
+        "final": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "حرص",
+            "قصص",
+            "نقص"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "حركة محدودة تستقر على غايتها",
+          "substitute_word": "حَرَصَ"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ض",
+      "name": "ضاد",
+      "series": "generalise",
+      "videos": [
+        "g9Fj5QaloQc"
+      ],
+      "drawing": "ص + نقطة (auteur)",
+      "structure": "ض+ا+د",
+      "core_sense_ar": "دفع شديد جداً يكشف الوجه الآخر للشيء",
+      "core_sense_fr": "poussée très forte qui révèle l'autre face",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "الضار = الكاشف المظهر المنقذ؛ مفتاح الأضداد؛ نقطة الصدمة",
+        "IS": "دفع شديد جداً، متوقف",
+        "HA": "صلابة، ضخامة",
+        "NJ": "العلايلي: الغلبة تحت ثقل؛ البستاني: الضرب",
+        "BL": "الدخول بشدة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الضار",
+          "sense_fr": "choc révélateur",
+          "examples": [
+            "ضرب",
+            "ضل",
+            "ضعف"
+          ],
+          "origin": "author",
+          "sense_ar": "صدمة تكشف المخفي (الضار النافع)"
+        },
+        "medial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "حضر",
+            "فضل",
+            "أضاءت"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "ظهور قويّ لما كان غائباً",
+          "substitute_word": "حَضَرَ"
+        },
+        "final": {
+          "divine_name": "القابض / الخافض",
+          "sense_fr": "la poussée se referme",
+          "examples": [
+            "أرض",
+            "قبض",
+            "فرض"
+          ],
+          "origin": "rule",
+          "sense_ar": "انغلاق الدفع وانقباضه"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ط",
+      "name": "طاء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ṭet ; emphatique de ت",
+      "structure": "ط+ا+ء",
+      "core_sense_ar": "دفع ينبسط ويتمكّن",
+      "core_sense_fr": "poussée qui s'étale et prend assise",
+      "convergence": "moyenne",
+      "sources": {
+        "IS": "دفع وسط متوقف",
+        "HA": "ضخامة، علو، اتساع، تكور",
+        "NJ": "العلايلي: صفة متمكنة/انطواء؛ البستاني: امتداد واستقرار؛ ابن جني: قطع قصير",
+        "BL": "السلطان"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "طلع",
+            "طغى",
+            "طاف"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "بداية دفع يعلو ويظهر",
+          "substitute_word": "طَلَعَ"
+        },
+        "medial": {
+          "divine_name": "اللطيف",
+          "sense_fr": "pénétration fine",
+          "examples": [
+            "بطن",
+            "قطع"
+          ],
+          "origin": "rule",
+          "sense_ar": "نفاذ لطيف دقيق"
+        },
+        "final": {
+          "divine_name": "الباسط / المقسط",
+          "sense_fr": "étaler, répartir",
+          "examples": [
+            "بسط",
+            "قسط",
+            "صراط",
+            "محيط"
+          ],
+          "origin": "rule",
+          "sense_ar": "انبساط وتوزيع بالقسط"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ظ",
+      "name": "ظاء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ط + نقطة",
+      "structure": "ظ+ا+ء",
+      "core_sense_ar": "ظهور قويّ يفرض نفسه ويبقى",
+      "core_sense_fr": "manifestation forte qui s'impose et reste",
+      "convergence": "forte",
+      "sources": {
+        "IS": "دفع شديد ملتصق",
+        "HA": "فخامة، ظهور؛ آخر: شدة وامتلاء",
+        "NJ": "البستاني: الظهور ضد الخفاء؛ العلايلي: الغؤور",
+        "BL": "عظمة السلطان"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الظاهر",
+          "sense_fr": "",
+          "examples": [
+            "ظهر",
+            "ظل",
+            "ظن",
+            "ظلم"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية ظهور جليّ"
+        },
+        "medial": {
+          "divine_name": "العظيم",
+          "sense_fr": "",
+          "examples": [
+            "عظيم",
+            "نظر",
+            "كظم"
+          ],
+          "origin": "rule",
+          "sense_ar": "عِظَم يملأ الكيان"
+        },
+        "final": {
+          "divine_name": "الحفيظ",
+          "sense_fr": "",
+          "examples": [
+            "حفظ",
+            "غيظ",
+            "وعظ",
+            "غليظ"
+          ],
+          "origin": "rule",
+          "sense_ar": "ظهور يُحفظ ويدوم"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ع",
+      "name": "عين",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ʿayin = œil",
+      "structure": "ع+ي+ن",
+      "core_sense_ar": "العمق والبُعد في الشيء",
+      "core_sense_fr": "profondeur, portée lointaine",
+      "convergence": "forte",
+      "sources": {
+        "IS": "عمق أو بعد في الشيء",
+        "HA": "فعالية، ظهور، سمو؛ آخر: التواء",
+        "NJ": "العلايلي: الخلاء الباطني؛ البستاني: العمق",
+        "BL": "الكثرة الكاملة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "العليم",
+          "sense_fr": "connaissance profonde",
+          "examples": [
+            "علم",
+            "عرف",
+            "عين",
+            "عميق"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية علم عميق"
+        },
+        "medial": {
+          "divine_name": "الباعث",
+          "sense_fr": "faire sortir du fond",
+          "examples": [
+            "بعث",
+            "نعمة",
+            "شعر"
+          ],
+          "origin": "rule",
+          "sense_ar": "إخراج من العمق"
+        },
+        "final": {
+          "divine_name": "الواسع / السميع",
+          "sense_fr": "portée large",
+          "examples": [
+            "وسع",
+            "سمع",
+            "رجع",
+            "طلع"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء إلى سعة وبُعد في الإدراك"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "غ",
+      "name": "غين",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "ع + نقطة",
+      "structure": "غ+ي+ن",
+      "core_sense_ar": "الستر والغموض والغياب",
+      "core_sense_fr": "ce qui est couvert, caché",
+      "convergence": "tres_forte",
+      "sources": {
+        "IS": "غموض أو غياب",
+        "HA": "غؤور، غموض، خفاء؛ آخر: ظلام",
+        "NJ": "البستاني: الخفاء؛ العلايلي: تمام المعنى (divergent)",
+        "SM": "أول: ظلمة واستتار",
+        "BL": "الانغلاق"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الغفور / الغفار",
+          "sense_fr": "غفر = couvrir",
+          "examples": [
+            "غيب",
+            "غفر",
+            "غطاء",
+            "غشي"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية ستر وتغطية"
+        },
+        "medial": {
+          "divine_name": "المغني",
+          "sense_fr": "combler, à l'abri du manque",
+          "examples": [
+            "لغو",
+            "مغفرة"
+          ],
+          "origin": "rule",
+          "sense_ar": "إغناء يستر النقص"
+        },
+        "final": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "بلغ",
+            "فرغ",
+            "زاغ"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "انتهاء الحركة إلى ما يغيب عن النظر",
+          "substitute_word": "بَلَغَ"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ف",
+      "name": "فاء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "pe = bouche",
+      "structure": "ف+ا+ء",
+      "core_sense_ar": "الانفتاح والانتشار اللطيف في كل الجهات",
+      "core_sense_fr": "ouverture, déploiement doux dans toutes les directions",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "فعالية حركة بجميع الجهات (الكهف/ينشر)",
+        "IS": "فتح خفيف منضم",
+        "HA": "بعثرة؛ أول: شق وفصل؛ آخر: رقة ووهن",
+        "NJ": "البستاني: التحرر والإطلاق؛ ابن جني: الضعف والتفرق",
+        "SM": "الفتح والانفتاح",
+        "BL": "إدراك داخلي، مرافقة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الفتاح",
+          "sense_fr": "ouvrir",
+          "examples": [
+            "فتح",
+            "فلق",
+            "فرق",
+            "فجر"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية فتح وانفتاح"
+        },
+        "medial": {
+          "divine_name": "العفو / الحفيظ",
+          "sense_fr": "",
+          "examples": [
+            "نفس",
+            "سفر",
+            "عفو"
+          ],
+          "origin": "rule",
+          "sense_ar": "انفتاح يعفو ويحفظ"
+        },
+        "final": {
+          "divine_name": "اللطيف / الرؤوف",
+          "sense_fr": "douceur",
+          "examples": [
+            "لطف",
+            "رؤوف",
+            "كشف",
+            "خوف"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء الانفتاح إلى لطف ورأفة"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ق",
+      "name": "قاف",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "qoph",
+      "structure": "ق+ا+ف",
+      "core_sense_ar": "القطع والوقف الشديد",
+      "core_sense_fr": "coupure, arrêt net et fort",
+      "convergence": "tres_forte",
+      "sources": {
+        "IS": "قطع أو وقف شديد",
+        "HA": "قساوة، مقاومة، انفجار",
+        "NJ": "ابن جني: القطع الطويل؛ البستاني: القطع والفصل؛ العلايلي: المفاجأة؛ ابن القيم: القوة",
+        "BL": "الثبات في الحق"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "القوي / القهار / القادر",
+          "sense_fr": "",
+          "examples": [
+            "قطع",
+            "قتل",
+            "قضى",
+            "قدر"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية قوة قاطعة"
+        },
+        "medial": {
+          "divine_name": "المقتدر / المقيت",
+          "sense_fr": "mesure fixée",
+          "examples": [
+            "نقض",
+            "سقط",
+            "بقي"
+          ],
+          "origin": "rule",
+          "sense_ar": "تقدير محكم ثابت"
+        },
+        "final": {
+          "divine_name": "الحق / الخالق",
+          "sense_fr": "tranché, établi",
+          "examples": [
+            "حق",
+            "خلق",
+            "فلق",
+            "شق"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء إلى أمر محسوم ثابت"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ك",
+      "name": "كاف",
+      "series": "abu_qaisar",
+      "videos": [
+        "gfp67PBHL-8"
+      ],
+      "drawing": "كفّ اليد ؛ كاف = كفّ",
+      "structure": null,
+      "core_sense_ar": "الاحتواء والاكتفاء",
+      "core_sense_fr": "contenir et suffire",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "الكبير / المتكبّر / الملك",
+        "IS": "وقف، أو ضغط خفيف",
+        "HA": "الخشونة والحرارة والقوة والاحتكاك",
+        "BL": "الكف وإتقان الأشياء"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الكبير",
+          "sense_ar": "يحتوي ويكفي الشيء فيكون أكبر مما فيه",
+          "sense_fr": "contenant qui englobe",
+          "examples": [
+            "كهف",
+            "كفن",
+            "كلمة"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "المتكبّر",
+          "sense_ar": "المتحكم المسيطر على الاحتواء والاكتفاء (لا المتعالي)",
+          "sense_fr": "contrôle de ce qui est contenu",
+          "examples": [
+            "يكلّم"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الملك",
+          "sense_ar": "الذي يتوقف عنده كل شيء",
+          "sense_fr": "arrêt total",
+          "examples": [
+            "هلك"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [],
+      "notes": "abjad 20 ; l'auteur rejette «المكمّل»",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ل",
+      "name": "لام",
+      "series": "abu_qaisar",
+      "videos": [
+        "5Ga8IqAzez8"
+      ],
+      "drawing": "ا + ن بلا نقطة ؛ عصا موسى",
+      "structure": "ل+ا+م",
+      "core_sense_ar": "الوصل والاتصال: لمّ شيء بشيء في كينونة واحدة",
+      "core_sense_fr": "relier, joindre",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "وصل/اتصال",
+        "IS": "حركة ثقيلة متصلة لازمة",
+        "HA": "الليونة والتماسك والالتصاق",
+        "BL": "الوصل والربط"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "اللطيف",
+          "sense_ar": "بداية وصل لطيف نافذ",
+          "sense_fr": "lien fin qui pénètre",
+          "examples": [
+            "لبس",
+            "لمس",
+            "لقي"
+          ],
+          "origin": "rule"
+        },
+        "medial": {
+          "divine_name": "الحليم / العليم",
+          "sense_ar": "وصل يدوم ويتماسك",
+          "sense_fr": "lien qui se maintient",
+          "examples": [
+            "علم",
+            "حلم",
+            "ألف"
+          ],
+          "origin": "rule"
+        },
+        "final": {
+          "divine_name": "العدل / الوكيل",
+          "sense_ar": "وصل استقر متوازناً",
+          "sense_fr": "lien établi, équilibré",
+          "examples": [
+            "عدل",
+            "وصل",
+            "فضل"
+          ],
+          "origin": "rule"
+        }
+      },
+      "quran_refs": [],
+      "notes": "positions proposées (règle), non données par l'auteur ; سلام→سام، كلمة→كمة، جملة→جمة",
+      "discarded_poles": []
+    },
+    {
+      "letter": "م",
+      "name": "ميم",
+      "series": "abu_qaisar",
+      "videos": [
+        "u1aKGTFVMgE"
+      ],
+      "drawing": "أمواج الماء ؛ نونان = دائرة",
+      "structure": "م+ي+م",
+      "core_sense_ar": "الجمع والنهاية: ناتج الصلة واكتمال صورة النافع",
+      "core_sense_fr": "achèvement, résultat d'une jonction",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "اكتمال النون، ناتج الصلة",
+        "IS": "جمع متصل",
+        "HA": "الليونة ؛ آخر: الضم والجمع والانغلاق",
+        "BL": "الجمع والاستيعاب"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "المهيمن / المؤمن",
+          "sense_ar": "بداية إحاطة وجمع",
+          "sense_fr": "englober",
+          "examples": [
+            "ملك",
+            "مدد",
+            "مسك"
+          ],
+          "origin": "rule"
+        },
+        "medial": {
+          "divine_name": "الصمد",
+          "sense_ar": "جمع ممتلئ لا فراغ فيه",
+          "sense_fr": "plein, sans vide",
+          "examples": [
+            "أمن",
+            "نعمة",
+            "عمل"
+          ],
+          "origin": "rule"
+        },
+        "final": {
+          "divine_name": "الرحيم / الحكيم",
+          "sense_ar": "اكتمال الجمع وانغلاقه",
+          "sense_fr": "achèvement, clôture",
+          "examples": [
+            "قوم",
+            "علم",
+            "حكم"
+          ],
+          "origin": "rule"
+        }
+      },
+      "quran_refs": [
+        "الأنبياء 30",
+        "البقرة 1-2"
+      ],
+      "notes": "positions proposées (règle) ; source AQ = transcription automatique",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ن",
+      "name": "نون",
+      "series": "abu_qaisar",
+      "videos": [
+        "eAXhQjELgOY"
+      ],
+      "drawing": "الدواة ؛ النواة ؛ نصف دائرة",
+      "structure": "ن+و+ن",
+      "core_sense_ar": "الأصل والنواة: كل مخلوق وصوت ورسم وروح يبدأ من نون",
+      "core_sense_fr": "origine, noyau",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "النافع / الغني / الرحمن المهيمن",
+        "IS": "ستر، أو اختباء",
+        "HA": "الانبثاق والنفاذ ؛ آخر: الإقامة والاستقرار",
+        "BL": "أصل الحروف، التكوين والإدراك"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "النافع",
+          "sense_ar": "بداية كونية أساسها النفع واختيارية المصير",
+          "sense_fr": "commencement utile",
+          "examples": [
+            "نسل",
+            "نعمة",
+            "نور",
+            "نهر"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "الغني",
+          "sense_ar": "الاكتفاء من جنس الكلمة يبقى في داخلها",
+          "sense_fr": "suffisance intérieure",
+          "examples": [
+            "منزل",
+            "جنة"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الرحمن المهيمن",
+          "sense_ar": "الاكتفاء استقر وتم أمره",
+          "sense_fr": "achevé, stable",
+          "examples": [
+            "مبين",
+            "لسان",
+            "الدين"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [
+        "القلم 1",
+        "الفجر 27-30",
+        "الحجر 9"
+      ],
+      "notes": "أنا = ن (الذات) + ا",
+      "discarded_poles": [
+        "HA: النتانة (إذا خُنخنت)"
+      ]
+    },
+    {
+      "letter": "ه",
+      "name": "هاء",
+      "series": "abu_qaisar",
+      "videos": [
+        "hpGbwYWOO8I"
+      ],
+      "drawing": "الهواء: إعصار، شراع",
+      "structure": null,
+      "core_sense_ar": "التوجيه والتنبيه والإشارة",
+      "core_sense_fr": "orientation, désignation",
+      "convergence": "moyenne",
+      "sources": {
+        "AQ": "الهادي / المهيمن الوهاب الظاهر / الله",
+        "IS": "تأرجح خفيف منضبط",
+        "HA": "العيوب والاضطراب (−)",
+        "BL": "تنبيه أولي وتوجيه اختياري"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الهادي",
+          "sense_ar": "بداية توجيه التنبيه الأولي الاختياري",
+          "sense_fr": "premier signal d'orientation",
+          "examples": [
+            "هو",
+            "هذا",
+            "هدى"
+          ],
+          "origin": "author"
+        },
+        "medial": {
+          "divine_name": "المهيمن الوهاب الظاهر",
+          "sense_ar": "استقرار التوجيه والاعتراف به",
+          "sense_fr": "orientation fixée",
+          "examples": [
+            "الكهف"
+          ],
+          "origin": "author"
+        },
+        "final": {
+          "divine_name": "الله",
+          "sense_ar": "توجيه كلي لما تحتويه الكلمة إلى المشار إليه",
+          "sense_fr": "contenu renvoyé au désigné",
+          "examples": [
+            "رحمته",
+            "آياته",
+            "مثله"
+          ],
+          "origin": "author"
+        }
+      },
+      "quran_refs": [
+        "البقرة 5",
+        "الكهف 16",
+        "الحشر 24"
+      ],
+      "notes": "",
+      "discarded_poles": [
+        "HA: العيوب والاضطراب (pôle négatif isolé)"
+      ]
+    },
+    {
+      "letter": "و",
+      "name": "واو",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "waw = crochet (auteur: خطاف)",
+      "structure": "و+ا+و",
+      "core_sense_ar": "التوجّه في المكان والتعلّق بالشيء",
+      "core_sense_fr": "direction dans l'espace, accrochage",
+      "convergence": "tres_forte",
+      "sources": {
+        "AQ": "المظهر المكاني للألف: توجه الحركة إلى موضع ما",
+        "IS": "ضم ممتد مكانياً",
+        "HA": "البعد إلى الأمام والاتجاه إليه",
+        "NJ": "البستاني: البعد أو العلو",
+        "BL": "الملازمة والمرافقة"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": "الولي / الوكيل",
+          "sense_fr": "proximité, attachement",
+          "examples": [
+            "وصل",
+            "وجه",
+            "وعد",
+            "ولي"
+          ],
+          "origin": "rule",
+          "sense_ar": "بداية قرب وتولٍّ"
+        },
+        "medial": {
+          "divine_name": "التواب",
+          "sense_fr": "retour",
+          "examples": [
+            "توب",
+            "قوم",
+            "يوم",
+            "نور"
+          ],
+          "origin": "rule",
+          "sense_ar": "رجوع وعودة"
+        },
+        "final": {
+          "divine_name": "العفو",
+          "sense_fr": "",
+          "examples": [
+            "عفو",
+            "لغو",
+            "يدعو",
+            "يرجو"
+          ],
+          "origin": "rule",
+          "sense_ar": "انتهاء إلى تجاوز ومحو"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": []
+    },
+    {
+      "letter": "ي",
+      "name": "ياء",
+      "series": "generalise",
+      "videos": [],
+      "drawing": "yod = main/bras",
+      "structure": "ي+ا+ء",
+      "core_sense_ar": "الامتداد والاستمرار في الزمان",
+      "core_sense_fr": "durée, continuité dans le temps",
+      "convergence": "forte",
+      "sources": {
+        "AQ": "المظهر الزماني للألف: الاستمرارية وديمومة الحركة",
+        "IS": "جهد ممتد زمانياً",
+        "HA": "اتجاه إلى الأسفل، حفرة",
+        "NJ": "البستاني: الغياب",
+        "BL": "الكمال"
+      },
+      "positions": {
+        "initial": {
+          "divine_name": null,
+          "sense_fr": "pas de nom divin : mot-exemple",
+          "examples": [
+            "يوم",
+            "يتلو",
+            "يسبح"
+          ],
+          "origin": "substitute_word",
+          "sense_ar": "بداية امتداد زمني (ومنها ياء المضارع)",
+          "substitute_word": "يَوْم"
+        },
+        "medial": {
+          "divine_name": "الرحيم / الحكيم",
+          "sense_fr": "schème فعيل = qualité durable",
+          "examples": [
+            "رحيم",
+            "حكيم"
+          ],
+          "origin": "rule",
+          "sense_ar": "صفة دائمة ثابتة (صيغة فعيل)"
+        },
+        "final": {
+          "divine_name": "الباقي / المحيي",
+          "sense_fr": "durer, faire vivre",
+          "examples": [
+            "يحيي",
+            "النبي",
+            "العلي",
+            "القوي"
+          ],
+          "origin": "rule",
+          "sense_ar": "بقاء ودوام الحياة"
+        }
+      },
+      "quran_refs": [],
+      "notes": "",
+      "discarded_poles": [
+        "HA: حفرة (source unique)"
+      ]
+    }
+  ]
+}

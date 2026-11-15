@@ -50,8 +50,45 @@ class RootEntry(BaseModel):
     letters: list[LetterIdentity] = []  # the /lexical letter cards, gloss included
 
 
+class LetterMeaningPosition(BaseModel):
+    """One position of the letter in a word: أول (initial), وسط, آخر."""
+
+    position: str                      # initial | medial | final
+    divine_name: str | None = None     # null on a substitute-word position
+    sense: str
+    examples: list[str]
+    origin: str                        # author | author_inferred | rule | substitute_word
+
+
+class LetterMeaningSource(BaseModel):
+    """One authority's reading; the authority's name is a frontend label."""
+
+    key: str                           # AQ | IS | HA | BL | NJ | SM
+    reading: str
+
+
+class LetterMeaningDimension(BaseModel):
+    letter: str
+    sense: str
+
+
+class LetterMeaning(BaseModel):
+    """The letter's entry of the «معاني الحروف» sheet, Arabic fields only (تأويلي)."""
+
+    letter: str
+    name: str
+    series: str                        # abu_qaisar | generalise
+    core_sense: str
+    drawing: str
+    structure: str
+    positions: list[LetterMeaningPosition]
+    sources: list[LetterMeaningSource]
+    dimensions: list[LetterMeaningDimension] = []
+
+
 class RootLetterResponse(BaseModel):
     letter: str
     count: int
     readings_available: bool
     roots: list[RootEntry]
+    maani: LetterMeaning | None = None  # null: the sheet has no entry or failed to load

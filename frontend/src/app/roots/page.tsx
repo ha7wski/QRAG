@@ -14,6 +14,7 @@ import { useCachedState } from "@/lib/pageCache";
 import { S, forStatus } from "@/lib/strings";
 import ArabicText from "@/components/ArabicText";
 import FailureNote, { type Failure } from "@/components/FailureNote";
+import LetterMeaningBox from "@/components/LetterMeaningBox";
 import PageIntro, { PageIntroToggle, usePageIntro } from "@/components/PageIntro";
 import RootCard from "@/components/RootCard";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -299,6 +300,9 @@ function RootIndex() {
           >
             {S.roots.groupHeading(data.letter, data.count)}
           </h2>
+
+          {/* The selected letter's «معاني الحروف» box, before its roots. */}
+          {data.maani && <LetterMeaningBox maani={data.maani} />}
 
           {!data.readings_available && (
             <p

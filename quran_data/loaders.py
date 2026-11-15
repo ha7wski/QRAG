@@ -441,6 +441,12 @@ def islambouli_citations_lock() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def maani_huruf() -> dict:
+    """The «معاني الحروف» sheet: `meta` and the 28 `letters`."""
+    return _json("MAANI_HURUF_JSON")
+
+
+@functools.lru_cache(maxsize=1)
 def islambouli_attestation() -> dict:
     """The Islambouli confrontation record — uses, then verdicts."""
     return _json("ISLAMBOULI_ATTESTATION_JSON")

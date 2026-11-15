@@ -114,6 +114,9 @@ ISLAMBOULI_WASF_LOCK_JSON = REFERENCES / "islambouli_wasf.lock.json"
 # transcribed from its witness image, and the lock on that file.
 ISLAMBOULI_CITATIONS_JSON = REFERENCES / "islambouli_citations.json"
 ISLAMBOULI_CITATIONS_LOCK_JSON = REFERENCES / "islambouli_citations.lock.json"
+# «معاني الحروف»: per letter a core sense, a reading per position and the readings
+# of named authorities, compiled by hand (interpretive). Shown on «فهرس الجذور».
+MAANI_HURUF_JSON = REFERENCES / "maani_huruf.json"
 # The §D13 collision-probe record. Its `qualification` block is committed BEFORE
 # a single concept is composed — that is what fixes the test's denominator before
 # its numerator — and the `probe` block is appended only afterwards, carrying the

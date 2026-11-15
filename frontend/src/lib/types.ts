@@ -298,4 +298,31 @@ export interface RootLetterResponse {
    *  reading, and the page shows one notice instead. */
   readings_available: boolean;
   roots: RootIndexEntry[];
+  /** The letter's «معاني الحروف» sheet (تأويلي); null when the sheet holds no
+   *  entry or failed to load — the page then shows no box. */
+  maani?: LetterMeaning | null;
+}
+
+export type LetterMeaningOrigin = "author" | "author_inferred" | "rule" | "substitute_word";
+
+export interface LetterMeaningPosition {
+  position: "initial" | "medial" | "final";
+  /** Null on a substitute-word position. */
+  divine_name: string | null;
+  sense: string;
+  examples: string[];
+  origin: LetterMeaningOrigin | string;
+}
+
+export interface LetterMeaning {
+  letter: string;
+  name: string;
+  series: "abu_qaisar" | "generalise" | string;
+  core_sense: string;
+  drawing: string;
+  structure: string;
+  positions: LetterMeaningPosition[];
+  /** Each reading keyed by its source code; the authority's name is a label. */
+  sources: { key: string; reading: string }[];
+  dimensions: { letter: string; sense: string }[];
 }

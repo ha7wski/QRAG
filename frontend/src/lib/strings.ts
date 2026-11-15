@@ -574,6 +574,38 @@ const BASE = {
     collapseCard: (root: string) => `أخفِ تفاصيل الجذر ${root}`,
     openVerseStudy: "الكلمة في الآيات",
     openLexical: "تحليل لساني",
+    /** The selected letter's box, read from the «معاني الحروف» sheet. */
+    maani: {
+      heading: (letter: string, name: string) => `معنى حرف ${letter} (${name})`,
+      badge: "تأويلي",
+      badgeTitle: "قراءةٌ تأويليّة لمعنى الحرف، لا معطًى محقَّق",
+      series: {
+        abu_qaisar: "من سلسلة «معاني الحروف» لأبي قيصر",
+        generalise: "مبنيٌّ بتعميم منهج أبي قيصر، لا من كلامه",
+      } as Record<string, string>,
+      coreSense: "المعنى الجامع",
+      positionsLabel: "بحسب موضعه في الكلمة",
+      position: { initial: "أوّل الكلمة", medial: "وسطها", final: "آخرها" } as Record<string, string>,
+      origin: {
+        author: "نصّ المؤلف",
+        author_inferred: "مستنبط من مثاله",
+        rule: "بالقاعدة",
+        substitute_word: "كلمة بديلة",
+      } as Record<string, string>,
+      examples: "أمثلة :",
+      sourcesLabel: "أقوال المصادر",
+      authority: {
+        AQ: "أبو قيصر",
+        IS: "سامر إسلامبولي",
+        HA: "حسن عباس",
+        BL: "عبد الوهاب البلوشي",
+        NJ: "منال نجار",
+        SM: "محمد رجب السامرائي",
+      } as Record<string, string>,
+      drawing: "الرسم :",
+      structure: "البنية :",
+      dimensions: "الأبعاد",
+    },
   },
 
   /** Shared verse chrome. */

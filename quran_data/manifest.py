@@ -348,6 +348,19 @@ MANIFEST: dict[str, Entry] = {
         consumers=("linguistics/lisan/islambouli_citations.py",),
         regenerable=False,
     ),
+    "MAANI_HURUF_JSON": Entry(
+        bucket="references",
+        what="«معاني الحروف»: 28 letters, each with a core sense, a reading per "
+             "position (أول / وسط / آخر: divine name or substitute word, sense, "
+             "examples, origin), the readings of named authorities, drawing and "
+             "structure. Badge تأويلي; examples not yet checked against QAC.",
+        origin="Compiled by hand (2026-11-15): 10 letters from Abu Qaisar's "
+               "«سلسلة معاني الحروف» (الفكر السابع 7), 18 by generalising his "
+               "procedure; authorities listed in its `meta.sources`.",
+        producer=None,
+        consumers=("api/routers/roots.py",),
+        regenerable=False,
+    ),
     "ISLAMBOULI_CITATIONS_LOCK_JSON": Entry(
         bucket="references",
         what="The freeze on islambouli_citations.json: version, sha256, history.",

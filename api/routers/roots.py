@@ -33,6 +33,7 @@ thing able to drift from `root_forms`.
 from __future__ import annotations
 
 import functools
+import logging
 from typing import Callable
 
 from fastapi import APIRouter, HTTPException, Request
@@ -42,6 +43,7 @@ from arabic_text import fold_carrier
 from quran_data import loaders
 
 router = APIRouter(tags=["roots"])
+logger = logging.getLogger(__name__)
 
 # The 28 letter groups, in hijāʾī order. The first is labelled «أ»: it gathers
 # bare alif and every hamza seat.
@@ -186,6 +188,51 @@ def surah_names() -> dict[int, str]:
     return names
 
 
+_POSITIONS = ("initial", "medial", "final")
+
+
+def letter_meaning(label: str, sheet: dict | None = None) -> dict | None:
+    """The group letter's «معاني الحروف» entry, projected to its Arabic fields.
+
+    The «أ» group reads the sheet's ا. None when the sheet has no entry for the
+    letter, is missing or does not have the expected shape: the box is optional,
+    the letter's roots are not, so nothing here may fail the request.
+    """
+    letter = "ا" if label == _ALIF_GROUP else label
+    try:
+        sheet = loaders.maani_huruf() if sheet is None else sheet
+        entry = next((e for e in sheet["letters"] if e["letter"] == letter), None)
+        if entry is None:
+            return None
+        source_order = list(sheet["meta"]["sources"])
+        sources = entry.get("sources", {})
+        return {
+            "letter": entry["letter"],
+            "name": entry["name"],
+            "series": entry["series"],
+            "core_sense": entry["core_sense_ar"],
+            "drawing": entry.get("drawing") or "",
+            "structure": entry.get("structure") or "",
+            "positions": [
+                {
+                    "position": pos,
+                    "divine_name": entry["positions"][pos].get("divine_name"),
+                    "sense": entry["positions"][pos]["sense_ar"],
+                    "examples": list(entry["positions"][pos].get("examples", [])),
+                    "origin": entry["positions"][pos]["origin"],
+                }
+                for pos in _POSITIONS
+            ],
+            "sources": [{"key": k, "reading": sources[k]}
+                        for k in source_order if sources.get(k)],
+            "dimensions": [{"letter": k, "sense": v}
+                           for k, v in (entry.get("dimensions") or {}).items()],
+        }
+    except Exception:  # noqa: BLE001 — a malformed sheet costs the box, not the page
+        logger.warning("maani_huruf: no letter sheet for %r", letter, exc_info=True)
+        return None
+
+
 def build_letter(label: str, root_forms: Callable[[str], dict],
                  morphology: dict | None = None,
                  names: dict[int, str] | None = None) -> dict:
@@ -196,7 +243,8 @@ def build_letter(label: str, root_forms: Callable[[str], dict],
     entries = [root_entry(root_forms(root), names) for root in roots]
     available = attach_readings(entries)
     return {"letter": label, "count": len(entries),
-            "readings_available": available, "roots": entries}
+            "readings_available": available, "roots": entries,
+            "maani": letter_meaning(label)}
 
 
 # ── routes ─────────────────────────────────────────────────────────────────
